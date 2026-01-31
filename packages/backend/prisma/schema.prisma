@@ -1,0 +1,167 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  isAdmin      Boolean  @default(false) @map("is_admin")
+  timezone     String   @default("Europe/Madrid")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  slots                    AvailabilitySlot[]
+  bookings                 Booking[]
+  notesWritten             StudentNote[]      @relation("NotesWritten")
+  notesReceived            StudentNote[]      @relation("NotesReceived")
+  allowedSlots             SlotAllowedStudent[]
+  recurringPatterns        RecurringPattern[]
+  allowedRecurringPatterns RecurringPatternAllowedStudent[]
+
+  @@map("users")
+}
+
+model AvailabilitySlot {
+  id                  String     @id @default(cuid())
+  professorId         String     @map("professor_id")
+  startTime           DateTime   @map("start_time")
+  endTime             DateTime   @map("end_time")
+  slotType            SlotType   @default(INDIVIDUAL) @map("slot_type")
+  maxParticipants     Int        @default(1) @map("max_participants")
+  currentParticipants Int        @default(0) @map("current_participants")
+  status              SlotStatus @default(AVAILABLE)
+  title               String?
+  description         String?    @db.Text
+  googleEventId       String?    @map("google_event_id")
+  googleMeetLink      String?    @map("google_meet_link")
+  isPrivate           Boolean    @default(false) @map("is_private")
+  recurringPatternId  String?    @map("recurring_pattern_id")
+  createdAt           DateTime   @default(now()) @map("created_at")
+  updatedAt           DateTime   @updatedAt @map("updated_at")
+
+  professor        User              @relation(fields: [professorId], references: [id])
+  bookings         Booking[]
+  allowedStudents  SlotAllowedStudent[]
+  recurringPattern RecurringPattern? @relation(fields: [recurringPatternId], references: [id])
+
+  @@index([professorId])
+  @@index([startTime])
+  @@index([recurringPatternId])
+  @@map("availability_slots")
+}
+
+model SlotAllowedStudent {
+  id        String   @id @default(cuid())
+  slotId    String   @map("slot_id")
+  studentId String   @map("student_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  slot    AvailabilitySlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  student User             @relation(fields: [studentId], references: [id])
+
+  @@unique([slotId, studentId])
+  @@index([studentId])
+  @@map("slot_allowed_students")
+}
+
+model RecurringPattern {
+  id           String   @id @default(cuid())
+  professorId  String   @map("professor_id")
+  title        String?
+  description  String?  @db.Text
+  slotType     SlotType @default(INDIVIDUAL) @map("slot_type")
+  maxParticipants Int   @default(1) @map("max_participants")
+  daysOfWeek   String   @map("days_of_week") // JSON array: [1, 2, 3] for Mon, Tue, Wed
+  startTime    String   @map("start_time") // "10:00" format
+  endTime      String   @map("end_time") // "11:00" format
+  startDate    DateTime @map("start_date")
+  endDate      DateTime? @map("end_date") // null = indefinite
+  isPrivate    Boolean  @default(false) @map("is_private")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  professor    User               @relation(fields: [professorId], references: [id])
+  slots        AvailabilitySlot[]
+  allowedStudents RecurringPatternAllowedStudent[]
+
+  @@index([professorId])
+  @@map("recurring_patterns")
+}
+
+model RecurringPatternAllowedStudent {
+  id                 String   @id @default(cuid())
+  recurringPatternId String   @map("recurring_pattern_id")
+  studentId          String   @map("student_id")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  recurringPattern RecurringPattern @relation(fields: [recurringPatternId], references: [id], onDelete: Cascade)
+  student          User             @relation(fields: [studentId], references: [id])
+
+  @@unique([recurringPatternId, studentId])
+  @@index([studentId])
+  @@map("recurring_pattern_allowed_students")
+}
+
+model Booking {
+  id           String        @id @default(cuid())
+  slotId       String        @map("slot_id")
+  studentId    String        @map("student_id")
+  status       BookingStatus @default(CONFIRMED)
+  bookedAt     DateTime      @default(now()) @map("booked_at")
+  cancelledAt  DateTime?     @map("cancelled_at")
+  cancelReason String?       @map("cancel_reason")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  slot    AvailabilitySlot @relation(fields: [slotId], references: [id])
+  student User             @relation(fields: [studentId], references: [id])
+
+  @@unique([slotId, studentId])
+  @@index([studentId])
+  @@map("bookings")
+}
+
+model StudentNote {
+  id          String   @id @default(cuid())
+  professorId String   @map("professor_id")
+  studentId   String   @map("student_id")
+  content     String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  professor User @relation("NotesWritten", fields: [professorId], references: [id])
+  student   User @relation("NotesReceived", fields: [studentId], references: [id])
+
+  @@index([professorId, studentId])
+  @@map("student_notes")
+}
+
+enum SlotType {
+  INDIVIDUAL
+  GROUP
+}
+
+enum SlotStatus {
+  AVAILABLE
+  FULLY_BOOKED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED_BY_STUDENT
+  CANCELLED_BY_PROFESSOR
+  COMPLETED
+  NO_SHOW
+}
