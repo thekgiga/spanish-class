@@ -65,22 +65,31 @@ export function BookPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const queryClient = useQueryClient();
 
-  // Calculate calendar bounds
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  // Calculate calendar bounds - memoize with stable string keys
+  const monthKey = format(currentMonth, 'yyyy-MM');
+  const { calendarStart, calendarEnd } = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    return {
+      calendarStart: startOfWeek(monthStart, { weekStartsOn: 1 }),
+      calendarEnd: endOfWeek(monthEnd, { weekStartsOn: 1 }),
+    };
+  }, [monthKey]);
+
+  // Stable date strings for API calls
+  const calendarStartStr = calendarStart.toISOString();
+  const calendarEndStr = calendarEnd.toISOString();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['available-slots', filter, forMeOnly, viewMode === 'calendar' ? format(currentMonth, 'yyyy-MM') : 'list'],
+    queryKey: ['available-slots', viewMode, filter, forMeOnly, viewMode === 'calendar' ? monthKey : 'list'],
     queryFn: () =>
       studentApi.getSlots({
         limit: viewMode === 'calendar' ? 200 : 50,
         slotType: filter !== 'all' ? filter : undefined,
         forMeOnly: forMeOnly || undefined,
         ...(viewMode === 'calendar' && {
-          startDate: calendarStart.toISOString(),
-          endDate: calendarEnd.toISOString(),
+          startDate: calendarStartStr,
+          endDate: calendarEndStr,
         }),
       }),
   });
@@ -122,10 +131,10 @@ export function BookPage() {
     }, {} as Record<string, SlotWithBookedFlag[]>);
   }, [data?.data]);
 
-  // Get slots for calendar view
+  // Get slots for calendar view - use monthKey for stable dependency
   const days = useMemo(() => {
     return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  }, [calendarStart, calendarEnd]);
+  }, [monthKey]);
 
   const getSlotsByDate = (date: Date): SlotWithBookedFlag[] => {
     return data?.data?.filter((slot) => isSameDay(new Date(slot.startTime), date)) || [];
