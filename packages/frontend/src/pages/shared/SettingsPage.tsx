@@ -1,6 +1,6 @@
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { toast } from 'react-hot-toast';
-import { User, Globe } from 'lucide-react';
+import { User } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuthStore } from '@/stores/auth';
+import { authApi } from '@/lib/api';
 
 const timezones = [
   'Europe/Madrid',
@@ -30,14 +31,22 @@ const timezones = [
   'Australia/Sydney',
 ];
 
+interface ProfileFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  timezone: string;
+}
+
 export function SettingsPage() {
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
 
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
-  } = useForm({
+  } = useForm<ProfileFormData>({
     defaultValues: {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
@@ -46,9 +55,18 @@ export function SettingsPage() {
     },
   });
 
-  const onSubmit = async (data: any) => {
-    // TODO: Implement profile update API
-    toast.success('Settings saved (demo)');
+  const onSubmit = async (data: ProfileFormData) => {
+    try {
+      const updatedUser = await authApi.updateProfile({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        timezone: data.timezone,
+      });
+      setUser(updatedUser);
+      toast.success('Settings saved successfully');
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to save settings');
+    }
   };
 
   return (
@@ -75,7 +93,7 @@ export function SettingsPage() {
                 <Label htmlFor="firstName">First name</Label>
                 <Input
                   id="firstName"
-                  {...register('firstName', { required: true })}
+                  {...register('firstName', { required: 'First name is required' })}
                   error={errors.firstName?.message}
                 />
               </div>
@@ -83,7 +101,7 @@ export function SettingsPage() {
                 <Label htmlFor="lastName">Last name</Label>
                 <Input
                   id="lastName"
-                  {...register('lastName', { required: true })}
+                  {...register('lastName', { required: 'Last name is required' })}
                   error={errors.lastName?.message}
                 />
               </div>
@@ -103,45 +121,35 @@ export function SettingsPage() {
               </p>
             </div>
 
+            <div className="space-y-2">
+              <Label>Timezone</Label>
+              <Controller
+                name="timezone"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {timezones.map((tz) => (
+                        <SelectItem key={tz} value={tz}>
+                          {tz.replace(/_/g, ' ')}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              <p className="text-xs text-muted-foreground">
+                Set your timezone for accurate session times
+              </p>
+            </div>
+
             <Button type="submit" isLoading={isSubmitting}>
               Save Changes
             </Button>
           </form>
-        </CardContent>
-      </Card>
-
-      {/* Timezone Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5" />
-            Timezone
-          </CardTitle>
-          <CardDescription>
-            Set your timezone for accurate session times
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Your timezone</Label>
-              <Select defaultValue={user?.timezone || 'Europe/Madrid'}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {timezones.map((tz) => (
-                    <SelectItem key={tz} value={tz}>
-                      {tz.replace(/_/g, ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button variant="outline" onClick={() => toast.success('Timezone saved (demo)')}>
-              Update Timezone
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

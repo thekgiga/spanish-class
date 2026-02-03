@@ -23,6 +23,7 @@ import { StudentsPage } from '@/pages/admin/StudentsPage';
 import { StudentDetailPage } from '@/pages/admin/StudentDetailPage';
 import { CalendarPage } from '@/pages/admin/CalendarPage';
 import { BulkSlotPage } from '@/pages/admin/BulkSlotPage';
+import { EmailLogsPage } from '@/pages/admin/EmailLogsPage';
 
 // Student Pages
 import { StudentDashboard } from '@/pages/student/StudentDashboard';
@@ -140,6 +141,7 @@ function AppRoutes() {
         <Route path="slots/:id" element={<NewSlotPage />} />
         <Route path="students" element={<StudentsPage />} />
         <Route path="students/:id" element={<StudentDetailPage />} />
+        <Route path="email-logs" element={<EmailLogsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 

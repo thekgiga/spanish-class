@@ -13,8 +13,9 @@ import {
   Trash2,
   Edit,
   User,
+  AlertTriangle,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,12 +34,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { professorApi } from '@/lib/api';
-import { formatDate, formatTime, getDuration } from '@/lib/utils';
+import { formatDate, formatTime } from '@/lib/utils';
 import type { AvailabilitySlot } from '@spanish-class/shared';
 
 export function SlotsPage() {
   const [deleteSlot, setDeleteSlot] = useState<AvailabilitySlot | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -52,11 +56,43 @@ export function SlotsPage() {
       toast.success('Slot cancelled successfully');
       queryClient.invalidateQueries({ queryKey: ['professor-slots'] });
       setDeleteSlot(null);
+      setCancelReason('');
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error || 'Failed to cancel slot');
     },
   });
+
+  const cancelWithBookingsMutation = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      professorApi.cancelSlotWithBookings(id, reason),
+    onSuccess: (data) => {
+      if (data.cancelledBookingsCount > 0) {
+        toast.success(`Slot cancelled and ${data.cancelledBookingsCount} student(s) notified`);
+      } else {
+        toast.success('Slot cancelled successfully');
+      }
+      queryClient.invalidateQueries({ queryKey: ['professor-slots'] });
+      setDeleteSlot(null);
+      setCancelReason('');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Failed to cancel slot');
+    },
+  });
+
+  const handleCancelSlot = () => {
+    if (!deleteSlot) return;
+
+    if (deleteSlot.currentParticipants > 0) {
+      cancelWithBookingsMutation.mutate({
+        id: deleteSlot.id,
+        reason: cancelReason || undefined,
+      });
+    } else {
+      deleteMutation.mutate(deleteSlot.id);
+    }
+  };
 
   const now = new Date();
   const upcomingSlots = data?.data?.filter(
@@ -139,7 +175,6 @@ export function SlotsPage() {
                   <DropdownMenuItem
                     className="text-destructive"
                     onClick={() => setDeleteSlot(slot)}
-                    disabled={slot.currentParticipants > 0}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     Cancel
@@ -226,24 +261,57 @@ export function SlotsPage() {
       </Tabs>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deleteSlot} onOpenChange={() => setDeleteSlot(null)}>
+      <Dialog open={!!deleteSlot} onOpenChange={(open) => {
+        if (!open) {
+          setDeleteSlot(null);
+          setCancelReason('');
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel Slot</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              {deleteSlot && deleteSlot.currentParticipants > 0 && (
+                <AlertTriangle className="h-5 w-5 text-destructive" />
+              )}
+              Cancel Slot
+            </DialogTitle>
             <DialogDescription>
-              Are you sure you want to cancel this slot? This action cannot be undone.
+              {deleteSlot && deleteSlot.currentParticipants > 0
+                ? `This slot has ${deleteSlot.currentParticipants} active booking(s). All students will be notified via email.`
+                : 'Are you sure you want to cancel this slot? This action cannot be undone.'}
             </DialogDescription>
           </DialogHeader>
+          {deleteSlot && deleteSlot.currentParticipants > 0 && (
+            <div className="py-2">
+              <Label htmlFor="cancelReason" className="text-sm text-muted-foreground">
+                Reason for cancellation (optional)
+              </Label>
+              <Textarea
+                id="cancelReason"
+                placeholder="e.g., Schedule conflict, emergency..."
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                className="mt-2"
+                rows={3}
+              />
+            </div>
+          )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setDeleteSlot(null)}>
+            <Button variant="ghost" onClick={() => {
+              setDeleteSlot(null);
+              setCancelReason('');
+            }}>
               Keep Slot
             </Button>
             <Button
               variant="destructive"
-              onClick={() => deleteSlot && deleteMutation.mutate(deleteSlot.id)}
-              isLoading={deleteMutation.isPending}
+              onClick={handleCancelSlot}
+              isLoading={deleteMutation.isPending || cancelWithBookingsMutation.isPending}
             >
-              Cancel Slot
+              <Trash2 className="mr-2 h-4 w-4" />
+              {deleteSlot && deleteSlot.currentParticipants > 0
+                ? 'Cancel & Notify Students'
+                : 'Cancel Slot'}
             </Button>
           </DialogFooter>
         </DialogContent>

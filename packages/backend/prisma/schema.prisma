@@ -165,3 +165,21 @@ enum BookingStatus {
   COMPLETED
   NO_SHOW
 }
+
+model EmailLog {
+  id          String   @id @default(cuid())
+  emailType   String   @map("email_type") // booking_confirmation, cancellation, etc.
+  fromAddress String   @map("from_address")
+  toAddress   String   @map("to_address")
+  subject     String
+  htmlContent String   @map("html_content") @db.Text
+  status      String   @default("sent") // sent, failed
+  error       String?  @db.Text
+  metadata    String?  @db.Text // JSON string with additional context
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([toAddress])
+  @@index([emailType])
+  @@map("email_logs")
+}

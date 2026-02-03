@@ -1,12 +1,42 @@
 import { Resend } from 'resend';
 import type { AvailabilitySlot, UserPublic } from '@spanish-class/shared';
 import { generateBookingIcs, generateCancellationIcs } from './ics.js';
+import { prisma } from '../lib/prisma.js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const EMAIL_FROM = process.env.EMAIL_FROM || 'Spanish Class <noreply@spanishclass.com>';
 const PROFESSOR_EMAIL = process.env.PROFESSOR_EMAIL || 'professor@spanishclass.com';
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+// Helper function to log emails
+async function logEmail(params: {
+  emailType: string;
+  fromAddress: string;
+  toAddress: string;
+  subject: string;
+  htmlContent: string;
+  status: 'sent' | 'failed';
+  error?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  try {
+    await prisma.emailLog.create({
+      data: {
+        emailType: params.emailType,
+        fromAddress: params.fromAddress,
+        toAddress: params.toAddress,
+        subject: params.subject,
+        htmlContent: params.htmlContent,
+        status: params.status,
+        error: params.error,
+        metadata: params.metadata ? JSON.stringify(params.metadata) : null,
+      },
+    });
+  } catch (err) {
+    console.error('Failed to log email:', err);
+  }
+}
 
 // Simple booking confirmation for professor direct booking
 interface SimpleBookingConfirmationData {
@@ -73,12 +103,55 @@ export async function sendBookingConfirmation(data: SimpleBookingConfirmationDat
     </html>
   `;
 
-  await resend.emails.send({
-    from: EMAIL_FROM,
-    to: studentEmail,
-    subject: `🗓️ Class Scheduled: ${slotTitle} - ${dateStr}`,
-    html,
-  });
+  const subject = `🗓️ Class Scheduled: ${slotTitle} - ${dateStr}`;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: studentEmail,
+      subject,
+      html,
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: 'booking_confirmation_simple',
+        fromAddress: EMAIL_FROM,
+        toAddress: studentEmail,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: error.message,
+        metadata: { studentName, professorName, slotTitle, startTime: startTime.toISOString() },
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: 'booking_confirmation_simple',
+      fromAddress: EMAIL_FROM,
+      toAddress: studentEmail,
+      subject,
+      htmlContent: html,
+      status: 'sent',
+      metadata: { studentName, professorName, slotTitle, startTime: startTime.toISOString(), resendId: data?.id },
+    });
+  } catch (err) {
+    // Only log if not already logged above (i.e., not a Resend API error)
+    if (!(err instanceof Error && err.message.includes('domain'))) {
+      await logEmail({
+        emailType: 'booking_confirmation_simple',
+        fromAddress: EMAIL_FROM,
+        toAddress: studentEmail,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: err instanceof Error ? err.message : String(err),
+        metadata: { studentName, professorName, slotTitle, startTime: startTime.toISOString() },
+      });
+    }
+    throw err;
+  }
 }
 
 function formatDateTime(date: Date, timezone: string = 'Europe/Madrid'): string {
@@ -184,18 +257,60 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
     </html>
   `;
 
-  await resend.emails.send({
-    from: EMAIL_FROM,
-    to: student.email,
-    subject: `✅ Booking Confirmed: ${slot.title || 'Spanish Class'} - ${formatDateTime(slot.startTime, student.timezone)}`,
-    html,
-    attachments: [
-      {
-        filename: 'spanish-class.ics',
-        content: icsBuffer,
-      },
-    ],
-  });
+  const subject = `✅ Booking Confirmed: ${slot.title || 'Spanish Class'} - ${formatDateTime(slot.startTime, student.timezone)}`;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: student.email,
+      subject,
+      html,
+      attachments: [
+        {
+          filename: 'spanish-class.ics',
+          content: icsBuffer,
+        },
+      ],
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: 'booking_confirmation_student',
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: error.message,
+        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id },
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: 'booking_confirmation_student',
+      fromAddress: EMAIL_FROM,
+      toAddress: student.email,
+      subject,
+      htmlContent: html,
+      status: 'sent',
+      metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, resendId: data?.id },
+    });
+  } catch (err) {
+    if (!(err instanceof Error && err.message.includes('domain'))) {
+      await logEmail({
+        emailType: 'booking_confirmation_student',
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: err instanceof Error ? err.message : String(err),
+        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id },
+      });
+    }
+    throw err;
+  }
 }
 
 export async function sendBookingNotificationToProfessor(data: BookingEmailData): Promise<void> {
@@ -273,18 +388,60 @@ export async function sendBookingNotificationToProfessor(data: BookingEmailData)
     </html>
   `;
 
-  await resend.emails.send({
-    from: EMAIL_FROM,
-    to: PROFESSOR_EMAIL,
-    subject: `📚 New Booking: ${student.firstName} ${student.lastName} - ${formatDateTime(slot.startTime, professor.timezone)}`,
-    html,
-    attachments: [
-      {
-        filename: 'spanish-class.ics',
-        content: icsBuffer,
-      },
-    ],
-  });
+  const subject = `📚 New Booking: ${student.firstName} ${student.lastName} - ${formatDateTime(slot.startTime, professor.timezone)}`;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: PROFESSOR_EMAIL,
+      subject,
+      html,
+      attachments: [
+        {
+          filename: 'spanish-class.ics',
+          content: icsBuffer,
+        },
+      ],
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: 'booking_notification_professor',
+        fromAddress: EMAIL_FROM,
+        toAddress: PROFESSOR_EMAIL,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: error.message,
+        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id },
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: 'booking_notification_professor',
+      fromAddress: EMAIL_FROM,
+      toAddress: PROFESSOR_EMAIL,
+      subject,
+      htmlContent: html,
+      status: 'sent',
+      metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, resendId: data?.id },
+    });
+  } catch (err) {
+    if (!(err instanceof Error && err.message.includes('domain'))) {
+      await logEmail({
+        emailType: 'booking_notification_professor',
+        fromAddress: EMAIL_FROM,
+        toAddress: PROFESSOR_EMAIL,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: err instanceof Error ? err.message : String(err),
+        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id },
+      });
+    }
+    throw err;
+  }
 }
 
 export async function sendCancellationToStudent(
@@ -344,18 +501,60 @@ export async function sendCancellationToStudent(
     </html>
   `;
 
-  await resend.emails.send({
-    from: EMAIL_FROM,
-    to: student.email,
-    subject: `❌ Session Cancelled: ${slot.title || 'Spanish Class'} - ${formatDateTime(slot.startTime, student.timezone)}`,
-    html,
-    attachments: [
-      {
-        filename: 'cancellation.ics',
-        content: icsBuffer,
-      },
-    ],
-  });
+  const subject = `❌ Session Cancelled: ${slot.title || 'Spanish Class'} - ${formatDateTime(slot.startTime, student.timezone)}`;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: student.email,
+      subject,
+      html,
+      attachments: [
+        {
+          filename: 'cancellation.ics',
+          content: icsBuffer,
+        },
+      ],
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: 'cancellation_student',
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: error.message,
+        metadata: { studentId: student.id, slotId: slot.id, cancelledBy, reason },
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: 'cancellation_student',
+      fromAddress: EMAIL_FROM,
+      toAddress: student.email,
+      subject,
+      htmlContent: html,
+      status: 'sent',
+      metadata: { studentId: student.id, slotId: slot.id, cancelledBy, reason, resendId: data?.id },
+    });
+  } catch (err) {
+    if (!(err instanceof Error && err.message.includes('domain'))) {
+      await logEmail({
+        emailType: 'cancellation_student',
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: err instanceof Error ? err.message : String(err),
+        metadata: { studentId: student.id, slotId: slot.id, cancelledBy, reason },
+      });
+    }
+    throw err;
+  }
 }
 
 export async function sendCancellationToProfessor(
@@ -410,10 +609,52 @@ export async function sendCancellationToProfessor(
     </html>
   `;
 
-  await resend.emails.send({
-    from: EMAIL_FROM,
-    to: PROFESSOR_EMAIL,
-    subject: `❌ Booking Cancelled: ${student.firstName} ${student.lastName} - ${formatDateTime(slot.startTime, professor.timezone)}`,
-    html,
-  });
+  const subject = `❌ Booking Cancelled: ${student.firstName} ${student.lastName} - ${formatDateTime(slot.startTime, professor.timezone)}`;
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: PROFESSOR_EMAIL,
+      subject,
+      html,
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: 'cancellation_professor',
+        fromAddress: EMAIL_FROM,
+        toAddress: PROFESSOR_EMAIL,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: error.message,
+        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, reason },
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: 'cancellation_professor',
+      fromAddress: EMAIL_FROM,
+      toAddress: PROFESSOR_EMAIL,
+      subject,
+      htmlContent: html,
+      status: 'sent',
+      metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, reason, resendId: data?.id },
+    });
+  } catch (err) {
+    if (!(err instanceof Error && err.message.includes('domain'))) {
+      await logEmail({
+        emailType: 'cancellation_professor',
+        fromAddress: EMAIL_FROM,
+        toAddress: PROFESSOR_EMAIL,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: err instanceof Error ? err.message : String(err),
+        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, reason },
+      });
+    }
+    throw err;
+  }
 }

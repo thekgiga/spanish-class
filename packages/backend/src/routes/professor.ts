@@ -14,7 +14,7 @@ import {
 } from '@spanish-class/shared';
 import { AppError } from '../middleware/error.js';
 import { createSlotCalendarEvent, deleteCalendarEvent, updateCalendarEvent } from '../services/google.js';
-import { sendBookingConfirmation } from '../services/email.js';
+import { sendBookingConfirmation, sendCancellationToStudent } from '../services/email.js';
 
 const router = Router();
 
@@ -840,6 +840,103 @@ router.delete('/slots/:id', async (req, res, next) => {
   }
 });
 
+// POST /api/professor/slots/:id/cancel-with-bookings
+router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
+  try {
+    const { reason } = req.body;
+
+    const slot = await prisma.availabilitySlot.findFirst({
+      where: {
+        id: req.params.id,
+        professorId: req.user!.id,
+      },
+      include: {
+        bookings: {
+          where: { status: 'CONFIRMED' },
+          include: {
+            student: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                timezone: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!slot) {
+      throw new AppError(404, 'Slot not found');
+    }
+
+    if (slot.status === 'CANCELLED') {
+      throw new AppError(400, 'Slot is already cancelled');
+    }
+
+    const confirmedBookings = slot.bookings;
+
+    // Cancel all bookings and slot in a transaction
+    await prisma.$transaction([
+      // Cancel all confirmed bookings
+      prisma.booking.updateMany({
+        where: {
+          slotId: slot.id,
+          status: 'CONFIRMED',
+        },
+        data: {
+          status: 'CANCELLED_BY_PROFESSOR',
+          cancelledAt: new Date(),
+          cancelReason: reason || null,
+        },
+      }),
+      // Cancel the slot
+      prisma.availabilitySlot.update({
+        where: { id: slot.id },
+        data: {
+          status: 'CANCELLED',
+          currentParticipants: 0,
+        },
+      }),
+    ]);
+
+    // Delete from Google Calendar
+    if (slot.googleEventId) {
+      deleteCalendarEvent(slot.googleEventId).catch((err) =>
+        console.error('Failed to delete calendar event:', err)
+      );
+    }
+
+    // Send cancellation emails to all affected students
+    const professor = req.user!;
+    for (const booking of confirmedBookings) {
+      sendCancellationToStudent({
+        slot: slot as any,
+        professor: professor as any,
+        student: booking.student as any,
+        reason,
+        cancelledBy: 'professor',
+      }).catch((err) =>
+        console.error(`Failed to send cancellation email to ${booking.student.email}:`, err)
+      );
+    }
+
+    res.json({
+      success: true,
+      data: {
+        cancelledBookingsCount: confirmedBookings.length,
+      },
+      message: confirmedBookings.length > 0
+        ? `Slot cancelled and ${confirmedBookings.length} student(s) notified`
+        : 'Slot cancelled successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/professor/students
 router.get('/students', validateQuery(paginationSchema), async (req, res, next) => {
   try {
@@ -1045,6 +1142,63 @@ router.delete('/students/:studentId/notes/:noteId', async (req, res, next) => {
     res.json({
       success: true,
       message: 'Note deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/professor/email-logs
+router.get('/email-logs', async (req, res, next) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const emailType = req.query.emailType as string | undefined;
+
+    const where: Record<string, unknown> = {};
+    if (emailType) {
+      where.emailType = emailType;
+    }
+
+    const [logs, total] = await Promise.all([
+      prisma.emailLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.emailLog.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: logs,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/professor/email-logs/:id
+router.get('/email-logs/:id', async (req, res, next) => {
+  try {
+    const log = await prisma.emailLog.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!log) {
+      throw new AppError(404, 'Email log not found');
+    }
+
+    res.json({
+      success: true,
+      data: log,
     });
   } catch (error) {
     next(error);

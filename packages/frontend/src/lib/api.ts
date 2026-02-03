@@ -5,6 +5,7 @@ import type {
   LoginInput,
   RegisterInput,
   AvailabilitySlot,
+  AvailabilitySlotWithBookings,
   Booking,
   BookingWithSlot,
   CreateSlotInput,
@@ -75,6 +76,11 @@ export const authApi = {
     const res = await api.get<{ data: { user: UserPublic } }>('/auth/me');
     return res.data.data.user;
   },
+
+  updateProfile: async (data: { firstName: string; lastName: string; timezone: string }): Promise<UserPublic> => {
+    const res = await api.put<{ data: { user: UserPublic } }>('/auth/profile', data);
+    return res.data.data.user;
+  },
 };
 
 // Professor API
@@ -99,7 +105,7 @@ export const professorApi = {
     return res.data;
   },
 
-  getSlot: async (id: string): Promise<AvailabilitySlot> => {
+  getSlot: async (id: string): Promise<AvailabilitySlotWithBookings> => {
     const res = await api.get(`/professor/slots/${id}`);
     return res.data.data;
   },
@@ -121,6 +127,11 @@ export const professorApi = {
 
   deleteSlot: async (id: string): Promise<void> => {
     await api.delete(`/professor/slots/${id}`);
+  },
+
+  cancelSlotWithBookings: async (id: string, reason?: string): Promise<{ cancelledBookingsCount: number }> => {
+    const res = await api.post(`/professor/slots/${id}/cancel-with-bookings`, { reason });
+    return res.data.data;
   },
 
   getStudents: async (params?: {
@@ -170,7 +181,36 @@ export const professorApi = {
     const res = await api.post('/professor/book-student', data);
     return res.data.data;
   },
+
+  // Email logs
+  getEmailLogs: async (params?: {
+    page?: number;
+    limit?: number;
+    emailType?: string;
+  }): Promise<PaginatedResponse<EmailLog>> => {
+    const res = await api.get('/professor/email-logs', { params });
+    return res.data;
+  },
+
+  getEmailLog: async (id: string): Promise<EmailLog> => {
+    const res = await api.get(`/professor/email-logs/${id}`);
+    return res.data.data;
+  },
 };
+
+// Email Log type
+export interface EmailLog {
+  id: string;
+  emailType: string;
+  fromAddress: string;
+  toAddress: string;
+  subject: string;
+  htmlContent: string;
+  status: string;
+  error?: string | null;
+  metadata?: string | null;
+  createdAt: string;
+}
 
 // Student API
 export const studentApi = {

@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -17,6 +17,9 @@ import {
   X,
   User,
   Check,
+  AlertTriangle,
+  Trash2,
+  Loader2,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +27,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -70,6 +81,9 @@ interface StudentOption {
 
 export function NewSlotPage() {
   const navigate = useNavigate();
+  const { id: slotId } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
+  const isEditMode = !!slotId && slotId !== 'new';
 
   // Mode: single slot or recurring
   const [mode, setMode] = useState<Mode>('single');
@@ -101,6 +115,67 @@ export function NewSlotPage() {
   const [recurringEndDate, setRecurringEndDate] = useState<Date | null>(null);
   const [generateWeeksAhead, setGenerateWeeksAhead] = useState(4);
 
+  // Cancel dialog state
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+
+  // Fetch existing slot for edit mode
+  const { data: existingSlot, isLoading: isLoadingSlot } = useQuery({
+    queryKey: ['professor-slot', slotId],
+    queryFn: () => professorApi.getSlot(slotId!),
+    enabled: isEditMode,
+  });
+
+  // Populate form when existing slot loads
+  useEffect(() => {
+    if (existingSlot) {
+      const startDate = new Date(existingSlot.startTime);
+      const endDate = new Date(existingSlot.endTime);
+
+      setSelectedDate(startDate);
+      setCalendarMonth(new Date(startDate.getFullYear(), startDate.getMonth(), 1));
+
+      const hours = startDate.getHours().toString().padStart(2, '0');
+      const minutes = startDate.getMinutes().toString().padStart(2, '0');
+      setStartTime(`${hours}:${minutes}`);
+
+      const durationMs = endDate.getTime() - startDate.getTime();
+      const durationMinutes = Math.round(durationMs / 60000);
+      setDuration(durationMinutes);
+
+      setSlotType(existingSlot.slotType as SlotType);
+      setMaxParticipants(existingSlot.maxParticipants);
+      setTitle(existingSlot.title || '');
+      setDescription(existingSlot.description || '');
+      setIsPrivate(existingSlot.isPrivate || false);
+    }
+  }, [existingSlot]);
+
+  // Fetch existing slots for selected day (only in create mode)
+  const selectedDateStr = selectedDate.toISOString().split('T')[0];
+  const { data: daySlots } = useQuery({
+    queryKey: ['professor-slots-day', selectedDateStr],
+    queryFn: async () => {
+      const startOfDay = new Date(selectedDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(selectedDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      return professorApi.getSlots({
+        startDate: startOfDay.toISOString(),
+        endDate: endOfDay.toISOString(),
+        limit: 50,
+      });
+    },
+    enabled: !isEditMode,
+  });
+
+  const existingSlotsForDay = useMemo(() => {
+    return (daySlots?.data || []).filter(
+      (slot) => slot.status !== 'CANCELLED'
+    ).sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+  }, [daySlots?.data]);
+
   // Fetch students for selection
   const { data: studentsData } = useQuery({
     queryKey: ['professor-students'],
@@ -128,6 +203,26 @@ export function NewSlotPage() {
     return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
   }, [startTime, duration]);
 
+  // Check for overlap with existing slots
+  const hasOverlap = useMemo(() => {
+    if (isEditMode || existingSlotsForDay.length === 0) return false;
+
+    const [h, m] = startTime.split(':').map(Number);
+    const newStart = h * 60 + m;
+    const [eh, em] = endTime.split(':').map(Number);
+    const newEnd = eh * 60 + em;
+
+    return existingSlotsForDay.some((slot) => {
+      const slotStart = new Date(slot.startTime);
+      const slotEnd = new Date(slot.endTime);
+      const existingStart = slotStart.getHours() * 60 + slotStart.getMinutes();
+      const existingEnd = slotEnd.getHours() * 60 + slotEnd.getMinutes();
+
+      // Check if ranges overlap
+      return newStart < existingEnd && newEnd > existingStart;
+    });
+  }, [isEditMode, existingSlotsForDay, startTime, endTime]);
+
   // Create slot mutation
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -151,12 +246,13 @@ export function NewSlotPage() {
         bookForStudentId: bookForStudent?.id,
       });
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       if (bookForStudent) {
         toast.success(`Slot created and invitation sent to ${bookForStudent.firstName}!`);
       } else {
         toast.success('Slot created successfully!');
       }
+      queryClient.invalidateQueries({ queryKey: ['professor-slots'] });
       navigate('/admin/slots');
     },
     onError: (error: any) => {
@@ -189,6 +285,7 @@ export function NewSlotPage() {
     },
     onSuccess: (data) => {
       toast.success(`Created recurring pattern with ${data.slots.length} slots!`);
+      queryClient.invalidateQueries({ queryKey: ['professor-slots'] });
       navigate('/admin/slots');
     },
     onError: (error: any) => {
@@ -196,8 +293,61 @@ export function NewSlotPage() {
     },
   });
 
+  // Update slot mutation
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      const startDateTime = new Date(selectedDate);
+      const [h, m] = startTime.split(':').map(Number);
+      startDateTime.setHours(h, m, 0, 0);
+
+      const endDateTime = new Date(selectedDate);
+      const [eh, em] = endTime.split(':').map(Number);
+      endDateTime.setHours(eh, em, 0, 0);
+
+      return professorApi.updateSlot(slotId!, {
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
+        slotType,
+        maxParticipants: slotType === 'INDIVIDUAL' ? 1 : maxParticipants,
+        title: title || undefined,
+        description: description || undefined,
+      });
+    },
+    onSuccess: () => {
+      toast.success('Slot updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ['professor-slots'] });
+      queryClient.invalidateQueries({ queryKey: ['professor-slot', slotId] });
+      navigate('/admin/slots');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Failed to update slot');
+    },
+  });
+
+  // Cancel slot with bookings mutation
+  const cancelMutation = useMutation({
+    mutationFn: async () => {
+      return professorApi.cancelSlotWithBookings(slotId!, cancelReason || undefined);
+    },
+    onSuccess: (data) => {
+      if (data.cancelledBookingsCount > 0) {
+        toast.success(`Slot cancelled and ${data.cancelledBookingsCount} student(s) notified`);
+      } else {
+        toast.success('Slot cancelled successfully');
+      }
+      queryClient.invalidateQueries({ queryKey: ['professor-slots'] });
+      setShowCancelDialog(false);
+      navigate('/admin/slots');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Failed to cancel slot');
+    },
+  });
+
   const handleSubmit = () => {
-    if (mode === 'single') {
+    if (isEditMode) {
+      updateMutation.mutate();
+    } else if (mode === 'single') {
       createMutation.mutate();
     } else {
       if (recurringDays.length === 0) {
@@ -282,6 +432,19 @@ export function NewSlotPage() {
     }
   };
 
+  // Show loading state while fetching slot
+  if (isEditMode && isLoadingSlot) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  const confirmedBookingsCount = existingSlot?.bookings?.filter(
+    (b: { status: string }) => b.status === 'CONFIRMED'
+  ).length || 0;
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       {/* Header */}
@@ -290,38 +453,44 @@ export function NewSlotPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">Create Availability</h1>
-          <p className="text-muted-foreground">Schedule new class slots for your students</p>
+          <h1 className="text-2xl font-display font-bold text-navy-800">
+            {isEditMode ? 'Edit Slot' : 'Create Availability'}
+          </h1>
+          <p className="text-muted-foreground">
+            {isEditMode ? 'Modify your scheduled slot' : 'Schedule new class slots for your students'}
+          </p>
         </div>
       </div>
 
-      {/* Mode Toggle */}
-      <div className="flex gap-2 p-1 bg-muted rounded-lg w-fit">
-        <button
-          onClick={() => setMode('single')}
-          className={cn(
-            'px-4 py-2 rounded-md text-sm font-medium transition-all',
-            mode === 'single'
-              ? 'bg-white text-navy-800 shadow-sm'
-              : 'text-muted-foreground hover:text-navy-800'
-          )}
-        >
-          <Calendar className="inline-block w-4 h-4 mr-2" />
-          Single Slot
-        </button>
-        <button
-          onClick={() => setMode('recurring')}
-          className={cn(
-            'px-4 py-2 rounded-md text-sm font-medium transition-all',
-            mode === 'recurring'
-              ? 'bg-white text-navy-800 shadow-sm'
-              : 'text-muted-foreground hover:text-navy-800'
-          )}
-        >
-          <Repeat className="inline-block w-4 h-4 mr-2" />
-          Recurring
-        </button>
-      </div>
+      {/* Mode Toggle - only show in create mode */}
+      {!isEditMode && (
+        <div className="flex gap-2 p-1 bg-muted rounded-lg w-fit">
+          <button
+            onClick={() => setMode('single')}
+            className={cn(
+              'px-4 py-2 rounded-md text-sm font-medium transition-all',
+              mode === 'single'
+                ? 'bg-white text-navy-800 shadow-sm'
+                : 'text-muted-foreground hover:text-navy-800'
+            )}
+          >
+            <Calendar className="inline-block w-4 h-4 mr-2" />
+            Single Slot
+          </button>
+          <button
+            onClick={() => setMode('recurring')}
+            className={cn(
+              'px-4 py-2 rounded-md text-sm font-medium transition-all',
+              mode === 'recurring'
+                ? 'bg-white text-navy-800 shadow-sm'
+                : 'text-muted-foreground hover:text-navy-800'
+            )}
+          >
+            <Repeat className="inline-block w-4 h-4 mr-2" />
+            Recurring
+          </button>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Left Column - Date & Time */}
@@ -450,7 +619,10 @@ export function NewSlotPage() {
               </div>
 
               {/* Time Summary */}
-              <div className="flex items-center justify-between p-4 bg-navy-50 rounded-lg">
+              <div className={cn(
+                "flex items-center justify-between p-4 rounded-lg",
+                hasOverlap ? "bg-red-50 border-2 border-red-200" : "bg-navy-50"
+              )}>
                 <div>
                   <p className="text-xs text-muted-foreground">From</p>
                   <p className="text-xl font-bold text-navy-800">{startTime}</p>
@@ -465,8 +637,74 @@ export function NewSlotPage() {
                   <p className="text-lg font-semibold text-gold-600">{duration} min</p>
                 </div>
               </div>
+
+              {/* Overlap Warning */}
+              {hasOverlap && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                  <p className="text-sm">This time overlaps with an existing slot</p>
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Existing Slots for Day (only in create mode) */}
+          {!isEditMode && mode === 'single' && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-gold-500" />
+                  Existing Slots
+                </CardTitle>
+                <CardDescription>
+                  Already scheduled for {selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {existingSlotsForDay.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No slots scheduled for this day
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {existingSlotsForDay.map((slot) => {
+                      const slotStartTime = new Date(slot.startTime);
+                      const slotEndTime = new Date(slot.endTime);
+                      const formatTime = (d: Date) =>
+                        `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+
+                      return (
+                        <div
+                          key={slot.id}
+                          className={cn(
+                            "flex items-center justify-between p-2 rounded-lg border text-sm",
+                            slot.status === 'FULLY_BOOKED'
+                              ? "bg-amber-50 border-amber-200"
+                              : "bg-gray-50 border-gray-200"
+                          )}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-medium">
+                              {formatTime(slotStartTime)} - {formatTime(slotEndTime)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground truncate max-w-[120px]">
+                              {slot.title || 'Spanish Class'}
+                            </span>
+                            <Badge variant={slot.status === 'FULLY_BOOKED' ? 'warning' : 'secondary'} className="text-xs">
+                              {slot.status === 'FULLY_BOOKED' ? 'Booked' : 'Open'}
+                            </Badge>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Recurring Days (only in recurring mode) */}
           <AnimatePresence>
@@ -728,8 +966,8 @@ export function NewSlotPage() {
             </AnimatePresence>
           </Card>
 
-          {/* Direct Booking (only for single individual slots) */}
-          {mode === 'single' && slotType === 'INDIVIDUAL' && (
+          {/* Direct Booking (only for single individual slots in create mode) */}
+          {!isEditMode && mode === 'single' && slotType === 'INDIVIDUAL' && (
             <Card>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
@@ -788,21 +1026,60 @@ export function NewSlotPage() {
               </CardContent>
             </Card>
           )}
+
+          {/* Danger Zone - Cancel Slot (only in edit mode) */}
+          {isEditMode && existingSlot?.status !== 'CANCELLED' && (
+            <Card className="border-destructive/50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2 text-destructive">
+                  <AlertTriangle className="h-5 w-5" />
+                  Danger Zone
+                </CardTitle>
+                <CardDescription>
+                  Cancel this slot. This action cannot be undone.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {confirmedBookingsCount > 0 && (
+                  <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg mb-4">
+                    <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-800">
+                      <p className="font-medium">This slot has {confirmedBookingsCount} active booking(s)</p>
+                      <p>Cancelling will notify all students via email.</p>
+                    </div>
+                  </div>
+                )}
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowCancelDialog(true)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Cancel Slot
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
 
       {/* Submit */}
       <div className="flex gap-4 sticky bottom-4 bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-lg border">
         <Button variant="outline" className="flex-1" onClick={() => navigate(-1)}>
-          Cancel
+          {isEditMode ? 'Back' : 'Cancel'}
         </Button>
         <Button
           variant="primary"
           className="flex-1"
           onClick={handleSubmit}
-          isLoading={createMutation.isPending || createRecurringMutation.isPending}
+          isLoading={createMutation.isPending || createRecurringMutation.isPending || updateMutation.isPending}
+          disabled={!isEditMode && mode === 'single' && hasOverlap}
         >
-          {mode === 'recurring' ? (
+          {isEditMode ? (
+            <>
+              <Check className="mr-2 h-4 w-4" />
+              Save Changes
+            </>
+          ) : mode === 'recurring' ? (
             <>
               <Repeat className="mr-2 h-4 w-4" />
               Create Recurring Slots
@@ -820,6 +1097,49 @@ export function NewSlotPage() {
           )}
         </Button>
       </div>
+
+      {/* Cancel Slot Confirmation Dialog */}
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Cancel Slot
+            </DialogTitle>
+            <DialogDescription>
+              {confirmedBookingsCount > 0
+                ? `This slot has ${confirmedBookingsCount} active booking(s). All students will be notified via email.`
+                : 'Are you sure you want to cancel this slot? This action cannot be undone.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="cancelReason" className="text-sm text-muted-foreground">
+              Reason for cancellation (optional)
+            </Label>
+            <Textarea
+              id="cancelReason"
+              placeholder="e.g., Schedule conflict, emergency..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              className="mt-2"
+              rows={3}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setShowCancelDialog(false)}>
+              Keep Slot
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => cancelMutation.mutate()}
+              isLoading={cancelMutation.isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {confirmedBookingsCount > 0 ? 'Cancel & Notify Students' : 'Cancel Slot'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

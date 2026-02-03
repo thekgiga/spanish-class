@@ -4,7 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { generateToken } from '../lib/jwt.js';
 import { validate } from '../middleware/validate.js';
 import { authenticate } from '../middleware/auth.js';
-import { loginSchema, registerSchema } from '@spanish-class/shared';
+import { loginSchema, registerSchema, updateUserSchema } from '@spanish-class/shared';
 import { AppError } from '../middleware/error.js';
 
 const router = Router();
@@ -147,6 +147,40 @@ router.post('/logout', (req, res) => {
     success: true,
     message: 'Logged out successfully',
   });
+});
+
+// PUT /api/auth/profile
+router.put('/profile', authenticate, validate(updateUserSchema), async (req, res, next) => {
+  try {
+    const { firstName, lastName, timezone } = req.body;
+    const userId = req.user!.id;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...(firstName !== undefined && { firstName }),
+        ...(lastName !== undefined && { lastName }),
+        ...(timezone !== undefined && { timezone }),
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        isAdmin: true,
+        timezone: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: { user: updatedUser },
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default router;

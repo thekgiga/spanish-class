@@ -12,6 +12,7 @@ import {
   X,
   ChevronLeft,
   Plus,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,7 @@ const adminNavItems: NavItem[] = [
   { href: '/admin/calendar', label: 'Calendar', icon: Calendar },
   { href: '/admin/slots', label: 'Availability', icon: BookOpen },
   { href: '/admin/students', label: 'Students', icon: Users },
+  { href: '/admin/email-logs', label: 'Email Logs', icon: Mail },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
