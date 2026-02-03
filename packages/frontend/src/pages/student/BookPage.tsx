@@ -207,6 +207,7 @@ export function BookPage() {
           isLoading={isLoading}
           slotsByDate={slotsByDate}
           onSelectSlot={setSelectedSlot}
+          forMeOnly={forMeOnly}
         />
       ) : (
         <CalendarView
@@ -219,6 +220,8 @@ export function BookPage() {
           getSlotsByDate={getSlotsByDate}
           selectedDateSlots={selectedDateSlots}
           onSelectSlot={setSelectedSlot}
+          forMeOnly={forMeOnly}
+          totalSlots={data?.data?.length || 0}
         />
       )}
 
@@ -298,10 +301,12 @@ function ListView({
   isLoading,
   slotsByDate,
   onSelectSlot,
+  forMeOnly,
 }: {
   isLoading: boolean;
   slotsByDate: Record<string, SlotWithBookedFlag[]> | undefined;
   onSelectSlot: (slot: SlotWithBookedFlag) => void;
+  forMeOnly: boolean;
 }) {
   if (isLoading) {
     return (
@@ -324,10 +329,26 @@ function ListView({
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <p className="text-muted-foreground">
-            No available slots at the moment. Check back later!
-          </p>
+          {forMeOnly ? (
+            <>
+              <Star className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <p className="text-lg font-medium text-navy-800 mb-2">
+                No Private Sessions Available
+              </p>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                There are currently no private sessions scheduled for you.
+                Please contact your assigned professor to arrange a dedicated session
+                at your earliest convenience.
+              </p>
+            </>
+          ) : (
+            <>
+              <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+              <p className="text-muted-foreground">
+                No available slots at the moment. Check back later!
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
     );
@@ -370,6 +391,8 @@ function CalendarView({
   getSlotsByDate,
   selectedDateSlots,
   onSelectSlot,
+  forMeOnly,
+  totalSlots,
 }: {
   isLoading: boolean;
   currentMonth: Date;
@@ -380,7 +403,28 @@ function CalendarView({
   getSlotsByDate: (date: Date) => SlotWithBookedFlag[];
   selectedDateSlots: SlotWithBookedFlag[];
   onSelectSlot: (slot: SlotWithBookedFlag) => void;
+  forMeOnly: boolean;
+  totalSlots: number;
 }) {
+  // Show empty state for forMeOnly when no slots at all
+  if (!isLoading && forMeOnly && totalSlots === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Star className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+          <p className="text-lg font-medium text-navy-800 mb-2">
+            No Private Sessions Available
+          </p>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            There are currently no private sessions scheduled for you.
+            Please contact your assigned professor to arrange a dedicated session
+            at your earliest convenience.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="grid lg:grid-cols-3 gap-6">
       {/* Calendar */}
