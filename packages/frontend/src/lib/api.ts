@@ -231,6 +231,7 @@ export const studentApi = {
     startDate?: string;
     endDate?: string;
     slotType?: string;
+    forMeOnly?: boolean;
   }): Promise<PaginatedResponse<AvailabilitySlot & { isBookedByMe: boolean }>> => {
     const res = await api.get('/student/slots', { params });
     return res.data;
