@@ -27,6 +27,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Star,
+  Mail,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -92,6 +93,12 @@ export function BookPage() {
           endDate: calendarEndStr,
         }),
       }),
+  });
+
+  // Fetch professor contact info for empty state message
+  const { data: professor } = useQuery({
+    queryKey: ['professor'],
+    queryFn: studentApi.getProfessor,
   });
 
   const bookMutation = useMutation({
@@ -208,6 +215,7 @@ export function BookPage() {
           slotsByDate={slotsByDate}
           onSelectSlot={setSelectedSlot}
           forMeOnly={forMeOnly}
+          professor={professor}
         />
       ) : (
         <CalendarView
@@ -222,6 +230,7 @@ export function BookPage() {
           onSelectSlot={setSelectedSlot}
           forMeOnly={forMeOnly}
           totalSlots={data?.data?.length || 0}
+          professor={professor}
         />
       )}
 
@@ -296,17 +305,22 @@ export function BookPage() {
   );
 }
 
+// Professor info type
+type ProfessorInfo = { id: string; firstName: string; lastName: string; email: string } | undefined;
+
 // List View Component
 function ListView({
   isLoading,
   slotsByDate,
   onSelectSlot,
   forMeOnly,
+  professor,
 }: {
   isLoading: boolean;
   slotsByDate: Record<string, SlotWithBookedFlag[]> | undefined;
   onSelectSlot: (slot: SlotWithBookedFlag) => void;
   forMeOnly: boolean;
+  professor: ProfessorInfo;
 }) {
   if (isLoading) {
     return (
@@ -335,11 +349,30 @@ function ListView({
               <p className="text-lg font-medium text-navy-800 mb-2">
                 No Private Sessions Available
               </p>
-              <p className="text-muted-foreground max-w-md mx-auto">
+              <p className="text-muted-foreground max-w-md mx-auto mb-4">
                 There are currently no private sessions scheduled for you.
-                Please contact your assigned professor to arrange a dedicated session
+                Please contact your professor to arrange a dedicated session
                 at your earliest convenience.
               </p>
+              {professor && (
+                <div className="inline-flex items-center gap-3 px-4 py-3 bg-navy-50 rounded-lg">
+                  <div className="h-10 w-10 rounded-full bg-navy-800 text-white flex items-center justify-center font-medium">
+                    {professor.firstName.charAt(0)}{professor.lastName.charAt(0)}
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-navy-800">
+                      {professor.firstName} {professor.lastName}
+                    </p>
+                    <a
+                      href={`mailto:${professor.email}`}
+                      className="text-sm text-gold-600 hover:text-gold-700 flex items-center gap-1"
+                    >
+                      <Mail className="h-3 w-3" />
+                      {professor.email}
+                    </a>
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <>
@@ -393,6 +426,7 @@ function CalendarView({
   onSelectSlot,
   forMeOnly,
   totalSlots,
+  professor,
 }: {
   isLoading: boolean;
   currentMonth: Date;
@@ -405,6 +439,7 @@ function CalendarView({
   onSelectSlot: (slot: SlotWithBookedFlag) => void;
   forMeOnly: boolean;
   totalSlots: number;
+  professor: ProfessorInfo;
 }) {
   // Show empty state for forMeOnly when no slots at all
   if (!isLoading && forMeOnly && totalSlots === 0) {
@@ -415,11 +450,30 @@ function CalendarView({
           <p className="text-lg font-medium text-navy-800 mb-2">
             No Private Sessions Available
           </p>
-          <p className="text-muted-foreground max-w-md mx-auto">
+          <p className="text-muted-foreground max-w-md mx-auto mb-4">
             There are currently no private sessions scheduled for you.
-            Please contact your assigned professor to arrange a dedicated session
+            Please contact your professor to arrange a dedicated session
             at your earliest convenience.
           </p>
+          {professor && (
+            <div className="inline-flex items-center gap-3 px-4 py-3 bg-navy-50 rounded-lg">
+              <div className="h-10 w-10 rounded-full bg-navy-800 text-white flex items-center justify-center font-medium">
+                {professor.firstName.charAt(0)}{professor.lastName.charAt(0)}
+              </div>
+              <div className="text-left">
+                <p className="font-medium text-navy-800">
+                  {professor.firstName} {professor.lastName}
+                </p>
+                <a
+                  href={`mailto:${professor.email}`}
+                  className="text-sm text-gold-600 hover:text-gold-700 flex items-center gap-1"
+                >
+                  <Mail className="h-3 w-3" />
+                  {professor.email}
+                </a>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );

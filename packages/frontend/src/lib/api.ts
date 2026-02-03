@@ -217,6 +217,11 @@ export interface EmailLog {
 
 // Student API
 export const studentApi = {
+  getProfessor: async (): Promise<{ id: string; firstName: string; lastName: string; email: string }> => {
+    const res = await api.get('/student/professor');
+    return res.data.data.professor;
+  },
+
   getDashboard: async (): Promise<{
     stats: StudentDashboardStats;
     nextSession: BookingWithSlot | null;

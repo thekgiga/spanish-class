@@ -55,6 +55,32 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
+// GET /api/student/professor - Get professor contact info
+router.get('/professor', async (req, res, next) => {
+  try {
+    const professor = await prisma.user.findFirst({
+      where: { isAdmin: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+      },
+    });
+
+    if (!professor) {
+      throw new AppError(404, 'Professor not found');
+    }
+
+    res.json({
+      success: true,
+      data: { professor },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/student/dashboard
 router.get('/dashboard', async (req, res, next) => {
   try {
