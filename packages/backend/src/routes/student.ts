@@ -10,6 +10,7 @@ import {
 } from '@spanish-class/shared';
 import { AppError } from '../middleware/error.js';
 import { bookSlot, cancelBooking } from '../services/booking.js';
+import { validateMeetingAccess, getMeetingDetails } from '../services/meeting-access.js';
 
 const router = Router();
 
@@ -300,6 +301,35 @@ router.post('/bookings/:id/cancel', validate(cancelBookingSchema), async (req, r
     res.json({
       success: true,
       message: 'Booking cancelled successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/student/slots/:id/join - Join a meeting
+router.post('/slots/:id/join', async (req, res, next) => {
+  try {
+    const result = await validateMeetingAccess(req.params.id, req.user!);
+
+    res.json({
+      success: true,
+      data: result,
+      message: 'Access granted',
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/student/slots/:id/meeting - Get meeting details
+router.get('/slots/:id/meeting', async (req, res, next) => {
+  try {
+    const details = await getMeetingDetails(req.params.id, req.user!);
+
+    res.json({
+      success: true,
+      data: details,
     });
   } catch (error) {
     next(error);

@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import type { AvailabilitySlot, UserPublic } from '@spanish-class/shared';
 import { generateBookingIcs, generateCancellationIcs } from './ics.js';
 import { prisma } from '../lib/prisma.js';
+import { getMeetingProvider } from './meeting-provider.js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -90,7 +91,7 @@ export async function sendBookingConfirmation(data: SimpleBookingConfirmationDat
           </div>
 
           <div style="text-align: center; margin-top: 30px;">
-            ${meetLink ? `<a href="${meetLink}" class="button meet-link">Join Google Meet</a>` : ''}
+            ${meetLink ? `<a href="${meetLink}" class="button meet-link">Join Video Class</a>` : ''}
             <a href="${FRONTEND_URL}/dashboard/bookings" class="button">View My Bookings</a>
           </div>
         </div>
@@ -176,11 +177,20 @@ interface BookingEmailData {
 export async function sendBookingConfirmationToStudent(data: BookingEmailData): Promise<void> {
   const { slot, professor, student } = data;
 
+  // Get meeting URL (Jitsi or fallback to Google Meet for backwards compatibility)
+  let meetingUrl: string | null = null;
+  if (slot.meetingRoomName) {
+    const provider = getMeetingProvider();
+    meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${student.firstName} ${student.lastName}`);
+  } else if (slot.googleMeetLink) {
+    meetingUrl = slot.googleMeetLink;
+  }
+
   const icsContent = await generateBookingIcs({
     slot,
     professor,
     student,
-    meetLink: slot.googleMeetLink,
+    meetLink: meetingUrl,
   });
 
   const icsBuffer = Buffer.from(icsContent, 'utf-8');
@@ -240,7 +250,7 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
           ${slot.description ? `<p><strong>Description:</strong> ${slot.description}</p>` : ''}
 
           <div style="text-align: center; margin-top: 30px;">
-            ${slot.googleMeetLink ? `<a href="${slot.googleMeetLink}" class="button meet-link">Join Google Meet</a>` : ''}
+            ${meetingUrl ? `<a href="${meetingUrl}" class="button meet-link">Join Video Class</a>` : ''}
             <a href="${FRONTEND_URL}/dashboard/bookings" class="button">View My Bookings</a>
           </div>
 
@@ -316,11 +326,20 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
 export async function sendBookingNotificationToProfessor(data: BookingEmailData): Promise<void> {
   const { slot, professor, student } = data;
 
+  // Get meeting URL (Jitsi or fallback to Google Meet for backwards compatibility)
+  let meetingUrl: string | null = null;
+  if (slot.meetingRoomName) {
+    const provider = getMeetingProvider();
+    meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${professor.firstName} ${professor.lastName}`);
+  } else if (slot.googleMeetLink) {
+    meetingUrl = slot.googleMeetLink;
+  }
+
   const icsContent = await generateBookingIcs({
     slot,
     professor,
     student,
-    meetLink: slot.googleMeetLink,
+    meetLink: meetingUrl,
   });
 
   const icsBuffer = Buffer.from(icsContent, 'utf-8');

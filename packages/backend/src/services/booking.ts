@@ -8,6 +8,7 @@ import {
   sendCancellationToProfessor,
 } from './email.js';
 import { addStudentToSlotEvent, removeStudentFromSlotEvent } from './google.js';
+import { createMeetingRoom, getMeetingProvider } from './meeting-provider.js';
 
 interface BookSlotResult {
   bookingId: string;
@@ -17,6 +18,8 @@ interface BookSlotResult {
     startTime: Date;
     endTime: Date;
     googleMeetLink: string | null;
+    meetingRoomName: string | null;
+    meetingUrl: string | null;
   };
 }
 
@@ -97,19 +100,27 @@ export async function bookSlot(
       },
     });
 
-    // Update slot participant count and status
+    // Generate meeting room if not already created (idempotent)
+    let meetingRoomName = slot.meetingRoomName;
+    if (!meetingRoomName) {
+      const meeting = createMeetingRoom(slot.id);
+      meetingRoomName = meeting.roomName;
+    }
+
+    // Update slot participant count, status, and meeting room name
     const newParticipants = slot.currentParticipants + 1;
     const newStatus = newParticipants >= slot.maxParticipants ? 'FULLY_BOOKED' : 'AVAILABLE';
 
-    await tx.availabilitySlot.update({
+    const updatedSlot = await tx.availabilitySlot.update({
       where: { id: slotId },
       data: {
         currentParticipants: newParticipants,
         status: newStatus,
+        meetingRoomName,
       },
     });
 
-    return { booking, slot };
+    return { booking, slot: { ...slot, meetingRoomName } };
   });
 
   // After transaction: Send emails and update Google Calendar (non-blocking)
@@ -136,6 +147,12 @@ export async function bookSlot(
     }),
   ]).catch((err) => console.error('Failed to send booking emails:', err));
 
+  // Get meeting URL from room name
+  const provider = getMeetingProvider();
+  const meetingUrl = slot.meetingRoomName
+    ? provider.getJoinUrl(slot.meetingRoomName, `${student.firstName} ${student.lastName}`)
+    : slot.googleMeetLink; // Fallback to Google Meet for backwards compatibility
+
   return {
     bookingId: booking.id,
     slot: {
@@ -143,7 +160,9 @@ export async function bookSlot(
       title: slot.title,
       startTime: slot.startTime,
       endTime: slot.endTime,
-      googleMeetLink: slot.googleMeetLink,
+      googleMeetLink: slot.googleMeetLink, // Keep for backwards compatibility
+      meetingRoomName: slot.meetingRoomName,
+      meetingUrl,
     },
   };
 }
