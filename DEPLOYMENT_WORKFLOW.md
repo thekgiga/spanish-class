@@ -236,7 +236,7 @@ cp packages/backend/.env.local packages/backend/.env
 cp packages/backend/.env.dev packages/backend/.env
 
 # Test with prod-like settings
-cp packages/backend/.env.prod packages/backend/.env
+cp packages/backend/.env.production packages/backend/.env
 ```
 
 ### On Server
@@ -421,11 +421,11 @@ spanish-class/
 │   │   ├── .env              # Active (gitignored)
 │   │   ├── .env.local        # Template for local
 │   │   ├── .env.dev          # Template for dev
-│   │   └── .env.prod         # Template for prod
+│   │   └── .env.production   # Template for prod
 │   └── frontend/
 │       ├── .env.local        # Auto-loaded in dev mode
 │       ├── .env.dev          # Used in dev build
-│       └── .env.prod         # Used in prod build
+│       └── .env.production   # Used in prod build
 ```
 
 ### Updating Configuration
@@ -434,7 +434,7 @@ spanish-class/
 
 1. **Update all .env templates:**
    ```bash
-   # Add to .env.local, .env.dev, .env.prod
+   # Add to .env.local, .env.dev, .env.production
    NEW_API_KEY="value"
    ```
 

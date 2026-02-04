@@ -98,21 +98,17 @@ Complete guide for managing Local, Dev, and Production environments for the Span
 
 ```
 spanish-class/
-├── .env.local              # Local environment config (gitignored)
-├── .env.dev.example        # Dev environment template (committed)
-├── .env.production.example # Prod environment template (committed)
-│
 ├── packages/
 │   ├── backend/
 │   │   ├── .env            # Active config (gitignored)
-│   │   ├── .env.local      # Local config (gitignored)
-│   │   ├── .env.dev        # Dev config (gitignored)
-│   │   └── .env.production # Prod config (gitignored)
+│   │   ├── .env.local      # Local template (committed)
+│   │   ├── .env.dev        # Dev template (committed)
+│   │   └── .env.production # Production template (committed)
 │   │
 │   └── frontend/
-│       ├── .env.local      # Local config (gitignored)
-│       ├── .env.dev        # Dev config (gitignored)
-│       └── .env.production # Prod config (gitignored)
+│       ├── .env.local      # Local template (committed)
+│       ├── .env.dev        # Dev template (committed)
+│       └── .env.production # Production template (committed)
 ```
 
 ### Environment Variables by Environment
@@ -436,7 +432,7 @@ cat .env | grep DATABASE_URL
 
 # Switch environment
 cp .env.dev .env       # Switch to dev
-cp .env.production .env # Switch to production
+cp packages/backend/.env.production packages/backend/.env # Switch to production
 ```
 
 ### Port Conflicts

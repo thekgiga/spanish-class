@@ -173,7 +173,7 @@ pnpm install
 cd packages/backend
 
 # Copy production environment template
-cp .env.prod .env
+cp .env.production .env
 
 # Edit environment file
 nano .env
@@ -239,14 +239,11 @@ ls -la .env
 ```bash
 cd ~/spanish-class/packages/frontend
 
-# Copy production environment template
-cp .env.prod .env.production
-
-# Edit if needed
+# Edit production environment (if needed)
 nano .env.production
 ```
 
-**Update API URL:**
+**Verify/Update API URL:**
 ```env
 VITE_API_URL=https://yourdomain.com/api
 VITE_DEBUG=false
