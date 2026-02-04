@@ -43,8 +43,6 @@ model AvailabilitySlot {
   status              SlotStatus @default(AVAILABLE)
   title               String?
   description         String?    @db.Text
-  googleEventId       String?    @map("google_event_id")
-  googleMeetLink      String?    @map("google_meet_link")
   meetingRoomName     String?    @map("meeting_room_name") // Immutable Jitsi room name
   isPrivate           Boolean    @default(false) @map("is_private")
   recurringPatternId  String?    @map("recurring_pattern_id")

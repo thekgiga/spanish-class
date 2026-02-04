@@ -13,7 +13,6 @@ import {
   professorBookStudentSchema,
 } from '@spanish-class/shared';
 import { AppError } from '../middleware/error.js';
-import { createSlotCalendarEvent, deleteCalendarEvent, updateCalendarEvent } from '../services/google.js';
 import { createMeetingRoom } from '../services/meeting-provider.js';
 import { sendBookingConfirmation, sendCancellationToStudent } from '../services/email.js';
 import { validateMeetingAccess, getMeetingDetails } from '../services/meeting-access.js';
@@ -211,19 +210,6 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
       }
     }
 
-    // Create Google Calendar event
-    const calendarResult = await createSlotCalendarEvent({
-      professorId: req.user!.id,
-      startTime: new Date(startTime),
-      endTime: new Date(endTime),
-      slotType,
-      maxParticipants: maxParticipants || 1,
-      currentParticipants: bookForStudentId ? 1 : 0,
-      status: bookForStudentId ? (slotType === 'INDIVIDUAL' ? 'FULLY_BOOKED' : 'AVAILABLE') : 'AVAILABLE',
-      title,
-      description,
-    });
-
     // Create slot with allowed students
     const slot = await prisma.availabilitySlot.create({
       data: {
@@ -237,8 +223,6 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
         title,
         description,
         isPrivate: isPrivate || false,
-        googleEventId: calendarResult?.eventId,
-        googleMeetLink: calendarResult?.meetLink,
         allowedStudents: isPrivate && allowedStudentIds?.length ? {
           create: allowedStudentIds.map((studentId: string) => ({ studentId })),
         } : undefined,
@@ -371,18 +355,6 @@ router.post('/slots/bulk', validate(bulkCreateSlotSchema), async (req, res, next
     // Create all slots
     const createdSlots = await Promise.all(
       slots.map(async (s) => {
-        const calendarResult = await createSlotCalendarEvent({
-          professorId: req.user!.id,
-          startTime: s.startTime,
-          endTime: s.endTime,
-          slotType,
-          maxParticipants: maxParticipants || 1,
-          currentParticipants: 0,
-          status: 'AVAILABLE',
-          title,
-          description,
-        });
-
         const slot = await prisma.availabilitySlot.create({
           data: {
             professorId: req.user!.id,
@@ -393,8 +365,6 @@ router.post('/slots/bulk', validate(bulkCreateSlotSchema), async (req, res, next
             title,
             description,
             isPrivate: isPrivate || false,
-            googleEventId: calendarResult?.eventId,
-            googleMeetLink: calendarResult?.meetLink,
             allowedStudents: isPrivate && allowedStudentIds?.length ? {
               create: allowedStudentIds.map((studentId: string) => ({ studentId })),
             } : undefined,
@@ -507,18 +477,6 @@ router.post('/recurring-patterns', validate(createRecurringPatternSchema), async
     // Create slots
     const createdSlots = await Promise.all(
       nonOverlappingSlots.map(async (s) => {
-        const calendarResult = await createSlotCalendarEvent({
-          professorId: req.user!.id,
-          startTime: s.startTime,
-          endTime: s.endTime,
-          slotType,
-          maxParticipants: maxParticipants || 1,
-          currentParticipants: 0,
-          status: 'AVAILABLE',
-          title,
-          description,
-        });
-
         const slot = await prisma.availabilitySlot.create({
           data: {
             professorId: req.user!.id,
@@ -530,8 +488,6 @@ router.post('/recurring-patterns', validate(createRecurringPatternSchema), async
             title,
             description,
             isPrivate: isPrivate || false,
-            googleEventId: calendarResult?.eventId,
-            googleMeetLink: calendarResult?.meetLink,
             allowedStudents: isPrivate && allowedStudentIds?.length ? {
               create: allowedStudentIds.map((studentId: string) => ({ studentId })),
             } : undefined,
@@ -597,20 +553,6 @@ router.delete('/recurring-patterns/:id', async (req, res, next) => {
     }
 
     // Cancel all future slots from this pattern
-    const futureSlots = await prisma.availabilitySlot.findMany({
-      where: {
-        recurringPatternId: pattern.id,
-        startTime: { gt: new Date() },
-        status: 'AVAILABLE',
-      },
-    });
-
-    for (const slot of futureSlots) {
-      if (slot.googleEventId) {
-        deleteCalendarEvent(slot.googleEventId).catch(console.error);
-      }
-    }
-
     await prisma.availabilitySlot.updateMany({
       where: {
         recurringPatternId: pattern.id,
@@ -701,7 +643,11 @@ router.post('/book-student', validate(professorBookStudentSchema), async (req, r
     ]);
 
     // Send invitation email
-    if (sendInvitation) {
+    if (sendInvitation && slot.meetingRoomName) {
+      const { getMeetingProvider } = await import('../services/meeting-provider.js');
+      const provider = getMeetingProvider();
+      const meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${student.firstName} ${student.lastName}`);
+
       sendBookingConfirmation({
         studentEmail: student.email,
         studentName: `${student.firstName} ${student.lastName}`,
@@ -709,7 +655,7 @@ router.post('/book-student', validate(professorBookStudentSchema), async (req, r
         slotTitle: slot.title || 'Spanish Class',
         startTime: slot.startTime,
         endTime: slot.endTime,
-        meetLink: slot.googleMeetLink,
+        meetLink: meetingUrl,
       }).catch(console.error);
     }
 
@@ -808,16 +754,6 @@ router.put('/slots/:id', validate(updateSlotSchema), async (req, res, next) => {
       },
     });
 
-    // Update Google Calendar
-    if (slot.googleEventId) {
-      updateCalendarEvent(slot.googleEventId, {
-        title: req.body.title,
-        description: req.body.description,
-        startTime: req.body.startTime ? new Date(req.body.startTime) : undefined,
-        endTime: req.body.endTime ? new Date(req.body.endTime) : undefined,
-      }).catch((err) => console.error('Failed to update calendar event:', err));
-    }
-
     res.json({
       success: true,
       data: updated,
@@ -854,13 +790,6 @@ router.delete('/slots/:id', async (req, res, next) => {
       where: { id: slot.id },
       data: { status: 'CANCELLED' },
     });
-
-    // Delete from Google Calendar
-    if (slot.googleEventId) {
-      deleteCalendarEvent(slot.googleEventId).catch((err) =>
-        console.error('Failed to delete calendar event:', err)
-      );
-    }
 
     res.json({
       success: true,
@@ -932,13 +861,6 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
         },
       }),
     ]);
-
-    // Delete from Google Calendar
-    if (slot.googleEventId) {
-      deleteCalendarEvent(slot.googleEventId).catch((err) =>
-        console.error('Failed to delete calendar event:', err)
-      );
-    }
 
     // Send cancellation emails to all affected students
     const professor = req.user!;
