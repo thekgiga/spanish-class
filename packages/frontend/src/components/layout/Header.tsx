@@ -33,27 +33,27 @@ export function Header() {
   const dashboardPath = user?.isAdmin ? '/admin' : '/dashboard';
 
   return (
-    <header className="sticky top-0 z-50 glass border-b">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/60 shadow-soft">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-18 items-center justify-between">
           {/* Logo */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center"
           >
-            <Link to="/" className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg gradient-navy flex items-center justify-center">
-                <span className="text-gold-500 font-display text-xl font-bold">S</span>
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-colored-indigo group-hover:scale-105 transition-transform duration-200">
+                <span className="text-white font-display text-2xl font-bold">S</span>
               </div>
-              <span className="font-display text-xl font-semibold text-navy-800">
+              <span className="font-display text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">
                 Spanish Class
               </span>
             </Link>
           </motion.div>
 
           {/* Desktop navigation */}
-          <div className="hidden md:flex md:items-center md:gap-8">
+          <div className="hidden md:flex md:items-center md:gap-1">
             {navLinks.map((link, index) => (
               <motion.div
                 key={link.href}
@@ -63,7 +63,7 @@ export function Header() {
               >
                 <Link
                   to={link.href}
-                  className="text-sm font-medium text-navy-700 hover:text-navy-900 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200"
                 >
                   {link.label}
                 </Link>
@@ -72,42 +72,47 @@ export function Header() {
           </div>
 
           {/* Auth buttons / User menu */}
-          <div className="hidden md:flex md:items-center md:gap-4">
+          <div className="hidden md:flex md:items-center md:gap-3">
             {isAuthenticated && user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                    <Avatar>
-                      <AvatarFallback className="bg-navy-100 text-navy-700">
+                  <Button variant="ghost" className="relative h-11 w-11 rounded-full hover:scale-105 transition-transform duration-200">
+                    <Avatar className="h-11 w-11">
+                      <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-semibold text-base">
                         {getInitials(user.firstName, user.lastName)}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <div className="flex items-center justify-start gap-2 p-2">
+                <DropdownMenuContent className="w-64 rounded-2xl shadow-xlarge border-slate-200/60" align="end" forceMount>
+                  <div className="flex items-center justify-start gap-3 p-4">
+                    <Avatar className="h-12 w-12">
+                      <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-white font-semibold">
+                        {getInitials(user.firstName, user.lastName)}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{user.firstName} {user.lastName}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                      <p className="font-semibold text-slate-900">{user.firstName} {user.lastName}</p>
+                      <p className="text-sm text-slate-600">{user.email}</p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link to={dashboardPath}>
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                      Dashboard
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link to={dashboardPath} className="flex items-center">
+                      <LayoutDashboard className="mr-3 h-4 w-4" />
+                      <span className="font-medium">Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to={`${dashboardPath}/settings`}>
-                      <User className="mr-2 h-4 w-4" />
-                      Settings
+                  <DropdownMenuItem asChild className="cursor-pointer">
+                    <Link to={`${dashboardPath}/settings`} className="flex items-center">
+                      <User className="mr-3 h-4 w-4" />
+                      <span className="font-medium">Settings</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Log out
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50">
+                    <LogOut className="mr-3 h-4 w-4" />
+                    <span className="font-medium">Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -127,7 +132,7 @@ export function Header() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
                 >
-                  <Button variant="primary" asChild>
+                  <Button variant="primary" size="default" asChild>
                     <Link to="/register">Get Started</Link>
                   </Button>
                 </motion.div>
@@ -157,38 +162,40 @@ export function Header() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden py-4 space-y-3"
+            className="md:hidden py-6 space-y-3 border-t border-slate-200/60"
           >
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 to={link.href}
-                className="block px-3 py-2 text-base font-medium text-navy-700 hover:bg-navy-50 rounded-lg"
+                className="block px-4 py-3 text-base font-semibold text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-xl transition-all duration-200"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="pt-4 space-y-2">
+            <div className="pt-4 space-y-3">
               {isAuthenticated ? (
                 <>
-                  <Button variant="outline" className="w-full" asChild>
+                  <Button variant="outline" className="w-full" size="lg" asChild>
                     <Link to={dashboardPath} onClick={() => setMobileMenuOpen(false)}>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
                       Dashboard
                     </Link>
                   </Button>
-                  <Button variant="ghost" className="w-full" onClick={handleLogout}>
+                  <Button variant="destructive" className="w-full" size="lg" onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
                     Log out
                   </Button>
                 </>
               ) : (
                 <>
-                  <Button variant="outline" className="w-full" asChild>
+                  <Button variant="outline" className="w-full" size="lg" asChild>
                     <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
                       Sign in
                     </Link>
                   </Button>
-                  <Button variant="primary" className="w-full" asChild>
+                  <Button variant="primary" className="w-full" size="lg" asChild>
                     <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
                       Get Started
                     </Link>
