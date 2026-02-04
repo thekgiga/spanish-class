@@ -4,35 +4,75 @@
 
 @layer base {
   :root {
+    /* Premium Color System - Light Mode */
     --background: 0 0% 100%;
-    --foreground: 229 28% 15%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 229 28% 15%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 229 28% 15%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 229 28% 15%;
+    /* Indigo Primary */
+    --primary: 239 84% 67%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 229 28% 15%;
+    /* Slate Secondary */
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 39 91% 55%;
-    --accent-foreground: 229 28% 15%;
+    /* Emerald Accent */
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 39 91% 55%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 239 84% 67%;
 
     --radius: 0.75rem;
+
+    /* Custom gradient stops */
+    --gradient-from: #6366f1;
+    --gradient-via: #8b5cf6;
+    --gradient-to: #a78bfa;
+  }
+
+  .dark {
+    /* Premium Color System - Dark Mode */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 239 84% 67%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 160 84% 39%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 239 84% 67%;
   }
 
   * {
@@ -41,59 +81,243 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  h1, h2, h3 {
+  h1, h2, h3, h4, h5, h6 {
     @apply font-display;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    @apply text-5xl lg:text-6xl;
+  }
+
+  h2 {
+    @apply text-4xl lg:text-5xl;
+  }
+
+  h3 {
+    @apply text-3xl lg:text-4xl;
+  }
+
+  p {
+    @apply text-base leading-relaxed;
+  }
+}
+
+@layer components {
+  /* Premium Card Variants */
+  .card-premium {
+    @apply bg-white rounded-2xl shadow-large border border-slate-200/50 transition-all duration-300;
+  }
+
+  .card-premium:hover {
+    @apply shadow-xlarge -translate-y-1;
+  }
+
+  .card-glass {
+    @apply bg-white/70 backdrop-blur-xl rounded-2xl shadow-medium border border-white/20;
+  }
+
+  .card-gradient {
+    @apply bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-500 rounded-2xl shadow-colored-indigo text-white;
+  }
+
+  /* Premium Button Base */
+  .btn-premium {
+    @apply relative overflow-hidden rounded-xl px-6 py-3 font-medium transition-all duration-300;
+    @apply hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  .btn-gradient {
+    @apply bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-colored-indigo;
+    @apply hover:from-indigo-700 hover:to-violet-700 hover:shadow-xlarge;
+  }
+
+  /* Premium Input Styles */
+  .input-premium {
+    @apply w-full rounded-xl border-2 border-slate-200 bg-white px-4 py-3;
+    @apply focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10;
+    @apply transition-all duration-200;
+  }
+
+  /* Gradient Text Variants */
+  .text-gradient-primary {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600;
+  }
+
+  .text-gradient-emerald {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600;
+  }
+
+  .text-gradient-sunset {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-orange-500 via-pink-500 to-purple-600;
   }
 }
 
 @layer utilities {
+  /* Legacy Gradients (for backward compatibility) */
   .gradient-navy {
-    @apply bg-gradient-to-br from-navy-800 to-navy-700;
+    @apply bg-gradient-to-br from-slate-900 to-slate-800;
   }
 
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-gold-500 to-gold-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600;
   }
 
+  /* Premium Gradient Backgrounds */
+  .gradient-mesh {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+  }
+
+  .gradient-mesh-subtle {
+    background: linear-gradient(135deg,
+      rgba(99, 102, 241, 0.05) 0%,
+      rgba(139, 92, 246, 0.05) 50%,
+      rgba(167, 139, 250, 0.05) 100%);
+    background-size: 200% 200%;
+    animation: gradient-shift 12s ease infinite;
+  }
+
+  .gradient-indigo {
+    @apply bg-gradient-to-br from-indigo-600 via-indigo-500 to-violet-600;
+  }
+
+  .gradient-emerald {
+    @apply bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-600;
+  }
+
+  .gradient-sunset {
+    @apply bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600;
+  }
+
+  /* Glass Morphism Variants */
   .glass {
-    @apply bg-white/80 backdrop-blur-lg;
+    @apply bg-white/80 backdrop-blur-lg border border-white/20;
   }
 
-  .shadow-soft {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  .glass-dark {
+    @apply bg-slate-900/80 backdrop-blur-lg border border-slate-700/50;
   }
 
-  .shadow-medium {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  .glass-tint {
+    @apply bg-indigo-500/10 backdrop-blur-xl border border-indigo-500/20;
   }
 
-  .shadow-large {
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* Premium Shadow System */
+  .shadow-glow-indigo {
+    box-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
+  }
+
+  .shadow-glow-emerald {
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Shimmer Effect */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+
+  /* Border Gradients */
+  .border-gradient {
+    position: relative;
+    background: white;
+    border-radius: 1rem;
+  }
+
+  .border-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem;
+    padding: 2px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Floating Animation */
+  .float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  /* Hover Lift Effect */
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-2 shadow-xlarge;
+  }
+
+  /* Premium Focus Ring */
+  .focus-ring-premium {
+    @apply focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500;
   }
 }
 
-/* Custom scrollbar */
+/* Premium Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 rounded-full;
+  @apply bg-slate-100 rounded-full;
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full hover:bg-gray-400;
+  @apply bg-gradient-to-b from-indigo-400 to-violet-500 rounded-full;
+  @apply hover:from-indigo-500 hover:to-violet-600;
+  transition: all 0.2s ease;
 }
 
-/* Focus styles */
+/* Premium Focus Styles */
 :focus-visible {
-  @apply outline-none ring-2 ring-gold-500 ring-offset-2;
+  @apply outline-none ring-4 ring-indigo-500/20 ring-offset-2;
 }
 
-/* Selection */
+/* Premium Selection */
 ::selection {
-  @apply bg-gold-200 text-navy-800;
+  @apply bg-indigo-100 text-indigo-900;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
