@@ -43,9 +43,10 @@ export async function createCalendarEvent(input: CreateEventInput): Promise<Even
   const calendar = google.calendar({ version: 'v3', auth });
 
   try {
+    // Note: No longer creating Google Meet links - using Jitsi Meet instead
+    // Calendar events are created for scheduling purposes only
     const event = await calendar.events.insert({
       calendarId,
-      conferenceDataVersion: 1,
       requestBody: {
         summary: input.title,
         description: input.description,
@@ -61,20 +62,12 @@ export async function createCalendarEvent(input: CreateEventInput): Promise<Even
           email: a.email,
           displayName: a.name,
         })),
-        conferenceData: {
-          createRequest: {
-            requestId: `spanish-class-${Date.now()}`,
-            conferenceSolutionKey: {
-              type: 'googleMeet',
-            },
-          },
-        },
       },
     });
 
     return {
       eventId: event.data.id || '',
-      meetLink: event.data.conferenceData?.entryPoints?.[0]?.uri,
+      meetLink: undefined, // No longer generating Google Meet links
     };
   } catch (error) {
     console.error('Failed to create Google Calendar event:', error);
