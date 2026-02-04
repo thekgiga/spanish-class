@@ -116,7 +116,7 @@ case "$ENVIRONMENT" in
     prod|production)
         ENVIRONMENT="prod"
         ENV_FULL="Production"
-        ENV_FILE=".env.prod"
+        ENV_FILE=".env.production"
         PUBLIC_HTML_DIR="$HOME/public_html"
         BACKEND_PORT="3001"
         BACKEND_NAME="spanish-class-prod"
