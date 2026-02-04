@@ -76,7 +76,7 @@ export function OfferingsPage() {
   return (
     <div>
       {/* Hero */}
-      <section className="gradient-navy text-white py-20 lg:py-28">
+      <section className="bg-gradient-to-br from-slate-900 via-indigo-950 to-violet-950 text-white py-20 lg:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -84,7 +84,7 @@ export function OfferingsPage() {
             className="max-w-3xl"
           >
             <h1 className="font-display text-4xl sm:text-5xl font-bold">Our Classes</h1>
-            <p className="mt-6 text-xl text-navy-200">
+            <p className="mt-6 text-xl text-slate-300">
               Choose the learning format that works best for you. All classes are conducted
               live via video call with experienced native teachers.
             </p>
@@ -111,8 +111,8 @@ export function OfferingsPage() {
                     </Badge>
                   )}
                   <CardHeader>
-                    <div className="h-14 w-14 rounded-xl bg-navy-100 flex items-center justify-center mb-4">
-                      <classType.icon className="h-7 w-7 text-navy-700" />
+                    <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center mb-4">
+                      <classType.icon className="h-7 w-7 text-indigo-600" />
                     </div>
                     <CardTitle className="text-2xl">{classType.title}</CardTitle>
                     <CardDescription className="text-base">
@@ -134,7 +134,7 @@ export function OfferingsPage() {
                       {classType.features.map((feature) => (
                         <li key={feature} className="flex items-center gap-3">
                           <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                          <span className="text-navy-700">{feature}</span>
+                          <span className="text-indigo-600">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -158,7 +158,7 @@ export function OfferingsPage() {
             viewport={{ once: true }}
             className="text-center max-w-2xl mx-auto"
           >
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-navy-800">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-slate-900">
               Topics We Cover
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
@@ -180,7 +180,7 @@ export function OfferingsPage() {
                     <Badge variant="secondary" className="mb-4">
                       {topic.level}
                     </Badge>
-                    <h3 className="text-lg font-semibold text-navy-800">{topic.title}</h3>
+                    <h3 className="text-lg font-semibold text-slate-900">{topic.title}</h3>
                     <p className="mt-2 text-sm text-muted-foreground">{topic.description}</p>
                   </CardContent>
                 </Card>
@@ -199,7 +199,7 @@ export function OfferingsPage() {
             viewport={{ once: true }}
             className="text-center max-w-2xl mx-auto"
           >
-            <h2 className="font-display text-3xl sm:text-4xl font-bold text-navy-800">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold text-slate-900">
               How It Works
             </h2>
             <p className="mt-4 text-lg text-muted-foreground">
@@ -233,10 +233,10 @@ export function OfferingsPage() {
                 transition={{ delay: index * 0.1 }}
                 className="text-center"
               >
-                <div className="mx-auto h-16 w-16 rounded-full bg-gold-500 flex items-center justify-center text-2xl font-bold text-navy-800">
+                <div className="mx-auto h-16 w-16 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center text-2xl font-bold text-white shadow-colored-indigo">
                   {item.step}
                 </div>
-                <h3 className="mt-6 text-xl font-semibold text-navy-800">{item.title}</h3>
+                <h3 className="mt-6 text-xl font-semibold text-slate-900">{item.title}</h3>
                 <p className="mt-3 text-muted-foreground">{item.description}</p>
               </motion.div>
             ))}
