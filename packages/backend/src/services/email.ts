@@ -2,6 +2,7 @@ import { Resend } from 'resend';
 import type { AvailabilitySlot, UserPublic } from '@spanish-class/shared';
 import { generateBookingIcs, generateCancellationIcs } from './ics.js';
 import { prisma } from '../lib/prisma.js';
+import { getMeetingProvider } from './meeting-provider.js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -90,7 +91,7 @@ export async function sendBookingConfirmation(data: SimpleBookingConfirmationDat
           </div>
 
           <div style="text-align: center; margin-top: 30px;">
-            ${meetLink ? `<a href="${meetLink}" class="button meet-link">Join Google Meet</a>` : ''}
+            ${meetLink ? `<a href="${meetLink}" class="button meet-link">Join Video Class</a>` : ''}
             <a href="${FRONTEND_URL}/dashboard/bookings" class="button">View My Bookings</a>
           </div>
         </div>
@@ -176,11 +177,18 @@ interface BookingEmailData {
 export async function sendBookingConfirmationToStudent(data: BookingEmailData): Promise<void> {
   const { slot, professor, student } = data;
 
+  // Get meeting URL from Jitsi
+  let meetingUrl: string | null = null;
+  if (slot.meetingRoomName) {
+    const provider = getMeetingProvider();
+    meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${student.firstName} ${student.lastName}`);
+  }
+
   const icsContent = await generateBookingIcs({
     slot,
     professor,
     student,
-    meetLink: slot.googleMeetLink,
+    meetLink: meetingUrl,
   });
 
   const icsBuffer = Buffer.from(icsContent, 'utf-8');
@@ -240,7 +248,7 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
           ${slot.description ? `<p><strong>Description:</strong> ${slot.description}</p>` : ''}
 
           <div style="text-align: center; margin-top: 30px;">
-            ${slot.googleMeetLink ? `<a href="${slot.googleMeetLink}" class="button meet-link">Join Google Meet</a>` : ''}
+            ${meetingUrl ? `<a href="${meetingUrl}" class="button meet-link">Join Video Class</a>` : ''}
             <a href="${FRONTEND_URL}/dashboard/bookings" class="button">View My Bookings</a>
           </div>
 
@@ -316,11 +324,18 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
 export async function sendBookingNotificationToProfessor(data: BookingEmailData): Promise<void> {
   const { slot, professor, student } = data;
 
+  // Get meeting URL from Jitsi
+  let meetingUrl: string | null = null;
+  if (slot.meetingRoomName) {
+    const provider = getMeetingProvider();
+    meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${professor.firstName} ${professor.lastName}`);
+  }
+
   const icsContent = await generateBookingIcs({
     slot,
     professor,
     student,
-    meetLink: slot.googleMeetLink,
+    meetLink: meetingUrl,
   });
 
   const icsBuffer = Buffer.from(icsContent, 'utf-8');
@@ -653,6 +668,117 @@ export async function sendCancellationToProfessor(
         status: 'failed',
         error: err instanceof Error ? err.message : String(err),
         metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, reason },
+      });
+    }
+    throw err;
+  }
+}
+
+// Email verification
+interface VerificationEmailData {
+  email: string;
+  firstName: string;
+  verificationToken: string;
+}
+
+export async function sendVerificationEmail(data: VerificationEmailData): Promise<void> {
+  const { email, firstName, verificationToken } = data;
+
+  const verificationUrl = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1a1f36 0%, #2d3748 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+        .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+        .button { display: inline-block; background: #f5a623; color: #1a1f36; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .warning { background: #fffbeb; border: 1px solid #fbbf24; padding: 15px; border-radius: 8px; margin: 20px 0; color: #92400e; }
+        h1 { margin: 0; font-size: 24px; }
+        .emoji { font-size: 32px; margin-bottom: 10px; }
+        .link-text { word-break: break-all; font-size: 12px; color: #718096; margin-top: 15px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="emoji">✉️</div>
+          <h1>Verify Your Email</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${firstName},</p>
+          <p>Welcome to Spanish Class! Please verify your email address to activate your account and start booking classes.</p>
+
+          <div style="text-align: center;">
+            <a href="${verificationUrl}" class="button">Verify Email Address</a>
+          </div>
+
+          <div class="warning">
+            <strong>Important:</strong> This verification link will expire in 24 hours. If you didn't create an account with Spanish Class, you can safely ignore this email.
+          </div>
+
+          <p class="link-text">
+            If the button doesn't work, copy and paste this link into your browser:<br>
+            ${verificationUrl}
+          </p>
+        </div>
+        <div class="footer">
+          <p>Spanish Class Platform</p>
+          <p>This is an automated message. Please do not reply to this email.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const subject = '✉️ Verify your email - Spanish Class';
+
+  try {
+    const { data: resendData, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject,
+      html,
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: 'email_verification',
+        fromAddress: EMAIL_FROM,
+        toAddress: email,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: error.message,
+        metadata: { firstName },
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: 'email_verification',
+      fromAddress: EMAIL_FROM,
+      toAddress: email,
+      subject,
+      htmlContent: html,
+      status: 'sent',
+      metadata: { firstName, resendId: resendData?.id },
+    });
+  } catch (err) {
+    if (!(err instanceof Error && err.message.includes('domain'))) {
+      await logEmail({
+        emailType: 'email_verification',
+        fromAddress: EMAIL_FROM,
+        toAddress: email,
+        subject,
+        htmlContent: html,
+        status: 'failed',
+        error: err instanceof Error ? err.message : String(err),
+        metadata: { firstName },
       });
     }
     throw err;

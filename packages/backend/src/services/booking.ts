@@ -7,7 +7,8 @@ import {
   sendCancellationToStudent,
   sendCancellationToProfessor,
 } from './email.js';
-import { addStudentToSlotEvent, removeStudentFromSlotEvent, createBookedSessionEvent, deleteBookedSessionEvent } from './google.js';
+import { createBookedSessionEvent, deleteBookedSessionEvent } from './google.js';
+import { createMeetingRoom, getMeetingProvider } from './meeting-provider.js';
 
 interface BookSlotResult {
   bookingId: string;
@@ -16,7 +17,8 @@ interface BookSlotResult {
     title: string | null;
     startTime: Date;
     endTime: Date;
-    googleMeetLink: string | null;
+    meetingRoomName: string | null;
+    meetingUrl: string | null;
   };
 }
 
@@ -97,30 +99,37 @@ export async function bookSlot(
       },
     });
 
-    // Update slot participant count and status
+    // Generate meeting room if not already created (idempotent)
+    let meetingRoomName = slot.meetingRoomName;
+    if (!meetingRoomName) {
+      const meeting = createMeetingRoom(slot.id);
+      meetingRoomName = meeting.roomName;
+    }
+
+    // Update slot participant count, status, and meeting room name
     const newParticipants = slot.currentParticipants + 1;
     const newStatus = newParticipants >= slot.maxParticipants ? 'FULLY_BOOKED' : 'AVAILABLE';
 
-    await tx.availabilitySlot.update({
+    const updatedSlot = await tx.availabilitySlot.update({
       where: { id: slotId },
       data: {
         currentParticipants: newParticipants,
         status: newStatus,
+        meetingRoomName,
       },
     });
 
-    return { booking, slot };
+    return { booking, slot: { ...slot, meetingRoomName } };
   });
 
-  // After transaction: Send emails and update Google Calendar (non-blocking)
+  // After transaction: Send emails (non-blocking)
   const { booking, slot } = result;
 
-  // Update Google Calendar (availability calendar)
-  if (slot.googleEventId) {
-    addStudentToSlotEvent(slot.googleEventId, student).catch((err) =>
-      console.error('Failed to add student to calendar event:', err)
-    );
-  }
+  // Get meeting URL from room name
+  const provider = getMeetingProvider();
+  const meetingUrl = slot.meetingRoomName
+    ? provider.getJoinUrl(slot.meetingRoomName, `${student.firstName} ${student.lastName}`)
+    : null;
 
   // Create event on professor's booked sessions calendar
   createBookedSessionEvent({
@@ -132,7 +141,7 @@ export async function bookSlot(
       startTime: slot.startTime,
       endTime: slot.endTime,
       slotType: slot.slotType,
-      googleMeetLink: slot.googleMeetLink,
+      googleMeetLink: meetingUrl,
     },
     student: {
       id: student.id,
@@ -177,7 +186,8 @@ export async function bookSlot(
       title: slot.title,
       startTime: slot.startTime,
       endTime: slot.endTime,
-      googleMeetLink: slot.googleMeetLink,
+      meetingRoomName: slot.meetingRoomName,
+      meetingUrl,
     },
   };
 }
@@ -278,13 +288,6 @@ export async function cancelBooking(
   });
 
   const { booking, cancelledBy } = result;
-
-  // Update Google Calendar (availability calendar)
-  if (booking.slot.googleEventId) {
-    removeStudentFromSlotEvent(booking.slot.googleEventId, booking.student.email).catch((err) =>
-      console.error('Failed to remove student from calendar event:', err)
-    );
-  }
 
   // Delete from professor's booked sessions calendar
   if (booking.bookedCalendarEventId) {

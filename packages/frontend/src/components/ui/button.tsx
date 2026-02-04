@@ -4,29 +4,31 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/20 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.97] hover:scale-[1.02]',
   {
     variants: {
       variant: {
         default:
-          'bg-navy-800 text-white hover:bg-navy-700 shadow-soft hover:shadow-medium',
+          'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-colored-indigo hover:from-indigo-700 hover:to-violet-700 hover:shadow-xlarge',
         primary:
-          'bg-gold-500 text-navy-800 hover:bg-gold-400 shadow-soft hover:shadow-medium font-semibold',
+          'bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-colored-indigo hover:from-indigo-700 hover:to-violet-700 hover:shadow-xlarge',
+        emerald:
+          'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-colored-emerald hover:from-emerald-700 hover:to-teal-700 hover:shadow-xlarge',
         destructive:
-          'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+          'bg-gradient-to-r from-red-600 to-rose-600 text-white shadow-large hover:from-red-700 hover:to-rose-700 hover:shadow-xlarge',
         outline:
-          'border-2 border-navy-800 bg-transparent text-navy-800 hover:bg-navy-800 hover:text-white',
+          'border-2 border-indigo-600 bg-transparent text-indigo-600 hover:bg-indigo-600 hover:text-white hover:shadow-colored-indigo',
         secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-navy-800 underline-offset-4 hover:underline',
+          'bg-slate-100 text-slate-900 hover:bg-slate-200 shadow-soft hover:shadow-medium',
+        ghost: 'hover:bg-indigo-50 hover:text-indigo-600',
+        link: 'text-indigo-600 underline-offset-4 hover:underline hover:text-indigo-700',
       },
       size: {
-        default: 'h-11 px-5 py-2',
-        sm: 'h-9 rounded-md px-3',
-        lg: 'h-12 rounded-lg px-8 text-base',
-        xl: 'h-14 rounded-xl px-10 text-lg',
-        icon: 'h-10 w-10',
+        default: 'h-11 px-6 py-2.5',
+        sm: 'h-9 rounded-lg px-4 text-xs',
+        lg: 'h-13 rounded-xl px-8 text-base',
+        xl: 'h-14 rounded-2xl px-10 text-lg',
+        icon: 'h-11 w-11',
       },
     },
     defaultVariants: {

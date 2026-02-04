@@ -51,7 +51,18 @@ cd spanish-class-platform
 pnpm install
 ```
 
-### 2. Set Up Environment Variables
+### 2. Build Shared Package
+
+Before running the dev servers, you need to build the shared package that contains common types and validation:
+
+```bash
+# Build the shared package
+pnpm --filter @spanish-class/shared build
+# Or from the shared package directory:
+cd packages/shared && pnpm run build
+```
+
+### 3. Set Up Environment Variables
 
 Copy the example env file and configure:
 
@@ -78,7 +89,7 @@ FRONTEND_URL="http://localhost:5173"
 API_URL="http://localhost:3001"
 ```
 
-### 3. Set Up Database
+### 4. Set Up Database
 
 ```bash
 # Generate Prisma client
@@ -91,7 +102,7 @@ pnpm db:push
 pnpm db:seed
 ```
 
-### 4. Start Development
+### 5. Start Development
 
 ```bash
 pnpm dev
