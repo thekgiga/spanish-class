@@ -12,6 +12,11 @@ build
 .env.local
 .env.*.local
 
+# Environment-specific actual configs (keep templates)
+packages/backend/.env
+packages/frontend/.env.local
+packages/frontend/.env.production
+
 # IDE
 .vscode
 .idea
