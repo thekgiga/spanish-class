@@ -135,10 +135,10 @@ export function AdminDashboard() {
                       </p>
                     </div>
                     {slot.googleMeetLink && (
-                      <Button size="sm" variant="outline" asChild>
+                      <Button size="sm" variant="primary" asChild>
                         <a href={slot.googleMeetLink} target="_blank" rel="noopener noreferrer">
                           <Video className="mr-1 h-4 w-4" />
-                          Join
+                          Join Meet
                         </a>
                       </Button>
                     )}

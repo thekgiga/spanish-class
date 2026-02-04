@@ -14,7 +14,7 @@ import {
   isSameDay,
   isToday,
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Clock, Users, User } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Clock, Users, User, Video } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -145,10 +145,9 @@ export function CalendarPage() {
               selectedDateSlots.length > 0 ? (
                 <div className="space-y-3">
                   {selectedDateSlots.map((slot) => (
-                    <Link
+                    <div
                       key={slot.id}
-                      to={`/admin/slots/${slot.id}`}
-                      className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors"
+                      className="p-3 rounded-lg border hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -170,18 +169,30 @@ export function CalendarPage() {
                           {slot.status === 'FULLY_BOOKED' ? 'Full' : slot.status}
                         </Badge>
                       </div>
-                      <p className="text-sm text-navy-800 mt-1">
-                        {slot.title || 'Spanish Class'}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                        {slot.slotType === 'GROUP' ? (
-                          <Users className="h-3 w-3" />
-                        ) : (
-                          <User className="h-3 w-3" />
+                      <Link to={`/admin/slots/${slot.id}`}>
+                        <p className="text-sm text-navy-800 mt-1 hover:underline">
+                          {slot.title || 'Spanish Class'}
+                        </p>
+                      </Link>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {slot.slotType === 'GROUP' ? (
+                            <Users className="h-3 w-3" />
+                          ) : (
+                            <User className="h-3 w-3" />
+                          )}
+                          {slot.currentParticipants}/{slot.maxParticipants} booked
+                        </div>
+                        {slot.googleMeetLink && new Date(slot.startTime) > new Date() && slot.status !== 'CANCELLED' && (
+                          <Button size="sm" variant="primary" className="h-7 text-xs" asChild>
+                            <a href={slot.googleMeetLink} target="_blank" rel="noopener noreferrer">
+                              <Video className="mr-1 h-3 w-3" />
+                              Join
+                            </a>
+                          </Button>
                         )}
-                        {slot.currentParticipants}/{slot.maxParticipants} booked
                       </div>
-                    </Link>
+                    </div>
                   ))}
                 </div>
               ) : (

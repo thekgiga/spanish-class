@@ -7,7 +7,7 @@ import {
   sendCancellationToStudent,
   sendCancellationToProfessor,
 } from './email.js';
-import { addStudentToSlotEvent, removeStudentFromSlotEvent } from './google.js';
+import { addStudentToSlotEvent, removeStudentFromSlotEvent, createBookedSessionEvent, deleteBookedSessionEvent } from './google.js';
 
 interface BookSlotResult {
   bookingId: string;
@@ -115,12 +115,46 @@ export async function bookSlot(
   // After transaction: Send emails and update Google Calendar (non-blocking)
   const { booking, slot } = result;
 
-  // Update Google Calendar
+  // Update Google Calendar (availability calendar)
   if (slot.googleEventId) {
     addStudentToSlotEvent(slot.googleEventId, student).catch((err) =>
       console.error('Failed to add student to calendar event:', err)
     );
   }
+
+  // Create event on professor's booked sessions calendar
+  createBookedSessionEvent({
+    booking: { id: booking.id },
+    slot: {
+      id: slot.id,
+      title: slot.title,
+      description: slot.description,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      slotType: slot.slotType,
+      googleMeetLink: slot.googleMeetLink,
+    },
+    student: {
+      id: student.id,
+      email: student.email,
+      firstName: student.firstName,
+      lastName: student.lastName,
+    },
+    professor: {
+      id: slot.professor.id,
+      email: slot.professor.email,
+      firstName: slot.professor.firstName,
+      lastName: slot.professor.lastName,
+    },
+  }).then((calendarResult) => {
+    if (calendarResult?.eventId) {
+      // Store the booked calendar event ID in the booking
+      prisma.booking.update({
+        where: { id: booking.id },
+        data: { bookedCalendarEventId: calendarResult.eventId },
+      }).catch((err) => console.error('Failed to store booked calendar event ID:', err));
+    }
+  }).catch((err) => console.error('Failed to create booked session calendar event:', err));
 
   // Send emails (don't await, let them run in background)
   Promise.all([
@@ -245,10 +279,17 @@ export async function cancelBooking(
 
   const { booking, cancelledBy } = result;
 
-  // Update Google Calendar
+  // Update Google Calendar (availability calendar)
   if (booking.slot.googleEventId) {
     removeStudentFromSlotEvent(booking.slot.googleEventId, booking.student.email).catch((err) =>
       console.error('Failed to remove student from calendar event:', err)
+    );
+  }
+
+  // Delete from professor's booked sessions calendar
+  if (booking.bookedCalendarEventId) {
+    deleteBookedSessionEvent(booking.bookedCalendarEventId).catch((err) =>
+      console.error('Failed to delete booked session calendar event:', err)
     );
   }
 

@@ -152,10 +152,11 @@ export function SlotsPage() {
               >
                 {slot.status.replace('_', ' ')}
               </Badge>
-              {slot.googleMeetLink && (
-                <Button size="sm" variant="outline" asChild>
+              {slot.googleMeetLink && new Date(slot.startTime) > new Date() && slot.status !== 'CANCELLED' && (
+                <Button size="sm" variant="primary" asChild>
                   <a href={slot.googleMeetLink} target="_blank" rel="noopener noreferrer">
-                    <Video className="h-4 w-4" />
+                    <Video className="mr-1 h-4 w-4" />
+                    Join Meet
                   </a>
                 </Button>
               )}

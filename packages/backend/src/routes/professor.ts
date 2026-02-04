@@ -13,13 +13,26 @@ import {
   professorBookStudentSchema,
 } from '@spanish-class/shared';
 import { AppError } from '../middleware/error.js';
-import { createSlotCalendarEvent, deleteCalendarEvent, updateCalendarEvent } from '../services/google.js';
+import { createSlotCalendarEvent, deleteCalendarEvent, updateCalendarEvent, debugCalendarConnection, createBookedSessionEvent, deleteBookedSessionEvent } from '../services/google.js';
 import { sendBookingConfirmation, sendCancellationToStudent } from '../services/email.js';
 
 const router = Router();
 
 // All routes require authentication and admin access
 router.use(authenticate, requireAdmin);
+
+// GET /api/professor/debug/calendar - Debug Google Calendar connection
+router.get('/debug/calendar', async (req, res, next) => {
+  try {
+    const result = await debugCalendarConnection();
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 // GET /api/professor/dashboard
 router.get('/dashboard', async (req, res, next) => {
@@ -265,6 +278,39 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
       // Send invitation email to the student
       const student = await prisma.user.findUnique({ where: { id: bookForStudentId } });
       if (student) {
+        // Create event on professor's booked sessions calendar
+        createBookedSessionEvent({
+          booking: { id: booking.id },
+          slot: {
+            id: slot.id,
+            title: title || null,
+            description: description || null,
+            startTime: new Date(startTime),
+            endTime: new Date(endTime),
+            slotType,
+            googleMeetLink: calendarResult?.meetLink || null,
+          },
+          student: {
+            id: student.id,
+            email: student.email,
+            firstName: student.firstName,
+            lastName: student.lastName,
+          },
+          professor: {
+            id: req.user!.id,
+            email: req.user!.email,
+            firstName: req.user!.firstName,
+            lastName: req.user!.lastName,
+          },
+        }).then((bookedCalResult) => {
+          if (bookedCalResult?.eventId) {
+            prisma.booking.update({
+              where: { id: booking!.id },
+              data: { bookedCalendarEventId: bookedCalResult.eventId },
+            }).catch((err) => console.error('Failed to store booked calendar event ID:', err));
+          }
+        }).catch((err) => console.error('Failed to create booked session calendar event:', err));
+
         sendBookingConfirmation({
           studentEmail: student.email,
           studentName: `${student.firstName} ${student.lastName}`,
@@ -669,6 +715,39 @@ router.post('/book-student', validate(professorBookStudentSchema), async (req, r
       }),
     ]);
 
+    // Create event on professor's booked sessions calendar
+    createBookedSessionEvent({
+      booking: { id: booking.id },
+      slot: {
+        id: slot.id,
+        title: slot.title,
+        description: slot.description,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        slotType: slot.slotType,
+        googleMeetLink: slot.googleMeetLink,
+      },
+      student: {
+        id: student.id,
+        email: student.email,
+        firstName: student.firstName,
+        lastName: student.lastName,
+      },
+      professor: {
+        id: req.user!.id,
+        email: req.user!.email,
+        firstName: req.user!.firstName,
+        lastName: req.user!.lastName,
+      },
+    }).then((calendarResult) => {
+      if (calendarResult?.eventId) {
+        prisma.booking.update({
+          where: { id: booking.id },
+          data: { bookedCalendarEventId: calendarResult.eventId },
+        }).catch((err) => console.error('Failed to store booked calendar event ID:', err));
+      }
+    }).catch((err) => console.error('Failed to create booked session calendar event:', err));
+
     // Send invitation email
     if (sendInvitation) {
       sendBookingConfirmation({
@@ -853,7 +932,9 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
       include: {
         bookings: {
           where: { status: 'CONFIRMED' },
-          include: {
+          select: {
+            id: true,
+            bookedCalendarEventId: true,
             student: {
               select: {
                 id: true,
@@ -902,11 +983,20 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
       }),
     ]);
 
-    // Delete from Google Calendar
+    // Delete from Google Calendar (availability calendar)
     if (slot.googleEventId) {
       deleteCalendarEvent(slot.googleEventId).catch((err) =>
         console.error('Failed to delete calendar event:', err)
       );
+    }
+
+    // Delete from booked sessions calendar for each booking
+    for (const booking of confirmedBookings) {
+      if (booking.bookedCalendarEventId) {
+        deleteBookedSessionEvent(booking.bookedCalendarEventId).catch((err) =>
+          console.error('Failed to delete booked session calendar event:', err)
+        );
+      }
     }
 
     // Send cancellation emails to all affected students

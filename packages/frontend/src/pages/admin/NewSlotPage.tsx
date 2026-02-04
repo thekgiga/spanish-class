@@ -20,6 +20,8 @@ import {
   AlertTriangle,
   Trash2,
   Loader2,
+  Mail,
+  Video,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -840,6 +842,101 @@ export function NewSlotPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Booked Students - only in edit mode */}
+          {isEditMode && existingSlot && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="h-5 w-5 text-gold-500" />
+                  Booked Students
+                </CardTitle>
+                <CardDescription>
+                  {confirmedBookingsCount === 0
+                    ? 'No students have booked this slot yet'
+                    : `${confirmedBookingsCount} student${confirmedBookingsCount > 1 ? 's' : ''} booked`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {existingSlot.bookings && existingSlot.bookings.length > 0 ? (
+                  <div className="space-y-3">
+                    {existingSlot.bookings.map((booking: any) => (
+                      <div
+                        key={booking.id}
+                        className={cn(
+                          'flex items-center justify-between p-3 rounded-lg border',
+                          booking.status === 'CONFIRMED'
+                            ? 'bg-green-50 border-green-200'
+                            : booking.status === 'COMPLETED'
+                            ? 'bg-gray-50 border-gray-200'
+                            : 'bg-red-50 border-red-200'
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-navy-100 flex items-center justify-center">
+                            <User className="h-5 w-5 text-navy-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-navy-800">
+                              {booking.student?.firstName} {booking.student?.lastName}
+                            </p>
+                            <p className="text-sm text-muted-foreground flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              {booking.student?.email}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={
+                              booking.status === 'CONFIRMED'
+                                ? 'success'
+                                : booking.status === 'COMPLETED'
+                                ? 'secondary'
+                                : 'destructive'
+                            }
+                          >
+                            {booking.status.replace(/_/g, ' ')}
+                          </Badge>
+                          <Button variant="ghost" size="sm" asChild>
+                            <a href={`/admin/students/${booking.student?.id}`}>
+                              View
+                            </a>
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-6">
+                    <Users className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
+                    <p className="text-muted-foreground">No bookings yet</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Students can book this slot from their dashboard
+                    </p>
+                  </div>
+                )}
+
+                {/* Google Meet Link */}
+                {existingSlot.googleMeetLink && (
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Video className="h-4 w-4" />
+                        <span>Google Meet</span>
+                      </div>
+                      <Button size="sm" variant="primary" asChild>
+                        <a href={existingSlot.googleMeetLink} target="_blank" rel="noopener noreferrer">
+                          <Video className="mr-1 h-4 w-4" />
+                          Join Meeting
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Title & Description */}
           <Card>
