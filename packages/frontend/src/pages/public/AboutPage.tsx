@@ -64,23 +64,23 @@ export function AboutPage() {
               </h2>
               <div className="mt-6 space-y-4 text-muted-foreground">
                 <p>
-                  Spanish Class was founded with a simple mission: to make high-quality
-                  Spanish education accessible to everyone, regardless of their location.
+                  As an experienced Spanish teacher with years of dedicated teaching practice,
+                  I'm passionate about helping students achieve their language goals through
+                  personalized online instruction.
                 </p>
                 <p>
-                  As a native Spanish speaker from Madrid with over a decade of teaching
-                  experience, I've seen firsthand how traditional language learning methods
-                  often fall short. Students memorize grammar rules and vocabulary lists but
-                  struggle to hold real conversations.
+                  My approach goes beyond traditional textbook learning. I focus on practical
+                  communication skills, cultural immersion, and real-world applications that
+                  prepare you for authentic Spanish conversations and professional opportunities.
                 </p>
                 <p>
-                  That's why I created this platform - to focus on what really matters:
-                  conversation, cultural understanding, and practical communication skills
-                  that you can use in real life.
+                  Whether you're learning Spanish for travel, preparing for DELE certification,
+                  planning to study abroad, or need professional translation services, I provide
+                  comprehensive support tailored to your specific needs.
                 </p>
                 <p>
-                  Whether you're learning Spanish for travel, work, or personal enrichment,
-                  I'm here to guide you on your journey to fluency.
+                  Through live online sessions, I've helped hundreds of students master Spanish
+                  and achieve their academic and professional goals.
                 </p>
               </div>
               <div className="mt-8">
@@ -180,25 +180,28 @@ export function AboutPage() {
               className="order-1 lg:order-2"
             >
               <h2 className="font-display text-3xl sm:text-4xl font-bold text-slate-900">
-                Qualifications & Experience
+                Services & Specializations
               </h2>
               <div className="mt-6 space-y-4 text-muted-foreground">
                 <p>
-                  <strong className="text-slate-700">Native Speaker:</strong> Born and raised
-                  in Madrid, Spain with perfect fluency in both Spanish and English.
+                  <strong className="text-slate-700">DELE Exam Preparation:</strong> Comprehensive
+                  training and preparation for all levels of the DELE certification exams, the
+                  official Spanish language qualification from Instituto Cervantes.
                 </p>
                 <p>
-                  <strong className="text-slate-700">Certified Teacher:</strong> ELE
-                  (Spanish as a Foreign Language) certification from Instituto Cervantes.
+                  <strong className="text-slate-700">University Enrollment Assistance:</strong> Expert
+                  guidance and support for students planning to enroll in foreign universities,
+                  including language requirements and application processes.
                 </p>
                 <p>
-                  <strong className="text-slate-700">Experience:</strong> 10+ years teaching
-                  Spanish to students from over 30 countries.
+                  <strong className="text-slate-700">Translation Services:</strong> Professional
+                  translation services for documents, academic materials, and business communications
+                  between Spanish and other languages.
                 </p>
                 <p>
-                  <strong className="text-slate-700">Specializations:</strong> Business
-                  Spanish, DELE exam preparation, conversational fluency, and cultural
-                  immersion.
+                  <strong className="text-slate-700">General Spanish Instruction:</strong> Personalized
+                  lessons for all levels, from complete beginners to advanced learners seeking to
+                  perfect their fluency and conversational skills.
                 </p>
               </div>
             </motion.div>

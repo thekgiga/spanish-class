@@ -23,12 +23,12 @@ const features = [
 ];
 
 const benefits = [
-  'Native Spanish-speaking instructors',
-  'Personalized learning plans',
-  'Conversation-focused approach',
-  'Cultural insights included',
-  'Progress tracking',
-  'Flexible cancellation policy',
+  'Experienced Spanish teacher with years of practice',
+  'DELE exam preparation for all levels',
+  'University enrollment assistance for foreign universities',
+  'Professional translation services available',
+  'Personalized learning plans for your goals',
+  'Conversation-focused practical approach',
 ];
 
 const testimonials = [

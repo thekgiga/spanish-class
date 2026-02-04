@@ -56,9 +56,19 @@ const topics = [
     level: 'Intermediate+',
   },
   {
-    title: 'DELE Preparation',
-    description: 'Structured preparation for DELE certification exams.',
+    title: 'DELE Exam Preparation',
+    description: 'Comprehensive training for DELE certification from Instituto Cervantes. All levels from A1 to C2.',
     level: 'All Levels',
+  },
+  {
+    title: 'University Enrollment Support',
+    description: 'Assistance with enrollment in foreign universities, including language requirements and application guidance.',
+    level: 'Intermediate+',
+  },
+  {
+    title: 'Translation Services',
+    description: 'Professional translation of documents, academic materials, and business communications.',
+    level: 'Professional',
   },
   {
     title: 'Travel Spanish',
@@ -83,10 +93,11 @@ export function OfferingsPage() {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-3xl"
           >
-            <h1 className="font-display text-4xl sm:text-5xl font-bold">Our Classes</h1>
+            <h1 className="font-display text-4xl sm:text-5xl font-bold">Our Classes & Services</h1>
             <p className="mt-6 text-xl text-slate-300">
-              Choose the learning format that works best for you. All classes are conducted
-              live via video call with experienced native teachers.
+              From general Spanish lessons to DELE exam preparation, university enrollment assistance,
+              and professional translation services – all tailored to your specific goals and conducted
+              live via video call with an experienced Spanish teacher.
             </p>
           </motion.div>
         </div>
