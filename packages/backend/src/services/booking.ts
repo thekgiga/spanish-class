@@ -7,7 +7,6 @@ import {
   sendCancellationToStudent,
   sendCancellationToProfessor,
 } from './email.js';
-import { addStudentToSlotEvent, removeStudentFromSlotEvent } from './google.js';
 import { createMeetingRoom, getMeetingProvider } from './meeting-provider.js';
 
 interface BookSlotResult {
@@ -17,7 +16,6 @@ interface BookSlotResult {
     title: string | null;
     startTime: Date;
     endTime: Date;
-    googleMeetLink: string | null;
     meetingRoomName: string | null;
     meetingUrl: string | null;
   };
@@ -123,15 +121,8 @@ export async function bookSlot(
     return { booking, slot: { ...slot, meetingRoomName } };
   });
 
-  // After transaction: Send emails and update Google Calendar (non-blocking)
+  // After transaction: Send emails (non-blocking)
   const { booking, slot } = result;
-
-  // Update Google Calendar
-  if (slot.googleEventId) {
-    addStudentToSlotEvent(slot.googleEventId, student).catch((err) =>
-      console.error('Failed to add student to calendar event:', err)
-    );
-  }
 
   // Send emails (don't await, let them run in background)
   Promise.all([
@@ -151,7 +142,7 @@ export async function bookSlot(
   const provider = getMeetingProvider();
   const meetingUrl = slot.meetingRoomName
     ? provider.getJoinUrl(slot.meetingRoomName, `${student.firstName} ${student.lastName}`)
-    : slot.googleMeetLink; // Fallback to Google Meet for backwards compatibility
+    : null;
 
   return {
     bookingId: booking.id,
@@ -160,7 +151,6 @@ export async function bookSlot(
       title: slot.title,
       startTime: slot.startTime,
       endTime: slot.endTime,
-      googleMeetLink: slot.googleMeetLink, // Keep for backwards compatibility
       meetingRoomName: slot.meetingRoomName,
       meetingUrl,
     },
@@ -263,13 +253,6 @@ export async function cancelBooking(
   });
 
   const { booking, cancelledBy } = result;
-
-  // Update Google Calendar
-  if (booking.slot.googleEventId) {
-    removeStudentFromSlotEvent(booking.slot.googleEventId, booking.student.email).catch((err) =>
-      console.error('Failed to remove student from calendar event:', err)
-    );
-  }
 
   // Send cancellation emails
   Promise.all([

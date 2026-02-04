@@ -177,13 +177,11 @@ interface BookingEmailData {
 export async function sendBookingConfirmationToStudent(data: BookingEmailData): Promise<void> {
   const { slot, professor, student } = data;
 
-  // Get meeting URL (Jitsi or fallback to Google Meet for backwards compatibility)
+  // Get meeting URL from Jitsi
   let meetingUrl: string | null = null;
   if (slot.meetingRoomName) {
     const provider = getMeetingProvider();
     meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${student.firstName} ${student.lastName}`);
-  } else if (slot.googleMeetLink) {
-    meetingUrl = slot.googleMeetLink;
   }
 
   const icsContent = await generateBookingIcs({
@@ -326,13 +324,11 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
 export async function sendBookingNotificationToProfessor(data: BookingEmailData): Promise<void> {
   const { slot, professor, student } = data;
 
-  // Get meeting URL (Jitsi or fallback to Google Meet for backwards compatibility)
+  // Get meeting URL from Jitsi
   let meetingUrl: string | null = null;
   if (slot.meetingRoomName) {
     const provider = getMeetingProvider();
     meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${professor.firstName} ${professor.lastName}`);
-  } else if (slot.googleMeetLink) {
-    meetingUrl = slot.googleMeetLink;
   }
 
   const icsContent = await generateBookingIcs({
