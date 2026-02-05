@@ -86,7 +86,7 @@ router.get('/dashboard', async (req, res, next) => {
 // GET /api/student/slots - Browse available slots
 router.get('/slots', validateQuery(slotsQuerySchema), async (req, res, next) => {
   try {
-    const { page, limit, startDate, endDate, slotType } = req.query as {
+    const { page, limit, startDate, endDate, slotType } = req.query as unknown as {
       page: number;
       limit: number;
       startDate?: string;
@@ -149,7 +149,7 @@ router.get('/slots', validateQuery(slotsQuerySchema), async (req, res, next) => 
     ]);
 
     // Add isBooked flag
-    const slotsWithBookedFlag = slots.map((slot) => ({
+    const slotsWithBookedFlag = slots.map((slot: typeof slots[number]) => ({
       ...slot,
       isBookedByMe: slot.bookings.length > 0,
       bookings: undefined, // Remove bookings from response
@@ -188,7 +188,7 @@ router.post('/bookings', validate(createBookingSchema), async (req, res, next) =
 // GET /api/student/bookings
 router.get('/bookings', validateQuery(bookingsQuerySchema), async (req, res, next) => {
   try {
-    const { page, limit, status, upcoming } = req.query as {
+    const { page, limit, status, upcoming } = req.query as unknown as {
       page: number;
       limit: number;
       status?: string;

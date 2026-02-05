@@ -1,4 +1,5 @@
 import { prisma } from '../lib/prisma.js';
+import type { Prisma } from '@prisma/client';
 import { AppError } from '../middleware/error.js';
 import type { UserPublic } from '@spanish-class/shared';
 import {
@@ -9,6 +10,8 @@ import {
 } from './email.js';
 import { createBookedSessionEvent, deleteBookedSessionEvent } from './google.js';
 import { createMeetingRoom, getMeetingProvider } from './meeting-provider.js';
+
+type TransactionClient = Prisma.TransactionClient;
 
 interface BookSlotResult {
   bookingId: string;
@@ -27,7 +30,7 @@ export async function bookSlot(
   student: UserPublic
 ): Promise<BookSlotResult> {
   // Use a transaction to ensure atomicity
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: TransactionClient) => {
     // Lock the slot row for update
     const slot = await tx.availabilitySlot.findUnique({
       where: { id: slotId },
@@ -56,7 +59,7 @@ export async function bookSlot(
 
     // Check if slot is private and student is allowed
     if (slot.isPrivate) {
-      const isAllowed = slot.allowedStudents.some((s) => s.studentId === student.id);
+      const isAllowed = slot.allowedStudents.some((s: { studentId: string }) => s.studentId === student.id);
       if (!isAllowed) {
         throw new AppError(403, 'This slot is private and you are not authorized to book it');
       }
@@ -161,9 +164,9 @@ export async function bookSlot(
       prisma.booking.update({
         where: { id: booking.id },
         data: { bookedCalendarEventId: calendarResult.eventId },
-      }).catch((err) => console.error('Failed to store booked calendar event ID:', err));
+      }).catch((err: unknown) => console.error('Failed to store booked calendar event ID:', err));
     }
-  }).catch((err) => console.error('Failed to create booked session calendar event:', err));
+  }).catch((err: unknown) => console.error('Failed to create booked session calendar event:', err));
 
   // Send emails (don't await, let them run in background)
   Promise.all([
@@ -177,7 +180,7 @@ export async function bookSlot(
       professor: slot.professor,
       student,
     }),
-  ]).catch((err) => console.error('Failed to send booking emails:', err));
+  ]).catch((err: unknown) => console.error('Failed to send booking emails:', err));
 
   return {
     bookingId: booking.id,
@@ -197,7 +200,7 @@ export async function cancelBooking(
   user: UserPublic,
   reason?: string
 ): Promise<void> {
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: TransactionClient) => {
     const booking = await tx.booking.findUnique({
       where: { id: bookingId },
       include: {
@@ -291,7 +294,7 @@ export async function cancelBooking(
 
   // Delete from professor's booked sessions calendar
   if (booking.bookedCalendarEventId) {
-    deleteBookedSessionEvent(booking.bookedCalendarEventId).catch((err) =>
+    deleteBookedSessionEvent(booking.bookedCalendarEventId).catch((err: unknown) =>
       console.error('Failed to delete booked session calendar event:', err)
     );
   }
@@ -313,5 +316,5 @@ export async function cancelBooking(
           reason,
         })
       : Promise.resolve(),
-  ]).catch((err) => console.error('Failed to send cancellation emails:', err));
+  ]).catch((err: unknown) => console.error('Failed to send cancellation emails:', err));
 }

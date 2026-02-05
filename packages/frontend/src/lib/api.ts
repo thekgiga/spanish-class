@@ -142,7 +142,7 @@ export const professorApi = {
     return res.data;
   },
 
-  getStudent: async (id: string): Promise<UserPublic & { bookings: Booking[]; notes: StudentNote[] }> => {
+  getStudent: async (id: string): Promise<UserPublic & { bookings: BookingWithSlot[]; notes: StudentNote[] }> => {
     const res = await api.get(`/professor/students/${id}`);
     return res.data.data;
   },

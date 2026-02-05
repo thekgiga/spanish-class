@@ -210,7 +210,7 @@ export async function removeAttendeeFromEvent(
     });
 
     const currentAttendees = event.data.attendees || [];
-    const filteredAttendees = currentAttendees.filter((a) => a.email !== attendeeEmail);
+    const filteredAttendees = currentAttendees.filter((a: { email?: string | null }) => a.email !== attendeeEmail);
 
     // Update with filtered attendees
     await calendar.events.patch({
