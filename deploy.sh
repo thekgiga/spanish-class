@@ -11,7 +11,7 @@
 # Prerequisites:
 # 1. SSH access to your server
 # 2. Git installed
-# 3. Node.js 18+ and pnpm installed
+# 3. Node.js 18+ with npm 8+ installed
 # 4. Database created and configured in .env
 #
 # Usage:
@@ -69,12 +69,13 @@ if [ "$NODE_VERSION" -lt 18 ]; then
 fi
 print_success "Node.js $(node -v) detected"
 
-# Check pnpm
-if ! command_exists pnpm; then
-    print_warning "pnpm not found. Installing pnpm..."
-    npm install -g pnpm
+# Check npm version
+NPM_VERSION=$(npm -v | cut -d'.' -f1)
+if [ "$NPM_VERSION" -lt 8 ]; then
+    print_error "npm version must be 8 or higher. Current version: $(npm -v)"
+    exit 1
 fi
-print_success "pnpm $(pnpm -v) detected"
+print_success "npm $(npm -v) detected"
 
 # Check if .env exists
 if [ ! -f "packages/backend/.env" ]; then
@@ -90,7 +91,7 @@ print_success "Backend .env file found"
 # ===========================================
 
 print_step "Installing dependencies..."
-pnpm install
+npm install
 print_success "Dependencies installed"
 
 # ===========================================
@@ -103,12 +104,12 @@ cd packages/backend
 
 # Generate Prisma Client
 print_step "Generating Prisma Client..."
-pnpm db:generate
+npm run db:generate
 print_success "Prisma Client generated"
 
 # Push schema to database
 print_step "Pushing database schema..."
-pnpm db:push
+npm run db:push
 print_success "Database schema updated"
 
 # Ask about seeding
@@ -116,7 +117,7 @@ read -p "Do you want to seed the database with initial data? (y/N): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     print_step "Seeding database..."
-    pnpm db:seed
+    npm run db:seed
     print_success "Database seeded"
 else
     print_warning "Skipping database seed"
@@ -130,7 +131,7 @@ cd ../..
 
 print_step "Building backend..."
 cd packages/backend
-pnpm build
+npm run build
 
 if [ ! -f "dist/index.js" ]; then
     print_error "Backend build failed - dist/index.js not found"
@@ -153,7 +154,7 @@ else
     print_success "Frontend .env.production found"
 fi
 
-pnpm build
+npm run build
 
 if [ ! -d "dist" ]; then
     print_error "Frontend build failed - dist directory not found"
@@ -311,6 +312,6 @@ echo ""
 echo -e "${BLUE}Useful commands:${NC}"
 echo "  View logs: pm2 logs spanish-class-api (if using PM2)"
 echo "  Restart: pm2 restart spanish-class-api (if using PM2)"
-echo "  Database Studio: cd packages/backend && pnpm db:studio"
+echo "  Database Studio: cd packages/backend && npm run db:studio"
 echo ""
 print_success "Happy teaching! 🎓"

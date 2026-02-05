@@ -42,6 +42,8 @@ export interface AvailabilitySlot {
   title?: string | null;
   description?: string | null;
   meetingRoomName?: string | null;
+  googleEventId?: string | null;
+  googleMeetLink?: string | null;
   isPrivate: boolean;
   recurringPatternId?: string | null;
   createdAt: Date;

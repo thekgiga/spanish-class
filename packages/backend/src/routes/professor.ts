@@ -115,7 +115,7 @@ router.get('/dashboard', async (req, res, next) => {
 // GET /api/professor/slots
 router.get('/slots', validateQuery(slotsQuerySchema), async (req, res, next) => {
   try {
-    const { page, limit, startDate, endDate, status, slotType } = req.query as {
+    const { page, limit, startDate, endDate, status, slotType } = req.query as unknown as {
       page: number;
       limit: number;
       startDate?: string;
@@ -304,9 +304,9 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
             prisma.booking.update({
               where: { id: booking!.id },
               data: { bookedCalendarEventId: bookedCalResult.eventId },
-            }).catch((err) => console.error('Failed to store booked calendar event ID:', err));
+            }).catch((err: unknown) => console.error('Failed to store booked calendar event ID:', err));
           }
-        }).catch((err) => console.error('Failed to create booked session calendar event:', err));
+        }).catch((err: unknown) => console.error('Failed to create booked session calendar event:', err));
 
         const meetingUrl = meeting.joinUrl;
         sendBookingConfirmation({
@@ -578,7 +578,7 @@ router.get('/recurring-patterns', async (req, res, next) => {
 
     res.json({
       success: true,
-      data: patterns.map((p) => ({
+      data: patterns.map((p: typeof patterns[number]) => ({
         ...p,
         daysOfWeek: JSON.parse(p.daysOfWeek),
       })),
@@ -722,9 +722,9 @@ router.post('/book-student', validate(professorBookStudentSchema), async (req, r
         prisma.booking.update({
           where: { id: booking.id },
           data: { bookedCalendarEventId: calendarResult.eventId },
-        }).catch((err) => console.error('Failed to store booked calendar event ID:', err));
+        }).catch((err: unknown) => console.error('Failed to store booked calendar event ID:', err));
       }
-    }).catch((err) => console.error('Failed to create booked session calendar event:', err));
+    }).catch((err: unknown) => console.error('Failed to create booked session calendar event:', err));
 
     // Send invitation email
     if (sendInvitation && slot.meetingRoomName) {
@@ -988,7 +988,7 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
 // GET /api/professor/students
 router.get('/students', validateQuery(paginationSchema), async (req, res, next) => {
   try {
-    const { page, limit } = req.query as { page: number; limit: number };
+    const { page, limit } = req.query as unknown as { page: number; limit: number };
 
     const [students, total] = await Promise.all([
       prisma.user.findMany({

@@ -22,7 +22,7 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       isLoading: true,
       isAuthenticated: false,
@@ -40,7 +40,10 @@ export const useAuthStore = create<AuthState>()(
       },
 
       register: async (data) => {
-        const { user } = await authApi.register(data);
+        const { user } = await authApi.register({
+          ...data,
+          timezone: data.timezone || 'Europe/Madrid',
+        });
         set({ user, isAuthenticated: true, isLoading: false });
       },
 

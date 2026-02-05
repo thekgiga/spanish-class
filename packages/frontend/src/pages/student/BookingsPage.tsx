@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { Calendar, Clock, Video, X, User, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,7 +19,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { studentApi } from '@/lib/api';
-import { formatDate, formatTime, getDuration, getRelativeTime } from '@/lib/utils';
+import { formatDate, formatTime, getRelativeTime } from '@/lib/utils';
 import type { BookingWithSlot } from '@spanish-class/shared';
 
 export function BookingsPage() {
