@@ -2,15 +2,18 @@
   "name": "spanish-class-platform",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "pnpm@9.0.0",
+  "packageManager": "npm@10.9.4",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "clean": "turbo run clean && rm -rf node_modules",
-    "db:generate": "pnpm --filter backend db:generate",
-    "db:push": "pnpm --filter backend db:push",
-    "db:seed": "pnpm --filter backend db:seed",
+    "db:generate": "npm -w @spanish-class/backend run db:generate",
+    "db:push": "npm -w @spanish-class/backend run db:push",
+    "db:seed": "npm -w @spanish-class/backend run db:seed",
     "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
