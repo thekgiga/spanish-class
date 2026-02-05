@@ -89,23 +89,23 @@ VITE_API_URL=https://yourdomain.com/api
 ```bash
 cd ~/spanish-class
 
-# Install pnpm if needed
-npm install -g pnpm
+# 
+
 
 # Install dependencies
-pnpm install
+npm install
 
 # Setup database
 cd packages/backend
-pnpm db:generate
-pnpm db:push
+npm run db:generate
+npm run db:push
 
 # Build backend
-pnpm build
+npm run build
 
 # Build frontend
 cd ../frontend
-pnpm build
+npm run build
 ```
 
 ## 5. Deploy Frontend (2 minutes)
@@ -217,9 +217,9 @@ Should return: `{"status":"ok","timestamp":"..."}`
 ```bash
 cd ~/spanish-class
 git pull
-pnpm install
-cd packages/backend && pnpm build
-cd ../frontend && pnpm build
+npm install
+cd packages/backend && npm run build
+cd ../frontend && npm run build
 cp -r dist/* ~/public_html/
 # Restart backend via cPanel Node.js Selector
 ```

@@ -18,21 +18,16 @@ Complete guide to set up the Spanish Class Platform on your local development ma
 
 Install the following on your local machine:
 
-1. **Node.js 18+**
+1. **Node.js 18+** (includes npm 8+)
    - Download: https://nodejs.org/
    - Verify: `node --version` (should be 18.x or higher)
+   - Verify: `npm --version` (should be 8.x or higher)
 
-2. **pnpm** (Package Manager)
-   ```bash
-   npm install -g pnpm
-   ```
-   - Verify: `pnpm --version`
-
-3. **Git**
+2. **Git**
    - Download: https://git-scm.com/
    - Verify: `git --version`
 
-4. **MySQL 8.0+** (Choose one option):
+3. **MySQL 8.0+** (Choose one option):
 
    **Option A: Docker (Recommended)**
    - Download: https://www.docker.com/products/docker-desktop
@@ -47,7 +42,7 @@ Install the following on your local machine:
    - MAMP (macOS): https://www.mamp.info/
    - Includes MySQL, phpMyAdmin, and Apache
 
-5. **Code Editor** (Recommended):
+4. **Code Editor** (Recommended):
    - VS Code: https://code.visualstudio.com/
    - With extensions: Prisma, ESLint, Prettier
 
@@ -166,7 +161,7 @@ cd spanish-class
 
 ```bash
 # Install all workspace dependencies
-pnpm install
+npm install
 ```
 
 This will install dependencies for:
@@ -232,10 +227,10 @@ cp .env.local .env.local
 cd ../backend
 
 # Generate Prisma Client
-pnpm db:generate
+npm run db:generate
 
 # Push database schema to MySQL
-pnpm db:push
+npm run db:push
 
 # You should see:
 # ✓ Your database is now in sync with your schema
@@ -257,7 +252,7 @@ You should see tables: `users`, `availability_slots`, `bookings`, etc.
 
 ```bash
 # Still in packages/backend
-pnpm db:seed
+npm run db:seed
 ```
 
 This creates sample data for testing:
@@ -275,7 +270,7 @@ This creates sample data for testing:
 **Terminal 1 - Backend:**
 ```bash
 cd packages/backend
-pnpm dev
+npm run dev
 
 # You should see:
 # Server running on port 3001
@@ -285,7 +280,7 @@ pnpm dev
 **Terminal 2 - Frontend:**
 ```bash
 cd packages/frontend
-pnpm dev
+npm run dev
 
 # You should see:
 # VITE ready in XXX ms
@@ -301,7 +296,7 @@ pnpm dev
 
 ```bash
 # From project root
-pnpm dev
+npm run dev
 
 # This runs both frontend and backend using Turbo
 ```
@@ -310,10 +305,10 @@ pnpm dev
 
 ```bash
 # Backend only
-pnpm --filter backend dev
+npm -w backend dev
 
 # Frontend only
-pnpm --filter frontend dev
+npm -w frontend dev
 ```
 
 ---
@@ -335,20 +330,20 @@ When you modify `packages/backend/prisma/schema.prisma`:
 cd packages/backend
 
 # Regenerate Prisma Client
-pnpm db:generate
+npm run db:generate
 
 # Update database schema
-pnpm db:push
+npm run db:push
 
 # If you need to reset database (WARNING: Deletes all data)
-pnpm db:push --force-reset
+npm run db:push --force-reset
 ```
 
 ### Running Prisma Studio (Database GUI)
 
 ```bash
 cd packages/backend
-pnpm db:studio
+npm run db:studio
 
 # Opens at: http://localhost:5555
 # Browse and edit database visually
@@ -358,22 +353,22 @@ pnpm db:studio
 
 ```bash
 # Check types without building
-pnpm typecheck
+npm run typecheck
 
 # Or specific package
 cd packages/backend
-pnpm typecheck
+npm run typecheck
 ```
 
 ### Building for Testing
 
 ```bash
 # Build everything
-pnpm build
+npm run build
 
 # Build specific package
-pnpm --filter backend build
-pnpm --filter frontend build
+npm -w backend build
+npm -w frontend build
 ```
 
 ---
@@ -420,7 +415,7 @@ You should see the Spanish Class Platform homepage.
 ```bash
 # Using Prisma Studio
 cd packages/backend
-pnpm db:studio
+npm run db:studio
 
 # Or using MySQL CLI
 mysql -u spanish_local -plocalpass spanish_class_local
@@ -507,7 +502,7 @@ SELECT * FROM users;
 **Solution**:
 ```bash
 cd packages/backend
-pnpm db:generate
+npm run db:generate
 ```
 
 ### Frontend Can't Connect to Backend
@@ -542,10 +537,10 @@ pnpm db:generate
 cd packages/backend
 
 # Force reset database (WARNING: Deletes all data)
-pnpm db:push --force-reset
+npm run db:push --force-reset
 
 # Re-seed
-pnpm db:seed
+npm run db:seed
 ```
 
 ### Module Not Found Errors
@@ -555,9 +550,9 @@ pnpm db:seed
 **Solution**:
 ```bash
 # Clean and reinstall
-pnpm clean
-rm -rf node_modules pnpm-lock.yaml
-pnpm install
+npm run clean
+rm -rf node_modules package-lock.json
+npm install
 ```
 
 ---
@@ -622,23 +617,23 @@ After completing local setup:
 
 ```bash
 # Start development
-pnpm dev
+npm run dev
 
 # Type checking
-pnpm typecheck
+npm run typecheck
 
 # Build everything
-pnpm build
+npm run build
 
 # Clean builds
-pnpm clean
+npm run clean
 
 # Database operations
 cd packages/backend
-pnpm db:generate      # Generate Prisma Client
-pnpm db:push          # Sync schema to database
-pnpm db:seed          # Seed database
-pnpm db:studio        # Open Prisma Studio GUI
+npm run db:generate      # Generate Prisma Client
+npm run db:push          # Sync schema to database
+npm run db:seed          # Seed database
+npm run db:studio        # Open Prisma Studio GUI
 
 # Git workflow
 git checkout -b feature/my-feature

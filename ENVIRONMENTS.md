@@ -220,15 +220,15 @@ main (production)
 ```bash
 # Start local development
 cd ~/spanish-class
-pnpm install
+npm install
 
 # Terminal 1: Backend with hot reload
 cd packages/backend
-pnpm dev
+npm run dev
 
 # Terminal 2: Frontend with hot reload
 cd packages/frontend
-pnpm dev
+npm run dev
 
 # Access at:
 # Frontend: http://localhost:5173
@@ -248,9 +248,9 @@ cd ~/spanish-class-dev
 git fetch origin
 git checkout develop
 git pull origin develop
-pnpm install
-cd packages/backend && pnpm build
-cd ../frontend && pnpm build
+npm install
+cd packages/backend && npm run build
+cd ../frontend && npm run build
 cp -r packages/frontend/dist/* ~/public_html/dev/
 # Restart dev backend via cPanel
 ```
@@ -271,9 +271,9 @@ cd ~/spanish-class
 git fetch origin
 git checkout main
 git pull origin main
-pnpm install
-cd packages/backend && pnpm build
-cd ../frontend && pnpm build
+npm install
+cd packages/backend && npm run build
+cd ../frontend && npm run build
 cp -r packages/frontend/dist/* ~/public_html/
 # Restart production backend via cPanel
 ```
@@ -322,13 +322,13 @@ cp -r packages/frontend/dist/* ~/public_html/
 
 #### Local Environment
 - [ ] Clone repository
-- [ ] Install dependencies: `pnpm install`
+- [ ] Install dependencies: `npm install`
 - [ ] Setup local MySQL database
 - [ ] Create `packages/backend/.env.local`
 - [ ] Create `packages/frontend/.env.local`
-- [ ] Run migrations: `pnpm db:push`
-- [ ] Seed database: `pnpm db:seed`
-- [ ] Start dev servers: `pnpm dev`
+- [ ] Run migrations: `npm run db:push`
+- [ ] Seed database: `npm run db:seed`
+- [ ] Start dev servers: `npm run dev`
 
 #### Dev Environment
 - [ ] Create subdomain: `dev.yourdomain.com` in cPanel
@@ -358,8 +358,8 @@ cp -r packages/frontend/dist/* ~/public_html/
 cp packages/backend/.env.local packages/backend/.env
 
 # Build for specific environment
-pnpm build                    # Uses current .env
-NODE_ENV=production pnpm build # Production build
+npm run build                    # Uses current .env
+NODE_ENV=production npm run build # Production build
 
 # Deploy specific environment
 ./deploy.sh --env=dev         # Deploy to dev
@@ -368,13 +368,13 @@ NODE_ENV=production pnpm build # Production build
 # Database operations per environment
 # Dev
 cd ~/spanish-class-dev/packages/backend
-pnpm db:push
-pnpm db:seed
+npm run db:push
+npm run db:seed
 
 # Production
 cd ~/spanish-class/packages/backend
-pnpm db:push
-pnpm db:seed
+npm run db:push
+npm run db:seed
 ```
 
 ### Environment URLs
@@ -408,7 +408,7 @@ pnpm db:seed
 ### 4. Database Migrations
 - Test migrations in dev first
 - Backup production database before migrations
-- Use Prisma migrations for schema changes: `pnpm db:migrate`
+- Use Prisma migrations for schema changes: `npm run db:migrate`
 
 ### 5. Secrets Management
 - Use different JWT secrets per environment

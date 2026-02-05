@@ -205,10 +205,10 @@ DATABASE_URL="mysql://myuser_spanish_app:aB3$xYz9!qW2@localhost:3306/myuser_span
 cd ~/spanish-class/packages/backend
 
 # Generate Prisma client
-pnpm db:generate
+npm run db:generate
 
 # Test connection by pushing schema
-pnpm db:push
+npm run db:push
 ```
 
 If successful, you'll see:
@@ -242,7 +242,7 @@ Should return:
 **Via Prisma Studio (Development):**
 ```bash
 cd ~/spanish-class/packages/backend
-pnpm db:studio
+npm run db:studio
 ```
 
 ### Backing Up Database
