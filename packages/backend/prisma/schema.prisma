@@ -21,6 +21,15 @@ model User {
   createdAt                  DateTime  @default(now()) @map("created_at")
   updatedAt                  DateTime  @updatedAt @map("updated_at")
 
+  // Student Profile Fields (US-16, US-17, US-18)
+  dateOfBirth        DateTime?     @map("date_of_birth")
+  phoneNumber        String?       @map("phone_number")
+  aboutMe            String?       @map("about_me") @db.Text
+  spanishLevel       SpanishLevel? @map("spanish_level")
+  preferredClassTypes String?      @map("preferred_class_types") // JSON array of ClassType values
+  learningGoals      String?       @map("learning_goals") @db.Text
+  availabilityNotes  String?       @map("availability_notes") @db.Text
+
   slots                    AvailabilitySlot[]
   bookings                 Booking[]
   notesWritten             StudentNote[]      @relation("NotesWritten")
@@ -167,6 +176,16 @@ enum BookingStatus {
   CANCELLED_BY_PROFESSOR
   COMPLETED
   NO_SHOW
+}
+
+// Spanish proficiency levels (CEFR-aligned)
+enum SpanishLevel {
+  BEGINNER        // A1
+  ELEMENTARY      // A2
+  INTERMEDIATE    // B1
+  UPPER_INTERMEDIATE // B2
+  ADVANCED        // C1
+  NATIVE          // C2/Native
 }
 
 model EmailLog {

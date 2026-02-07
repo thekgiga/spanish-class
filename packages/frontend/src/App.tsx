@@ -29,6 +29,7 @@ import { EmailLogsPage } from '@/pages/admin/EmailLogsPage';
 import { StudentDashboard } from '@/pages/student/StudentDashboard';
 import { BookPage } from '@/pages/student/BookPage';
 import { BookingsPage } from '@/pages/student/BookingsPage';
+import { StudentProfilePage } from '@/pages/student/StudentProfilePage';
 
 // Shared Pages
 import { SettingsPage } from '@/pages/shared/SettingsPage';
@@ -157,6 +158,7 @@ function AppRoutes() {
         <Route index element={<StudentDashboard />} />
         <Route path="book" element={<BookPage />} />
         <Route path="bookings" element={<BookingsPage />} />
+        <Route path="profile" element={<StudentProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 

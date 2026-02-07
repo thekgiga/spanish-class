@@ -145,11 +145,46 @@ export const updateNoteSchema = z.object({
   content: z.string().min(1, 'Note content is required').max(5000),
 });
 
+// Student Profile Enums
+export const spanishLevelEnum = z.enum([
+  'BEGINNER',
+  'ELEMENTARY',
+  'INTERMEDIATE',
+  'UPPER_INTERMEDIATE',
+  'ADVANCED',
+  'NATIVE',
+]);
+
+export const classTypeEnum = z.enum([
+  'PRIVATE_LESSONS',
+  'GROUP_CLASSES',
+  'CONVERSATION_PRACTICE',
+  'EXAM_PREPARATION',
+  'BUSINESS_SPANISH',
+  'GRAMMAR_FOCUS',
+  'PRONUNCIATION',
+  'WRITING_SKILLS',
+]);
+
 // User Schemas
 export const updateUserSchema = z.object({
   firstName: z.string().min(1).max(50).optional(),
   lastName: z.string().min(1).max(50).optional(),
   timezone: z.string().optional(),
+});
+
+// Student Profile Schema (US-16, US-17, US-18)
+export const updateStudentProfileSchema = z.object({
+  // Personal details (US-18)
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional().nullable(),
+  phoneNumber: z.string().max(20).optional().nullable(),
+  aboutMe: z.string().max(1000).optional().nullable(),
+
+  // Learning preferences (US-17)
+  spanishLevel: spanishLevelEnum.optional().nullable(),
+  preferredClassTypes: z.array(classTypeEnum).optional().nullable(),
+  learningGoals: z.string().max(2000).optional().nullable(),
+  availabilityNotes: z.string().max(1000).optional().nullable(),
 });
 
 export const changePasswordSchema = z
@@ -204,3 +239,4 @@ export type SlotsQueryInput = z.infer<typeof slotsQuerySchema>;
 export type BookingsQueryInput = z.infer<typeof bookingsQuerySchema>;
 export type CreateRecurringPatternInput = z.infer<typeof createRecurringPatternSchema>;
 export type ProfessorBookStudentInput = z.infer<typeof professorBookStudentSchema>;
+export type UpdateStudentProfileInput = z.infer<typeof updateStudentProfileSchema>;

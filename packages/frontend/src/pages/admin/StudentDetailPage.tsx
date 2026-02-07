@@ -2,7 +2,20 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
-import { ArrowLeft, Calendar, Mail, Globe, Plus, Edit, Trash2, Clock } from 'lucide-react';
+import {
+  ArrowLeft,
+  Calendar,
+  Mail,
+  Globe,
+  Plus,
+  Edit,
+  Trash2,
+  Clock,
+  Phone,
+  BookOpen,
+  Target,
+  MessageSquare,
+} from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -166,11 +179,121 @@ export function StudentDetailPage() {
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue="bookings">
+      <Tabs defaultValue="profile">
         <TabsList>
+          <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="bookings">Bookings</TabsTrigger>
           <TabsTrigger value="notes">Notes ({student.notes?.length || 0})</TabsTrigger>
         </TabsList>
+
+        {/* Profile Tab (US-19) */}
+        <TabsContent value="profile" className="mt-6 space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            {/* Personal Details */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-navy-800 mb-4 flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Personal Details
+                </h3>
+                <div className="space-y-3">
+                  {student.dateOfBirth && (
+                    <div className="flex items-center gap-3">
+                      <Calendar className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        <span className="text-muted-foreground">DOB: </span>
+                        {formatDate(student.dateOfBirth)}
+                      </span>
+                    </div>
+                  )}
+                  {student.phoneNumber && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{student.phoneNumber}</span>
+                    </div>
+                  )}
+                  {student.aboutMe ? (
+                    <div className="mt-4">
+                      <p className="text-sm text-muted-foreground mb-1">About</p>
+                      <p className="text-sm bg-gray-50 p-3 rounded-lg">{student.aboutMe}</p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">
+                      No personal details provided yet
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Learning Preferences */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="font-semibold text-navy-800 mb-4 flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  Learning Preferences
+                </h3>
+                <div className="space-y-3">
+                  {student.spanishLevel && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Spanish Level</p>
+                      <Badge variant="outline" className="mt-1">
+                        {student.spanishLevel.replace(/_/g, ' ')}
+                      </Badge>
+                    </div>
+                  )}
+                  {student.preferredClassTypes && student.preferredClassTypes.length > 0 && (
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Preferred Class Types</p>
+                      <div className="flex flex-wrap gap-1">
+                        {student.preferredClassTypes.map((type: string) => (
+                          <Badge key={type} variant="secondary" className="text-xs">
+                            {type.replace(/_/g, ' ')}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {!student.spanishLevel && !student.preferredClassTypes?.length && (
+                    <p className="text-sm text-muted-foreground italic">
+                      No learning preferences set yet
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Learning Goals */}
+            {student.learningGoals && (
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-navy-800 mb-4 flex items-center gap-2">
+                    <Target className="h-5 w-5" />
+                    Learning Goals
+                  </h3>
+                  <p className="text-sm bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
+                    {student.learningGoals}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Availability Notes */}
+            {student.availabilityNotes && (
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-navy-800 mb-4 flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Availability Notes
+                  </h3>
+                  <p className="text-sm bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
+                    {student.availabilityNotes}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
 
         <TabsContent value="bookings" className="mt-6 space-y-4">
           {student.bookings.length > 0 ? (
