@@ -155,11 +155,11 @@ git checkout develop
 ### Step 3: Install Dependencies
 
 ```bash
-# Install pnpm if not already installed
-npm install -g pnpm
+# 
+
 
 # Install all dependencies
-pnpm install
+npm install
 ```
 
 ### Step 4: Configure Backend Environment
@@ -241,13 +241,13 @@ VITE_ENV=dev
 cd ~/spanish-class-dev/packages/backend
 
 # Generate Prisma Client
-pnpm db:generate
+npm run db:generate
 
 # Push schema to database
-pnpm db:push
+npm run db:push
 
 # Seed with test data
-pnpm db:seed
+npm run db:seed
 ```
 
 **Verify database:**
@@ -260,7 +260,7 @@ pnpm db:seed
 ```bash
 # Build backend
 cd ~/spanish-class-dev/packages/backend
-pnpm build
+npm run build
 
 # Verify build
 ls -la dist/
@@ -268,7 +268,7 @@ ls -la dist/
 
 # Build frontend
 cd ~/spanish-class-dev/packages/frontend
-pnpm build
+npm run build
 
 # Verify build
 ls -la dist/
@@ -450,7 +450,7 @@ git checkout develop
 git pull origin develop
 
 # Install any new dependencies
-pnpm install
+npm install
 ```
 
 ### Update Database Schema (if changed)
@@ -459,10 +459,10 @@ pnpm install
 cd packages/backend
 
 # Regenerate Prisma Client
-pnpm db:generate
+npm run db:generate
 
 # Update database schema
-pnpm db:push
+npm run db:push
 ```
 
 ### Rebuild and Redeploy
@@ -470,11 +470,11 @@ pnpm db:push
 ```bash
 # Rebuild backend
 cd ~/spanish-class-dev/packages/backend
-pnpm build
+npm run build
 
 # Rebuild frontend
 cd ~/spanish-class-dev/packages/frontend
-pnpm build
+npm run build
 
 # Redeploy frontend
 cp -r dist/* ~/public_html/dev/
@@ -500,13 +500,13 @@ nano update-dev.sh
 echo "Updating Dev Environment..."
 
 git pull origin develop
-pnpm install
+npm install
 
 cd packages/backend
-pnpm build
+npm run build
 
 cd ../frontend
-pnpm build
+npm run build
 cp -r dist/* ~/public_html/dev/
 
 echo "Build complete. Remember to restart backend in cPanel!"
@@ -547,8 +547,8 @@ cd ~/spanish-class-dev
    ```bash
    cd ~/spanish-class-dev/packages/backend
    rm -rf dist node_modules
-   pnpm install
-   pnpm build
+   npm install
+   npm run build
    ```
 
 ### Frontend Not Loading

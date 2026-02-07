@@ -123,11 +123,11 @@ scp -r /path/to/spanish-class/* username@server:/home/username/spanish-class/
 # On the server
 cd ~/spanish-class
 
-# Install pnpm if not available
-npm install -g pnpm
+
+
 
 # Install all dependencies
-pnpm install
+npm install
 ```
 
 #### Step 6: Configure Environment Variables
@@ -173,13 +173,13 @@ PORT=3001
 ```bash
 # Generate Prisma client
 cd ~/spanish-class/packages/backend
-pnpm db:generate
+npm run db:generate
 
 # Push database schema to MySQL
-pnpm db:push
+npm run db:push
 
 # Optional: Seed initial data
-pnpm db:seed
+npm run db:seed
 ```
 
 #### Step 8: Build Application
@@ -187,11 +187,11 @@ pnpm db:seed
 ```bash
 # Build backend
 cd ~/spanish-class/packages/backend
-pnpm build
+npm run build
 
 # Build frontend
 cd ~/spanish-class/packages/frontend
-pnpm build
+npm run build
 ```
 
 #### Step 9: Setup Frontend (Static Files)
@@ -221,7 +221,7 @@ VITE_API_URL=https://yourdomain.com/api
 
 **Then rebuild frontend**:
 ```bash
-pnpm build
+npm run build
 cp -r dist/* ~/public_html/
 ```
 
@@ -375,12 +375,12 @@ git pull origin main
 
 # Rebuild
 cd packages/backend
-pnpm install
-pnpm build
+npm install
+npm run build
 
 cd ../frontend
-pnpm install
-pnpm build
+npm install
+npm run build
 
 # Copy frontend build
 cp -r dist/* ~/public_html/
@@ -410,8 +410,8 @@ pm2 restart spanish-class-api
 
 **Solutions**:
 1. Check Node.js version: `node --version` (should be 18+)
-2. Verify all dependencies installed: `pnpm install`
-3. Check for build errors: `pnpm build`
+2. Verify all dependencies installed: `npm install`
+3. Check for build errors: `npm run build`
 4. Review error logs in cPanel or PM2
 
 ### Frontend Not Loading
@@ -502,14 +502,14 @@ pm2 logs spanish-class-api
 
 # Rebuild and redeploy frontend
 cd ~/spanish-class/packages/frontend
-pnpm build
+npm run build
 cp -r dist/* ~/public_html/
 
 # Database operations
 cd ~/spanish-class/packages/backend
-pnpm db:generate  # Regenerate Prisma client
-pnpm db:push      # Update database schema
-pnpm db:seed      # Seed initial data
+npm run db:generate  # Regenerate Prisma client
+npm run db:push      # Update database schema
+npm run db:seed      # Seed initial data
 
 # Check disk space
 df -h

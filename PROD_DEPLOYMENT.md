@@ -62,7 +62,7 @@ Prepare these before starting:
 - [ ] SSH client
 - [ ] Git installed on server
 - [ ] Node.js 18+ available
-- [ ] pnpm installed
+- [ ] npm installed
 
 ⚠️ **STOP**: Do not proceed until all boxes are checked!
 
@@ -158,11 +158,11 @@ git checkout main
 ### Step 3: Install Dependencies
 
 ```bash
-# Install pnpm if not already installed
-npm install -g pnpm
+# 
+
 
 # Install all dependencies
-pnpm install
+npm install
 ```
 
 ### Step 4: Configure Backend Environment
@@ -258,16 +258,16 @@ VITE_ENV=production
 cd ~/spanish-class/packages/backend
 
 # Generate Prisma Client
-pnpm db:generate
+npm run db:generate
 
 # Push schema to production database
-pnpm db:push
+npm run db:push
 
 # Verify in cPanel → phpMyAdmin
 # You should see tables created
 ```
 
-**Do NOT run `pnpm db:seed` in production** unless you want test data!
+**Do NOT run `npm run db:seed` in production** unless you want test data!
 
 ### Step 8: Create First Admin User
 
@@ -362,7 +362,7 @@ node create-admin.js admin@yourdomain.com YourSecurePassword123!
 ```bash
 # Build backend
 cd ~/spanish-class/packages/backend
-pnpm build
+npm run build
 
 # Verify build
 ls -la dist/
@@ -370,7 +370,7 @@ ls -la dist/
 
 # Build frontend
 cd ~/spanish-class/packages/frontend
-pnpm build
+npm run build
 
 # Verify build
 ls -la dist/
@@ -732,25 +732,25 @@ Include:
 
 3. **Update Dependencies:**
    ```bash
-   pnpm install
+   npm install
    ```
 
 4. **Update Database (if schema changed):**
    ```bash
    cd packages/backend
-   pnpm db:generate
-   pnpm db:push
+   npm run db:generate
+   npm run db:push
    ```
 
 5. **Rebuild Application:**
    ```bash
    # Backend
    cd ~/spanish-class/packages/backend
-   pnpm build
+   npm run build
 
    # Frontend
    cd ~/spanish-class/packages/frontend
-   pnpm build
+   npm run build
    ```
 
 6. **Deploy Frontend:**

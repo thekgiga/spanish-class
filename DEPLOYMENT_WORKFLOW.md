@@ -34,7 +34,7 @@ git checkout -b feature/user-profile-update
 
 # Verify local environment is running
 cd ~/spanish-class
-pnpm dev
+npm run dev
 
 # Make your changes
 # Edit files in packages/backend or packages/frontend
@@ -47,7 +47,7 @@ pnpm dev
 
 - Frontend updates in real-time (hot reload)
 - Backend restarts automatically (tsx watch)
-- Use Prisma Studio to inspect database: `pnpm db:studio`
+- Use Prisma Studio to inspect database: `npm run db:studio`
 - Test all affected features
 
 **Commit your changes:**
@@ -97,9 +97,9 @@ git pull origin develop
 ./deploy-multi.sh --env=dev
 
 # OR manual deployment:
-pnpm install
-cd packages/backend && pnpm db:generate && pnpm db:push && pnpm build
-cd ../frontend && pnpm build
+npm install
+cd packages/backend && npm run db:generate && npm run db:push && npm run build
+cd ../frontend && npm run build
 cp -r packages/frontend/dist/* ~/public_html/dev/
 
 # Restart dev backend
@@ -172,9 +172,9 @@ git pull origin main
 ./deploy-multi.sh --env=prod
 
 # OR manual deployment:
-pnpm install
-cd packages/backend && pnpm db:generate && pnpm db:push && pnpm build
-cd ../frontend && pnpm build
+npm install
+cd packages/backend && npm run db:generate && npm run db:push && npm run build
+cd ../frontend && npm run build
 cp -r packages/frontend/dist/* ~/public_html/
 
 # Restart production backend
@@ -311,8 +311,8 @@ pm2 status
    Edit: packages/backend/prisma/schema.prisma
 
 2. Local: Test migration
-   pnpm db:push
-   # Or: pnpm db:migrate (for production-grade migrations)
+   npm run db:push
+   # Or: npm run db:migrate (for production-grade migrations)
 
 3. Dev: Deploy and test
    Deploy to dev
@@ -342,8 +342,8 @@ git checkout HEAD~1  # Go back one commit
 # OR: git checkout <previous-commit-hash>
 
 # Rebuild
-cd packages/backend && pnpm build
-cd ../frontend && pnpm build
+cd packages/backend && npm run build
+cd ../frontend && npm run build
 cp -r packages/frontend/dist/* ~/public_html/
 
 # Restore database if needed
@@ -521,12 +521,12 @@ pm2 logs spanish-class-dev  # or -prod
 - **Build failed**: Check for TypeScript errors
   ```bash
   cd packages/backend
-  pnpm typecheck
+  npm run typecheck
   ```
 
 - **Database connection failed**: Verify `.env` DATABASE_URL
 
-- **Dependencies missing**: Run `pnpm install` again
+- **Dependencies missing**: Run `npm install` again
 
 - **Port conflict**: Check PORT in `.env` and cPanel config
 
@@ -594,20 +594,20 @@ cat ~/public_html/.htaccess
 
 ```bash
 # Start development
-pnpm dev
+npm run dev
 
 # Type checking
-pnpm typecheck
+npm run typecheck
 
 # Build
-pnpm build
+npm run build
 
 # Database operations
 cd packages/backend
-pnpm db:generate  # Generate Prisma Client
-pnpm db:push      # Sync schema
-pnpm db:studio    # Open GUI
-pnpm db:seed      # Seed data
+npm run db:generate  # Generate Prisma Client
+npm run db:push      # Sync schema
+npm run db:studio    # Open GUI
+npm run db:seed      # Seed data
 ```
 
 ### Deployment
@@ -623,9 +623,9 @@ cd ~/spanish-class
 
 # Manual deployment steps
 git pull origin <branch>
-pnpm install
-cd packages/backend && pnpm build
-cd ../frontend && pnpm build
+npm install
+cd packages/backend && npm run build
+cd ../frontend && npm run build
 cp -r packages/frontend/dist/* ~/public_html/
 pm2 restart <app-name>
 ```

@@ -31,15 +31,14 @@ spanish-class-platform/
 │   ├── frontend/          # React SPA
 │   ├── backend/           # Express API
 │   └── shared/            # Shared types & validation
-├── package.json           # Workspace root
-├── pnpm-workspace.yaml
-└── turbo.json
+├── package.json           # Workspace root (npm workspaces)
+└── turbo.json             # Turbo task orchestration
 ```
 
 ## Prerequisites
 
 - Node.js 18+
-- pnpm 9+
+- npm 8+
 - MySQL 8+
 
 ## Getting Started
@@ -48,7 +47,7 @@ spanish-class-platform/
 
 ```bash
 cd spanish-class-platform
-pnpm install
+npm install
 ```
 
 ### 2. Build Shared Package
@@ -57,9 +56,9 @@ Before running the dev servers, you need to build the shared package that contai
 
 ```bash
 # Build the shared package
-pnpm --filter @spanish-class/shared build
+npm -w @spanish-class/shared build
 # Or from the shared package directory:
-cd packages/shared && pnpm run build
+cd packages/shared && npm run build
 ```
 
 ### 3. Set Up Environment Variables
@@ -93,19 +92,19 @@ API_URL="http://localhost:3001"
 
 ```bash
 # Generate Prisma client
-pnpm db:generate
+npm run db:generate
 
 # Push schema to database
-pnpm db:push
+npm run db:push
 
 # Seed with initial data
-pnpm db:seed
+npm run db:seed
 ```
 
 ### 5. Start Development
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 This starts both frontend (port 5173) and backend (port 3001).
@@ -150,7 +149,7 @@ After seeding, you can login with:
 
 ```bash
 # Build all packages
-pnpm build
+npm run build
 
 # Frontend build output: packages/frontend/dist/
 # Backend build output: packages/backend/dist/
