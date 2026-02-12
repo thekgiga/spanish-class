@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Router as RouterType } from 'express';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { prisma } from '../lib/prisma.js';
@@ -11,7 +11,7 @@ import { sendVerificationEmail } from '../services/email.js';
 
 const VERIFICATION_TOKEN_EXPIRY_HOURS = 24;
 
-const router = Router();
+const router: RouterType = Router();
 
 // POST /api/auth/register
 router.post('/register', validate(registerSchema), async (req, res, next) => {

@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { Express } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler, notFoundHandler } from './middleware/error.js';
@@ -7,7 +7,7 @@ import authRoutes from './routes/auth.js';
 import professorRoutes from './routes/professor.js';
 import studentRoutes from './routes/student.js';
 
-const app = express();
+const app: Express = express();
 const PORT = process.env.PORT || 3001;
 
 // CORS configuration

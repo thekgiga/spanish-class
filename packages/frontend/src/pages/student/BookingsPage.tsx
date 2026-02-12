@@ -119,10 +119,10 @@ export function BookingsPage() {
               </div>
 
               <div className="flex items-center gap-2 sm:flex-col sm:items-end">
-                {booking.slot.googleMeetLink && booking.status === 'CONFIRMED' && isUpcoming && (
+                {booking.slot.meetLink && booking.status === 'CONFIRMED' && isUpcoming && (
                   <Button variant="primary" size="sm" asChild>
                     <a
-                      href={booking.slot.googleMeetLink}
+                      href={booking.slot.meetLink}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
