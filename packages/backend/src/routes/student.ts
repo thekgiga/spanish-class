@@ -55,6 +55,32 @@ const router = Router();
 // All routes require authentication
 router.use(authenticate);
 
+// GET /api/student/professor - Get professor contact info
+router.get('/professor', async (req, res, next) => {
+  try {
+    const professor = await prisma.user.findFirst({
+      where: { isAdmin: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+      },
+    });
+
+    if (!professor) {
+      throw new AppError(404, 'Professor not found');
+    }
+
+    res.json({
+      success: true,
+      data: { professor },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/student/dashboard
 router.get('/dashboard', async (req, res, next) => {
   try {
@@ -124,31 +150,44 @@ router.get('/dashboard', async (req, res, next) => {
 // GET /api/student/slots - Browse available slots
 router.get('/slots', validateQuery(slotsQuerySchema), async (req, res, next) => {
   try {
-    const { page, limit, startDate, endDate, slotType } = req.query as unknown as {
+<<<<<<< HEAD
+    const { page, limit, startDate, endDate, slotType, forMeOnly } = req.query as unknown as {
       page: number;
       limit: number;
       startDate?: string;
       endDate?: string;
       slotType?: string;
+      forMeOnly?: string;
     };
 
     const now = new Date();
 
-    // Get slots that are either:
-    // 1. Public (isPrivate = false)
-    // 2. Private but the student is in the allowedStudents list
+    // Build where clause based on forMeOnly filter
+    // forMeOnly=true: Only show private slots specifically assigned to this student
+    // forMeOnly=false/undefined: Show public slots OR private slots assigned to this student
     const where: Record<string, unknown> = {
       status: 'AVAILABLE',
       startTime: { gte: startDate ? new Date(startDate) : now },
-      OR: [
-        { isPrivate: false },
-        {
-          isPrivate: true,
-          allowedStudents: {
-            some: { studentId: req.user!.id },
-          },
-        },
-      ],
+      ...(forMeOnly === 'true'
+        ? {
+            // Only private slots assigned to this student
+            isPrivate: true,
+            allowedStudents: {
+              some: { studentId: req.user!.id },
+            },
+          }
+        : {
+            // Public slots OR private slots assigned to this student
+            OR: [
+              { isPrivate: false },
+              {
+                isPrivate: true,
+                allowedStudents: {
+                  some: { studentId: req.user!.id },
+                },
+              },
+            ],
+          }),
     };
 
     if (endDate) {

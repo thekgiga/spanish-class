@@ -1,24 +1,34 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 
-const Card = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { hover?: boolean; variant?: 'default' | 'premium' | 'glass' | 'gradient' }
->(({ className, hover = false, variant = 'default', ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      'rounded-2xl border bg-card text-card-foreground',
-      variant === 'default' && 'shadow-medium border-slate-200/60',
-      variant === 'premium' && 'shadow-large border-slate-200/50 bg-white',
-      variant === 'glass' && 'bg-white/70 backdrop-blur-xl border-white/20 shadow-medium',
-      variant === 'gradient' && 'bg-gradient-to-br from-indigo-500 via-violet-500 to-purple-500 shadow-colored-indigo text-white border-0',
-      hover && 'transition-all duration-300 hover:shadow-xlarge hover:-translate-y-1',
-      className
-    )}
-    {...props}
-  />
-));
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  hover?: boolean;
+  variant?: 'default' | 'elevated' | 'outlined' | 'filled';
+}
+
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, hover = false, variant = 'default', ...props }, ref) => {
+    const variants = {
+      default: 'bg-white border border-spanish-cream-200',
+      elevated: 'bg-white shadow-medium',
+      outlined: 'bg-transparent border-2 border-spanish-cream-300',
+      filled: 'bg-spanish-cream-50 border border-spanish-cream-200',
+    };
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'rounded-2xl text-card-foreground shadow-soft',
+          variants[variant],
+          hover && 'transition-all duration-300 ease-out hover:shadow-medium hover:-translate-y-1 cursor-pointer',
+          className
+        )}
+        {...props}
+      />
+    );
+  }
+);
 Card.displayName = 'Card';
 
 const CardHeader = React.forwardRef<
@@ -27,7 +37,7 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('flex flex-col space-y-1.5 p-6', className)}
+    className={cn('flex flex-col space-y-1.5 p-6 pb-4', className)}
     {...props}
   />
 ));
@@ -39,7 +49,7 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-2xl font-display font-semibold leading-tight tracking-tight', className)}
+    className={cn('text-xl font-display font-semibold leading-none tracking-tight text-navy-800', className)}
     {...props}
   />
 ));

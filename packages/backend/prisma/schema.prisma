@@ -8,27 +8,15 @@ generator client {
 }
 
 model User {
-  id                         String    @id @default(cuid())
-  email                      String    @unique
-  passwordHash               String    @map("password_hash")
-  firstName                  String    @map("first_name")
-  lastName                   String    @map("last_name")
-  isAdmin                    Boolean   @default(false) @map("is_admin")
-  timezone                   String    @default("Europe/Madrid")
-  isEmailVerified            Boolean   @default(false) @map("is_email_verified")
-  emailVerificationToken     String?   @unique @map("email_verification_token")
-  emailVerificationExpiresAt DateTime? @map("email_verification_expires_at")
-  createdAt                  DateTime  @default(now()) @map("created_at")
-  updatedAt                  DateTime  @updatedAt @map("updated_at")
-
-  // Student Profile Fields (US-16, US-17, US-18)
-  dateOfBirth        DateTime?     @map("date_of_birth")
-  phoneNumber        String?       @map("phone_number")
-  aboutMe            String?       @map("about_me") @db.Text
-  spanishLevel       SpanishLevel? @map("spanish_level")
-  preferredClassTypes String?      @map("preferred_class_types") // JSON array of ClassType values
-  learningGoals      String?       @map("learning_goals") @db.Text
-  availabilityNotes  String?       @map("availability_notes") @db.Text
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  firstName    String   @map("first_name")
+  lastName     String   @map("last_name")
+  isAdmin      Boolean  @default(false) @map("is_admin")
+  timezone     String   @default("Europe/Madrid")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   slots                    AvailabilitySlot[]
   bookings                 Booking[]
@@ -52,7 +40,7 @@ model AvailabilitySlot {
   status              SlotStatus @default(AVAILABLE)
   title               String?
   description         String?    @db.Text
-  meetingRoomName     String?    @map("meeting_room_name") // Immutable Jitsi room name
+  meetLink            String?    @map("meet_link")
   isPrivate           Boolean    @default(false) @map("is_private")
   recurringPatternId  String?    @map("recurring_pattern_id")
   createdAt           DateTime   @default(now()) @map("created_at")
@@ -123,16 +111,15 @@ model RecurringPatternAllowedStudent {
 }
 
 model Booking {
-  id                     String        @id @default(cuid())
-  slotId                 String        @map("slot_id")
-  studentId              String        @map("student_id")
-  status                 BookingStatus @default(CONFIRMED)
-  bookedAt               DateTime      @default(now()) @map("booked_at")
-  cancelledAt            DateTime?     @map("cancelled_at")
-  cancelReason           String?       @map("cancel_reason")
-  bookedCalendarEventId  String?       @map("booked_calendar_event_id")
-  createdAt              DateTime      @default(now()) @map("created_at")
-  updatedAt              DateTime      @updatedAt @map("updated_at")
+  id           String        @id @default(cuid())
+  slotId       String        @map("slot_id")
+  studentId    String        @map("student_id")
+  status       BookingStatus @default(CONFIRMED)
+  bookedAt     DateTime      @default(now()) @map("booked_at")
+  cancelledAt  DateTime?     @map("cancelled_at")
+  cancelReason String?       @map("cancel_reason")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
 
   slot    AvailabilitySlot @relation(fields: [slotId], references: [id])
   student User             @relation(fields: [studentId], references: [id])
@@ -176,16 +163,6 @@ enum BookingStatus {
   CANCELLED_BY_PROFESSOR
   COMPLETED
   NO_SHOW
-}
-
-// Spanish proficiency levels (CEFR-aligned)
-enum SpanishLevel {
-  BEGINNER        // A1
-  ELEMENTARY      // A2
-  INTERMEDIATE    // B1
-  UPPER_INTERMEDIATE // B2
-  ADVANCED        // C1
-  NATIVE          // C2/Native
 }
 
 model EmailLog {

@@ -10,8 +10,6 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 
 // Public Pages
 import { HomePage } from '@/pages/public/HomePage';
-import { AboutPage } from '@/pages/public/AboutPage';
-import { OfferingsPage } from '@/pages/public/OfferingsPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { RegisterPage } from '@/pages/auth/RegisterPage';
 
@@ -105,8 +103,6 @@ function AppRoutes() {
       {/* Public Routes */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/offerings" element={<OfferingsPage />} />
         <Route
           path="/login"
           element={
