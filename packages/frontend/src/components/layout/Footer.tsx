@@ -9,9 +9,7 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <Link to="/" className="flex items-center gap-3 group">
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-colored-indigo group-hover:scale-105 transition-transform duration-200">
-                <span className="text-white font-display text-xl font-bold">S</span>
-              </div>
+              <img src="/icons/elite_logo.png" alt="Elite Spanish Class" className="h-10 w-10 rounded-xl object-contain shadow-colored-indigo group-hover:scale-105 transition-transform duration-200" />
               <span className="font-display text-xl font-semibold group-hover:text-indigo-400 transition-colors duration-200">Spanish Class</span>
             </Link>
             <p className="mt-4 text-slate-300 max-w-md leading-relaxed">

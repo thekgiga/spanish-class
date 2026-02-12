@@ -15,9 +15,9 @@ import { useAuthStore } from '@/stores/auth';
 import { getInitials } from '@/lib/utils';
 
 const navLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' },
-  { href: '/offerings', label: 'Classes' },
+  { label: 'About', href: '/about' },
+  { label: 'Classes', href: '/offerings' },
+  { label: 'Contact', href: '#contact' },
 ];
 
 export function Header() {
@@ -43,9 +43,7 @@ export function Header() {
             className="flex items-center"
           >
             <Link to="/" className="flex items-center gap-3 group">
-              <div className="h-11 w-11 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-colored-indigo group-hover:scale-105 transition-transform duration-200">
-                <span className="text-white font-display text-2xl font-bold">S</span>
-              </div>
+              <img src="/icons/elite_logo.png" alt="Elite Spanish Class" className="h-11 w-11 rounded-xl object-contain shadow-colored-indigo group-hover:scale-105 transition-transform duration-200" />
               <span className="font-display text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors duration-200">
                 Spanish Class
               </span>
@@ -123,7 +121,7 @@ export function Header() {
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
-                  <Button variant="ghost" asChild>
+                  <Button variant="ghost" className="text-slate-700 hover:text-indigo-600" asChild>
                     <Link to="/login">Sign in</Link>
                   </Button>
                 </motion.div>
