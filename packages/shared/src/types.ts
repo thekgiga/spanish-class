@@ -1,3 +1,25 @@
+// Spanish proficiency levels (CEFR-aligned)
+export enum SpanishLevel {
+  BEGINNER = 'BEGINNER',           // A1
+  ELEMENTARY = 'ELEMENTARY',       // A2
+  INTERMEDIATE = 'INTERMEDIATE',   // B1
+  UPPER_INTERMEDIATE = 'UPPER_INTERMEDIATE', // B2
+  ADVANCED = 'ADVANCED',           // C1
+  NATIVE = 'NATIVE',               // C2/Native
+}
+
+// Class type preferences for students
+export enum ClassType {
+  PRIVATE_LESSONS = 'PRIVATE_LESSONS',
+  GROUP_CLASSES = 'GROUP_CLASSES',
+  CONVERSATION_PRACTICE = 'CONVERSATION_PRACTICE',
+  EXAM_PREPARATION = 'EXAM_PREPARATION',
+  BUSINESS_SPANISH = 'BUSINESS_SPANISH',
+  GRAMMAR_FOCUS = 'GRAMMAR_FOCUS',
+  PRONUNCIATION = 'PRONUNCIATION',
+  WRITING_SKILLS = 'WRITING_SKILLS',
+}
+
 // User Types
 export interface User {
   id: string;
@@ -8,6 +30,14 @@ export interface User {
   timezone: string;
   createdAt: Date;
   updatedAt: Date;
+  // Student Profile Fields
+  dateOfBirth?: Date | null;
+  phoneNumber?: string | null;
+  aboutMe?: string | null;
+  spanishLevel?: SpanishLevel | null;
+  preferredClassTypes?: ClassType[] | null;
+  learningGoals?: string | null;
+  availabilityNotes?: string | null;
 }
 
 export interface UserWithPassword extends User {
@@ -15,6 +45,39 @@ export interface UserWithPassword extends User {
 }
 
 export type UserPublic = Omit<User, 'passwordHash'>;
+
+// Student Profile Types
+export interface StudentProfile {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  timezone: string;
+  dateOfBirth?: Date | null;
+  phoneNumber?: string | null;
+  aboutMe?: string | null;
+  spanishLevel?: SpanishLevel | null;
+  preferredClassTypes?: ClassType[] | null;
+  learningGoals?: string | null;
+  availabilityNotes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Profile completion tracking
+export interface ProfileCompletionItem {
+  field: string;
+  label: string;
+  completed: boolean;
+  weight: number; // Percentage weight for this field
+}
+
+export interface ProfileCompletion {
+  percentage: number;
+  items: ProfileCompletionItem[];
+  completedCount: number;
+  totalCount: number;
+}
 
 // Slot Types
 export enum SlotType {

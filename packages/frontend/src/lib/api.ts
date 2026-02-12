@@ -18,6 +18,9 @@ import type {
   RecurringPattern,
   CreateRecurringPatternInput,
   ProfessorBookStudentInput,
+  StudentProfile,
+  ProfileCompletion,
+  UpdateStudentProfileInput,
 } from '@spanish-class/shared';
 
 const api = axios.create({
@@ -255,6 +258,17 @@ export const studentApi = {
 
   cancelBooking: async (id: string, reason?: string): Promise<void> => {
     await api.post(`/student/bookings/${id}/cancel`, { reason });
+  },
+
+  // Profile (US-16, US-17, US-18)
+  getProfile: async (): Promise<{ profile: StudentProfile; completion: ProfileCompletion }> => {
+    const res = await api.get('/student/profile');
+    return res.data.data;
+  },
+
+  updateProfile: async (data: UpdateStudentProfileInput): Promise<{ profile: StudentProfile; completion: ProfileCompletion }> => {
+    const res = await api.put('/student/profile', data);
+    return res.data.data;
   },
 };
 

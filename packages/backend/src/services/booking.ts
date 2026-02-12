@@ -169,14 +169,16 @@ export async function bookSlot(
   }).catch((err: unknown) => console.error('Failed to create booked session calendar event:', err));
 
   // Send emails (don't await, let them run in background)
+  // Cast slot to fix Prisma enum vs shared enum type mismatch
+  const slotForEmail = slot as unknown as import('@spanish-class/shared').AvailabilitySlot;
   Promise.all([
     sendBookingConfirmationToStudent({
-      slot,
+      slot: slotForEmail,
       professor: slot.professor,
       student,
     }),
     sendBookingNotificationToProfessor({
-      slot,
+      slot: slotForEmail,
       professor: slot.professor,
       student,
     }),
@@ -300,9 +302,11 @@ export async function cancelBooking(
   }
 
   // Send cancellation emails
+  // Cast slot to fix Prisma enum vs shared enum type mismatch
+  const cancelSlotForEmail = booking.slot as unknown as import('@spanish-class/shared').AvailabilitySlot;
   Promise.all([
     sendCancellationToStudent({
-      slot: booking.slot,
+      slot: cancelSlotForEmail,
       professor: booking.slot.professor,
       student: booking.student,
       reason,
@@ -310,7 +314,7 @@ export async function cancelBooking(
     }),
     cancelledBy === 'student'
       ? sendCancellationToProfessor({
-          slot: booking.slot,
+          slot: cancelSlotForEmail,
           professor: booking.slot.professor,
           student: booking.student,
           reason,

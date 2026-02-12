@@ -1030,7 +1030,7 @@ router.get('/students', validateQuery(paginationSchema), async (req, res, next) 
   }
 });
 
-// GET /api/professor/students/:id
+// GET /api/professor/students/:id - includes student profile (US-19)
 router.get('/students/:id', async (req, res, next) => {
   try {
     const student = await prisma.user.findFirst({
@@ -1045,6 +1045,14 @@ router.get('/students/:id', async (req, res, next) => {
         lastName: true,
         timezone: true,
         createdAt: true,
+        // Student profile fields (US-19)
+        dateOfBirth: true,
+        phoneNumber: true,
+        aboutMe: true,
+        spanishLevel: true,
+        preferredClassTypes: true,
+        learningGoals: true,
+        availabilityNotes: true,
         bookings: {
           include: {
             slot: {
@@ -1075,10 +1083,18 @@ router.get('/students/:id', async (req, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
 
+    // Parse preferredClassTypes from JSON string to array
+    const profile = {
+      ...student,
+      preferredClassTypes: student.preferredClassTypes
+        ? JSON.parse(student.preferredClassTypes)
+        : null,
+    };
+
     res.json({
       success: true,
       data: {
-        ...student,
+        ...profile,
         notes,
       },
     });

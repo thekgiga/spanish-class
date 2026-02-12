@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   Plus,
   Mail,
+  UserCircle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ const studentNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/book', label: 'Book Class', icon: Calendar },
   { href: '/dashboard/bookings', label: 'My Bookings', icon: BookOpen },
+  { href: '/dashboard/profile', label: 'My Profile', icon: UserCircle },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
