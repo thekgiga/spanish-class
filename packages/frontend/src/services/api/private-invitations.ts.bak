@@ -2,6 +2,7 @@ import axios from "axios";
 import type {
   CreatePrivateInvitationInput,
   CancelPrivateInvitationInput,
+  PrivateInvitation,
   ApiResponse,
   PaginatedResponse,
 } from "@spanish-class/shared";

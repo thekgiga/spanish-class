@@ -1,6 +1,9 @@
 # Dependencies
 node_modules
 
+# Package manager lockfiles
+pnpm-lock.yaml
+
 # Build outputs
 dist
 build

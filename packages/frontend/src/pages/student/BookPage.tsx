@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { toast } from 'react-hot-toast';
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
 import {
   format,
   startOfMonth,
@@ -14,7 +14,7 @@ import {
   isSameMonth,
   isSameDay,
   isToday,
-} from 'date-fns';
+} from "date-fns";
 import {
   Calendar,
   Clock,
@@ -28,18 +28,18 @@ import {
   ChevronRight,
   Star,
   Mail,
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -47,27 +47,29 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { studentApi } from '@/lib/api';
-import { cn, formatDate, formatTime, getDuration } from '@/lib/utils';
-import type { AvailabilitySlot } from '@spanish-class/shared';
+} from "@/components/ui/dialog";
+import { studentApi } from "@/lib/api";
+import { cn, formatDate, formatTime, getDuration } from "@/lib/utils";
+import type { AvailabilitySlot } from "@spanish-class/shared";
 
-type ViewMode = 'list' | 'calendar';
+type ViewMode = "list" | "calendar";
 
 type SlotWithBookedFlag = AvailabilitySlot & { isBookedByMe: boolean };
 
 export function BookPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [filter, setFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
+  const [filter, setFilter] = useState<string>("all");
   const [forMeOnly, setForMeOnly] = useState(false);
-  const [selectedSlot, setSelectedSlot] = useState<SlotWithBookedFlag | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<SlotWithBookedFlag | null>(
+    null,
+  );
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const queryClient = useQueryClient();
 
   // Calculate calendar bounds - memoize with stable string keys
-  const monthKey = format(currentMonth, 'yyyy-MM');
+  const monthKey = format(currentMonth, "yyyy-MM");
   const { calendarStart, calendarEnd } = useMemo(() => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
@@ -82,13 +84,19 @@ export function BookPage() {
   const calendarEndStr = calendarEnd.toISOString();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['available-slots', viewMode, filter, forMeOnly, viewMode === 'calendar' ? monthKey : 'list'],
+    queryKey: [
+      "available-slots",
+      viewMode,
+      filter,
+      forMeOnly,
+      viewMode === "calendar" ? monthKey : "list",
+    ],
     queryFn: () =>
       studentApi.getSlots({
-        limit: viewMode === 'calendar' ? 200 : 50,
-        slotType: filter !== 'all' ? filter : undefined,
+        limit: viewMode === "calendar" ? 200 : 50,
+        slotType: filter !== "all" ? filter : undefined,
         forMeOnly: forMeOnly || undefined,
-        ...(viewMode === 'calendar' && {
+        ...(viewMode === "calendar" && {
           startDate: calendarStartStr,
           endDate: calendarEndStr,
         }),
@@ -97,20 +105,20 @@ export function BookPage() {
 
   // Fetch professor contact info for empty state message
   const { data: professor } = useQuery({
-    queryKey: ['professor'],
+    queryKey: ["professor"],
     queryFn: studentApi.getProfessor,
   });
 
   const bookMutation = useMutation({
     mutationFn: studentApi.bookSlot,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['available-slots'] });
-      queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['student-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ["available-slots"] });
+      queryClient.invalidateQueries({ queryKey: ["student-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["student-bookings"] });
       setBookingSuccess(true);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to book slot');
+      toast.error(error.response?.data?.error || "Failed to book slot");
       setSelectedSlot(null);
     },
   });
@@ -128,14 +136,17 @@ export function BookPage() {
 
   // Group slots by date for list view
   const slotsByDate = useMemo(() => {
-    return data?.data?.reduce((acc, slot) => {
-      const dateKey = formatDate(slot.startTime);
-      if (!acc[dateKey]) {
-        acc[dateKey] = [];
-      }
-      acc[dateKey].push(slot);
-      return acc;
-    }, {} as Record<string, SlotWithBookedFlag[]>);
+    return data?.data?.reduce(
+      (acc, slot) => {
+        const dateKey = formatDate(slot.startTime);
+        if (!acc[dateKey]) {
+          acc[dateKey] = [];
+        }
+        acc[dateKey].push(slot);
+        return acc;
+      },
+      {} as Record<string, SlotWithBookedFlag[]>,
+    );
   }, [data?.data]);
 
   // Get slots for calendar view - use monthKey for stable dependency
@@ -144,7 +155,10 @@ export function BookPage() {
   }, [monthKey]);
 
   const getSlotsByDate = (date: Date): SlotWithBookedFlag[] => {
-    return data?.data?.filter((slot) => isSameDay(new Date(slot.startTime), date)) || [];
+    return (
+      data?.data?.filter((slot) => isSameDay(new Date(slot.startTime), date)) ||
+      []
+    );
   };
 
   const selectedDateSlots = selectedDate ? getSlotsByDate(selectedDate) : [];
@@ -154,8 +168,12 @@ export function BookPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">Book a Class</h1>
-          <p className="text-muted-foreground">Browse and book available sessions</p>
+          <h1 className="text-2xl font-display font-bold text-navy-800">
+            Book a Class
+          </h1>
+          <p className="text-muted-foreground">
+            Browse and book available sessions
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {/* Slot Type Filter */}
@@ -175,30 +193,30 @@ export function BookPage() {
 
           {/* For Me Only Filter */}
           <Button
-            variant={forMeOnly ? 'primary' : 'outline'}
+            variant={forMeOnly ? "primary" : "outline"}
             size="sm"
             onClick={() => setForMeOnly(!forMeOnly)}
             className="gap-1"
           >
-            <Star className={cn('h-4 w-4', forMeOnly && 'fill-current')} />
+            <Star className={cn("h-4 w-4", forMeOnly && "fill-current")} />
             For Me Only
           </Button>
 
           {/* View Toggle */}
           <div className="flex rounded-lg border bg-muted p-1">
             <Button
-              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+              variant={viewMode === "list" ? "secondary" : "ghost"}
               size="sm"
-              onClick={() => setViewMode('list')}
+              onClick={() => setViewMode("list")}
               className="gap-1"
             >
               <List className="h-4 w-4" />
               <span className="hidden sm:inline">List</span>
             </Button>
             <Button
-              variant={viewMode === 'calendar' ? 'secondary' : 'ghost'}
+              variant={viewMode === "calendar" ? "secondary" : "ghost"}
               size="sm"
-              onClick={() => setViewMode('calendar')}
+              onClick={() => setViewMode("calendar")}
               className="gap-1"
             >
               <CalendarDays className="h-4 w-4" />
@@ -209,7 +227,7 @@ export function BookPage() {
       </div>
 
       {/* Content based on view mode */}
-      {viewMode === 'list' ? (
+      {viewMode === "list" ? (
         <ListView
           isLoading={isLoading}
           slotsByDate={slotsByDate}
@@ -235,7 +253,10 @@ export function BookPage() {
       )}
 
       {/* Booking Confirmation Dialog */}
-      <Dialog open={!!selectedSlot && !bookingSuccess} onOpenChange={() => setSelectedSlot(null)}>
+      <Dialog
+        open={!!selectedSlot && !bookingSuccess}
+        onOpenChange={() => setSelectedSlot(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Booking</DialogTitle>
@@ -245,17 +266,22 @@ export function BookPage() {
           </DialogHeader>
           {selectedSlot && (
             <div className="p-4 rounded-lg bg-gray-50 space-y-2">
-              <p className="font-semibold">{selectedSlot.title || 'Spanish Class'}</p>
+              <p className="font-semibold">
+                {selectedSlot.title || "Spanish Class"}
+              </p>
               <p className="text-sm text-muted-foreground">
                 {formatDate(selectedSlot.startTime)}
               </p>
               <p className="text-sm text-muted-foreground">
-                {formatTime(selectedSlot.startTime)} - {formatTime(selectedSlot.endTime)} (
+                {formatTime(selectedSlot.startTime)} -{" "}
+                {formatTime(selectedSlot.endTime)} (
                 {getDuration(selectedSlot.startTime, selectedSlot.endTime)})
               </p>
               <div className="flex gap-2 mt-2">
                 <Badge variant="secondary">
-                  {selectedSlot.slotType === 'GROUP' ? 'Group Session' : 'Individual Session'}
+                  {selectedSlot.slotType === "GROUP"
+                    ? "Group Session"
+                    : "Individual Session"}
                 </Badge>
                 {selectedSlot.isPrivate && (
                   <Badge variant="default">
@@ -288,10 +314,12 @@ export function BookPage() {
             <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
               <CheckCircle2 className="h-8 w-8 text-green-600" />
             </div>
-            <DialogTitle className="text-xl mb-2">Booking Confirmed!</DialogTitle>
+            <DialogTitle className="text-xl mb-2">
+              Booking Confirmed!
+            </DialogTitle>
             <DialogDescription className="text-base">
-              Your session has been booked successfully. Check your email for confirmation details
-              and the Google Meet link.
+              Your session has been booked successfully. Check your email for
+              confirmation details and the Google Meet link.
             </DialogDescription>
           </div>
           <DialogFooter className="sm:justify-center">
@@ -306,7 +334,9 @@ export function BookPage() {
 }
 
 // Professor info type
-type ProfessorInfo = { id: string; firstName: string; lastName: string; email: string } | undefined;
+type ProfessorInfo =
+  | { id: string; firstName: string; lastName: string; email: string }
+  | undefined;
 
 // List View Component
 function ListView({
@@ -351,13 +381,14 @@ function ListView({
               </p>
               <p className="text-muted-foreground max-w-md mx-auto mb-4">
                 There are currently no private sessions scheduled for you.
-                Please contact your professor to arrange a dedicated session
-                at your earliest convenience.
+                Please contact your professor to arrange a dedicated session at
+                your earliest convenience.
               </p>
               {professor && (
                 <div className="inline-flex items-center gap-3 px-4 py-3 bg-navy-50 rounded-lg">
                   <div className="h-10 w-10 rounded-full bg-navy-800 text-white flex items-center justify-center font-medium">
-                    {professor.firstName.charAt(0)}{professor.lastName.charAt(0)}
+                    {professor.firstName.charAt(0)}
+                    {professor.lastName.charAt(0)}
                   </div>
                   <div className="text-left">
                     <p className="font-medium text-navy-800">
@@ -451,14 +482,15 @@ function CalendarView({
             No Private Sessions Available
           </p>
           <p className="text-muted-foreground max-w-md mx-auto mb-4">
-            There are currently no private sessions scheduled for you.
-            Please contact your professor to arrange a dedicated session
-            at your earliest convenience.
+            There are currently no private sessions scheduled for you. Please
+            contact your professor to arrange a dedicated session at your
+            earliest convenience.
           </p>
           {professor && (
             <div className="inline-flex items-center gap-3 px-4 py-3 bg-navy-50 rounded-lg">
               <div className="h-10 w-10 rounded-full bg-navy-800 text-white flex items-center justify-center font-medium">
-                {professor.firstName.charAt(0)}{professor.lastName.charAt(0)}
+                {professor.firstName.charAt(0)}
+                {professor.lastName.charAt(0)}
               </div>
               <div className="text-left">
                 <p className="font-medium text-navy-800">
@@ -484,18 +516,30 @@ function CalendarView({
       {/* Calendar */}
       <Card className="lg:col-span-2">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{format(currentMonth, 'MMMM yyyy')}</CardTitle>
+          <CardTitle>{format(currentMonth, "MMMM yyyy")}</CardTitle>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => {
-              setCurrentMonth(new Date());
-              setSelectedDate(new Date());
-            }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setCurrentMonth(new Date());
+                setSelectedDate(new Date());
+              }}
+            >
               Today
             </Button>
-            <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -503,8 +547,11 @@ function CalendarView({
         <CardContent>
           {/* Weekday headers */}
           <div className="grid grid-cols-7 mb-2">
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
-              <div key={day} className="text-center text-sm font-medium text-muted-foreground py-2">
+            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+              <div
+                key={day}
+                className="text-center text-sm font-medium text-muted-foreground py-2"
+              >
                 {day}
               </div>
             ))}
@@ -523,45 +570,46 @@ function CalendarView({
                 const daySlots = getSlotsByDate(day);
                 const isSelected = selectedDate && isSameDay(day, selectedDate);
                 const hasSlots = daySlots.length > 0;
-                const hasBookedSlots = daySlots.some(s => s.isBookedByMe);
-                const hasPrivateSlots = daySlots.some(s => s.isPrivate);
+                const hasBookedSlots = daySlots.some((s) => s.isBookedByMe);
+                const hasPrivateSlots = daySlots.some((s) => s.isPrivate);
 
                 return (
                   <button
                     key={day.toISOString()}
                     onClick={() => setSelectedDate(day)}
                     className={cn(
-                      'aspect-square p-1 rounded-lg text-sm transition-colors relative',
-                      !isSameMonth(day, currentMonth) && 'text-muted-foreground/50',
-                      isToday(day) && 'font-bold',
+                      "aspect-square p-1 rounded-lg text-sm transition-colors relative",
+                      !isSameMonth(day, currentMonth) &&
+                        "text-muted-foreground/50",
+                      isToday(day) && "font-bold",
                       isSelected
-                        ? 'bg-navy-800 text-white'
-                        : 'hover:bg-gray-100',
-                      hasSlots && !isSelected && 'bg-gold-50'
+                        ? "bg-navy-800 text-white"
+                        : "hover:bg-gray-100",
+                      hasSlots && !isSelected && "bg-gold-50",
                     )}
                   >
-                    <span className="block">{format(day, 'd')}</span>
+                    <span className="block">{format(day, "d")}</span>
                     {hasSlots && (
                       <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
                         <span
                           className={cn(
-                            'w-1.5 h-1.5 rounded-full',
-                            isSelected ? 'bg-gold-400' : 'bg-gold-500'
+                            "w-1.5 h-1.5 rounded-full",
+                            isSelected ? "bg-gold-400" : "bg-gold-500",
                           )}
                         />
                         {hasPrivateSlots && (
                           <span
                             className={cn(
-                              'w-1.5 h-1.5 rounded-full',
-                              isSelected ? 'bg-blue-300' : 'bg-blue-500'
+                              "w-1.5 h-1.5 rounded-full",
+                              isSelected ? "bg-blue-300" : "bg-blue-500",
                             )}
                           />
                         )}
                         {hasBookedSlots && (
                           <span
                             className={cn(
-                              'w-1.5 h-1.5 rounded-full',
-                              isSelected ? 'bg-green-300' : 'bg-green-500'
+                              "w-1.5 h-1.5 rounded-full",
+                              isSelected ? "bg-green-300" : "bg-green-500",
                             )}
                           />
                         )}
@@ -595,7 +643,9 @@ function CalendarView({
       <Card>
         <CardHeader>
           <CardTitle>
-            {selectedDate ? format(selectedDate, 'EEEE, MMM d') : 'Select a date'}
+            {selectedDate
+              ? format(selectedDate, "EEEE, MMM d")
+              : "Select a date"}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -606,10 +656,10 @@ function CalendarView({
                   <div
                     key={slot.id}
                     className={cn(
-                      'p-3 rounded-lg border transition-colors',
+                      "p-3 rounded-lg border transition-colors",
                       slot.isBookedByMe
-                        ? 'border-green-500 bg-green-50'
-                        : 'hover:bg-gray-50 cursor-pointer'
+                        ? "border-green-500 bg-green-50"
+                        : "hover:bg-gray-50 cursor-pointer",
                     )}
                     onClick={() => !slot.isBookedByMe && onSelectSlot(slot)}
                   >
@@ -617,7 +667,8 @@ function CalendarView({
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">
-                          {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
+                          {formatTime(slot.startTime)} -{" "}
+                          {formatTime(slot.endTime)}
                         </span>
                       </div>
                       {slot.isBookedByMe ? (
@@ -633,11 +684,11 @@ function CalendarView({
                       ) : null}
                     </div>
                     <p className="text-sm text-navy-800 mt-1">
-                      {slot.title || 'Spanish Class'}
+                      {slot.title || "Spanish Class"}
                     </p>
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {slot.slotType === 'GROUP' ? (
+                        {slot.slotType === "GROUP" ? (
                           <Users className="h-3 w-3" />
                         ) : (
                           <User className="h-3 w-3" />
@@ -645,10 +696,14 @@ function CalendarView({
                         {slot.currentParticipants}/{slot.maxParticipants} spots
                       </div>
                       {!slot.isBookedByMe && (
-                        <Button size="sm" variant="primary" onClick={(e) => {
-                          e.stopPropagation();
-                          onSelectSlot(slot);
-                        }}>
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onSelectSlot(slot);
+                          }}
+                        >
                           Book
                         </Button>
                       )}
@@ -659,7 +714,9 @@ function CalendarView({
             ) : (
               <div className="text-center py-8">
                 <Calendar className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground">No available slots on this day</p>
+                <p className="text-muted-foreground">
+                  No available slots on this day
+                </p>
               </div>
             )
           ) : (
@@ -689,16 +746,18 @@ function SlotCard({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay }}
     >
-      <Card hover className={slot.isBookedByMe ? 'border-green-500' : ''}>
+      <Card hover className={slot.isBookedByMe ? "border-green-500" : ""}>
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <Badge variant={slot.slotType === 'GROUP' ? 'secondary' : 'default'}>
-              {slot.slotType === 'GROUP' ? (
+            <Badge
+              variant={slot.slotType === "GROUP" ? "secondary" : "default"}
+            >
+              {slot.slotType === "GROUP" ? (
                 <Users className="mr-1 h-3 w-3" />
               ) : (
                 <User className="mr-1 h-3 w-3" />
               )}
-              {slot.slotType === 'GROUP' ? 'Group' : 'Individual'}
+              {slot.slotType === "GROUP" ? "Group" : "Individual"}
             </Badge>
             <div className="flex gap-1">
               {slot.isPrivate && !slot.isBookedByMe && (
@@ -717,7 +776,7 @@ function SlotCard({
           </div>
 
           <p className="font-semibold text-navy-800 mb-1">
-            {slot.title || 'Spanish Class'}
+            {slot.title || "Spanish Class"}
           </p>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
@@ -740,11 +799,11 @@ function SlotCard({
             </span>
             <Button
               size="sm"
-              variant={slot.isBookedByMe ? 'outline' : 'primary'}
+              variant={slot.isBookedByMe ? "outline" : "primary"}
               disabled={slot.isBookedByMe}
               onClick={onSelect}
             >
-              {slot.isBookedByMe ? 'Already Booked' : 'Book Now'}
+              {slot.isBookedByMe ? "Already Booked" : "Book Now"}
             </Button>
           </div>
         </CardContent>

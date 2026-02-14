@@ -14,7 +14,15 @@ export interface UserWithPassword extends User {
   passwordHash: string;
 }
 
-export type UserPublic = Omit<User, "passwordHash">;
+export type UserPublic = Omit<User, "passwordHash"> & {
+  dateOfBirth?: string | null;
+  phoneNumber?: string | null;
+  aboutMe?: string | null;
+  spanishLevel?: string | null;
+  preferredClassTypes?: string[] | null;
+  learningGoals?: string | null;
+  availabilityNotes?: string | null;
+};
 
 // Slot Types
 export enum SlotType {
@@ -207,6 +215,32 @@ export interface CreatePrivateInvitationData {
 
 export interface CancelPrivateInvitationData {
   reason?: string;
+}
+
+// Student Profile Types
+export interface StudentProfile {
+  dateOfBirth?: string | null;
+  phoneNumber?: string | null;
+  aboutMe?: string | null;
+  spanishLevel?: string | null;
+  preferredClassTypes?: string[] | null;
+  learningGoals?: string | null;
+  availabilityNotes?: string | null;
+}
+
+export interface ProfileCompletion {
+  isComplete: boolean;
+  completedFields: number;
+  totalFields: number;
+  completedCount: number;
+  totalCount: number;
+  percentage: number;
+  missingFields: string[];
+  items?: Array<{
+    field: string;
+    label: string;
+    isComplete: boolean;
+  }>;
 }
 
 // Note: CreateSlotInput, BulkCreateSlotInput, CreateBookingInput, CancelBookingInput
