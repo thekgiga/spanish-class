@@ -1,7 +1,7 @@
-import { prisma } from '../lib/prisma.js';
-import { AppError } from '../middleware/error.js';
-import type { UserPublic } from '@spanish-class/shared';
-import { getMeetingProvider } from './meeting-provider.js';
+import { prisma } from "../lib/prisma.js";
+import { AppError } from "../middleware/error.js";
+import type { UserPublic } from "@spanish-class/shared";
+import { getMeetingProvider } from "./meeting-provider.js";
 
 /**
  * Meeting access control service
@@ -17,7 +17,7 @@ export interface MeetingAccessResult {
     endTime: Date;
     status: string;
   };
-  userRole: 'professor' | 'student';
+  userRole: "professor" | "student";
   meetingUrl: string;
   booking?: {
     id: string;
@@ -40,7 +40,7 @@ export interface MeetingAccessResult {
  */
 export async function validateMeetingAccess(
   slotId: string,
-  user: UserPublic
+  user: UserPublic,
 ): Promise<MeetingAccessResult> {
   // Fetch slot with bookings and professor info
   const slot = await prisma.availabilitySlot.findUnique({
@@ -57,23 +57,26 @@ export async function validateMeetingAccess(
       bookings: {
         where: {
           studentId: user.id,
-          status: 'CONFIRMED',
+          status: "CONFIRMED",
         },
       },
     },
   });
 
   if (!slot) {
-    throw new AppError(404, 'Slot not found');
+    throw new AppError(404, "Slot not found");
   }
 
-  if (!slot.meetingRoomName) {
-    throw new AppError(400, 'This slot does not have a meeting room configured');
+  if (!slot.meetLink) {
+    throw new AppError(
+      400,
+      "This slot does not have a meeting room configured",
+    );
   }
 
   // Check if slot is cancelled
-  if (slot.status === 'CANCELLED') {
-    throw new AppError(403, 'This slot has been cancelled');
+  if (slot.status === "CANCELLED") {
+    throw new AppError(403, "This slot has been cancelled");
   }
 
   // Determine user role and authorization
@@ -81,7 +84,7 @@ export async function validateMeetingAccess(
   const hasConfirmedBooking = slot.bookings.length > 0;
 
   if (!isProfessor && !hasConfirmedBooking) {
-    throw new AppError(403, 'You are not authorized to join this meeting');
+    throw new AppError(403, "You are not authorized to join this meeting");
   }
 
   // Time window validation
@@ -98,28 +101,33 @@ export async function validateMeetingAccess(
   const latestJoinTime = new Date(endTime.getTime() + lateJoinWindow);
 
   if (now < earliestJoinTime) {
-    const minutesUntilStart = Math.ceil((startTime.getTime() - now.getTime()) / (60 * 1000));
+    const minutesUntilStart = Math.ceil(
+      (startTime.getTime() - now.getTime()) / (60 * 1000),
+    );
     throw new AppError(
       403,
-      `This meeting is not yet available. You can join ${minutesUntilStart} minutes before the start time.`
+      `This meeting is not yet available. You can join ${minutesUntilStart} minutes before the start time.`,
     );
   }
 
   if (now > latestJoinTime) {
-    throw new AppError(403, 'This meeting has ended and is no longer available');
+    throw new AppError(
+      403,
+      "This meeting has ended and is no longer available",
+    );
   }
 
   // Get meeting URL with user's display name
   const provider = getMeetingProvider();
   const displayName = `${user.firstName} ${user.lastName}`;
-  const meetingUrl = provider.getJoinUrl(slot.meetingRoomName, displayName);
+  const meetingUrl = provider.getJoinUrl(slot.meetLink, displayName);
 
   // Log meeting join attempt
-  console.log('[Meeting Access] User joining meeting', {
+  console.log("[Meeting Access] User joining meeting", {
     slotId: slot.id,
     userId: user.id,
-    userRole: isProfessor ? 'professor' : 'student',
-    meetingRoomName: slot.meetingRoomName,
+    userRole: isProfessor ? "professor" : "student",
+    meetLink: slot.meetLink,
     timestamp: now.toISOString(),
   });
 
@@ -132,7 +140,7 @@ export async function validateMeetingAccess(
       endTime: slot.endTime,
       status: slot.status,
     },
-    userRole: isProfessor ? 'professor' : 'student',
+    userRole: isProfessor ? "professor" : "student",
     meetingUrl,
     booking: hasConfirmedBooking
       ? {
@@ -149,14 +157,14 @@ export async function validateMeetingAccess(
  */
 export async function validateMeetingAccessByRoomName(
   roomName: string,
-  user: UserPublic
+  user: UserPublic,
 ): Promise<MeetingAccessResult> {
   const slot = await prisma.availabilitySlot.findFirst({
-    where: { meetingRoomName: roomName },
+    where: { meetLink: roomName },
   });
 
   if (!slot) {
-    throw new AppError(404, 'Meeting room not found');
+    throw new AppError(404, "Meeting room not found");
   }
 
   return validateMeetingAccess(slot.id, user);
@@ -186,7 +194,7 @@ export async function getMeetingDetails(slotId: string, user: UserPublic) {
   });
 
   if (!slot) {
-    throw new AppError(404, 'Slot not found');
+    throw new AppError(404, "Slot not found");
   }
 
   // Check authorization (professor or has booking)
@@ -194,7 +202,7 @@ export async function getMeetingDetails(slotId: string, user: UserPublic) {
   const hasBooking = slot.bookings.length > 0;
 
   if (!isProfessor && !hasBooking) {
-    throw new AppError(403, 'You are not authorized to view this meeting');
+    throw new AppError(403, "You are not authorized to view this meeting");
   }
 
   const provider = getMeetingProvider();
@@ -206,9 +214,9 @@ export async function getMeetingDetails(slotId: string, user: UserPublic) {
     startTime: slot.startTime,
     endTime: slot.endTime,
     status: slot.status,
-    meetingRoomName: slot.meetingRoomName,
-    meetingUrl: slot.meetingRoomName
-      ? provider.getJoinUrl(slot.meetingRoomName, displayName)
+    meetLink: slot.meetLink,
+    meetingUrl: slot.meetLink
+      ? provider.getJoinUrl(slot.meetLink, displayName)
       : null,
     professor: {
       name: `${slot.professor.firstName} ${slot.professor.lastName}`,
