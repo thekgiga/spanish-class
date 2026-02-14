@@ -40,17 +40,6 @@ const router: ExpressRouter = Router();
 router.use(authenticate, requireAdmin);
 
 // Debug endpoint removed - Google Calendar integration removed in favor of Jitsi-only approach
-router.get("/debug/calendar", async (req, res, next) => {
-  try {
-    const result = await debugCalendarConnection();
-    res.json({
-      success: true,
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
 
 // GET /api/professor/dashboard
 router.get("/dashboard", async (req, res, next) => {
@@ -319,11 +308,11 @@ router.post("/slots", validate(createSlotSchema), async (req, res, next) => {
     const meeting = createMeetingRoom(slot.id);
     await prisma.availabilitySlot.update({
       where: { id: slot.id },
-      data: { meetingRoomName: meeting.roomName },
+      data: { meetLink: meeting.roomName },
     });
 
     // Update slot object with meeting room name for response
-    slot.meetingRoomName = meeting.roomName;
+    slot.meetLink = meeting.roomName;
 
     // If direct booking, create the booking
     let booking = null;
@@ -470,10 +459,10 @@ router.post(
           const meeting = createMeetingRoom(slot.id);
           await prisma.availabilitySlot.update({
             where: { id: slot.id },
-            data: { meetingRoomName: meeting.roomName },
+            data: { meetLink: meeting.roomName },
           });
 
-          return { ...slot, meetingRoomName: meeting.roomName };
+          return { ...slot, meetLink: meeting.roomName };
         }),
       );
 
@@ -607,10 +596,10 @@ router.post(
           const meeting = createMeetingRoom(slot.id);
           await prisma.availabilitySlot.update({
             where: { id: slot.id },
-            data: { meetingRoomName: meeting.roomName },
+            data: { meetLink: meeting.roomName },
           });
 
-          return { ...slot, meetingRoomName: meeting.roomName };
+          return { ...slot, meetLink: meeting.roomName };
         }),
       );
 
@@ -773,12 +762,12 @@ router.post(
       ]);
 
       // Send invitation email
-      if (sendInvitation && slot.meetingRoomName) {
+      if (sendInvitation && slot.meetLink) {
         const { getMeetingProvider } =
           await import("../services/meeting-provider.js");
         const provider = getMeetingProvider();
         const meetingUrl = provider.getJoinUrl(
-          slot.meetingRoomName,
+          slot.meetLink,
           `${student.firstName} ${student.lastName}`,
         );
 
@@ -1111,14 +1100,14 @@ router.get("/students/:id", async (req, res, next) => {
         lastName: true,
         timezone: true,
         createdAt: true,
-        // Student profile fields (US-19)
-        dateOfBirth: true,
-        phoneNumber: true,
-        aboutMe: true,
-        spanishLevel: true,
-        preferredClassTypes: true,
-        learningGoals: true,
-        availabilityNotes: true,
+        // Student profile fields (US-19) - not yet implemented in schema
+        // dateOfBirth: true,
+        // phoneNumber: true,
+        // aboutMe: true,
+        // spanishLevel: true,
+        // preferredClassTypes: true,
+        // learningGoals: true,
+        // availabilityNotes: true,
         bookings: {
           include: {
             slot: {
@@ -1149,12 +1138,13 @@ router.get("/students/:id", async (req, res, next) => {
       orderBy: { createdAt: "desc" },
     });
 
+    // Note: preferredClassTypes field not yet in schema
     // Parse preferredClassTypes from JSON string to array
     const profile = {
       ...student,
-      preferredClassTypes: student.preferredClassTypes
-        ? JSON.parse(student.preferredClassTypes)
-        : null,
+      // preferredClassTypes: student.preferredClassTypes
+      //   ? JSON.parse(student.preferredClassTypes)
+      //   : null,
     };
 
     res.json({
