@@ -137,9 +137,8 @@ export function StudentProfilePage() {
           : "",
         phoneNumber: data.profile.phoneNumber || "",
         aboutMe: data.profile.aboutMe || "",
-        spanishLevel: (data.profile.spanishLevel || "") as SpanishLevel | "",
-        preferredClassTypes: (data.profile.preferredClassTypes ||
-          []) as ClassType[],
+        spanishLevel: data.profile.spanishLevel || "",
+        preferredClassTypes: data.profile.preferredClassTypes || [],
         learningGoals: data.profile.learningGoals || "",
         availabilityNotes: data.profile.availabilityNotes || "",
       });
@@ -228,7 +227,7 @@ export function StudentProfilePage() {
 
             {/* Completion Items */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {completion.items?.map((item: any) => (
+              {completion.items.map((item: any) => (
                 <div
                   key={item.field}
                   className={`flex items-center gap-2 text-sm p-2 rounded ${

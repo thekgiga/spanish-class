@@ -193,7 +193,7 @@ export function HomePage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.15, duration: 0.5 }}
               >
-                <Card hover variant="default" className="h-full group">
+                <Card hover variant="premium" className="h-full group">
                   <CardContent className="p-10">
                     <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-colored-indigo group-hover:scale-110 transition-transform duration-300">
                       <feature.icon className="h-8 w-8 text-white" />

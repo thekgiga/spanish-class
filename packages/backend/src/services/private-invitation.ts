@@ -94,7 +94,7 @@ export async function createPrivateInvitation(data: {
   }
 
   // Create slot and booking in a transaction
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: any) => {
     // Create private slot
     const slot = await tx.availabilitySlot.create({
       data: {
@@ -212,7 +212,7 @@ export async function createPrivateInvitation(data: {
             where: { id: result.booking.id },
             data: { bookedCalendarEventId: calendarResult.eventId },
           })
-          .catch((err) =>
+          .catch((err: any) =>
             console.error("Failed to store calendar event ID:", err),
           );
       }

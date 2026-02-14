@@ -918,7 +918,7 @@ export function NewSlotPage() {
                 )}
 
                 {/* Google Meet Link */}
-                {existingSlot.meetLink && (
+                {existingSlot.googleMeetLink && (
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -926,7 +926,7 @@ export function NewSlotPage() {
                         <span>Google Meet</span>
                       </div>
                       <Button size="sm" variant="primary" asChild>
-                        <a href={existingSlot.meetLink} target="_blank" rel="noopener noreferrer">
+                        <a href={existingSlot.googleMeetLink} target="_blank" rel="noopener noreferrer">
                           <Video className="mr-1 h-4 w-4" />
                           Join Meeting
                         </a>

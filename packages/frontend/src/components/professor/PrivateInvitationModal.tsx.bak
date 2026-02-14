@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import type { CreatePrivateInvitationInput } from "@spanish-class/shared";
+import {
+  createPrivateInvitationSchema,
+  type CreatePrivateInvitationInput,
+} from "@spanish-class/shared";
 import { useCreatePrivateInvitation } from "../../hooks/usePrivateInvitations";
 import { StudentSelector } from "./StudentSelector";
 
@@ -16,7 +18,6 @@ interface PrivateInvitationModalProps {
 export function PrivateInvitationModal({
   isOpen,
   onClose,
-  // @ts-expect-error - defaultDate used for future feature
   defaultDate,
 }: PrivateInvitationModalProps) {
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
@@ -29,12 +30,7 @@ export function PrivateInvitationModal({
     reset,
   } = useForm<Omit<CreatePrivateInvitationInput, "studentId">>({
     resolver: zodResolver(
-      z.object({
-        startTime: z.string(),
-        endTime: z.string(),
-        title: z.string().optional(),
-        description: z.string().optional(),
-      }),
+      createPrivateInvitationSchema.omit({ studentId: true }),
     ),
     defaultValues: {
       title: "Private Spanish Class",

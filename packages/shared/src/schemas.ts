@@ -175,6 +175,8 @@ export const spanishLevelEnum = z.enum([
   "NATIVE",
 ]);
 
+export const SpanishLevelValues = spanishLevelEnum.enum;
+
 export const classTypeEnum = z.enum([
   "PRIVATE_LESSONS",
   "GROUP_CLASSES",
@@ -185,6 +187,8 @@ export const classTypeEnum = z.enum([
   "PRONUNCIATION",
   "WRITING_SKILLS",
 ]);
+
+export const ClassTypeValues = classTypeEnum.enum;
 
 // User Schemas
 export const updateUserSchema = z.object({
@@ -286,6 +290,10 @@ export type ProfessorBookStudentInput = z.infer<
 export type UpdateStudentProfileInput = z.infer<
   typeof updateStudentProfileSchema
 >;
+
+// Export enum types for frontend use
+export type SpanishLevel = z.infer<typeof spanishLevelEnum>;
+export type ClassType = z.infer<typeof classTypeEnum>;
 
 // Private Invitation Schemas
 export const createPrivateInvitationSchema = z
