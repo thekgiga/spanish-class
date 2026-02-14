@@ -1,0 +1,95 @@
+{
+  "operationId": "cancelPrivateInvitation",
+  "summary": "Cancel a private invitation",
+  "description": "Professor cancels a private invitation. Student is notified via email. Booking status updated to CANCELLED_BY_PROFESSOR.",
+  "method": "DELETE",
+  "path": "/professor/private-invitations/:id",
+  "auth": "required",
+  "role": "professor",
+  "pathParameters": {
+    "id": {
+      "type": "string",
+      "description": "Slot ID of the private invitation",
+      "example": "clx9876543210"
+    }
+  },
+  "requestBody": {
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Optional cancellation reason",
+              "example": "Schedule conflict - need to reschedule"
+            }
+          }
+        }
+      }
+    }
+  },
+  "responses": {
+    "200": {
+      "description": "Private invitation cancelled successfully",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "message": {"type": "string"},
+              "slot": {
+                "type": "object",
+                "properties": {
+                  "id": {"type": "string"},
+                  "status": {"type": "string", "enum": ["CANCELLED"]}
+                }
+              },
+              "booking": {
+                "type": "object",
+                "properties": {
+                  "id": {"type": "string"},
+                  "status": {"type": "string", "enum": ["CANCELLED_BY_PROFESSOR"]},
+                  "cancelledAt": {"type": "string", "format": "date-time"},
+                  "cancelReason": {"type": "string"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "403": {
+      "description": "Not authorized to cancel this invitation",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {"type": "string", "example": "You can only cancel your own private invitations"}
+            }
+          }
+        }
+      }
+    },
+    "404": {
+      "description": "Private invitation not found",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {"type": "string", "example": "Private invitation not found"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "sideEffects": [
+    "Booking status set to CANCELLED_BY_PROFESSOR",
+    "Slot status set to CANCELLED",
+    "Email notification sent to student",
+    "Calendar event cancellation sent to student"
+  ]
+}

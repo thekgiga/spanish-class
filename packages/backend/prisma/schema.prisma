@@ -54,6 +54,7 @@ model AvailabilitySlot {
   @@index([professorId])
   @@index([startTime])
   @@index([recurringPatternId])
+  @@index([professorId, isPrivate, startTime])
   @@map("availability_slots")
 }
 

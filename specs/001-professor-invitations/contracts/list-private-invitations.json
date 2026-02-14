@@ -1,0 +1,85 @@
+{
+  "operationId": "listPrivateInvitations",
+  "summary": "List professor's private invitations",
+  "description": "Get all private invitations created by the authenticated professor. Includes both upcoming and past invitations with booking details.",
+  "method": "GET",
+  "path": "/professor/private-invitations",
+  "auth": "required",
+  "role": "professor",
+  "queryParameters": {
+    "filter": {
+      "type": "string",
+      "enum": ["upcoming", "past", "all"],
+      "default": "upcoming",
+      "description": "Filter by time period"
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 50,
+      "description": "Number of results per page"
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0,
+      "description": "Pagination offset"
+    }
+  },
+  "responses": {
+    "200": {
+      "description": "List of private invitations",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "invitations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "slotId": {"type": "string"},
+                    "startTime": {"type": "string", "format": "date-time"},
+                    "endTime": {"type": "string", "format": "date-time"},
+                    "title": {"type": "string"},
+                    "isPrivate": {"type": "boolean"},
+                    "status": {"type": "string"},
+                    "meetLink": {"type": "string"},
+                    "student": {
+                      "type": "object",
+                      "properties": {
+                        "id": {"type": "string"},
+                        "firstName": {"type": "string"},
+                        "lastName": {"type": "string"},
+                        "email": {"type": "string"}
+                      }
+                    },
+                    "booking": {
+                      "type": "object",
+                      "properties": {
+                        "id": {"type": "string"},
+                        "status": {"type": "string"},
+                        "bookedAt": {"type": "string", "format": "date-time"}
+                      }
+                    }
+                  }
+                }
+              },
+              "pagination": {
+                "type": "object",
+                "properties": {
+                  "total": {"type": "integer"},
+                  "limit": {"type": "integer"},
+                  "offset": {"type": "integer"},
+                  "hasMore": {"type": "boolean"}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
