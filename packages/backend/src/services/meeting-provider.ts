@@ -1,4 +1,4 @@
-import { randomBytes, createHash } from 'crypto';
+import { randomBytes, createHash } from "crypto";
 
 /**
  * Meeting provider interface - abstraction for different video conferencing solutions
@@ -35,7 +35,7 @@ export class JitsiMeetProvider implements MeetingProvider {
   private readonly jitsiDomain: string;
   private readonly roomPrefix: string;
 
-  constructor(jitsiDomain = 'meet.jit.si', roomPrefix = 'spanish') {
+  constructor(jitsiDomain = "meet.jit.si", roomPrefix = "spanish") {
     this.jitsiDomain = jitsiDomain;
     this.roomPrefix = roomPrefix;
   }
@@ -49,7 +49,7 @@ export class JitsiMeetProvider implements MeetingProvider {
    */
   generateRoomName(bookingId: string): string {
     // Generate cryptographically secure random hash
-    const randomHash = randomBytes(8).toString('hex');
+    const randomHash = randomBytes(8).toString("hex");
 
     // Create room name with pattern: prefix-bookingId-hash
     const roomName = `${this.roomPrefix}-${bookingId}-${randomHash}`;
@@ -76,7 +76,7 @@ export class JitsiMeetProvider implements MeetingProvider {
    */
   getMeetingMetadata(roomName: string): Record<string, unknown> {
     return {
-      provider: 'jitsi',
+      provider: "jitsi",
       domain: this.jitsiDomain,
       roomName,
       features: {
@@ -89,53 +89,20 @@ export class JitsiMeetProvider implements MeetingProvider {
 }
 
 /**
- * Google Meet provider (legacy - for backwards compatibility)
- * Note: This is kept for calendar integration only, not for creating new meetings
- */
-export class GoogleMeetProvider implements MeetingProvider {
-  generateRoomName(bookingId: string): string {
-    // Google Meet doesn't use custom room names
-    return `google-meet-${bookingId}`;
-  }
-
-  getJoinUrl(roomName: string, displayName?: string): string {
-    // This should be the actual Google Meet link from calendar
-    // This is a placeholder - actual link comes from Google Calendar API
-    return `https://meet.google.com/${roomName}`;
-  }
-
-  getMeetingMetadata(roomName: string): Record<string, unknown> {
-    return {
-      provider: 'google-meet',
-      roomName,
-    };
-  }
-}
-
-/**
  * Factory to get the configured meeting provider
  */
 export function getMeetingProvider(): MeetingProvider {
-  const provider = process.env.MEETING_PROVIDER || 'jitsi';
-
-  switch (provider.toLowerCase()) {
-    case 'jitsi':
-      const jitsiDomain = process.env.JITSI_DOMAIN || 'meet.jit.si';
-      return new JitsiMeetProvider(jitsiDomain);
-
-    case 'google-meet':
-      return new GoogleMeetProvider();
-
-    default:
-      console.warn(`Unknown meeting provider: ${provider}, defaulting to Jitsi`);
-      return new JitsiMeetProvider();
-  }
+  const jitsiDomain = process.env.JITSI_DOMAIN || "meet.jit.si";
+  return new JitsiMeetProvider(jitsiDomain);
 }
 
 /**
  * Helper to generate meeting room name and URL for a booking
  */
-export function createMeetingRoom(bookingId: string, userDisplayName?: string): {
+export function createMeetingRoom(
+  bookingId: string,
+  userDisplayName?: string,
+): {
   roomName: string;
   joinUrl: string;
   metadata: Record<string, unknown>;

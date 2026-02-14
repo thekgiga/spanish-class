@@ -319,7 +319,7 @@ export function BookPage() {
             </DialogTitle>
             <DialogDescription className="text-base">
               Your session has been booked successfully. Check your email for
-              confirmation details and the Google Meet link.
+              confirmation details and the video meeting link.
             </DialogDescription>
           </div>
           <DialogFooter className="sm:justify-center">

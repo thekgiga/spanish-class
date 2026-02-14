@@ -43,6 +43,7 @@ model AvailabilitySlot {
   meetLink            String?    @map("meet_link")
   isPrivate           Boolean    @default(false) @map("is_private")
   recurringPatternId  String?    @map("recurring_pattern_id")
+  version             Int        @default(1) // Optimistic locking for concurrent bookings
   createdAt           DateTime   @default(now()) @map("created_at")
   updatedAt           DateTime   @updatedAt @map("updated_at")
 

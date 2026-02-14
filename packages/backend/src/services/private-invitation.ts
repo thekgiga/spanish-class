@@ -7,7 +7,6 @@ import {
   sendCancellationToStudent,
   sendCancellationToProfessor,
 } from "./email.js";
-import { createBookedSessionEvent } from "./google.js";
 
 // T008: Conflict detection function
 export async function detectConflicts(
@@ -179,50 +178,7 @@ export async function createPrivateInvitation(data: {
     console.error("Failed to send private invitation email:", err),
   );
 
-  // T026: Create calendar event for reminder notifications
-  createBookedSessionEvent({
-    booking: { id: result.booking.id },
-    slot: {
-      id: result.slot.id,
-      title: result.slot.title,
-      description: result.slot.description,
-      startTime: result.slot.startTime,
-      endTime: result.slot.endTime,
-      slotType: result.slot.slotType,
-      googleMeetLink: meetingUrl,
-    },
-    student: {
-      id: student.id,
-      email: student.email,
-      firstName: student.firstName,
-      lastName: student.lastName,
-    },
-    professor: {
-      id: professor.id,
-      email: professor.email,
-      firstName: professor.firstName,
-      lastName: professor.lastName,
-    },
-  })
-    .then((calendarResult) => {
-      if (calendarResult?.eventId) {
-        // Store the calendar event ID in the booking for future reference
-        prisma.booking
-          .update({
-            where: { id: result.booking.id },
-            data: { bookedCalendarEventId: calendarResult.eventId },
-          })
-          .catch((err: any) =>
-            console.error("Failed to store calendar event ID:", err),
-          );
-      }
-    })
-    .catch((err) =>
-      console.error(
-        "Failed to create calendar event for private invitation:",
-        err,
-      ),
-    );
+  // Meeting URL is already available in the invitation email
 
   return {
     slot: result.slot,
