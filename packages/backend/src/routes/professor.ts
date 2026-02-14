@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import { prisma } from '../lib/prisma.js';
-import { authenticate, requireAdmin } from '../middleware/auth.js';
-import { validate, validateQuery } from '../middleware/validate.js';
+import { Router } from "express";
+import { prisma } from "../lib/prisma.js";
+import { authenticate, requireAdmin } from "../middleware/auth.js";
+import { validate, validateQuery } from "../middleware/validate.js";
 import {
   createSlotSchema,
   bulkCreateSlotSchema,
@@ -11,20 +11,41 @@ import {
   paginationSchema,
   createRecurringPatternSchema,
   professorBookStudentSchema,
-} from '@spanish-class/shared';
-import { AppError } from '../middleware/error.js';
-import { debugCalendarConnection, createBookedSessionEvent, deleteBookedSessionEvent } from '../services/google.js';
-import { createMeetingRoom, getMeetingProvider } from '../services/meeting-provider.js';
-import { sendBookingConfirmation, sendCancellationToStudent } from '../services/email.js';
-import { validateMeetingAccess, getMeetingDetails } from '../services/meeting-access.js';
+  createPrivateInvitationSchema,
+  cancelPrivateInvitationSchema,
+} from "@spanish-class/shared";
+import { AppError } from "../middleware/error.js";
+import {
+  debugCalendarConnection,
+  createBookedSessionEvent,
+  deleteBookedSessionEvent,
+} from "../services/google.js";
+import {
+  createMeetingRoom,
+  getMeetingProvider,
+} from "../services/meeting-provider.js";
+import {
+  sendBookingConfirmation,
+  sendCancellationToStudent,
+} from "../services/email.js";
+import {
+  validateMeetingAccess,
+  getMeetingDetails,
+} from "../services/meeting-access.js";
+import {
+  createPrivateInvitation,
+  listPrivateInvitations,
+  cancelPrivateInvitation,
+} from "../services/private-invitation.js";
+import type { Router as ExpressRouter } from "express";
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 // All routes require authentication and admin access
 router.use(authenticate, requireAdmin);
 
 // GET /api/professor/debug/calendar - Debug Google Calendar connection
-router.get('/debug/calendar', async (req, res, next) => {
+router.get("/debug/calendar", async (req, res, next) => {
   try {
     const result = await debugCalendarConnection();
     res.json({
@@ -37,39 +58,52 @@ router.get('/debug/calendar', async (req, res, next) => {
 });
 
 // GET /api/professor/dashboard
-router.get('/dashboard', async (req, res, next) => {
+router.get("/dashboard", async (req, res, next) => {
   try {
     const now = new Date();
     const startOfDay = new Date(now.setHours(0, 0, 0, 0));
     const endOfDay = new Date(now.setHours(23, 59, 59, 999));
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const endOfMonth = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+      23,
+      59,
+      59,
+      999,
+    );
 
-    const [totalStudents, totalBookings, upcomingSlots, todaySessions, completedThisMonth] =
-      await Promise.all([
-        prisma.user.count({ where: { isAdmin: false } }),
-        prisma.booking.count({ where: { status: 'CONFIRMED' } }),
-        prisma.availabilitySlot.count({
-          where: {
-            startTime: { gte: new Date() },
-            status: { in: ['AVAILABLE', 'FULLY_BOOKED'] },
+    const [
+      totalStudents,
+      totalBookings,
+      upcomingSlots,
+      todaySessions,
+      completedThisMonth,
+    ] = await Promise.all([
+      prisma.user.count({ where: { isAdmin: false } }),
+      prisma.booking.count({ where: { status: "CONFIRMED" } }),
+      prisma.availabilitySlot.count({
+        where: {
+          startTime: { gte: new Date() },
+          status: { in: ["AVAILABLE", "FULLY_BOOKED"] },
+        },
+      }),
+      prisma.availabilitySlot.count({
+        where: {
+          startTime: { gte: startOfDay, lte: endOfDay },
+          status: { in: ["AVAILABLE", "FULLY_BOOKED", "IN_PROGRESS"] },
+        },
+      }),
+      prisma.booking.count({
+        where: {
+          status: "COMPLETED",
+          slot: {
+            endTime: { gte: startOfMonth, lte: endOfMonth },
           },
-        }),
-        prisma.availabilitySlot.count({
-          where: {
-            startTime: { gte: startOfDay, lte: endOfDay },
-            status: { in: ['AVAILABLE', 'FULLY_BOOKED', 'IN_PROGRESS'] },
-          },
-        }),
-        prisma.booking.count({
-          where: {
-            status: 'COMPLETED',
-            slot: {
-              endTime: { gte: startOfMonth, lte: endOfMonth },
-            },
-          },
-        }),
-      ]);
+        },
+      }),
+    ]);
 
     // Get today's sessions with details
     const todaysSlots = await prisma.availabilitySlot.findMany({
@@ -78,7 +112,7 @@ router.get('/dashboard', async (req, res, next) => {
       },
       include: {
         bookings: {
-          where: { status: 'CONFIRMED' },
+          where: { status: "CONFIRMED" },
           include: {
             student: {
               select: {
@@ -91,7 +125,7 @@ router.get('/dashboard', async (req, res, next) => {
           },
         },
       },
-      orderBy: { startTime: 'asc' },
+      orderBy: { startTime: "asc" },
     });
 
     res.json({
@@ -113,84 +147,105 @@ router.get('/dashboard', async (req, res, next) => {
 });
 
 // GET /api/professor/slots
-router.get('/slots', validateQuery(slotsQuerySchema), async (req, res, next) => {
-  try {
-    const { page, limit, startDate, endDate, status, slotType } = req.query as unknown as {
-      page: number;
-      limit: number;
-      startDate?: string;
-      endDate?: string;
-      status?: string;
-      slotType?: string;
-    };
+router.get(
+  "/slots",
+  validateQuery(slotsQuerySchema),
+  async (req, res, next) => {
+    try {
+      const { page, limit, startDate, endDate, status, slotType } =
+        req.query as unknown as {
+          page: number;
+          limit: number;
+          startDate?: string;
+          endDate?: string;
+          status?: string;
+          slotType?: string;
+        };
 
-    const where: Record<string, unknown> = {
-      professorId: req.user!.id,
-    };
+      const where: Record<string, unknown> = {
+        professorId: req.user!.id,
+      };
 
-    if (startDate) {
-      where.startTime = { ...(where.startTime as object || {}), gte: new Date(startDate) };
-    }
-    if (endDate) {
-      where.startTime = { ...(where.startTime as object || {}), lte: new Date(endDate) };
-    }
-    if (status) {
-      where.status = status;
-    }
-    if (slotType) {
-      where.slotType = slotType;
-    }
+      if (startDate) {
+        where.startTime = {
+          ...((where.startTime as object) || {}),
+          gte: new Date(startDate),
+        };
+      }
+      if (endDate) {
+        where.startTime = {
+          ...((where.startTime as object) || {}),
+          lte: new Date(endDate),
+        };
+      }
+      if (status) {
+        where.status = status;
+      }
+      if (slotType) {
+        where.slotType = slotType;
+      }
 
-    const [slots, total] = await Promise.all([
-      prisma.availabilitySlot.findMany({
-        where,
-        include: {
-          bookings: {
-            where: { status: 'CONFIRMED' },
-            include: {
-              student: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true,
+      const [slots, total] = await Promise.all([
+        prisma.availabilitySlot.findMany({
+          where,
+          include: {
+            bookings: {
+              where: { status: "CONFIRMED" },
+              include: {
+                student: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                  },
                 },
               },
             },
           },
-        },
-        orderBy: { startTime: 'asc' },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.availabilitySlot.count({ where }),
-    ]);
+          orderBy: { startTime: "asc" },
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        prisma.availabilitySlot.count({ where }),
+      ]);
 
-    res.json({
-      success: true,
-      data: slots,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+      res.json({
+        success: true,
+        data: slots,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // POST /api/professor/slots
-router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
+router.post("/slots", validate(createSlotSchema), async (req, res, next) => {
   try {
-    const { startTime, endTime, slotType, maxParticipants, title, description, isPrivate, allowedStudentIds, bookForStudentId } = req.body;
+    const {
+      startTime,
+      endTime,
+      slotType,
+      maxParticipants,
+      title,
+      description,
+      isPrivate,
+      allowedStudentIds,
+      bookForStudentId,
+    } = req.body;
 
     // Check for overlapping slots
     const overlap = await prisma.availabilitySlot.findFirst({
       where: {
         professorId: req.user!.id,
-        status: { notIn: ['CANCELLED', 'COMPLETED'] },
+        status: { notIn: ["CANCELLED", "COMPLETED"] },
         OR: [
           {
             startTime: { lt: new Date(endTime) },
@@ -201,7 +256,7 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
     });
 
     if (overlap) {
-      throw new AppError(400, 'This time slot overlaps with an existing slot');
+      throw new AppError(400, "This time slot overlaps with an existing slot");
     }
 
     // Validate allowed students exist
@@ -210,7 +265,7 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
         where: { id: { in: allowedStudentIds }, isAdmin: false },
       });
       if (students.length !== allowedStudentIds.length) {
-        throw new AppError(400, 'One or more student IDs are invalid');
+        throw new AppError(400, "One or more student IDs are invalid");
       }
     }
 
@@ -220,7 +275,7 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
         where: { id: bookForStudentId, isAdmin: false },
       });
       if (!student) {
-        throw new AppError(400, 'Invalid student ID for direct booking');
+        throw new AppError(400, "Invalid student ID for direct booking");
       }
     }
 
@@ -233,17 +288,34 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
         slotType,
         maxParticipants: maxParticipants || 1,
         currentParticipants: bookForStudentId ? 1 : 0,
-        status: bookForStudentId && slotType === 'INDIVIDUAL' ? 'FULLY_BOOKED' : 'AVAILABLE',
+        status:
+          bookForStudentId && slotType === "INDIVIDUAL"
+            ? "FULLY_BOOKED"
+            : "AVAILABLE",
         title,
         description,
         isPrivate: isPrivate || false,
-        allowedStudents: isPrivate && allowedStudentIds?.length ? {
-          create: allowedStudentIds.map((studentId: string) => ({ studentId })),
-        } : undefined,
+        allowedStudents:
+          isPrivate && allowedStudentIds?.length
+            ? {
+                create: allowedStudentIds.map((studentId: string) => ({
+                  studentId,
+                })),
+              }
+            : undefined,
       },
       include: {
         allowedStudents: {
-          include: { student: { select: { id: true, firstName: true, lastName: true, email: true } } },
+          include: {
+            student: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
         },
       },
     });
@@ -265,15 +337,19 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
         data: {
           slotId: slot.id,
           studentId: bookForStudentId,
-          status: 'CONFIRMED',
+          status: "CONFIRMED",
         },
         include: {
-          student: { select: { id: true, firstName: true, lastName: true, email: true } },
+          student: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
         },
       });
 
       // Send invitation email to the student
-      const student = await prisma.user.findUnique({ where: { id: bookForStudentId } });
+      const student = await prisma.user.findUnique({
+        where: { id: bookForStudentId },
+      });
       if (student) {
         // Create event on professor's booked sessions calendar
         createBookedSessionEvent({
@@ -285,7 +361,12 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
             startTime: new Date(startTime),
             endTime: new Date(endTime),
             slotType,
-            googleMeetLink: slot.meetingRoomName ? getMeetingProvider().getJoinUrl(slot.meetingRoomName, `${req.user!.firstName} ${req.user!.lastName}`) : null,
+            googleMeetLink: slot.meetingRoomName
+              ? getMeetingProvider().getJoinUrl(
+                  slot.meetingRoomName,
+                  `${req.user!.firstName} ${req.user!.lastName}`,
+                )
+              : null,
           },
           student: {
             id: student.id,
@@ -299,21 +380,35 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
             firstName: req.user!.firstName,
             lastName: req.user!.lastName,
           },
-        }).then((bookedCalResult) => {
-          if (bookedCalResult?.eventId) {
-            prisma.booking.update({
-              where: { id: booking!.id },
-              data: { bookedCalendarEventId: bookedCalResult.eventId },
-            }).catch((err: unknown) => console.error('Failed to store booked calendar event ID:', err));
-          }
-        }).catch((err: unknown) => console.error('Failed to create booked session calendar event:', err));
+        })
+          .then((bookedCalResult) => {
+            if (bookedCalResult?.eventId) {
+              prisma.booking
+                .update({
+                  where: { id: booking!.id },
+                  data: { bookedCalendarEventId: bookedCalResult.eventId },
+                })
+                .catch((err: unknown) =>
+                  console.error(
+                    "Failed to store booked calendar event ID:",
+                    err,
+                  ),
+                );
+            }
+          })
+          .catch((err: unknown) =>
+            console.error(
+              "Failed to create booked session calendar event:",
+              err,
+            ),
+          );
 
         const meetingUrl = meeting.joinUrl;
         sendBookingConfirmation({
           studentEmail: student.email,
           studentName: `${student.firstName} ${student.lastName}`,
           professorName: `${req.user!.firstName} ${req.user!.lastName}`,
-          slotTitle: title || 'Spanish Class',
+          slotTitle: title || "Spanish Class",
           startTime: new Date(startTime),
           endTime: new Date(endTime),
           meetLink: meetingUrl,
@@ -324,7 +419,9 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
     res.status(201).json({
       success: true,
       data: { slot, booking },
-      message: bookForStudentId ? 'Slot created and student invited!' : 'Slot created successfully!',
+      message: bookForStudentId
+        ? "Slot created and student invited!"
+        : "Slot created successfully!",
     });
   } catch (error) {
     next(error);
@@ -332,253 +429,285 @@ router.post('/slots', validate(createSlotSchema), async (req, res, next) => {
 });
 
 // POST /api/professor/slots/bulk
-router.post('/slots/bulk', validate(bulkCreateSlotSchema), async (req, res, next) => {
-  try {
-    const {
-      startDate,
-      endDate,
-      daysOfWeek,
-      startTime,
-      endTime,
-      slotType,
-      maxParticipants,
-      title,
-      description,
-      isPrivate,
-      allowedStudentIds,
-    } = req.body;
-
-    const slots: Array<{
-      startTime: Date;
-      endTime: Date;
-    }> = [];
-
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const [endHour, endMinute] = endTime.split(':').map(Number);
-
-    // Generate all dates
-    const current = new Date(start);
-    while (current <= end) {
-      if (daysOfWeek.includes(current.getDay())) {
-        const slotStart = new Date(current);
-        slotStart.setHours(startHour, startMinute, 0, 0);
-
-        const slotEnd = new Date(current);
-        slotEnd.setHours(endHour, endMinute, 0, 0);
-
-        slots.push({
-          startTime: slotStart,
-          endTime: slotEnd,
-        });
-      }
-      current.setDate(current.getDate() + 1);
-    }
-
-    // Check for any overlaps
-    for (const s of slots) {
-      const overlap = await prisma.availabilitySlot.findFirst({
-        where: {
-          professorId: req.user!.id,
-          status: { notIn: ['CANCELLED', 'COMPLETED'] },
-          OR: [
-            {
-              startTime: { lt: s.endTime },
-              endTime: { gt: s.startTime },
-            },
-          ],
-        },
-      });
-
-      if (overlap) {
-        throw new AppError(
-          400,
-          `Time slot on ${s.startTime.toDateString()} overlaps with an existing slot`
-        );
-      }
-    }
-
-    // Create all slots
-    const createdSlots = await Promise.all(
-      slots.map(async (s) => {
-        const slot = await prisma.availabilitySlot.create({
-          data: {
-            professorId: req.user!.id,
-            startTime: s.startTime,
-            endTime: s.endTime,
-            slotType,
-            maxParticipants: maxParticipants || 1,
-            title,
-            description,
-            isPrivate: isPrivate || false,
-            allowedStudents: isPrivate && allowedStudentIds?.length ? {
-              create: allowedStudentIds.map((studentId: string) => ({ studentId })),
-            } : undefined,
-          },
-        });
-
-        // Generate and store meeting room name
-        const meeting = createMeetingRoom(slot.id);
-        await prisma.availabilitySlot.update({
-          where: { id: slot.id },
-          data: { meetingRoomName: meeting.roomName },
-        });
-
-        return { ...slot, meetingRoomName: meeting.roomName };
-      })
-    );
-
-    res.status(201).json({
-      success: true,
-      data: createdSlots,
-      message: `Created ${createdSlots.length} slots`,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// POST /api/professor/recurring-patterns - Create recurring pattern
-router.post('/recurring-patterns', validate(createRecurringPatternSchema), async (req, res, next) => {
-  try {
-    const {
-      daysOfWeek,
-      startTime,
-      endTime,
-      startDate,
-      endDate,
-      slotType,
-      maxParticipants,
-      title,
-      description,
-      isPrivate,
-      allowedStudentIds,
-      generateWeeksAhead,
-    } = req.body;
-
-    // Create recurring pattern
-    const pattern = await prisma.recurringPattern.create({
-      data: {
-        professorId: req.user!.id,
-        title,
-        description,
-        slotType,
-        maxParticipants: maxParticipants || 1,
-        daysOfWeek: JSON.stringify(daysOfWeek),
+router.post(
+  "/slots/bulk",
+  validate(bulkCreateSlotSchema),
+  async (req, res, next) => {
+    try {
+      const {
+        startDate,
+        endDate,
+        daysOfWeek,
         startTime,
         endTime,
-        startDate: new Date(startDate),
-        endDate: endDate ? new Date(endDate) : null,
-        isPrivate: isPrivate || false,
-        allowedStudents: isPrivate && allowedStudentIds?.length ? {
-          create: allowedStudentIds.map((studentId: string) => ({ studentId })),
-        } : undefined,
-      },
-    });
+        slotType,
+        maxParticipants,
+        title,
+        description,
+        isPrivate,
+        allowedStudentIds,
+      } = req.body;
 
-    // Generate slots for the next N weeks
-    const slotsToCreate: Array<{ startTime: Date; endTime: Date }> = [];
-    const [startHour, startMinute] = startTime.split(':').map(Number);
-    const [endHour, endMinute] = endTime.split(':').map(Number);
+      const slots: Array<{
+        startTime: Date;
+        endTime: Date;
+      }> = [];
 
-    const patternStart = new Date(startDate);
-    const patternEnd = endDate ? new Date(endDate) : new Date(patternStart);
-    if (!endDate) {
-      patternEnd.setDate(patternEnd.getDate() + generateWeeksAhead * 7);
-    }
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const [startHour, startMinute] = startTime.split(":").map(Number);
+      const [endHour, endMinute] = endTime.split(":").map(Number);
 
-    const current = new Date(patternStart);
-    while (current <= patternEnd) {
-      if (daysOfWeek.includes(current.getDay())) {
-        const slotStart = new Date(current);
-        slotStart.setHours(startHour, startMinute, 0, 0);
+      // Generate all dates
+      const current = new Date(start);
+      while (current <= end) {
+        if (daysOfWeek.includes(current.getDay())) {
+          const slotStart = new Date(current);
+          slotStart.setHours(startHour, startMinute, 0, 0);
 
-        const slotEnd = new Date(current);
-        slotEnd.setHours(endHour, endMinute, 0, 0);
+          const slotEnd = new Date(current);
+          slotEnd.setHours(endHour, endMinute, 0, 0);
 
-        // Only create future slots
-        if (slotStart > new Date()) {
-          slotsToCreate.push({ startTime: slotStart, endTime: slotEnd });
+          slots.push({
+            startTime: slotStart,
+            endTime: slotEnd,
+          });
         }
+        current.setDate(current.getDate() + 1);
       }
-      current.setDate(current.getDate() + 1);
-    }
 
-    // Filter out overlapping slots
-    const nonOverlappingSlots = [];
-    for (const s of slotsToCreate) {
-      const overlap = await prisma.availabilitySlot.findFirst({
-        where: {
-          professorId: req.user!.id,
-          status: { notIn: ['CANCELLED', 'COMPLETED'] },
-          startTime: { lt: s.endTime },
-          endTime: { gt: s.startTime },
-        },
-      });
-      if (!overlap) {
-        nonOverlappingSlots.push(s);
-      }
-    }
-
-    // Create slots
-    const createdSlots = await Promise.all(
-      nonOverlappingSlots.map(async (s) => {
-        const slot = await prisma.availabilitySlot.create({
-          data: {
+      // Check for any overlaps
+      for (const s of slots) {
+        const overlap = await prisma.availabilitySlot.findFirst({
+          where: {
             professorId: req.user!.id,
-            recurringPatternId: pattern.id,
-            startTime: s.startTime,
-            endTime: s.endTime,
-            slotType,
-            maxParticipants: maxParticipants || 1,
-            title,
-            description,
-            isPrivate: isPrivate || false,
-            allowedStudents: isPrivate && allowedStudentIds?.length ? {
-              create: allowedStudentIds.map((studentId: string) => ({ studentId })),
-            } : undefined,
+            status: { notIn: ["CANCELLED", "COMPLETED"] },
+            OR: [
+              {
+                startTime: { lt: s.endTime },
+                endTime: { gt: s.startTime },
+              },
+            ],
           },
         });
 
-        // Generate and store meeting room name
-        const meeting = createMeetingRoom(slot.id);
-        await prisma.availabilitySlot.update({
-          where: { id: slot.id },
-          data: { meetingRoomName: meeting.roomName },
+        if (overlap) {
+          throw new AppError(
+            400,
+            `Time slot on ${s.startTime.toDateString()} overlaps with an existing slot`,
+          );
+        }
+      }
+
+      // Create all slots
+      const createdSlots = await Promise.all(
+        slots.map(async (s) => {
+          const slot = await prisma.availabilitySlot.create({
+            data: {
+              professorId: req.user!.id,
+              startTime: s.startTime,
+              endTime: s.endTime,
+              slotType,
+              maxParticipants: maxParticipants || 1,
+              title,
+              description,
+              isPrivate: isPrivate || false,
+              allowedStudents:
+                isPrivate && allowedStudentIds?.length
+                  ? {
+                      create: allowedStudentIds.map((studentId: string) => ({
+                        studentId,
+                      })),
+                    }
+                  : undefined,
+            },
+          });
+
+          // Generate and store meeting room name
+          const meeting = createMeetingRoom(slot.id);
+          await prisma.availabilitySlot.update({
+            where: { id: slot.id },
+            data: { meetingRoomName: meeting.roomName },
+          });
+
+          return { ...slot, meetingRoomName: meeting.roomName };
+        }),
+      );
+
+      res.status(201).json({
+        success: true,
+        data: createdSlots,
+        message: `Created ${createdSlots.length} slots`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// POST /api/professor/recurring-patterns - Create recurring pattern
+router.post(
+  "/recurring-patterns",
+  validate(createRecurringPatternSchema),
+  async (req, res, next) => {
+    try {
+      const {
+        daysOfWeek,
+        startTime,
+        endTime,
+        startDate,
+        endDate,
+        slotType,
+        maxParticipants,
+        title,
+        description,
+        isPrivate,
+        allowedStudentIds,
+        generateWeeksAhead,
+      } = req.body;
+
+      // Create recurring pattern
+      const pattern = await prisma.recurringPattern.create({
+        data: {
+          professorId: req.user!.id,
+          title,
+          description,
+          slotType,
+          maxParticipants: maxParticipants || 1,
+          daysOfWeek: JSON.stringify(daysOfWeek),
+          startTime,
+          endTime,
+          startDate: new Date(startDate),
+          endDate: endDate ? new Date(endDate) : null,
+          isPrivate: isPrivate || false,
+          allowedStudents:
+            isPrivate && allowedStudentIds?.length
+              ? {
+                  create: allowedStudentIds.map((studentId: string) => ({
+                    studentId,
+                  })),
+                }
+              : undefined,
+        },
+      });
+
+      // Generate slots for the next N weeks
+      const slotsToCreate: Array<{ startTime: Date; endTime: Date }> = [];
+      const [startHour, startMinute] = startTime.split(":").map(Number);
+      const [endHour, endMinute] = endTime.split(":").map(Number);
+
+      const patternStart = new Date(startDate);
+      const patternEnd = endDate ? new Date(endDate) : new Date(patternStart);
+      if (!endDate) {
+        patternEnd.setDate(patternEnd.getDate() + generateWeeksAhead * 7);
+      }
+
+      const current = new Date(patternStart);
+      while (current <= patternEnd) {
+        if (daysOfWeek.includes(current.getDay())) {
+          const slotStart = new Date(current);
+          slotStart.setHours(startHour, startMinute, 0, 0);
+
+          const slotEnd = new Date(current);
+          slotEnd.setHours(endHour, endMinute, 0, 0);
+
+          // Only create future slots
+          if (slotStart > new Date()) {
+            slotsToCreate.push({ startTime: slotStart, endTime: slotEnd });
+          }
+        }
+        current.setDate(current.getDate() + 1);
+      }
+
+      // Filter out overlapping slots
+      const nonOverlappingSlots = [];
+      for (const s of slotsToCreate) {
+        const overlap = await prisma.availabilitySlot.findFirst({
+          where: {
+            professorId: req.user!.id,
+            status: { notIn: ["CANCELLED", "COMPLETED"] },
+            startTime: { lt: s.endTime },
+            endTime: { gt: s.startTime },
+          },
         });
+        if (!overlap) {
+          nonOverlappingSlots.push(s);
+        }
+      }
 
-        return { ...slot, meetingRoomName: meeting.roomName };
-      })
-    );
+      // Create slots
+      const createdSlots = await Promise.all(
+        nonOverlappingSlots.map(async (s) => {
+          const slot = await prisma.availabilitySlot.create({
+            data: {
+              professorId: req.user!.id,
+              recurringPatternId: pattern.id,
+              startTime: s.startTime,
+              endTime: s.endTime,
+              slotType,
+              maxParticipants: maxParticipants || 1,
+              title,
+              description,
+              isPrivate: isPrivate || false,
+              allowedStudents:
+                isPrivate && allowedStudentIds?.length
+                  ? {
+                      create: allowedStudentIds.map((studentId: string) => ({
+                        studentId,
+                      })),
+                    }
+                  : undefined,
+            },
+          });
 
-    res.status(201).json({
-      success: true,
-      data: { pattern, slots: createdSlots },
-      message: `Created recurring pattern with ${createdSlots.length} slots`,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+          // Generate and store meeting room name
+          const meeting = createMeetingRoom(slot.id);
+          await prisma.availabilitySlot.update({
+            where: { id: slot.id },
+            data: { meetingRoomName: meeting.roomName },
+          });
+
+          return { ...slot, meetingRoomName: meeting.roomName };
+        }),
+      );
+
+      res.status(201).json({
+        success: true,
+        data: { pattern, slots: createdSlots },
+        message: `Created recurring pattern with ${createdSlots.length} slots`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // GET /api/professor/recurring-patterns - List recurring patterns
-router.get('/recurring-patterns', async (req, res, next) => {
+router.get("/recurring-patterns", async (req, res, next) => {
   try {
     const patterns = await prisma.recurringPattern.findMany({
       where: { professorId: req.user!.id },
       include: {
         allowedStudents: {
-          include: { student: { select: { id: true, firstName: true, lastName: true, email: true } } },
+          include: {
+            student: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+          },
         },
         _count: { select: { slots: true } },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json({
       success: true,
-      data: patterns.map((p: typeof patterns[number]) => ({
+      data: patterns.map((p: (typeof patterns)[number]) => ({
         ...p,
         daysOfWeek: JSON.parse(p.daysOfWeek),
       })),
@@ -589,14 +718,14 @@ router.get('/recurring-patterns', async (req, res, next) => {
 });
 
 // DELETE /api/professor/recurring-patterns/:id - Delete recurring pattern
-router.delete('/recurring-patterns/:id', async (req, res, next) => {
+router.delete("/recurring-patterns/:id", async (req, res, next) => {
   try {
     const pattern = await prisma.recurringPattern.findFirst({
       where: { id: req.params.id, professorId: req.user!.id },
     });
 
     if (!pattern) {
-      throw new AppError(404, 'Recurring pattern not found');
+      throw new AppError(404, "Recurring pattern not found");
     }
 
     // Cancel all future slots from this pattern
@@ -604,9 +733,9 @@ router.delete('/recurring-patterns/:id', async (req, res, next) => {
       where: {
         recurringPatternId: pattern.id,
         startTime: { gt: new Date() },
-        status: 'AVAILABLE',
+        status: "AVAILABLE",
       },
-      data: { status: 'CANCELLED' },
+      data: { status: "CANCELLED" },
     });
 
     // Deactivate the pattern
@@ -625,136 +754,165 @@ router.delete('/recurring-patterns/:id', async (req, res, next) => {
 });
 
 // POST /api/professor/book-student - Professor directly books a student
-router.post('/book-student', validate(professorBookStudentSchema), async (req, res, next) => {
-  try {
-    const { slotId, studentId, sendInvitation } = req.body;
+router.post(
+  "/book-student",
+  validate(professorBookStudentSchema),
+  async (req, res, next) => {
+    try {
+      const { slotId, studentId, sendInvitation } = req.body;
 
-    // Verify slot exists and belongs to professor
-    const slot = await prisma.availabilitySlot.findFirst({
-      where: { id: slotId, professorId: req.user!.id },
-    });
+      // Verify slot exists and belongs to professor
+      const slot = await prisma.availabilitySlot.findFirst({
+        where: { id: slotId, professorId: req.user!.id },
+      });
 
-    if (!slot) {
-      throw new AppError(404, 'Slot not found');
-    }
-
-    if (slot.status === 'FULLY_BOOKED') {
-      throw new AppError(400, 'This slot is fully booked');
-    }
-
-    if (slot.status === 'CANCELLED' || slot.status === 'COMPLETED') {
-      throw new AppError(400, 'This slot is no longer available');
-    }
-
-    // Verify student exists
-    const student = await prisma.user.findFirst({
-      where: { id: studentId, isAdmin: false },
-    });
-
-    if (!student) {
-      throw new AppError(404, 'Student not found');
-    }
-
-    // Check if already booked
-    const existingBooking = await prisma.booking.findFirst({
-      where: { slotId, studentId, status: 'CONFIRMED' },
-    });
-
-    if (existingBooking) {
-      throw new AppError(400, 'Student is already booked for this slot');
-    }
-
-    // Create booking
-    const newParticipants = slot.currentParticipants + 1;
-    const newStatus = newParticipants >= slot.maxParticipants ? 'FULLY_BOOKED' : 'AVAILABLE';
-
-    const [booking] = await prisma.$transaction([
-      prisma.booking.create({
-        data: {
-          slotId,
-          studentId,
-          status: 'CONFIRMED',
-        },
-        include: {
-          student: { select: { id: true, firstName: true, lastName: true, email: true } },
-          slot: true,
-        },
-      }),
-      prisma.availabilitySlot.update({
-        where: { id: slotId },
-        data: {
-          currentParticipants: newParticipants,
-          status: newStatus,
-        },
-      }),
-    ]);
-
-    // Create event on professor's booked sessions calendar
-    const { getMeetingProvider: getProvider } = await import('../services/meeting-provider.js');
-    const meetingProvider = getProvider();
-    const bookingMeetingUrl = slot.meetingRoomName ? meetingProvider.getJoinUrl(slot.meetingRoomName) : null;
-
-    createBookedSessionEvent({
-      booking: { id: booking.id },
-      slot: {
-        id: slot.id,
-        title: slot.title,
-        description: slot.description,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        slotType: slot.slotType,
-        googleMeetLink: bookingMeetingUrl,
-      },
-      student: {
-        id: student.id,
-        email: student.email,
-        firstName: student.firstName,
-        lastName: student.lastName,
-      },
-      professor: {
-        id: req.user!.id,
-        email: req.user!.email,
-        firstName: req.user!.firstName,
-        lastName: req.user!.lastName,
-      },
-    }).then((calendarResult) => {
-      if (calendarResult?.eventId) {
-        prisma.booking.update({
-          where: { id: booking.id },
-          data: { bookedCalendarEventId: calendarResult.eventId },
-        }).catch((err: unknown) => console.error('Failed to store booked calendar event ID:', err));
+      if (!slot) {
+        throw new AppError(404, "Slot not found");
       }
-    }).catch((err: unknown) => console.error('Failed to create booked session calendar event:', err));
 
-    // Send invitation email
-    if (sendInvitation && slot.meetingRoomName) {
-      const { getMeetingProvider } = await import('../services/meeting-provider.js');
-      const provider = getMeetingProvider();
-      const meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${student.firstName} ${student.lastName}`);
+      if (slot.status === "FULLY_BOOKED") {
+        throw new AppError(400, "This slot is fully booked");
+      }
 
-      sendBookingConfirmation({
-        studentEmail: student.email,
-        studentName: `${student.firstName} ${student.lastName}`,
-        professorName: `${req.user!.firstName} ${req.user!.lastName}`,
-        slotTitle: slot.title || 'Spanish Class',
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        meetLink: meetingUrl,
-      }).catch(console.error);
+      if (slot.status === "CANCELLED" || slot.status === "COMPLETED") {
+        throw new AppError(400, "This slot is no longer available");
+      }
+
+      // Verify student exists
+      const student = await prisma.user.findFirst({
+        where: { id: studentId, isAdmin: false },
+      });
+
+      if (!student) {
+        throw new AppError(404, "Student not found");
+      }
+
+      // Check if already booked
+      const existingBooking = await prisma.booking.findFirst({
+        where: { slotId, studentId, status: "CONFIRMED" },
+      });
+
+      if (existingBooking) {
+        throw new AppError(400, "Student is already booked for this slot");
+      }
+
+      // Create booking
+      const newParticipants = slot.currentParticipants + 1;
+      const newStatus =
+        newParticipants >= slot.maxParticipants ? "FULLY_BOOKED" : "AVAILABLE";
+
+      const [booking] = await prisma.$transaction([
+        prisma.booking.create({
+          data: {
+            slotId,
+            studentId,
+            status: "CONFIRMED",
+          },
+          include: {
+            student: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
+            },
+            slot: true,
+          },
+        }),
+        prisma.availabilitySlot.update({
+          where: { id: slotId },
+          data: {
+            currentParticipants: newParticipants,
+            status: newStatus,
+          },
+        }),
+      ]);
+
+      // Create event on professor's booked sessions calendar
+      const { getMeetingProvider: getProvider } =
+        await import("../services/meeting-provider.js");
+      const meetingProvider = getProvider();
+      const bookingMeetingUrl = slot.meetingRoomName
+        ? meetingProvider.getJoinUrl(slot.meetingRoomName)
+        : null;
+
+      createBookedSessionEvent({
+        booking: { id: booking.id },
+        slot: {
+          id: slot.id,
+          title: slot.title,
+          description: slot.description,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          slotType: slot.slotType,
+          googleMeetLink: bookingMeetingUrl,
+        },
+        student: {
+          id: student.id,
+          email: student.email,
+          firstName: student.firstName,
+          lastName: student.lastName,
+        },
+        professor: {
+          id: req.user!.id,
+          email: req.user!.email,
+          firstName: req.user!.firstName,
+          lastName: req.user!.lastName,
+        },
+      })
+        .then((calendarResult) => {
+          if (calendarResult?.eventId) {
+            prisma.booking
+              .update({
+                where: { id: booking.id },
+                data: { bookedCalendarEventId: calendarResult.eventId },
+              })
+              .catch((err: unknown) =>
+                console.error("Failed to store booked calendar event ID:", err),
+              );
+          }
+        })
+        .catch((err: unknown) =>
+          console.error("Failed to create booked session calendar event:", err),
+        );
+
+      // Send invitation email
+      if (sendInvitation && slot.meetingRoomName) {
+        const { getMeetingProvider } =
+          await import("../services/meeting-provider.js");
+        const provider = getMeetingProvider();
+        const meetingUrl = provider.getJoinUrl(
+          slot.meetingRoomName,
+          `${student.firstName} ${student.lastName}`,
+        );
+
+        sendBookingConfirmation({
+          studentEmail: student.email,
+          studentName: `${student.firstName} ${student.lastName}`,
+          professorName: `${req.user!.firstName} ${req.user!.lastName}`,
+          slotTitle: slot.title || "Spanish Class",
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          meetLink: meetingUrl,
+        }).catch(console.error);
+      }
+
+      res.status(201).json({
+        success: true,
+        data: booking,
+        message: sendInvitation
+          ? "Student booked and invitation sent!"
+          : "Student booked successfully!",
+      });
+    } catch (error) {
+      next(error);
     }
-
-    res.status(201).json({
-      success: true,
-      data: booking,
-      message: sendInvitation ? 'Student booked and invitation sent!' : 'Student booked successfully!',
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // GET /api/professor/slots/:id
-router.get('/slots/:id', async (req, res, next) => {
+router.get("/slots/:id", async (req, res, next) => {
   try {
     const slot = await prisma.availabilitySlot.findFirst({
       where: {
@@ -779,7 +937,7 @@ router.get('/slots/:id', async (req, res, next) => {
     });
 
     if (!slot) {
-      throw new AppError(404, 'Slot not found');
+      throw new AppError(404, "Slot not found");
     }
 
     res.json({
@@ -792,7 +950,7 @@ router.get('/slots/:id', async (req, res, next) => {
 });
 
 // PUT /api/professor/slots/:id
-router.put('/slots/:id', validate(updateSlotSchema), async (req, res, next) => {
+router.put("/slots/:id", validate(updateSlotSchema), async (req, res, next) => {
   try {
     const slot = await prisma.availabilitySlot.findFirst({
       where: {
@@ -802,19 +960,23 @@ router.put('/slots/:id', validate(updateSlotSchema), async (req, res, next) => {
     });
 
     if (!slot) {
-      throw new AppError(404, 'Slot not found');
+      throw new AppError(404, "Slot not found");
     }
 
     // Check for overlaps if time is being changed
     if (req.body.startTime || req.body.endTime) {
-      const newStart = req.body.startTime ? new Date(req.body.startTime) : slot.startTime;
-      const newEnd = req.body.endTime ? new Date(req.body.endTime) : slot.endTime;
+      const newStart = req.body.startTime
+        ? new Date(req.body.startTime)
+        : slot.startTime;
+      const newEnd = req.body.endTime
+        ? new Date(req.body.endTime)
+        : slot.endTime;
 
       const overlap = await prisma.availabilitySlot.findFirst({
         where: {
           id: { not: slot.id },
           professorId: req.user!.id,
-          status: { notIn: ['CANCELLED', 'COMPLETED'] },
+          status: { notIn: ["CANCELLED", "COMPLETED"] },
           OR: [
             {
               startTime: { lt: newEnd },
@@ -825,7 +987,10 @@ router.put('/slots/:id', validate(updateSlotSchema), async (req, res, next) => {
       });
 
       if (overlap) {
-        throw new AppError(400, 'This time slot overlaps with an existing slot');
+        throw new AppError(
+          400,
+          "This time slot overlaps with an existing slot",
+        );
       }
     }
 
@@ -833,7 +998,9 @@ router.put('/slots/:id', validate(updateSlotSchema), async (req, res, next) => {
       where: { id: slot.id },
       data: {
         ...req.body,
-        startTime: req.body.startTime ? new Date(req.body.startTime) : undefined,
+        startTime: req.body.startTime
+          ? new Date(req.body.startTime)
+          : undefined,
         endTime: req.body.endTime ? new Date(req.body.endTime) : undefined,
       },
     });
@@ -848,7 +1015,7 @@ router.put('/slots/:id', validate(updateSlotSchema), async (req, res, next) => {
 });
 
 // DELETE /api/professor/slots/:id
-router.delete('/slots/:id', async (req, res, next) => {
+router.delete("/slots/:id", async (req, res, next) => {
   try {
     const slot = await prisma.availabilitySlot.findFirst({
       where: {
@@ -857,27 +1024,30 @@ router.delete('/slots/:id', async (req, res, next) => {
       },
       include: {
         bookings: {
-          where: { status: 'CONFIRMED' },
+          where: { status: "CONFIRMED" },
         },
       },
     });
 
     if (!slot) {
-      throw new AppError(404, 'Slot not found');
+      throw new AppError(404, "Slot not found");
     }
 
     if (slot.bookings.length > 0) {
-      throw new AppError(400, 'Cannot delete a slot with active bookings. Cancel the bookings first.');
+      throw new AppError(
+        400,
+        "Cannot delete a slot with active bookings. Cancel the bookings first.",
+      );
     }
 
     await prisma.availabilitySlot.update({
       where: { id: slot.id },
-      data: { status: 'CANCELLED' },
+      data: { status: "CANCELLED" },
     });
 
     res.json({
       success: true,
-      message: 'Slot cancelled successfully',
+      message: "Slot cancelled successfully",
     });
   } catch (error) {
     next(error);
@@ -885,7 +1055,7 @@ router.delete('/slots/:id', async (req, res, next) => {
 });
 
 // POST /api/professor/slots/:id/cancel-with-bookings
-router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
+router.post("/slots/:id/cancel-with-bookings", async (req, res, next) => {
   try {
     const { reason } = req.body;
 
@@ -896,7 +1066,7 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
       },
       include: {
         bookings: {
-          where: { status: 'CONFIRMED' },
+          where: { status: "CONFIRMED" },
           select: {
             id: true,
             bookedCalendarEventId: true,
@@ -915,11 +1085,11 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
     });
 
     if (!slot) {
-      throw new AppError(404, 'Slot not found');
+      throw new AppError(404, "Slot not found");
     }
 
-    if (slot.status === 'CANCELLED') {
-      throw new AppError(400, 'Slot is already cancelled');
+    if (slot.status === "CANCELLED") {
+      throw new AppError(400, "Slot is already cancelled");
     }
 
     const confirmedBookings = slot.bookings;
@@ -930,10 +1100,10 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
       prisma.booking.updateMany({
         where: {
           slotId: slot.id,
-          status: 'CONFIRMED',
+          status: "CONFIRMED",
         },
         data: {
-          status: 'CANCELLED_BY_PROFESSOR',
+          status: "CANCELLED_BY_PROFESSOR",
           cancelledAt: new Date(),
           cancelReason: reason || null,
         },
@@ -942,7 +1112,7 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
       prisma.availabilitySlot.update({
         where: { id: slot.id },
         data: {
-          status: 'CANCELLED',
+          status: "CANCELLED",
           currentParticipants: 0,
         },
       }),
@@ -952,7 +1122,7 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
     for (const booking of confirmedBookings) {
       if (booking.bookedCalendarEventId) {
         deleteBookedSessionEvent(booking.bookedCalendarEventId).catch((err) =>
-          console.error('Failed to delete booked session calendar event:', err)
+          console.error("Failed to delete booked session calendar event:", err),
         );
       }
     }
@@ -965,9 +1135,12 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
         professor: professor as any,
         student: booking.student as any,
         reason,
-        cancelledBy: 'professor',
+        cancelledBy: "professor",
       }).catch((err) =>
-        console.error(`Failed to send cancellation email to ${booking.student.email}:`, err)
+        console.error(
+          `Failed to send cancellation email to ${booking.student.email}:`,
+          err,
+        ),
       );
     }
 
@@ -976,9 +1149,10 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
       data: {
         cancelledBookingsCount: confirmedBookings.length,
       },
-      message: confirmedBookings.length > 0
-        ? `Slot cancelled and ${confirmedBookings.length} student(s) notified`
-        : 'Slot cancelled successfully',
+      message:
+        confirmedBookings.length > 0
+          ? `Slot cancelled and ${confirmedBookings.length} student(s) notified`
+          : "Slot cancelled successfully",
     });
   } catch (error) {
     next(error);
@@ -986,52 +1160,59 @@ router.post('/slots/:id/cancel-with-bookings', async (req, res, next) => {
 });
 
 // GET /api/professor/students
-router.get('/students', validateQuery(paginationSchema), async (req, res, next) => {
-  try {
-    const { page, limit } = req.query as unknown as { page: number; limit: number };
+router.get(
+  "/students",
+  validateQuery(paginationSchema),
+  async (req, res, next) => {
+    try {
+      const { page, limit } = req.query as unknown as {
+        page: number;
+        limit: number;
+      };
 
-    const [students, total] = await Promise.all([
-      prisma.user.findMany({
-        where: { isAdmin: false },
-        select: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          timezone: true,
-          createdAt: true,
-          _count: {
-            select: {
-              bookings: {
-                where: { status: 'CONFIRMED' },
+      const [students, total] = await Promise.all([
+        prisma.user.findMany({
+          where: { isAdmin: false },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            timezone: true,
+            createdAt: true,
+            _count: {
+              select: {
+                bookings: {
+                  where: { status: "CONFIRMED" },
+                },
               },
             },
           },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-      }),
-      prisma.user.count({ where: { isAdmin: false } }),
-    ]);
+          orderBy: { createdAt: "desc" },
+          skip: (page - 1) * limit,
+          take: limit,
+        }),
+        prisma.user.count({ where: { isAdmin: false } }),
+      ]);
 
-    res.json({
-      success: true,
-      data: students,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+      res.json({
+        success: true,
+        data: students,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // GET /api/professor/students/:id - includes student profile (US-19)
-router.get('/students/:id', async (req, res, next) => {
+router.get("/students/:id", async (req, res, next) => {
   try {
     const student = await prisma.user.findFirst({
       where: {
@@ -1065,13 +1246,13 @@ router.get('/students/:id', async (req, res, next) => {
               },
             },
           },
-          orderBy: { bookedAt: 'desc' },
+          orderBy: { bookedAt: "desc" },
         },
       },
     });
 
     if (!student) {
-      throw new AppError(404, 'Student not found');
+      throw new AppError(404, "Student not found");
     }
 
     // Get notes for this student
@@ -1080,7 +1261,7 @@ router.get('/students/:id', async (req, res, next) => {
         studentId: student.id,
         professorId: req.user!.id,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     // Parse preferredClassTypes from JSON string to array
@@ -1104,14 +1285,14 @@ router.get('/students/:id', async (req, res, next) => {
 });
 
 // GET /api/professor/students/:id/notes
-router.get('/students/:id/notes', async (req, res, next) => {
+router.get("/students/:id/notes", async (req, res, next) => {
   try {
     const notes = await prisma.studentNote.findMany({
       where: {
         studentId: req.params.id,
         professorId: req.user!.id,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     res.json({
@@ -1124,68 +1305,76 @@ router.get('/students/:id/notes', async (req, res, next) => {
 });
 
 // POST /api/professor/students/:id/notes
-router.post('/students/:id/notes', validate(createNoteSchema), async (req, res, next) => {
-  try {
-    // Verify student exists
-    const student = await prisma.user.findFirst({
-      where: {
-        id: req.params.id,
-        isAdmin: false,
-      },
-    });
+router.post(
+  "/students/:id/notes",
+  validate(createNoteSchema),
+  async (req, res, next) => {
+    try {
+      // Verify student exists
+      const student = await prisma.user.findFirst({
+        where: {
+          id: req.params.id,
+          isAdmin: false,
+        },
+      });
 
-    if (!student) {
-      throw new AppError(404, 'Student not found');
+      if (!student) {
+        throw new AppError(404, "Student not found");
+      }
+
+      const note = await prisma.studentNote.create({
+        data: {
+          professorId: req.user!.id,
+          studentId: req.params.id,
+          content: req.body.content,
+        },
+      });
+
+      res.status(201).json({
+        success: true,
+        data: note,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const note = await prisma.studentNote.create({
-      data: {
-        professorId: req.user!.id,
-        studentId: req.params.id,
-        content: req.body.content,
-      },
-    });
-
-    res.status(201).json({
-      success: true,
-      data: note,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // PUT /api/professor/students/:studentId/notes/:noteId
-router.put('/students/:studentId/notes/:noteId', validate(createNoteSchema), async (req, res, next) => {
-  try {
-    const note = await prisma.studentNote.findFirst({
-      where: {
-        id: req.params.noteId,
-        studentId: req.params.studentId,
-        professorId: req.user!.id,
-      },
-    });
+router.put(
+  "/students/:studentId/notes/:noteId",
+  validate(createNoteSchema),
+  async (req, res, next) => {
+    try {
+      const note = await prisma.studentNote.findFirst({
+        where: {
+          id: req.params.noteId,
+          studentId: req.params.studentId,
+          professorId: req.user!.id,
+        },
+      });
 
-    if (!note) {
-      throw new AppError(404, 'Note not found');
+      if (!note) {
+        throw new AppError(404, "Note not found");
+      }
+
+      const updated = await prisma.studentNote.update({
+        where: { id: note.id },
+        data: { content: req.body.content },
+      });
+
+      res.json({
+        success: true,
+        data: updated,
+      });
+    } catch (error) {
+      next(error);
     }
-
-    const updated = await prisma.studentNote.update({
-      where: { id: note.id },
-      data: { content: req.body.content },
-    });
-
-    res.json({
-      success: true,
-      data: updated,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+  },
+);
 
 // DELETE /api/professor/students/:studentId/notes/:noteId
-router.delete('/students/:studentId/notes/:noteId', async (req, res, next) => {
+router.delete("/students/:studentId/notes/:noteId", async (req, res, next) => {
   try {
     const note = await prisma.studentNote.findFirst({
       where: {
@@ -1196,7 +1385,7 @@ router.delete('/students/:studentId/notes/:noteId', async (req, res, next) => {
     });
 
     if (!note) {
-      throw new AppError(404, 'Note not found');
+      throw new AppError(404, "Note not found");
     }
 
     await prisma.studentNote.delete({
@@ -1205,7 +1394,7 @@ router.delete('/students/:studentId/notes/:noteId', async (req, res, next) => {
 
     res.json({
       success: true,
-      message: 'Note deleted successfully',
+      message: "Note deleted successfully",
     });
   } catch (error) {
     next(error);
@@ -1213,7 +1402,7 @@ router.delete('/students/:studentId/notes/:noteId', async (req, res, next) => {
 });
 
 // GET /api/professor/email-logs
-router.get('/email-logs', async (req, res, next) => {
+router.get("/email-logs", async (req, res, next) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 20;
@@ -1227,7 +1416,7 @@ router.get('/email-logs', async (req, res, next) => {
     const [logs, total] = await Promise.all([
       prisma.emailLog.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -1250,14 +1439,14 @@ router.get('/email-logs', async (req, res, next) => {
 });
 
 // GET /api/professor/email-logs/:id
-router.get('/email-logs/:id', async (req, res, next) => {
+router.get("/email-logs/:id", async (req, res, next) => {
   try {
     const log = await prisma.emailLog.findUnique({
       where: { id: req.params.id },
     });
 
     if (!log) {
-      throw new AppError(404, 'Email log not found');
+      throw new AppError(404, "Email log not found");
     }
 
     res.json({
@@ -1270,14 +1459,14 @@ router.get('/email-logs/:id', async (req, res, next) => {
 });
 
 // POST /api/professor/slots/:id/join - Join a meeting
-router.post('/slots/:id/join', async (req, res, next) => {
+router.post("/slots/:id/join", async (req, res, next) => {
   try {
     const result = await validateMeetingAccess(req.params.id, req.user!);
 
     res.json({
       success: true,
       data: result,
-      message: 'Access granted',
+      message: "Access granted",
     });
   } catch (error) {
     next(error);
@@ -1285,7 +1474,7 @@ router.post('/slots/:id/join', async (req, res, next) => {
 });
 
 // GET /api/professor/slots/:id/meeting - Get meeting details
-router.get('/slots/:id/meeting', async (req, res, next) => {
+router.get("/slots/:id/meeting", async (req, res, next) => {
   try {
     const details = await getMeetingDetails(req.params.id, req.user!);
 
@@ -1297,5 +1486,85 @@ router.get('/slots/:id/meeting', async (req, res, next) => {
     next(error);
   }
 });
+
+
+// T010, T011, T013: Private Invitation Routes
+
+// POST /api/professor/private-invitations - Create private invitation
+router.post(
+  "/private-invitations",
+  validate(createPrivateInvitationSchema),
+  async (req, res, next) => {
+    try {
+      const { studentId, startTime, endTime, title, description } = req.body;
+
+      const result = await createPrivateInvitation({
+        professorId: req.user!.id,
+        studentId,
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        title,
+        description,
+      });
+
+      res.status(201).json({
+        success: true,
+        data: result,
+        message: "Private invitation created and student notified!",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+// GET /api/professor/private-invitations - List private invitations
+router.get("/private-invitations", async (req, res, next) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 20;
+    const startDate = req.query.startDate
+      ? new Date(req.query.startDate as string)
+      : undefined;
+    const endDate = req.query.endDate
+      ? new Date(req.query.endDate as string)
+      : undefined;
+
+    const result = await listPrivateInvitations(req.user!.id, {
+      startDate,
+      endDate,
+      page,
+      limit,
+    });
+
+    res.json({
+      success: true,
+      data: result.invitations,
+      pagination: result.pagination,
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/professor/private-invitations/:id - Cancel private invitation
+router.delete(
+  "/private-invitations/:id",
+  validate(cancelPrivateInvitationSchema),
+  async (req, res, next) => {
+    try {
+      const { reason } = req.body;
+
+      await cancelPrivateInvitation(req.params.id, req.user!.id, reason);
+
+      res.json({
+        success: true,
+        message: "Private invitation cancelled successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 export default router;

@@ -14,20 +14,20 @@ export interface UserWithPassword extends User {
   passwordHash: string;
 }
 
-export type UserPublic = Omit<User, 'passwordHash'>;
+export type UserPublic = Omit<User, "passwordHash">;
 
 // Slot Types
 export enum SlotType {
-  INDIVIDUAL = 'INDIVIDUAL',
-  GROUP = 'GROUP',
+  INDIVIDUAL = "INDIVIDUAL",
+  GROUP = "GROUP",
 }
 
 export enum SlotStatus {
-  AVAILABLE = 'AVAILABLE',
-  FULLY_BOOKED = 'FULLY_BOOKED',
-  IN_PROGRESS = 'IN_PROGRESS',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
+  AVAILABLE = "AVAILABLE",
+  FULLY_BOOKED = "FULLY_BOOKED",
+  IN_PROGRESS = "IN_PROGRESS",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
 }
 
 export interface AvailabilitySlot {
@@ -81,11 +81,11 @@ export interface AvailabilitySlotWithBookings extends AvailabilitySlot {
 
 // Booking Types
 export enum BookingStatus {
-  CONFIRMED = 'CONFIRMED',
-  CANCELLED_BY_STUDENT = 'CANCELLED_BY_STUDENT',
-  CANCELLED_BY_PROFESSOR = 'CANCELLED_BY_PROFESSOR',
-  COMPLETED = 'COMPLETED',
-  NO_SHOW = 'NO_SHOW',
+  CONFIRMED = "CONFIRMED",
+  CANCELLED_BY_STUDENT = "CANCELLED_BY_STUDENT",
+  CANCELLED_BY_PROFESSOR = "CANCELLED_BY_PROFESSOR",
+  COMPLETED = "COMPLETED",
+  NO_SHOW = "NO_SHOW",
 }
 
 export interface Booking {
@@ -176,6 +176,37 @@ export interface StudentDashboardStats {
   upcomingBookings: number;
   completedSessions: number;
   nextSession?: BookingWithSlot | null;
+}
+
+// Private Invitation Types
+export interface PrivateInvitation {
+  slotId: string;
+  bookingId: string;
+  studentId: string;
+  startTime: Date;
+  endTime: Date;
+  title?: string | null;
+  description?: string | null;
+  status: BookingStatus;
+  createdAt: Date;
+}
+
+export interface PrivateInvitationWithDetails extends PrivateInvitation {
+  student: UserPublic;
+  professor: UserPublic;
+  meetLink?: string | null;
+}
+
+export interface CreatePrivateInvitationData {
+  studentId: string;
+  startTime: Date;
+  endTime: Date;
+  title?: string;
+  description?: string;
+}
+
+export interface CancelPrivateInvitationData {
+  reason?: string;
 }
 
 // Note: CreateSlotInput, BulkCreateSlotInput, CreateBookingInput, CancelBookingInput

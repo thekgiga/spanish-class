@@ -1,0 +1,161 @@
+{
+  "operationId": "createPrivateInvitation",
+  "summary": "Create a professor-initiated private invitation",
+  "description": "Professor creates a confirmed booking for a specific student based on offline agreement. Slot is created as private (only visible to invited student) and booking is auto-confirmed.",
+  "method": "POST",
+  "path": "/professor/private-invitations",
+  "auth": "required",
+  "role": "professor",
+  "requestBody": {
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "required": ["studentId", "startTime", "endTime"],
+          "properties": {
+            "studentId": {
+              "type": "string",
+              "description": "ID of student to invite",
+              "example": "clx1234567890"
+            },
+            "startTime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Class start time (ISO 8601)",
+              "example": "2026-02-20T14:00:00Z"
+            },
+            "endTime": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Class end time (ISO 8601)",
+              "example": "2026-02-20T15:00:00Z"
+            },
+            "title": {
+              "type": "string",
+              "description": "Optional class title",
+              "example": "Beginner Spanish Conversation"
+            },
+            "description": {
+              "type": "string",
+              "description": "Optional class description/notes",
+              "example": "Focus on basic greetings and introductions"
+            },
+            "slotType": {
+              "type": "string",
+              "enum": ["INDIVIDUAL", "GROUP"],
+              "default": "INDIVIDUAL",
+              "description": "Class type"
+            },
+            "maxParticipants": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20,
+              "default": 1,
+              "description": "Maximum participants (for group classes)"
+            }
+          }
+        }
+      }
+    }
+  },
+  "responses": {
+    "201": {
+      "description": "Private invitation created successfully",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "slot": {
+                "type": "object",
+                "properties": {
+                  "id": {"type": "string"},
+                  "professorId": {"type": "string"},
+                  "startTime": {"type": "string", "format": "date-time"},
+                  "endTime": {"type": "string", "format": "date-time"},
+                  "isPrivate": {"type": "boolean", "enum": [true]},
+                  "status": {"type": "string"},
+                  "meetLink": {"type": "string"}
+                }
+              },
+              "booking": {
+                "type": "object",
+                "properties": {
+                  "id": {"type": "string"},
+                  "slotId": {"type": "string"},
+                  "studentId": {"type": "string"},
+                  "status": {"type": "string", "enum": ["CONFIRMED"]}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "400": {
+      "description": "Validation error",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {"type": "string"},
+              "details": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "field": {"type": "string"},
+                    "message": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "examples": {
+            "pastTime": {
+              "error": "Validation error",
+              "details": [{"field": "startTime", "message": "Start time must be in the future"}]
+            },
+            "conflict": {
+              "error": "Scheduling conflict",
+              "details": [{"field": "startTime", "message": "Professor has existing booking at this time"}]
+            }
+          }
+        }
+      }
+    },
+    "403": {
+      "description": "Unauthorized - professor access required",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {"type": "string", "example": "Professor access required"}
+            }
+          }
+        }
+      }
+    },
+    "404": {
+      "description": "Student not found",
+      "content": {
+        "application/json": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "error": {"type": "string", "example": "Student not found"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "validationRules": {
+    "startTime": "Must be in future, max 6 months ahead",
+    "endTime": "Must be after startTime, duration 15min-3hours",
+    "studentId": "Must exist and be a student (not professor/admin)",
+    "conflicts": "Professor must not have conflicting confirmed booking"
+  }
+}

@@ -1,15 +1,23 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { toast } from 'react-hot-toast';
-import { Calendar, Clock, Video, X, User, AlertCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
+import {
+  Calendar,
+  Clock,
+  Video,
+  X,
+  User,
+  AlertCircle,
+  Lock,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -17,23 +25,25 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { studentApi } from '@/lib/api';
-import { formatDate, formatTime, getRelativeTime } from '@/lib/utils';
-import type { BookingWithSlot } from '@spanish-class/shared';
+} from "@/components/ui/dialog";
+import { studentApi } from "@/lib/api";
+import { formatDate, formatTime, getRelativeTime } from "@/lib/utils";
+import type { BookingWithSlot } from "@spanish-class/shared";
 
 export function BookingsPage() {
-  const [cancelBooking, setCancelBooking] = useState<BookingWithSlot | null>(null);
-  const [cancelReason, setCancelReason] = useState('');
+  const [cancelBooking, setCancelBooking] = useState<BookingWithSlot | null>(
+    null,
+  );
+  const [cancelReason, setCancelReason] = useState("");
   const queryClient = useQueryClient();
 
   const { data: upcomingData, isLoading: upcomingLoading } = useQuery({
-    queryKey: ['student-bookings', 'upcoming'],
+    queryKey: ["student-bookings", "upcoming"],
     queryFn: () => studentApi.getBookings({ upcoming: true, limit: 50 }),
   });
 
   const { data: historyData, isLoading: historyLoading } = useQuery({
-    queryKey: ['student-bookings', 'history'],
+    queryKey: ["student-bookings", "history"],
     queryFn: () => studentApi.getBookings({ limit: 50 }),
   });
 
@@ -41,28 +51,30 @@ export function BookingsPage() {
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       studentApi.cancelBooking(id, reason),
     onSuccess: () => {
-      toast.success('Booking cancelled successfully');
-      queryClient.invalidateQueries({ queryKey: ['student-bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['student-dashboard'] });
-      queryClient.invalidateQueries({ queryKey: ['available-slots'] });
+      toast.success("Booking cancelled successfully");
+      queryClient.invalidateQueries({ queryKey: ["student-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["student-dashboard"] });
+      queryClient.invalidateQueries({ queryKey: ["available-slots"] });
       setCancelBooking(null);
-      setCancelReason('');
+      setCancelReason("");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to cancel booking');
+      toast.error(error.response?.data?.error || "Failed to cancel booking");
     },
   });
 
   const pastBookings = historyData?.data?.filter(
-    (b) => b.status !== 'CONFIRMED' || new Date(b.slot.startTime) < new Date()
+    (b) => b.status !== "CONFIRMED" || new Date(b.slot.startTime) < new Date(),
   );
 
   const renderBookingCard = (booking: BookingWithSlot, showCancel = false) => {
     const isUpcoming = new Date(booking.slot.startTime) > new Date();
     const canCancel =
-      booking.status === 'CONFIRMED' &&
+      booking.status === "CONFIRMED" &&
       isUpcoming &&
-      (new Date(booking.slot.startTime).getTime() - Date.now()) / (1000 * 60 * 60) > 24;
+      (new Date(booking.slot.startTime).getTime() - Date.now()) /
+        (1000 * 60 * 60) >
+        24;
 
     return (
       <motion.div
@@ -80,21 +92,29 @@ export function BookingsPage() {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-navy-800">
-                      {booking.slot.title || 'Spanish Class'}
+                      {booking.slot.title || "Spanish Class"}
                     </p>
                     <Badge
                       variant={
-                        booking.status === 'CONFIRMED'
-                          ? 'success'
-                          : booking.status === 'COMPLETED'
-                          ? 'secondary'
-                          : 'destructive'
+                        booking.status === "CONFIRMED"
+                          ? "success"
+                          : booking.status === "COMPLETED"
+                            ? "secondary"
+                            : "destructive"
                       }
                     >
-                      {booking.status.replace(/_/g, ' ')}
+                      {booking.status.replace(/_/g, " ")}
                     </Badge>
                     {isUpcoming && (
-                      <Badge variant="gold">{getRelativeTime(booking.slot.startTime)}</Badge>
+                      <Badge variant="gold">
+                        {getRelativeTime(booking.slot.startTime)}
+                      </Badge>
+                    )}
+                    {booking.slot.isPrivate && (
+                      <Badge variant="secondary" className="gap-1">
+                        <Lock className="h-3 w-3" />
+                        Private Invitation
+                      </Badge>
                     )}
                   </div>
                   <p className="text-muted-foreground mt-1">
@@ -103,11 +123,13 @@ export function BookingsPage() {
                   <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      {formatTime(booking.slot.startTime)} - {formatTime(booking.slot.endTime)}
+                      {formatTime(booking.slot.startTime)} -{" "}
+                      {formatTime(booking.slot.endTime)}
                     </span>
                     <span className="flex items-center gap-1">
                       <User className="h-4 w-4" />
-                      {booking.slot.professor?.firstName} {booking.slot.professor?.lastName}
+                      {booking.slot.professor?.firstName}{" "}
+                      {booking.slot.professor?.lastName}
                     </span>
                   </div>
                   {booking.cancelReason && (
@@ -119,18 +141,20 @@ export function BookingsPage() {
               </div>
 
               <div className="flex items-center gap-2 sm:flex-col sm:items-end">
-                {booking.slot.meetLink && booking.status === 'CONFIRMED' && isUpcoming && (
-                  <Button variant="primary" size="sm" asChild>
-                    <a
-                      href={booking.slot.meetLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <Video className="mr-1 h-4 w-4" />
-                      Join
-                    </a>
-                  </Button>
-                )}
+                {booking.slot.meetLink &&
+                  booking.status === "CONFIRMED" &&
+                  isUpcoming && (
+                    <Button variant="primary" size="sm" asChild>
+                      <a
+                        href={booking.slot.meetLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <Video className="mr-1 h-4 w-4" />
+                        Join
+                      </a>
+                    </Button>
+                  )}
                 {showCancel && canCancel && (
                   <Button
                     variant="outline"
@@ -141,11 +165,14 @@ export function BookingsPage() {
                     Cancel
                   </Button>
                 )}
-                {showCancel && !canCancel && booking.status === 'CONFIRMED' && isUpcoming && (
-                  <p className="text-xs text-muted-foreground">
-                    Can't cancel within 24 hours
-                  </p>
-                )}
+                {showCancel &&
+                  !canCancel &&
+                  booking.status === "CONFIRMED" &&
+                  isUpcoming && (
+                    <p className="text-xs text-muted-foreground">
+                      Can't cancel within 24 hours
+                    </p>
+                  )}
               </div>
             </div>
           </CardContent>
@@ -159,8 +186,12 @@ export function BookingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">My Bookings</h1>
-          <p className="text-muted-foreground">Manage your upcoming and past sessions</p>
+          <h1 className="text-2xl font-display font-bold text-navy-800">
+            My Bookings
+          </h1>
+          <p className="text-muted-foreground">
+            Manage your upcoming and past sessions
+          </p>
         </div>
         <Button variant="primary" asChild>
           <Link to="/dashboard/book">Book New Class</Link>
@@ -173,7 +204,9 @@ export function BookingsPage() {
           <TabsTrigger value="upcoming">
             Upcoming ({upcomingData?.data?.length || 0})
           </TabsTrigger>
-          <TabsTrigger value="history">History ({pastBookings?.length || 0})</TabsTrigger>
+          <TabsTrigger value="history">
+            History ({pastBookings?.length || 0})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="upcoming" className="mt-6 space-y-4">
@@ -189,7 +222,9 @@ export function BookingsPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground mb-4">No upcoming sessions</p>
+                <p className="text-muted-foreground mb-4">
+                  No upcoming sessions
+                </p>
                 <Button variant="primary" asChild>
                   <Link to="/dashboard/book">Book a Class</Link>
                 </Button>
@@ -218,7 +253,10 @@ export function BookingsPage() {
       </Tabs>
 
       {/* Cancel Dialog */}
-      <Dialog open={!!cancelBooking} onOpenChange={() => setCancelBooking(null)}>
+      <Dialog
+        open={!!cancelBooking}
+        onOpenChange={() => setCancelBooking(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Cancel Booking</DialogTitle>
@@ -229,9 +267,11 @@ export function BookingsPage() {
 
           {cancelBooking && (
             <div className="p-4 rounded-lg bg-gray-50 space-y-2">
-              <p className="font-semibold">{cancelBooking.slot.title || 'Spanish Class'}</p>
+              <p className="font-semibold">
+                {cancelBooking.slot.title || "Spanish Class"}
+              </p>
               <p className="text-sm text-muted-foreground">
-                {formatDate(cancelBooking.slot.startTime)} at{' '}
+                {formatDate(cancelBooking.slot.startTime)} at{" "}
                 {formatTime(cancelBooking.slot.startTime)}
               </p>
             </div>
@@ -250,7 +290,8 @@ export function BookingsPage() {
           <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 text-amber-800 text-sm">
             <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
             <p>
-              Please note that cancellations must be made at least 24 hours before the session.
+              Please note that cancellations must be made at least 24 hours
+              before the session.
             </p>
           </div>
 
@@ -262,7 +303,10 @@ export function BookingsPage() {
               variant="destructive"
               onClick={() =>
                 cancelBooking &&
-                cancelMutation.mutate({ id: cancelBooking.id, reason: cancelReason })
+                cancelMutation.mutate({
+                  id: cancelBooking.id,
+                  reason: cancelReason,
+                })
               }
               isLoading={cancelMutation.isPending}
             >

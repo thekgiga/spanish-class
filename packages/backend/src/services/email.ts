@@ -1,14 +1,16 @@
-import { Resend } from 'resend';
-import type { AvailabilitySlot, UserPublic } from '@spanish-class/shared';
-import { generateBookingIcs, generateCancellationIcs } from './ics.js';
-import { prisma } from '../lib/prisma.js';
-import { getMeetingProvider } from './meeting-provider.js';
+import { Resend } from "resend";
+import type { AvailabilitySlot, UserPublic } from "@spanish-class/shared";
+import { generateBookingIcs, generateCancellationIcs } from "./ics.js";
+import { prisma } from "../lib/prisma.js";
+import { getMeetingProvider } from "./meeting-provider.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const EMAIL_FROM = process.env.EMAIL_FROM || 'Spanish Class <noreply@spanishclass.com>';
-const PROFESSOR_EMAIL = process.env.PROFESSOR_EMAIL || 'professor@spanishclass.com';
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const EMAIL_FROM =
+  process.env.EMAIL_FROM || "Spanish Class <noreply@spanishclass.com>";
+const PROFESSOR_EMAIL =
+  process.env.PROFESSOR_EMAIL || "professor@spanishclass.com";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 // Helper function to log emails
 async function logEmail(params: {
@@ -17,7 +19,7 @@ async function logEmail(params: {
   toAddress: string;
   subject: string;
   htmlContent: string;
-  status: 'sent' | 'failed';
+  status: "sent" | "failed";
   error?: string;
   metadata?: Record<string, unknown>;
 }): Promise<void> {
@@ -35,7 +37,7 @@ async function logEmail(params: {
       },
     });
   } catch (err) {
-    console.error('Failed to log email:', err);
+    console.error("Failed to log email:", err);
   }
 }
 
@@ -50,10 +52,22 @@ interface SimpleBookingConfirmationData {
   meetLink?: string | null;
 }
 
-export async function sendBookingConfirmation(data: SimpleBookingConfirmationData): Promise<void> {
-  const { studentEmail, studentName, professorName, slotTitle, startTime, endTime, meetLink } = data;
+export async function sendBookingConfirmation(
+  data: SimpleBookingConfirmationData,
+): Promise<void> {
+  const {
+    studentEmail,
+    studentName,
+    professorName,
+    slotTitle,
+    startTime,
+    endTime,
+    meetLink,
+  } = data;
 
-  const duration = Math.round((new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000);
+  const duration = Math.round(
+    (new Date(endTime).getTime() - new Date(startTime).getTime()) / 60000,
+  );
   const dateStr = formatDateTime(startTime);
 
   const html = `
@@ -80,7 +94,7 @@ export async function sendBookingConfirmation(data: SimpleBookingConfirmationDat
           <h1>You've Been Scheduled!</h1>
         </div>
         <div class="content">
-          <p>Hi ${studentName.split(' ')[0]},</p>
+          <p>Hi ${studentName.split(" ")[0]},</p>
           <p>${professorName} has scheduled a Spanish class for you! Here are the details:</p>
 
           <div class="details">
@@ -91,7 +105,7 @@ export async function sendBookingConfirmation(data: SimpleBookingConfirmationDat
           </div>
 
           <div style="text-align: center; margin-top: 30px;">
-            ${meetLink ? `<a href="${meetLink}" class="button meet-link">Join Video Class</a>` : ''}
+            ${meetLink ? `<a href="${meetLink}" class="button meet-link">Join Video Class</a>` : ""}
             <a href="${FRONTEND_URL}/dashboard/bookings" class="button">View My Bookings</a>
           </div>
         </div>
@@ -116,55 +130,74 @@ export async function sendBookingConfirmation(data: SimpleBookingConfirmationDat
 
     if (error) {
       await logEmail({
-        emailType: 'booking_confirmation_simple',
+        emailType: "booking_confirmation_simple",
         fromAddress: EMAIL_FROM,
         toAddress: studentEmail,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: error.message,
-        metadata: { studentName, professorName, slotTitle, startTime: startTime.toISOString() },
+        metadata: {
+          studentName,
+          professorName,
+          slotTitle,
+          startTime: startTime.toISOString(),
+        },
       });
       throw new Error(error.message);
     }
 
     await logEmail({
-      emailType: 'booking_confirmation_simple',
+      emailType: "booking_confirmation_simple",
       fromAddress: EMAIL_FROM,
       toAddress: studentEmail,
       subject,
       htmlContent: html,
-      status: 'sent',
-      metadata: { studentName, professorName, slotTitle, startTime: startTime.toISOString(), resendId: data?.id },
+      status: "sent",
+      metadata: {
+        studentName,
+        professorName,
+        slotTitle,
+        startTime: startTime.toISOString(),
+        resendId: data?.id,
+      },
     });
   } catch (err) {
     // Only log if not already logged above (i.e., not a Resend API error)
-    if (!(err instanceof Error && err.message.includes('domain'))) {
+    if (!(err instanceof Error && err.message.includes("domain"))) {
       await logEmail({
-        emailType: 'booking_confirmation_simple',
+        emailType: "booking_confirmation_simple",
         fromAddress: EMAIL_FROM,
         toAddress: studentEmail,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: err instanceof Error ? err.message : String(err),
-        metadata: { studentName, professorName, slotTitle, startTime: startTime.toISOString() },
+        metadata: {
+          studentName,
+          professorName,
+          slotTitle,
+          startTime: startTime.toISOString(),
+        },
       });
     }
     throw err;
   }
 }
 
-function formatDateTime(date: Date, timezone: string = 'Europe/Madrid'): string {
-  return new Intl.DateTimeFormat('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+function formatDateTime(
+  date: Date,
+  timezone: string = "Europe/Madrid",
+): string {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
     timeZone: timezone,
-    timeZoneName: 'short',
+    timeZoneName: "short",
   }).format(new Date(date));
 }
 
@@ -174,14 +207,19 @@ interface BookingEmailData {
   student: UserPublic;
 }
 
-export async function sendBookingConfirmationToStudent(data: BookingEmailData): Promise<void> {
+export async function sendBookingConfirmationToStudent(
+  data: BookingEmailData,
+): Promise<void> {
   const { slot, professor, student } = data;
 
   // Get meeting URL from Jitsi
   let meetingUrl: string | null = null;
-  if (slot.meetingRoomName) {
+  if (slot.meetLink) {
     const provider = getMeetingProvider();
-    meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${student.firstName} ${student.lastName}`);
+    meetingUrl = provider.getJoinUrl(
+      slot.meetLink,
+      `${student.firstName} ${student.lastName}`,
+    );
   }
 
   const icsContent = await generateBookingIcs({
@@ -191,7 +229,7 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
     meetLink: meetingUrl,
   });
 
-  const icsBuffer = Buffer.from(icsContent, 'utf-8');
+  const icsBuffer = Buffer.from(icsContent, "utf-8");
 
   const html = `
     <!DOCTYPE html>
@@ -225,7 +263,7 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
           <div class="details">
             <div class="details-row">
               <span class="label">Session:</span>
-              <span>${slot.title || 'Spanish Class'}</span>
+              <span>${slot.title || "Spanish Class"}</span>
             </div>
             <div class="details-row">
               <span class="label">Date & Time:</span>
@@ -241,14 +279,14 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
             </div>
             <div class="details-row">
               <span class="label">Type:</span>
-              <span>${slot.slotType === 'GROUP' ? 'Group Session' : 'Individual Session'}</span>
+              <span>${slot.slotType === "GROUP" ? "Group Session" : "Individual Session"}</span>
             </div>
           </div>
 
-          ${slot.description ? `<p><strong>Description:</strong> ${slot.description}</p>` : ''}
+          ${slot.description ? `<p><strong>Description:</strong> ${slot.description}</p>` : ""}
 
           <div style="text-align: center; margin-top: 30px;">
-            ${meetingUrl ? `<a href="${meetingUrl}" class="button meet-link">Join Video Class</a>` : ''}
+            ${meetingUrl ? `<a href="${meetingUrl}" class="button meet-link">Join Video Class</a>` : ""}
             <a href="${FRONTEND_URL}/dashboard/bookings" class="button">View My Bookings</a>
           </div>
 
@@ -265,7 +303,7 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
     </html>
   `;
 
-  const subject = `✅ Booking Confirmed: ${slot.title || 'Spanish Class'} - ${formatDateTime(slot.startTime, student.timezone)}`;
+  const subject = `✅ Booking Confirmed: ${slot.title || "Spanish Class"} - ${formatDateTime(slot.startTime, student.timezone)}`;
 
   try {
     const { data, error } = await resend.emails.send({
@@ -275,7 +313,7 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
       html,
       attachments: [
         {
-          filename: 'spanish-class.ics',
+          filename: "spanish-class.ics",
           content: icsBuffer,
         },
       ],
@@ -283,52 +321,70 @@ export async function sendBookingConfirmationToStudent(data: BookingEmailData): 
 
     if (error) {
       await logEmail({
-        emailType: 'booking_confirmation_student',
+        emailType: "booking_confirmation_student",
         fromAddress: EMAIL_FROM,
         toAddress: student.email,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: error.message,
-        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id },
+        metadata: {
+          studentId: student.id,
+          slotId: slot.id,
+          professorId: professor.id,
+        },
       });
       throw new Error(error.message);
     }
 
     await logEmail({
-      emailType: 'booking_confirmation_student',
+      emailType: "booking_confirmation_student",
       fromAddress: EMAIL_FROM,
       toAddress: student.email,
       subject,
       htmlContent: html,
-      status: 'sent',
-      metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, resendId: data?.id },
+      status: "sent",
+      metadata: {
+        studentId: student.id,
+        slotId: slot.id,
+        professorId: professor.id,
+        resendId: data?.id,
+      },
     });
   } catch (err) {
-    if (!(err instanceof Error && err.message.includes('domain'))) {
+    if (!(err instanceof Error && err.message.includes("domain"))) {
       await logEmail({
-        emailType: 'booking_confirmation_student',
+        emailType: "booking_confirmation_student",
         fromAddress: EMAIL_FROM,
         toAddress: student.email,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: err instanceof Error ? err.message : String(err),
-        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id },
+        metadata: {
+          studentId: student.id,
+          slotId: slot.id,
+          professorId: professor.id,
+        },
       });
     }
     throw err;
   }
 }
 
-export async function sendBookingNotificationToProfessor(data: BookingEmailData): Promise<void> {
+export async function sendBookingNotificationToProfessor(
+  data: BookingEmailData,
+): Promise<void> {
   const { slot, professor, student } = data;
 
   // Get meeting URL from Jitsi
   let meetingUrl: string | null = null;
-  if (slot.meetingRoomName) {
+  if (slot.meetLink) {
     const provider = getMeetingProvider();
-    meetingUrl = provider.getJoinUrl(slot.meetingRoomName, `${professor.firstName} ${professor.lastName}`);
+    meetingUrl = provider.getJoinUrl(
+      slot.meetLink,
+      `${professor.firstName} ${professor.lastName}`,
+    );
   }
 
   const icsContent = await generateBookingIcs({
@@ -338,7 +394,7 @@ export async function sendBookingNotificationToProfessor(data: BookingEmailData)
     meetLink: meetingUrl,
   });
 
-  const icsBuffer = Buffer.from(icsContent, 'utf-8');
+  const icsBuffer = Buffer.from(icsContent, "utf-8");
 
   const html = `
     <!DOCTYPE html>
@@ -379,7 +435,7 @@ export async function sendBookingNotificationToProfessor(data: BookingEmailData)
             </div>
             <div class="details-row">
               <span class="label">Session:</span>
-              <span>${slot.title || 'Spanish Class'}</span>
+              <span>${slot.title || "Spanish Class"}</span>
             </div>
             <div class="details-row">
               <span class="label">Date & Time:</span>
@@ -413,7 +469,7 @@ export async function sendBookingNotificationToProfessor(data: BookingEmailData)
       html,
       attachments: [
         {
-          filename: 'spanish-class.ics',
+          filename: "spanish-class.ics",
           content: icsBuffer,
         },
       ],
@@ -421,38 +477,51 @@ export async function sendBookingNotificationToProfessor(data: BookingEmailData)
 
     if (error) {
       await logEmail({
-        emailType: 'booking_notification_professor',
+        emailType: "booking_notification_professor",
         fromAddress: EMAIL_FROM,
         toAddress: PROFESSOR_EMAIL,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: error.message,
-        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id },
+        metadata: {
+          studentId: student.id,
+          slotId: slot.id,
+          professorId: professor.id,
+        },
       });
       throw new Error(error.message);
     }
 
     await logEmail({
-      emailType: 'booking_notification_professor',
+      emailType: "booking_notification_professor",
       fromAddress: EMAIL_FROM,
       toAddress: PROFESSOR_EMAIL,
       subject,
       htmlContent: html,
-      status: 'sent',
-      metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, resendId: data?.id },
+      status: "sent",
+      metadata: {
+        studentId: student.id,
+        slotId: slot.id,
+        professorId: professor.id,
+        resendId: data?.id,
+      },
     });
   } catch (err) {
-    if (!(err instanceof Error && err.message.includes('domain'))) {
+    if (!(err instanceof Error && err.message.includes("domain"))) {
       await logEmail({
-        emailType: 'booking_notification_professor',
+        emailType: "booking_notification_professor",
         fromAddress: EMAIL_FROM,
         toAddress: PROFESSOR_EMAIL,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: err instanceof Error ? err.message : String(err),
-        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id },
+        metadata: {
+          studentId: student.id,
+          slotId: slot.id,
+          professorId: professor.id,
+        },
       });
     }
     throw err;
@@ -460,7 +529,10 @@ export async function sendBookingNotificationToProfessor(data: BookingEmailData)
 }
 
 export async function sendCancellationToStudent(
-  data: BookingEmailData & { reason?: string; cancelledBy: 'student' | 'professor' }
+  data: BookingEmailData & {
+    reason?: string;
+    cancelledBy: "student" | "professor";
+  },
 ): Promise<void> {
   const { slot, professor, student, reason, cancelledBy } = data;
 
@@ -470,7 +542,7 @@ export async function sendCancellationToStudent(
     student,
   });
 
-  const icsBuffer = Buffer.from(icsContent, 'utf-8');
+  const icsBuffer = Buffer.from(icsContent, "utf-8");
 
   const html = `
     <!DOCTYPE html>
@@ -496,12 +568,12 @@ export async function sendCancellationToStudent(
         </div>
         <div class="content">
           <p>Hi ${student.firstName},</p>
-          <p>${cancelledBy === 'student' ? 'Your booking has been cancelled as requested.' : 'We regret to inform you that the following session has been cancelled by the professor.'}</p>
+          <p>${cancelledBy === "student" ? "Your booking has been cancelled as requested." : "We regret to inform you that the following session has been cancelled by the professor."}</p>
 
           <div class="details">
-            <p><strong>Session:</strong> ${slot.title || 'Spanish Class'}</p>
+            <p><strong>Session:</strong> ${slot.title || "Spanish Class"}</p>
             <p><strong>Date & Time:</strong> ${formatDateTime(slot.startTime, student.timezone)}</p>
-            ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+            ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
           </div>
 
           <div style="text-align: center; margin-top: 30px;">
@@ -516,7 +588,7 @@ export async function sendCancellationToStudent(
     </html>
   `;
 
-  const subject = `❌ Session Cancelled: ${slot.title || 'Spanish Class'} - ${formatDateTime(slot.startTime, student.timezone)}`;
+  const subject = `❌ Session Cancelled: ${slot.title || "Spanish Class"} - ${formatDateTime(slot.startTime, student.timezone)}`;
 
   try {
     const { data, error } = await resend.emails.send({
@@ -526,7 +598,7 @@ export async function sendCancellationToStudent(
       html,
       attachments: [
         {
-          filename: 'cancellation.ics',
+          filename: "cancellation.ics",
           content: icsBuffer,
         },
       ],
@@ -534,38 +606,54 @@ export async function sendCancellationToStudent(
 
     if (error) {
       await logEmail({
-        emailType: 'cancellation_student',
+        emailType: "cancellation_student",
         fromAddress: EMAIL_FROM,
         toAddress: student.email,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: error.message,
-        metadata: { studentId: student.id, slotId: slot.id, cancelledBy, reason },
+        metadata: {
+          studentId: student.id,
+          slotId: slot.id,
+          cancelledBy,
+          reason,
+        },
       });
       throw new Error(error.message);
     }
 
     await logEmail({
-      emailType: 'cancellation_student',
+      emailType: "cancellation_student",
       fromAddress: EMAIL_FROM,
       toAddress: student.email,
       subject,
       htmlContent: html,
-      status: 'sent',
-      metadata: { studentId: student.id, slotId: slot.id, cancelledBy, reason, resendId: data?.id },
+      status: "sent",
+      metadata: {
+        studentId: student.id,
+        slotId: slot.id,
+        cancelledBy,
+        reason,
+        resendId: data?.id,
+      },
     });
   } catch (err) {
-    if (!(err instanceof Error && err.message.includes('domain'))) {
+    if (!(err instanceof Error && err.message.includes("domain"))) {
       await logEmail({
-        emailType: 'cancellation_student',
+        emailType: "cancellation_student",
         fromAddress: EMAIL_FROM,
         toAddress: student.email,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: err instanceof Error ? err.message : String(err),
-        metadata: { studentId: student.id, slotId: slot.id, cancelledBy, reason },
+        metadata: {
+          studentId: student.id,
+          slotId: slot.id,
+          cancelledBy,
+          reason,
+        },
       });
     }
     throw err;
@@ -573,7 +661,7 @@ export async function sendCancellationToStudent(
 }
 
 export async function sendCancellationToProfessor(
-  data: BookingEmailData & { reason?: string }
+  data: BookingEmailData & { reason?: string },
 ): Promise<void> {
   const { slot, professor, student, reason } = data;
 
@@ -605,9 +693,9 @@ export async function sendCancellationToProfessor(
 
           <div class="details">
             <p><strong>Student:</strong> ${student.firstName} ${student.lastName}</p>
-            <p><strong>Session:</strong> ${slot.title || 'Spanish Class'}</p>
+            <p><strong>Session:</strong> ${slot.title || "Spanish Class"}</p>
             <p><strong>Date & Time:</strong> ${formatDateTime(slot.startTime, professor.timezone)}</p>
-            ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+            ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
           </div>
 
           <p>The slot is now available for other students to book.</p>
@@ -636,38 +724,54 @@ export async function sendCancellationToProfessor(
 
     if (error) {
       await logEmail({
-        emailType: 'cancellation_professor',
+        emailType: "cancellation_professor",
         fromAddress: EMAIL_FROM,
         toAddress: PROFESSOR_EMAIL,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: error.message,
-        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, reason },
+        metadata: {
+          studentId: student.id,
+          slotId: slot.id,
+          professorId: professor.id,
+          reason,
+        },
       });
       throw new Error(error.message);
     }
 
     await logEmail({
-      emailType: 'cancellation_professor',
+      emailType: "cancellation_professor",
       fromAddress: EMAIL_FROM,
       toAddress: PROFESSOR_EMAIL,
       subject,
       htmlContent: html,
-      status: 'sent',
-      metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, reason, resendId: data?.id },
+      status: "sent",
+      metadata: {
+        studentId: student.id,
+        slotId: slot.id,
+        professorId: professor.id,
+        reason,
+        resendId: data?.id,
+      },
     });
   } catch (err) {
-    if (!(err instanceof Error && err.message.includes('domain'))) {
+    if (!(err instanceof Error && err.message.includes("domain"))) {
       await logEmail({
-        emailType: 'cancellation_professor',
+        emailType: "cancellation_professor",
         fromAddress: EMAIL_FROM,
         toAddress: PROFESSOR_EMAIL,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: err instanceof Error ? err.message : String(err),
-        metadata: { studentId: student.id, slotId: slot.id, professorId: professor.id, reason },
+        metadata: {
+          studentId: student.id,
+          slotId: slot.id,
+          professorId: professor.id,
+          reason,
+        },
       });
     }
     throw err;
@@ -681,7 +785,9 @@ interface VerificationEmailData {
   verificationToken: string;
 }
 
-export async function sendVerificationEmail(data: VerificationEmailData): Promise<void> {
+export async function sendVerificationEmail(
+  data: VerificationEmailData,
+): Promise<void> {
   const { email, firstName, verificationToken } = data;
 
   const verificationUrl = `${FRONTEND_URL}/verify-email?token=${verificationToken}`;
@@ -735,7 +841,7 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
     </html>
   `;
 
-  const subject = '✉️ Verify your email - Spanish Class';
+  const subject = "✉️ Verify your email - Spanish Class";
 
   try {
     const { data: resendData, error } = await resend.emails.send({
@@ -747,12 +853,12 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
 
     if (error) {
       await logEmail({
-        emailType: 'email_verification',
+        emailType: "email_verification",
         fromAddress: EMAIL_FROM,
         toAddress: email,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: error.message,
         metadata: { firstName },
       });
@@ -760,25 +866,161 @@ export async function sendVerificationEmail(data: VerificationEmailData): Promis
     }
 
     await logEmail({
-      emailType: 'email_verification',
+      emailType: "email_verification",
       fromAddress: EMAIL_FROM,
       toAddress: email,
       subject,
       htmlContent: html,
-      status: 'sent',
+      status: "sent",
       metadata: { firstName, resendId: resendData?.id },
     });
   } catch (err) {
-    if (!(err instanceof Error && err.message.includes('domain'))) {
+    if (!(err instanceof Error && err.message.includes("domain"))) {
       await logEmail({
-        emailType: 'email_verification',
+        emailType: "email_verification",
         fromAddress: EMAIL_FROM,
         toAddress: email,
         subject,
         htmlContent: html,
-        status: 'failed',
+        status: "failed",
         error: err instanceof Error ? err.message : String(err),
         metadata: { firstName },
+      });
+    }
+    throw err;
+  }
+}
+
+// Private Invitation Email
+interface PrivateInvitationEmailData {
+  student: UserPublic;
+  professor: UserPublic;
+  slot: {
+    title?: string | null;
+    startTime: Date;
+    endTime: Date;
+  };
+  meetLink?: string | null;
+}
+
+export async function sendPrivateInvitationEmail(
+  data: PrivateInvitationEmailData,
+): Promise<void> {
+  const { student, professor, slot, meetLink } = data;
+
+  const duration = Math.round(
+    (new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) /
+      60000,
+  );
+  const dateStr = formatDateTime(slot.startTime, student.timezone);
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1a1f36 0%, #2d3748 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+        .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+        .button { display: inline-block; background: #f5a623; color: #1a1f36; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px 5px; }
+        .meet-link { background: #10b981; color: white; }
+        .details { background: #f7fafc; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        h1 { margin: 0; font-size: 24px; }
+        .emoji { font-size: 32px; margin-bottom: 10px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="emoji">📅</div>
+          <h1>Private Class Invitation</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${student.firstName},</p>
+          <p>${professor.firstName} ${professor.lastName} has scheduled a private Spanish class for you! This confirms your offline arrangement.</p>
+
+          <div class="details">
+            <p><strong>Session:</strong> ${slot.title || "Spanish Class"}</p>
+            <p><strong>Date & Time:</strong> ${dateStr}</p>
+            <p><strong>Duration:</strong> ${duration} minutes</p>
+            <p><strong>Professor:</strong> ${professor.firstName} ${professor.lastName}</p>
+            <p><strong>Type:</strong> Private Session (For You Only)</p>
+          </div>
+
+          <p style="margin: 20px 0; padding: 15px; background: #fffbeb; border: 1px solid #fbbf24; border-radius: 8px; color: #92400e;">
+            <strong>Note:</strong> This is a confirmed private session based on your agreement with ${professor.firstName}. No further action is needed from you - the class is already booked!
+          </p>
+
+          <div style="text-align: center; margin-top: 30px;">
+            ${meetLink ? `<a href="${meetLink}" class="button meet-link">Join Video Class</a>` : ""}
+            <a href="${FRONTEND_URL}/dashboard/bookings" class="button">View My Bookings</a>
+          </div>
+        </div>
+        <div class="footer">
+          <p>Spanish Class Platform</p>
+          <p>If you need to reschedule or cancel, please contact ${professor.firstName} directly or cancel through the platform at least 2 hours in advance.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const subject = `📅 Private Class Scheduled: ${slot.title || "Spanish Class"} - ${formatDateTime(slot.startTime, student.timezone)}`;
+
+  try {
+    const { data: resendData, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: student.email,
+      subject,
+      html,
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: "private_invitation",
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: "failed",
+        error: error.message,
+        metadata: {
+          studentId: student.id,
+          professorId: professor.id,
+        },
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: "private_invitation",
+      fromAddress: EMAIL_FROM,
+      toAddress: student.email,
+      subject,
+      htmlContent: html,
+      status: "sent",
+      metadata: {
+        studentId: student.id,
+        professorId: professor.id,
+        resendId: resendData?.id,
+      },
+    });
+  } catch (err) {
+    if (!(err instanceof Error && err.message.includes("domain"))) {
+      await logEmail({
+        emailType: "private_invitation",
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: "failed",
+        error: err instanceof Error ? err.message : String(err),
+        metadata: {
+          studentId: student.id,
+          professorId: professor.id,
+        },
       });
     }
     throw err;

@@ -2,10 +2,7 @@
   "name": "spanish-class-platform",
   "version": "1.0.0",
   "private": true,
-  "packageManager": "npm@10.9.4",
-  "workspaces": [
-    "packages/*"
-  ],
+  "packageManager": "pnpm@9.0.0",
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
