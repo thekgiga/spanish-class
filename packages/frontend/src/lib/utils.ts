@@ -74,3 +74,24 @@ export function getRelativeTime(date: Date | string): string {
 export function getInitials(firstName: string, lastName: string): string {
   return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 }
+
+/**
+ * Format price in Serbian Dinars (RSD) (T063)
+ */
+export function formatRSD(amount: number): string {
+  return new Intl.NumberFormat('sr-RS', {
+    style: 'currency',
+    currency: 'RSD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+/**
+ * Parse RSD string to number
+ */
+export function parseRSD(value: string): number {
+  // Remove currency symbols, spaces, and thousand separators
+  const cleaned = value.replace(/[^\d]/g, '');
+  return parseInt(cleaned, 10) || 0;
+}

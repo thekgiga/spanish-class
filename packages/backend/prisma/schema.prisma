@@ -8,15 +8,16 @@ generator client {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  firstName    String   @map("first_name")
-  lastName     String   @map("last_name")
-  isAdmin      Boolean  @default(false) @map("is_admin")
-  timezone     String   @default("Europe/Madrid")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String   @map("password_hash")
+  firstName        String   @map("first_name")
+  lastName         String   @map("last_name")
+  isAdmin          Boolean  @default(false) @map("is_admin")
+  timezone         String   @default("Europe/Madrid")
+  languagePreference String? @default("en") @map("language_preference")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   slots                    AvailabilitySlot[]
   bookings                 Booking[]
@@ -25,6 +26,11 @@ model User {
   allowedSlots             SlotAllowedStudent[]
   recurringPatterns        RecurringPattern[]
   allowedRecurringPatterns RecurringPatternAllowedStudent[]
+  customPricing            StudentPricing[]   @relation("CustomPricing")
+  referralsGiven           Referral[]         @relation("ReferralsGiven")
+  referralsReceived        Referral[]         @relation("ReferralsReceived")
+  ratingsGiven             Rating[]           @relation("RatingsGiven")
+  ratingsReceived          Rating[]           @relation("RatingsReceived")
 
   @@map("users")
 }
@@ -113,21 +119,27 @@ model RecurringPatternAllowedStudent {
 }
 
 model Booking {
-  id           String        @id @default(cuid())
-  slotId       String        @map("slot_id")
-  studentId    String        @map("student_id")
-  status       BookingStatus @default(CONFIRMED)
-  bookedAt     DateTime      @default(now()) @map("booked_at")
-  cancelledAt  DateTime?     @map("cancelled_at")
-  cancelReason String?       @map("cancel_reason")
-  createdAt    DateTime      @default(now()) @map("created_at")
-  updatedAt    DateTime      @updatedAt @map("updated_at")
+  id                      String        @id @default(cuid())
+  slotId                  String        @map("slot_id")
+  studentId               String        @map("student_id")
+  status                  BookingStatus @default(PENDING_CONFIRMATION)
+  bookedAt                DateTime      @default(now()) @map("booked_at")
+  cancelledAt             DateTime?     @map("cancelled_at")
+  cancelReason            String?       @map("cancel_reason")
+  confirmedAt             DateTime?     @map("confirmed_at")
+  rejectedAt              DateTime?     @map("rejected_at")
+  confirmationToken       String?       @map("confirmation_token")
+  confirmationExpiresAt   DateTime?     @map("confirmation_expires_at")
+  createdAt               DateTime      @default(now()) @map("created_at")
+  updatedAt               DateTime      @updatedAt @map("updated_at")
 
   slot    AvailabilitySlot @relation(fields: [slotId], references: [id])
   student User             @relation(fields: [studentId], references: [id])
 
   @@unique([slotId, studentId])
   @@index([studentId])
+  @@index([status])
+  @@index([confirmationExpiresAt])
   @@map("bookings")
 }
 
@@ -165,6 +177,9 @@ enum BookingStatus {
   CANCELLED_BY_PROFESSOR
   COMPLETED
   NO_SHOW
+  PENDING_CONFIRMATION
+  REJECTED
+  EXPIRED
 }
 
 model EmailLog {
@@ -183,4 +198,138 @@ model EmailLog {
   @@index([toAddress])
   @@index([emailType])
   @@map("email_logs")
+}
+
+model UsedConfirmationToken {
+  id        String   @id @default(cuid())
+  jti       String   @unique // JWT ID from confirmation token
+  usedAt    DateTime @default(now()) @map("used_at")
+  bookingId String   @map("booking_id")
+
+  @@index([jti])
+  @@map("used_confirmation_tokens")
+}
+
+model StudentPricing {
+  id          String   @id @default(cuid())
+  professorId String   @map("professor_id")
+  studentId   String   @map("student_id")
+  priceRSD    Int      @map("price_rsd") // Price in Serbian Dinars (RSD)
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  professor User @relation("CustomPricing", fields: [professorId], references: [id])
+
+  @@unique([professorId, studentId])
+  @@index([professorId])
+  @@map("student_pricing")
+}
+
+model ProfessorDailyStats {
+  id                  String   @id @default(cuid())
+  professorId         String   @map("professor_id")
+  date                DateTime @db.Date
+  classesCompleted    Int      @default(0) @map("classes_completed")
+  totalEarningsRSD    Int      @default(0) @map("total_earnings_rsd")
+  uniqueStudents      Int      @default(0) @map("unique_students")
+  cancelledClasses    Int      @default(0) @map("cancelled_classes")
+  noShowClasses       Int      @default(0) @map("no_show_classes")
+  averageRating       Float?   @map("average_rating")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@unique([professorId, date])
+  @@index([professorId, date])
+  @@map("professor_daily_stats")
+}
+
+model ProfessorMonthlyStats {
+  id                  String   @id @default(cuid())
+  professorId         String   @map("professor_id")
+  year                Int
+  month               Int
+  classesCompleted    Int      @default(0) @map("classes_completed")
+  totalEarningsRSD    Int      @default(0) @map("total_earnings_rsd")
+  uniqueStudents      Int      @default(0) @map("unique_students")
+  retentionRate       Float?   @map("retention_rate") // % of students who booked again this month
+  averageRating       Float?   @map("average_rating")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@unique([professorId, year, month])
+  @@index([professorId, year, month])
+  @@map("professor_monthly_stats")
+}
+
+model StudentEngagementStats {
+  id                    String   @id @default(cuid())
+  studentId             String   @unique @map("student_id")
+  totalClassesBooked    Int      @default(0) @map("total_classes_booked")
+  totalClassesAttended  Int      @default(0) @map("total_classes_attended")
+  totalClassesCancelled Int      @default(0) @map("total_classes_cancelled")
+  noShowCount           Int      @default(0) @map("no_show_count")
+  lastBookingDate       DateTime? @map("last_booking_date")
+  averageRatingGiven    Float?   @map("average_rating_given")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@index([studentId])
+  @@map("student_engagement_stats")
+}
+
+model PlatformDailyStats {
+  id                  String   @id @default(cuid())
+  date                DateTime @unique @db.Date
+  totalBookings       Int      @default(0) @map("total_bookings")
+  completedBookings   Int      @default(0) @map("completed_bookings")
+  cancelledBookings   Int      @default(0) @map("cancelled_bookings")
+  activeStudents      Int      @default(0) @map("active_students")
+  activeProfessors    Int      @default(0) @map("active_professors")
+  newRegistrations    Int      @default(0) @map("new_registrations")
+  totalRevenueRSD     Int      @default(0) @map("total_revenue_rsd")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  @@index([date])
+  @@map("platform_daily_stats")
+}
+
+model Referral {
+  id            String   @id @default(cuid())
+  referrerId    String   @map("referrer_id")
+  referredId    String   @map("referred_id")
+  referralCode  String   @map("referral_code")
+  status        String   @default("pending") // pending, completed, rewarded
+  rewardGranted Boolean  @default(false) @map("reward_granted")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  referrer User @relation("ReferralsGiven", fields: [referrerId], references: [id])
+  referred User @relation("ReferralsReceived", fields: [referredId], references: [id])
+
+  @@index([referrerId])
+  @@index([referredId])
+  @@index([referralCode])
+  @@map("referrals")
+}
+
+model Rating {
+  id          String   @id @default(cuid())
+  raterId     String   @map("rater_id")
+  rateeId     String   @map("ratee_id")
+  bookingId   String?  @map("booking_id") // Optional link to specific booking
+  rating      Int      // 1-5 stars
+  comment     String?  @db.Text
+  isAnonymous Boolean  @default(false) @map("is_anonymous")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  rater User @relation("RatingsGiven", fields: [raterId], references: [id])
+  ratee User @relation("RatingsReceived", fields: [rateeId], references: [id])
+
+  @@index([raterId])
+  @@index([rateeId])
+  @@index([bookingId])
+  @@map("ratings")
 }

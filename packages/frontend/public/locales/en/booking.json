@@ -1,0 +1,21 @@
+{
+  "bookSlot": "Book Slot",
+  "cancelBooking": "Cancel Booking",
+  "bookingConfirmed": "Booking Confirmed",
+  "bookingPending": "Booking Pending",
+  "bookingRejected": "Booking Rejected",
+  "bookingExpired": "Booking Expired",
+  "myBookings": "My Bookings",
+  "upcomingClasses": "Upcoming Classes",
+  "pastClasses": "Past Classes",
+  "noBookings": "No bookings found",
+  "professorName": "Professor",
+  "studentName": "Student",
+  "classTime": "Class Time",
+  "duration": "Duration",
+  "status": "Status",
+  "joinClass": "Join Class",
+  "waitingConfirmation": "Waiting for professor confirmation",
+  "confirmationExpiry": "Request expires in",
+  "hours": "hours"
+}

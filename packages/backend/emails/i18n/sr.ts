@@ -1,0 +1,50 @@
+import { EmailTranslations } from "./en";
+
+export const sr: EmailTranslations = {
+  common: {
+    hello: "Zdravo",
+    thanks: "Hvala",
+    regards: "Srdačan pozdrav",
+    team: "Tim Platforme za Španski",
+  },
+  confirmationRequest: {
+    subject: "Novi Zahtev za Rezervaciju - Potrebna Akcija",
+    title: "Novi Zahtev za Rezervaciju Časa",
+    message: "Student je zatražio rezervaciju vašeg časa. Molimo potvrdite ili odbijte zahtev u roku od 48 sati.",
+    studentName: "Student",
+    classTime: "Vreme Časa",
+    duration: "Trajanje",
+    confirmButton: "Potvrdi Rezervaciju",
+    rejectButton: "Odbij Rezervaciju",
+    expiryNote: "Ovaj zahtev će automatski isteći ako ne preduzmete akciju u roku od 48 sati.",
+  },
+  pendingConfirmation: {
+    subject: "Zahtev za Rezervaciju Poslat",
+    title: "Vaš Zahtev za Rezervaciju je na Čekanju",
+    message: "Poslali smo vaš zahtev profesoru. Ima 48 sati da ga potvrdi ili odbije.",
+    classTime: "Zatraženo Vreme Časa",
+    professorName: "Profesor",
+    nextSteps: "Šta sledi?",
+    step1: "Profesor će pregledati vaš zahtev",
+    step2: "Dobićete email kada potvrdi ili odbije",
+    step3: "Ako ne bude potvrđen za 48 sati, zahtev će isteći",
+  },
+  bookingConfirmed: {
+    subject: "Rezervacija Časa Potvrđena",
+    title: "Vaš Čas je Potvrđen!",
+    message: "Dobre vesti! Profesor je potvrdio vašu rezervaciju.",
+    classTime: "Vreme Časa",
+    professorName: "Profesor",
+    meetLink: "Pridruži se Času",
+    addToCalendar: "Dodaj u Kalendar",
+    price: "Cena",
+  },
+  bookingRejected: {
+    subject: "Zahtev za Rezervaciju Odbijen",
+    title: "Zahtev za Rezervaciju Odbijen",
+    message: "Nažalost, profesor trenutno ne može da prihvati vaš zahtev.",
+    reason: "Razlog",
+    browseSlots: "Pregledaj Dostupne Termine",
+    contactSupport: "Ako imate pitanja, kontaktirajte podršku.",
+  },
+};

@@ -1,0 +1,50 @@
+import { EmailTranslations } from "./en";
+
+export const es: EmailTranslations = {
+  common: {
+    hello: "Hola",
+    thanks: "Gracias",
+    regards: "Saludos cordiales",
+    team: "Equipo de Plataforma de Español",
+  },
+  confirmationRequest: {
+    subject: "Nueva Solicitud de Reserva - Acción Requerida",
+    title: "Nueva Solicitud de Reserva de Clase",
+    message: "Un estudiante ha solicitado reservar tu clase. Por favor confirma o rechaza esta solicitud en 48 horas.",
+    studentName: "Estudiante",
+    classTime: "Hora de Clase",
+    duration: "Duración",
+    confirmButton: "Confirmar Reserva",
+    rejectButton: "Rechazar Reserva",
+    expiryNote: "Esta solicitud expirará automáticamente si no se actúa en 48 horas.",
+  },
+  pendingConfirmation: {
+    subject: "Solicitud de Reserva Enviada",
+    title: "Tu Solicitud de Reserva está Pendiente",
+    message: "Hemos enviado tu solicitud al profesor. Tiene 48 horas para confirmarla o rechazarla.",
+    classTime: "Hora de Clase Solicitada",
+    professorName: "Profesor",
+    nextSteps: "¿Qué sigue?",
+    step1: "El profesor revisará tu solicitud",
+    step2: "Recibirás un correo cuando confirme o rechace",
+    step3: "Si no se confirma en 48 horas, la solicitud expirará",
+  },
+  bookingConfirmed: {
+    subject: "Reserva de Clase Confirmada",
+    title: "¡Tu Clase está Confirmada!",
+    message: "¡Buenas noticias! Tu profesor ha confirmado tu reserva.",
+    classTime: "Hora de Clase",
+    professorName: "Profesor",
+    meetLink: "Unirse a Clase",
+    addToCalendar: "Agregar al Calendario",
+    price: "Precio",
+  },
+  bookingRejected: {
+    subject: "Solicitud de Reserva Rechazada",
+    title: "Solicitud de Reserva Rechazada",
+    message: "Lamentablemente, tu profesor no puede aceptar tu solicitud en este momento.",
+    reason: "Razón",
+    browseSlots: "Ver Horarios Disponibles",
+    contactSupport: "Si tienes preguntas, contacta al soporte.",
+  },
+};

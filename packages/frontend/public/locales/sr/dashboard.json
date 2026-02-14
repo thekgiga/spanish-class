@@ -1,0 +1,17 @@
+{
+  "dashboard": "Kontrolna Tabla",
+  "overview": "Pregled",
+  "statistics": "Statistika",
+  "totalStudents": "Ukupno Studenata",
+  "totalBookings": "Ukupno Rezervacija",
+  "upcomingSlots": "Predstojeci Termini",
+  "todaySessions": "Današnji Časovi",
+  "completedThisMonth": "Završeno Ovaj Mesec",
+  "upcomingBookings": "Predstojeće Rezervacije",
+  "completedSessions": "Završeni Časovi",
+  "nextSession": "Sledeći Čas",
+  "noUpcomingSessions": "Nema predsto​jecih časova",
+  "availableSlots": "Dostupni Termini",
+  "createSlot": "Kreiraj Termin",
+  "pendingApprovals": "Odobrenja na Čekanju"
+}

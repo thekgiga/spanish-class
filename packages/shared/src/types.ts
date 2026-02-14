@@ -94,6 +94,9 @@ export enum BookingStatus {
   CANCELLED_BY_PROFESSOR = "CANCELLED_BY_PROFESSOR",
   COMPLETED = "COMPLETED",
   NO_SHOW = "NO_SHOW",
+  PENDING_CONFIRMATION = "PENDING_CONFIRMATION",
+  REJECTED = "REJECTED",
+  EXPIRED = "EXPIRED",
 }
 
 export interface Booking {
@@ -104,6 +107,10 @@ export interface Booking {
   bookedAt: Date;
   cancelledAt?: Date | null;
   cancelReason?: string | null;
+  confirmedAt?: Date | null;
+  rejectedAt?: Date | null;
+  confirmationToken?: string | null;
+  confirmationExpiresAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -241,6 +248,200 @@ export interface ProfileCompletion {
     label: string;
     isComplete: boolean;
   }>;
+}
+
+// Booking Confirmation Types
+export interface ConfirmBookingRequest {
+  token: string;
+}
+
+export interface RejectBookingRequest {
+  token: string;
+  reason?: string;
+}
+
+export interface ConfirmationTokenPayload {
+  bookingId: string;
+  professorId: string;
+  studentId: string;
+  jti: string;
+  exp: number;
+}
+
+// Pricing Types
+export interface StudentPricing {
+  id: string;
+  professorId: string;
+  studentId: string;
+  priceRSD: number;
+  notes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreatePricingRequest {
+  studentId: string;
+  priceRSD: number;
+  notes?: string;
+}
+
+export interface UpdatePricingRequest {
+  priceRSD: number;
+  notes?: string;
+}
+
+export interface StudentPricingWithStudent extends StudentPricing {
+  student: UserPublic;
+}
+
+// i18n Types
+export enum Locale {
+  EN = "en",
+  SR = "sr",
+  ES = "es",
+}
+
+export interface LanguageDetectionResult {
+  detectedLocale: Locale;
+  confidence: number;
+  source: "header" | "ip" | "default";
+}
+
+export interface UserLanguagePreference {
+  userId: string;
+  locale: Locale;
+}
+
+// Analytics Types
+export interface ProfessorDailyStats {
+  id: string;
+  professorId: string;
+  date: Date;
+  classesCompleted: number;
+  totalEarningsRSD: number;
+  uniqueStudents: number;
+  cancelledClasses: number;
+  noShowClasses: number;
+  averageRating?: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProfessorMonthlyStats {
+  id: string;
+  professorId: string;
+  year: number;
+  month: number;
+  classesCompleted: number;
+  totalEarningsRSD: number;
+  uniqueStudents: number;
+  retentionRate?: number | null;
+  averageRating?: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface StudentEngagementStats {
+  id: string;
+  studentId: string;
+  totalClassesBooked: number;
+  totalClassesAttended: number;
+  totalClassesCancelled: number;
+  noShowCount: number;
+  lastBookingDate?: Date | null;
+  averageRatingGiven?: number | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PlatformDailyStats {
+  id: string;
+  date: Date;
+  totalBookings: number;
+  completedBookings: number;
+  cancelledBookings: number;
+  activeStudents: number;
+  activeProfessors: number;
+  newRegistrations: number;
+  totalRevenueRSD: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProfessorAnalytics {
+  daily: ProfessorDailyStats[];
+  monthly: ProfessorMonthlyStats[];
+  summary: {
+    totalEarnings: number;
+    totalClasses: number;
+    averageRating: number;
+    uniqueStudents: number;
+  };
+}
+
+export interface PlatformAnalytics {
+  daily: PlatformDailyStats[];
+  summary: {
+    totalRevenue: number;
+    totalBookings: number;
+    activeUsers: number;
+    growthRate: number;
+  };
+}
+
+// Referral Types
+export interface Referral {
+  id: string;
+  referrerId: string;
+  referredId: string;
+  referralCode: string;
+  status: "pending" | "completed" | "rewarded";
+  rewardGranted: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ReferralStats {
+  totalReferrals: number;
+  completedReferrals: number;
+  pendingReferrals: number;
+  rewardsEarned: number;
+}
+
+export interface CreateReferralRequest {
+  referredEmail: string;
+  referralCode: string;
+}
+
+// Rating Types
+export interface Rating {
+  id: string;
+  raterId: string;
+  rateeId: string;
+  bookingId?: string | null;
+  rating: number;
+  comment?: string | null;
+  isAnonymous: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateRatingRequest {
+  rateeId: string;
+  bookingId?: string;
+  rating: number;
+  comment?: string;
+  isAnonymous?: boolean;
+}
+
+export interface RatingWithRater extends Rating {
+  rater: UserPublic;
+}
+
+export interface UserRatingsSummary {
+  averageRating: number;
+  totalRatings: number;
+  ratings: RatingWithRater[];
 }
 
 // Note: CreateSlotInput, BulkCreateSlotInput, CreateBookingInput, CancelBookingInput

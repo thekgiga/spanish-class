@@ -1,0 +1,25 @@
+{
+  "appName": "Plataforma de Clase de Español",
+  "welcome": "Bienvenido",
+  "loading": "Cargando...",
+  "error": "Error",
+  "success": "Éxito",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "save": "Guardar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "close": "Cerrar",
+  "back": "Atrás",
+  "next": "Siguiente",
+  "submit": "Enviar",
+  "search": "Buscar",
+  "filter": "Filtrar",
+  "clear": "Limpiar",
+  "selectLanguage": "Seleccionar Idioma",
+  "languages": {
+    "en": "English",
+    "sr": "Српски (Serbian)",
+    "es": "Español (Spanish)"
+  }
+}

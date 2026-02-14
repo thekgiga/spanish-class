@@ -1,0 +1,17 @@
+{
+  "dashboard": "Dashboard",
+  "overview": "Overview",
+  "statistics": "Statistics",
+  "totalStudents": "Total Students",
+  "totalBookings": "Total Bookings",
+  "upcomingSlots": "Upcoming Slots",
+  "todaySessions": "Today's Sessions",
+  "completedThisMonth": "Completed This Month",
+  "upcomingBookings": "Upcoming Bookings",
+  "completedSessions": "Completed Sessions",
+  "nextSession": "Next Session",
+  "noUpcomingSessions": "No upcoming sessions",
+  "availableSlots": "Available Slots",
+  "createSlot": "Create Slot",
+  "pendingApprovals": "Pending Approvals"
+}
