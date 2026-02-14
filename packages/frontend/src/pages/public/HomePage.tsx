@@ -1,56 +1,66 @@
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Calendar, Video, Users, Star, CheckCircle2, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  Video,
+  Users,
+  Star,
+  CheckCircle2,
+  ArrowRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 const features = [
   {
     icon: Calendar,
-    title: 'Flexible Scheduling',
-    description: 'Book classes that fit your schedule. Available slots updated in real-time.',
+    title: "Flexible Scheduling",
+    description:
+      "Book classes that fit your schedule. Available slots updated in real-time.",
   },
   {
     icon: Video,
-    title: 'Live Video Sessions',
-    description: 'Face-to-face lessons via Google Meet with native Spanish speakers.',
+    title: "Live Video Sessions",
+    description:
+      "Face-to-face lessons via Jitsi Meet with native Spanish speakers.",
   },
   {
     icon: Users,
-    title: 'Individual & Group',
-    description: 'Choose between private one-on-one sessions or interactive group classes.',
+    title: "Individual & Group",
+    description:
+      "Choose between private one-on-one sessions or interactive group classes.",
   },
 ];
 
 const benefits = [
-  'Experienced Spanish teacher with years of practice',
-  'DELE exam preparation for all levels',
-  'University enrollment assistance for foreign universities',
-  'Professional translation services available',
-  'Personalized learning plans for your goals',
-  'Conversation-focused practical approach',
+  "Experienced Spanish teacher with years of practice",
+  "DELE exam preparation for all levels",
+  "University enrollment assistance for foreign universities",
+  "Professional translation services available",
+  "Personalized learning plans for your goals",
+  "Conversation-focused practical approach",
 ];
 
 const testimonials = [
   {
-    name: 'Sarah M.',
-    role: 'Business Professional',
+    name: "Sarah M.",
+    role: "Business Professional",
     content:
-      'The conversation practice sessions have been incredible for my work. I feel so much more confident speaking Spanish in meetings now.',
+      "The conversation practice sessions have been incredible for my work. I feel so much more confident speaking Spanish in meetings now.",
     rating: 5,
   },
   {
-    name: 'James L.',
-    role: 'Student',
+    name: "James L.",
+    role: "Student",
     content:
-      'Group classes are engaging and fun! Great way to practice with others at the same level.',
+      "Group classes are engaging and fun! Great way to practice with others at the same level.",
     rating: 5,
   },
   {
-    name: 'Emily R.',
-    role: 'Travel Enthusiast',
+    name: "Emily R.",
+    role: "Travel Enthusiast",
     content:
-      'Flexible scheduling is a lifesaver. I can book sessions around my busy schedule easily.',
+      "Flexible scheduling is a lifesaver. I can book sessions around my busy schedule easily.",
     rating: 5,
   },
 ];
@@ -76,18 +86,21 @@ export function HomePage() {
                 className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full border border-white/20 mb-6"
               >
                 <span className="h-2 w-2 bg-emerald-400 rounded-full animate-pulse-soft" />
-                <span className="text-sm font-medium">Now Enrolling New Students</span>
+                <span className="text-sm font-medium">
+                  Now Enrolling New Students
+                </span>
               </motion.div>
 
               <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-tight">
-                Master Spanish with{' '}
+                Master Spanish with{" "}
                 <span className="text-gradient-primary bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 to-cyan-300">
                   Expert Teachers
                 </span>
               </h1>
               <p className="mt-8 text-xl text-white/90 max-w-xl leading-relaxed">
-                Join live online classes with native Spanish speakers. Whether you're a
-                beginner or looking to perfect your fluency, we have the right class for you.
+                Join live online classes with native Spanish speakers. Whether
+                you're a beginner or looking to perfect your fluency, we have
+                the right class for you.
               </p>
               <div className="mt-10 flex flex-wrap gap-4">
                 <Button size="xl" variant="primary" asChild>
@@ -118,10 +131,15 @@ export function HomePage() {
                 <div className="text-sm">
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="h-5 w-5 fill-emerald-400 text-emerald-400 drop-shadow-lg" />
+                      <Star
+                        key={i}
+                        className="h-5 w-5 fill-emerald-400 text-emerald-400 drop-shadow-lg"
+                      />
                     ))}
                   </div>
-                  <p className="text-white/80 mt-2 font-medium">500+ happy students</p>
+                  <p className="text-white/80 mt-2 font-medium">
+                    500+ happy students
+                  </p>
                 </div>
               </div>
             </motion.div>
@@ -180,7 +198,8 @@ export function HomePage() {
               Why Choose Us?
             </h2>
             <p className="mt-6 text-xl text-slate-600 leading-relaxed">
-              Our platform makes learning Spanish convenient, effective, and enjoyable.
+              Our platform makes learning Spanish convenient, effective, and
+              enjoyable.
             </p>
           </motion.div>
 
@@ -201,7 +220,9 @@ export function HomePage() {
                     <h3 className="mt-8 text-2xl font-display font-semibold text-slate-900">
                       {feature.title}
                     </h3>
-                    <p className="mt-4 text-slate-600 leading-relaxed">{feature.description}</p>
+                    <p className="mt-4 text-slate-600 leading-relaxed">
+                      {feature.description}
+                    </p>
                   </CardContent>
                 </Card>
               </motion.div>
@@ -228,8 +249,8 @@ export function HomePage() {
                 Everything You Need to Succeed
               </h2>
               <p className="mt-6 text-xl text-slate-600 leading-relaxed">
-                Our comprehensive approach ensures you make real progress in your Spanish
-                learning journey.
+                Our comprehensive approach ensures you make real progress in
+                your Spanish learning journey.
               </p>
               <ul className="mt-10 grid gap-4">
                 {benefits.map((benefit, index) => (
@@ -244,7 +265,9 @@ export function HomePage() {
                     <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center flex-shrink-0">
                       <CheckCircle2 className="h-5 w-5 text-white" />
                     </div>
-                    <span className="text-slate-700 font-medium text-lg">{benefit}</span>
+                    <span className="text-slate-700 font-medium text-lg">
+                      {benefit}
+                    </span>
                   </motion.li>
                 ))}
               </ul>
@@ -289,7 +312,8 @@ export function HomePage() {
               What Our Students Say
             </h2>
             <p className="mt-6 text-xl text-slate-300 leading-relaxed">
-              Join hundreds of satisfied students who have improved their Spanish with us.
+              Join hundreds of satisfied students who have improved their
+              Spanish with us.
             </p>
           </motion.div>
 
@@ -305,17 +329,26 @@ export function HomePage() {
                 <div className="h-full bg-white/10 backdrop-blur-xl p-8 rounded-2xl border border-white/10 hover:bg-white/15 hover:border-white/20 transition-all duration-300 hover:-translate-y-1">
                   <div className="flex gap-1 mb-6">
                     {Array.from({ length: testimonial.rating }).map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-emerald-400 text-emerald-400" />
+                      <Star
+                        key={i}
+                        className="h-5 w-5 fill-emerald-400 text-emerald-400"
+                      />
                     ))}
                   </div>
-                  <p className="text-white/90 text-lg leading-relaxed">{testimonial.content}</p>
+                  <p className="text-white/90 text-lg leading-relaxed">
+                    {testimonial.content}
+                  </p>
                   <div className="mt-8 flex items-center gap-4">
                     <div className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center font-bold text-white text-lg">
                       {testimonial.name[0]}
                     </div>
                     <div>
-                      <p className="font-semibold text-white">{testimonial.name}</p>
-                      <p className="text-sm text-slate-400">{testimonial.role}</p>
+                      <p className="font-semibold text-white">
+                        {testimonial.name}
+                      </p>
+                      <p className="text-sm text-slate-400">
+                        {testimonial.role}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -348,8 +381,8 @@ export function HomePage() {
                   Ready to Start Speaking Spanish?
                 </h2>
                 <p className="mt-6 text-xl text-white/90 max-w-2xl mx-auto leading-relaxed">
-                  Book your first class today and take the first step towards fluency. No
-                  commitment required.
+                  Book your first class today and take the first step towards
+                  fluency. No commitment required.
                 </p>
                 <div className="mt-10 flex flex-wrap gap-4 justify-center">
                   <Button
@@ -359,7 +392,8 @@ export function HomePage() {
                     asChild
                   >
                     <Link to="/register">
-                      Create Free Account <ArrowRight className="ml-2 h-5 w-5" />
+                      Create Free Account{" "}
+                      <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
                   <Button
@@ -372,7 +406,8 @@ export function HomePage() {
                   </Button>
                 </div>
                 <p className="mt-8 text-sm text-white/70">
-                  No credit card required • Cancel anytime • 14-day money-back guarantee
+                  No credit card required • Cancel anytime • 14-day money-back
+                  guarantee
                 </p>
               </motion.div>
             </div>

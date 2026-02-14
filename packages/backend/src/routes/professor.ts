@@ -16,11 +16,6 @@ import {
 } from "@spanish-class/shared";
 import { AppError } from "../middleware/error.js";
 import {
-  debugCalendarConnection,
-  createBookedSessionEvent,
-  deleteBookedSessionEvent,
-} from "../services/google.js";
-import {
   createMeetingRoom,
   getMeetingProvider,
 } from "../services/meeting-provider.js";
@@ -44,7 +39,7 @@ const router: ExpressRouter = Router();
 // All routes require authentication and admin access
 router.use(authenticate, requireAdmin);
 
-// GET /api/professor/debug/calendar - Debug Google Calendar connection
+// Debug endpoint removed - Google Calendar integration removed in favor of Jitsi-only approach
 router.get("/debug/calendar", async (req, res, next) => {
   try {
     const result = await debugCalendarConnection();
@@ -351,58 +346,6 @@ router.post("/slots", validate(createSlotSchema), async (req, res, next) => {
         where: { id: bookForStudentId },
       });
       if (student) {
-        // Create event on professor's booked sessions calendar
-        createBookedSessionEvent({
-          booking: { id: booking.id },
-          slot: {
-            id: slot.id,
-            title: title || null,
-            description: description || null,
-            startTime: new Date(startTime),
-            endTime: new Date(endTime),
-            slotType,
-            googleMeetLink: slot.meetingRoomName
-              ? getMeetingProvider().getJoinUrl(
-                  slot.meetingRoomName,
-                  `${req.user!.firstName} ${req.user!.lastName}`,
-                )
-              : null,
-          },
-          student: {
-            id: student.id,
-            email: student.email,
-            firstName: student.firstName,
-            lastName: student.lastName,
-          },
-          professor: {
-            id: req.user!.id,
-            email: req.user!.email,
-            firstName: req.user!.firstName,
-            lastName: req.user!.lastName,
-          },
-        })
-          .then((bookedCalResult) => {
-            if (bookedCalResult?.eventId) {
-              prisma.booking
-                .update({
-                  where: { id: booking!.id },
-                  data: { bookedCalendarEventId: bookedCalResult.eventId },
-                })
-                .catch((err: unknown) =>
-                  console.error(
-                    "Failed to store booked calendar event ID:",
-                    err,
-                  ),
-                );
-            }
-          })
-          .catch((err: unknown) =>
-            console.error(
-              "Failed to create booked session calendar event:",
-              err,
-            ),
-          );
-
         const meetingUrl = meeting.joinUrl;
         sendBookingConfirmation({
           studentEmail: student.email,
@@ -829,54 +772,6 @@ router.post(
         }),
       ]);
 
-      // Create event on professor's booked sessions calendar
-      const { getMeetingProvider: getProvider } =
-        await import("../services/meeting-provider.js");
-      const meetingProvider = getProvider();
-      const bookingMeetingUrl = slot.meetingRoomName
-        ? meetingProvider.getJoinUrl(slot.meetingRoomName)
-        : null;
-
-      createBookedSessionEvent({
-        booking: { id: booking.id },
-        slot: {
-          id: slot.id,
-          title: slot.title,
-          description: slot.description,
-          startTime: slot.startTime,
-          endTime: slot.endTime,
-          slotType: slot.slotType,
-          googleMeetLink: bookingMeetingUrl,
-        },
-        student: {
-          id: student.id,
-          email: student.email,
-          firstName: student.firstName,
-          lastName: student.lastName,
-        },
-        professor: {
-          id: req.user!.id,
-          email: req.user!.email,
-          firstName: req.user!.firstName,
-          lastName: req.user!.lastName,
-        },
-      })
-        .then((calendarResult) => {
-          if (calendarResult?.eventId) {
-            prisma.booking
-              .update({
-                where: { id: booking.id },
-                data: { bookedCalendarEventId: calendarResult.eventId },
-              })
-              .catch((err: unknown) =>
-                console.error("Failed to store booked calendar event ID:", err),
-              );
-          }
-        })
-        .catch((err: unknown) =>
-          console.error("Failed to create booked session calendar event:", err),
-        );
-
       // Send invitation email
       if (sendInvitation && slot.meetingRoomName) {
         const { getMeetingProvider } =
@@ -1069,7 +964,6 @@ router.post("/slots/:id/cancel-with-bookings", async (req, res, next) => {
           where: { status: "CONFIRMED" },
           select: {
             id: true,
-            bookedCalendarEventId: true,
             student: {
               select: {
                 id: true,
@@ -1117,15 +1011,6 @@ router.post("/slots/:id/cancel-with-bookings", async (req, res, next) => {
         },
       }),
     ]);
-
-    // Delete from booked sessions calendar for each booking
-    for (const booking of confirmedBookings) {
-      if (booking.bookedCalendarEventId) {
-        deleteBookedSessionEvent(booking.bookedCalendarEventId).catch((err) =>
-          console.error("Failed to delete booked session calendar event:", err),
-        );
-      }
-    }
 
     // Send cancellation emails to all affected students
     const professor = req.user!;
@@ -1486,7 +1371,6 @@ router.get("/slots/:id/meeting", async (req, res, next) => {
     next(error);
   }
 });
-
 
 // T010, T011, T013: Private Invitation Routes
 
