@@ -22,6 +22,8 @@ import {
 import {
   sendBookingConfirmation,
   sendCancellationToStudent,
+  sendBookingConfirmedToStudent,
+  sendBookingRejectionToStudent,
 } from "../services/email.js";
 import {
   validateMeetingAccess,
@@ -33,6 +35,7 @@ import {
   cancelPrivateInvitation,
 } from "../services/private-invitation.js";
 import type { Router as ExpressRouter } from "express";
+import type { AvailabilitySlot, UserPublic } from "@spanish-class/shared";
 
 const router: ExpressRouter = Router();
 
@@ -1446,5 +1449,248 @@ router.delete(
     }
   },
 );
+
+/**
+ * GET /api/professor/pending-bookings
+ * Get all pending bookings awaiting professor approval
+ */
+router.get("/pending-bookings", async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = (page - 1) * limit;
+
+    const pendingBookings = await prisma.booking.findMany({
+      where: {
+        status: "PENDING_CONFIRMATION",
+        confirmationExpiresAt: {
+          gte: new Date(),
+        },
+        slot: {
+          professorId: req.user!.id,
+        },
+      },
+      include: {
+        student: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+        slot: {
+          select: {
+            id: true,
+            startTime: true,
+            endTime: true,
+            title: true,
+            slotType: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      skip: offset,
+      take: limit,
+    });
+
+    const total = await prisma.booking.count({
+      where: {
+        status: "PENDING_CONFIRMATION",
+        confirmationExpiresAt: {
+          gte: new Date(),
+        },
+        slot: {
+          professorId: req.user!.id,
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      data: pendingBookings,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/professor/bookings/:id/approve
+ * Approve a pending booking (professor admin panel)
+ */
+router.post("/bookings/:id/approve", async (req, res, next) => {
+  try {
+    const bookingId = req.params.id;
+
+    // Get the booking with slot details
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        slot: {
+          include: {
+            professor: true,
+          },
+        },
+        student: true,
+      },
+    });
+
+    if (!booking) {
+      throw new AppError(404, "Booking not found");
+    }
+
+    // Verify professor owns this booking's slot
+    if (booking.slot.professorId !== req.user!.id) {
+      throw new AppError(
+        403,
+        "You don't have permission to approve this booking",
+      );
+    }
+
+    // Verify booking is pending
+    if (booking.status !== "PENDING_CONFIRMATION") {
+      throw new AppError(400, "This booking cannot be approved");
+    }
+
+    // Check if token has expired
+    if (
+      booking.confirmationExpiresAt &&
+      booking.confirmationExpiresAt < new Date()
+    ) {
+      throw new AppError(400, "Booking confirmation has expired");
+    }
+
+    // Update booking to confirmed
+    const updatedBooking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "CONFIRMED",
+        confirmedAt: new Date(),
+      },
+      include: {
+        slot: true,
+        student: true,
+      },
+    });
+
+    // Get pricing for email
+    const pricing = await prisma.studentPricing.findUnique({
+      where: {
+        professorId_studentId: {
+          professorId: booking.slot.professorId,
+          studentId: booking.studentId,
+        },
+      },
+    });
+
+    // Send confirmation email to student
+    const slotForEmail = booking.slot as unknown as AvailabilitySlot;
+    const studentForEmail = booking.student as unknown as UserPublic;
+    const professorForEmail = booking.slot.professor as unknown as UserPublic;
+
+    await sendBookingConfirmedToStudent({
+      slot: slotForEmail,
+      student: studentForEmail,
+      professor: professorForEmail,
+      price: pricing?.priceRSD,
+    });
+
+    res.json({
+      success: true,
+      data: updatedBooking,
+      message: "Booking approved successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/professor/bookings/:id/reject
+ * Reject a pending booking (professor admin panel)
+ */
+router.post("/bookings/:id/reject", async (req, res, next) => {
+  try {
+    const bookingId = req.params.id;
+    const { reason } = req.body;
+
+    if (!reason || !reason.trim()) {
+      throw new AppError(400, "Rejection reason is required");
+    }
+
+    // Get the booking
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        slot: {
+          include: {
+            professor: true,
+          },
+        },
+        student: true,
+      },
+    });
+
+    if (!booking) {
+      throw new AppError(404, "Booking not found");
+    }
+
+    // Verify professor owns this booking's slot
+    if (booking.slot.professorId !== req.user!.id) {
+      throw new AppError(
+        403,
+        "You don't have permission to reject this booking",
+      );
+    }
+
+    // Verify booking is pending
+    if (booking.status !== "PENDING_CONFIRMATION") {
+      throw new AppError(400, "This booking cannot be rejected");
+    }
+
+    // Update booking to rejected
+    const updatedBooking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "REJECTED",
+        rejectedAt: new Date(),
+        cancelReason: reason,
+      },
+      include: {
+        slot: true,
+        student: true,
+      },
+    });
+
+    // Send rejection email to student
+    const slotForEmail = booking.slot as unknown as AvailabilitySlot;
+    const studentForEmail = booking.student as unknown as UserPublic;
+    const professorForEmail = booking.slot.professor as unknown as UserPublic;
+
+    await sendBookingRejectionToStudent({
+      slot: slotForEmail,
+      student: studentForEmail,
+      professor: professorForEmail,
+      reason,
+    });
+
+    res.json({
+      success: true,
+      data: updatedBooking,
+      message: "Booking rejected successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;

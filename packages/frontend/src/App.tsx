@@ -63,9 +63,9 @@ const EmailLogsPage = lazy(() =>
     default: m.EmailLogsPage,
   })),
 );
-const PendingBookingsPage = lazy(() =>
-  import("@/pages/admin/PendingBookingsPage").then((m) => ({
-    default: m.PendingBookingsPage,
+const PendingApprovalsPage = lazy(() =>
+  import("@/pages/admin/PendingApprovalsPage").then((m) => ({
+    default: m.PendingApprovalsPage,
   })),
 );
 
@@ -207,7 +207,10 @@ function AppRoutes() {
             <Route path="slots/:id" element={<NewSlotPage />} />
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:id" element={<StudentDetailPage />} />
-            <Route path="pending-approvals" element={<PendingBookingsPage />} />
+            <Route
+              path="pending-approvals"
+              element={<PendingApprovalsPage />}
+            />
             <Route path="email-logs" element={<EmailLogsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
