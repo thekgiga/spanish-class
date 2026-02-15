@@ -15,108 +15,8 @@ import {
   validateMeetingAccess,
   getMeetingDetails,
 } from "../services/meeting-access.js";
+import { calculateProfileCompletion } from "../services/profile-completion.js";
 import type { Router as ExpressRouter } from "express";
-
-// Types for profile completion
-interface ProfileCompletionItem {
-  field: string;
-  label: string;
-  completed: boolean;
-  weight: number;
-}
-
-interface ProfileCompletion {
-  percentage: number;
-  items: ProfileCompletionItem[];
-  completedCount: number;
-  totalCount: number;
-}
-
-// Helper function to calculate profile completion (US-16)
-// Note: Profile fields not yet implemented in schema
-function calculateProfileCompletion(user: {
-  firstName: string | null;
-  lastName: string | null;
-  // dateOfBirth: Date | null;
-  // phoneNumber: string | null;
-  // aboutMe: string | null;
-  // spanishLevel: string | null;
-  // preferredClassTypes: string | null;
-  // learningGoals: string | null;
-  // availabilityNotes: string | null;
-}): ProfileCompletion {
-  const items: ProfileCompletionItem[] = [
-    {
-      field: "firstName",
-      label: "First Name",
-      completed: !!user.firstName,
-      weight: 50,
-    },
-    {
-      field: "lastName",
-      label: "Last Name",
-      completed: !!user.lastName,
-      weight: 50,
-    },
-    // {
-    //   field: "dateOfBirth",
-    //   label: "Date of Birth",
-    //   completed: !!user.dateOfBirth,
-    //   weight: 10,
-    // },
-    // {
-    //   field: "phoneNumber",
-    //   label: "Phone Number",
-    //   completed: !!user.phoneNumber,
-    //   weight: 10,
-    // },
-    // {
-    //   field: "aboutMe",
-    //   label: "About Me",
-    //   completed: !!user.aboutMe,
-    //   weight: 15,
-    // },
-    // {
-    //   field: "spanishLevel",
-    //   label: "Spanish Level",
-    //   completed: !!user.spanishLevel,
-    //   weight: 15,
-    // },
-    // {
-    //   field: "preferredClassTypes",
-    //   label: "Preferred Class Types",
-    //   completed:
-    //     !!user.preferredClassTypes &&
-    //     JSON.parse(user.preferredClassTypes || "[]").length > 0,
-    //   weight: 10,
-    // },
-    // {
-    //   field: "learningGoals",
-    //   label: "Learning Goals",
-    //   completed: !!user.learningGoals,
-    //   weight: 10,
-    // },
-    // {
-    //   field: "availabilityNotes",
-    //   label: "Availability Notes",
-    //   completed: !!user.availabilityNotes,
-    //   weight: 10,
-    // },
-  ];
-
-  const completedItems = items.filter((item) => item.completed);
-  const percentage = items.reduce(
-    (total, item) => total + (item.completed ? item.weight : 0),
-    0,
-  );
-
-  return {
-    percentage,
-    items,
-    completedCount: completedItems.length,
-    totalCount: items.length,
-  };
-}
 
 const router: ExpressRouter = Router();
 
@@ -159,7 +59,7 @@ router.get("/dashboard", async (req, res, next) => {
         prisma.booking.count({
           where: {
             studentId: req.user!.id,
-            status: "CONFIRMED",
+            status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
             slot: {
               startTime: { gte: now },
             },
@@ -174,7 +74,7 @@ router.get("/dashboard", async (req, res, next) => {
         prisma.booking.findFirst({
           where: {
             studentId: req.user!.id,
-            status: "CONFIRMED",
+            status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
             slot: {
               startTime: { gte: now },
             },
@@ -286,7 +186,7 @@ router.get(
             bookings: {
               where: {
                 studentId: req.user!.id,
-                status: "CONFIRMED",
+                status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
               },
               select: {
                 id: true,
@@ -542,13 +442,14 @@ router.get("/profile", async (req, res, next) => {
         firstName: true,
         lastName: true,
         timezone: true,
-        // dateOfBirth: true,
-        // phoneNumber: true,
-        // aboutMe: true,
-        // spanishLevel: true,
-        // preferredClassTypes: true,
-        // learningGoals: true,
-        // availabilityNotes: true,
+        languagePreference: true,
+        dateOfBirth: true,
+        phoneNumber: true,
+        aboutMe: true,
+        spanishLevel: true,
+        preferredClassTypes: true,
+        learningGoals: true,
+        availabilityNotes: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -558,13 +459,12 @@ router.get("/profile", async (req, res, next) => {
       throw new AppError(404, "User not found");
     }
 
-    // Note: preferredClassTypes field not yet in schema
     // Parse preferredClassTypes from JSON string to array
     const profile = {
       ...user,
-      // preferredClassTypes: user.preferredClassTypes
-      //   ? JSON.parse(user.preferredClassTypes)
-      //   : null,
+      preferredClassTypes: user.preferredClassTypes
+        ? JSON.parse(user.preferredClassTypes)
+        : null,
     };
 
     const completion = calculateProfileCompletion(user);
@@ -582,47 +482,46 @@ router.get("/profile", async (req, res, next) => {
 });
 
 // PUT /api/student/profile - Update student profile (US-17, US-18)
-// Note: Profile fields not yet implemented in schema
 router.put(
   "/profile",
   validate(updateStudentProfileSchema),
   async (req, res, next) => {
     try {
-      // const {
-      //   dateOfBirth,
-      //   phoneNumber,
-      //   aboutMe,
-      //   spanishLevel,
-      //   preferredClassTypes,
-      //   learningGoals,
-      //   availabilityNotes,
-      // } = req.body;
+      const {
+        dateOfBirth,
+        phoneNumber,
+        aboutMe,
+        spanishLevel,
+        preferredClassTypes,
+        learningGoals,
+        availabilityNotes,
+      } = req.body;
 
       const updateData: Record<string, unknown> = {};
 
-      // if (dateOfBirth !== undefined) {
-      //   updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
-      // }
-      // if (phoneNumber !== undefined) {
-      //   updateData.phoneNumber = phoneNumber;
-      // }
-      // if (aboutMe !== undefined) {
-      //   updateData.aboutMe = aboutMe;
-      // }
-      // if (spanishLevel !== undefined) {
-      //   updateData.spanishLevel = spanishLevel;
-      // }
-      // if (preferredClassTypes !== undefined) {
-      //   updateData.preferredClassTypes = preferredClassTypes
-      //     ? JSON.stringify(preferredClassTypes)
-      //     : null;
-      // }
-      // if (learningGoals !== undefined) {
-      //   updateData.learningGoals = learningGoals;
-      // }
-      // if (availabilityNotes !== undefined) {
-      //   updateData.availabilityNotes = availabilityNotes;
-      // }
+      if (dateOfBirth !== undefined) {
+        updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+      }
+      if (phoneNumber !== undefined) {
+        updateData.phoneNumber = phoneNumber;
+      }
+      if (aboutMe !== undefined) {
+        updateData.aboutMe = aboutMe;
+      }
+      if (spanishLevel !== undefined) {
+        updateData.spanishLevel = spanishLevel;
+      }
+      if (preferredClassTypes !== undefined) {
+        updateData.preferredClassTypes = preferredClassTypes
+          ? JSON.stringify(preferredClassTypes)
+          : null;
+      }
+      if (learningGoals !== undefined) {
+        updateData.learningGoals = learningGoals;
+      }
+      if (availabilityNotes !== undefined) {
+        updateData.availabilityNotes = availabilityNotes;
+      }
 
       const updatedUser = await prisma.user.update({
         where: { id: req.user!.id },
@@ -633,13 +532,14 @@ router.put(
           firstName: true,
           lastName: true,
           timezone: true,
-          // dateOfBirth: true,
-          // phoneNumber: true,
-          // aboutMe: true,
-          // spanishLevel: true,
-          // preferredClassTypes: true,
-          // learningGoals: true,
-          // availabilityNotes: true,
+          languagePreference: true,
+          dateOfBirth: true,
+          phoneNumber: true,
+          aboutMe: true,
+          spanishLevel: true,
+          preferredClassTypes: true,
+          learningGoals: true,
+          availabilityNotes: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -648,9 +548,9 @@ router.put(
       // Parse preferredClassTypes from JSON string to array
       const profile = {
         ...updatedUser,
-        // preferredClassTypes: updatedUser.preferredClassTypes
-        //   ? JSON.parse(updatedUser.preferredClassTypes)
-        //   : null,
+        preferredClassTypes: updatedUser.preferredClassTypes
+          ? JSON.parse(updatedUser.preferredClassTypes)
+          : null,
       };
 
       const completion = calculateProfileCompletion(updatedUser);

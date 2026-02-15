@@ -19,6 +19,15 @@ model User {
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
+  // Student profile fields for profile completion feature
+  dateOfBirth         DateTime? @map("date_of_birth") @db.Date
+  phoneNumber         String?   @map("phone_number") @db.VarChar(50)
+  aboutMe             String?   @map("about_me") @db.Text
+  spanishLevel        String?   @map("spanish_level") @db.VarChar(50)
+  preferredClassTypes String?   @map("preferred_class_types") @db.Text // JSON array
+  learningGoals       String?   @map("learning_goals") @db.Text
+  availabilityNotes   String?   @map("availability_notes") @db.Text
+
   slots                    AvailabilitySlot[]
   bookings                 Booking[]
   notesWritten             StudentNote[]      @relation("NotesWritten")
@@ -128,7 +137,7 @@ model Booking {
   cancelReason            String?       @map("cancel_reason")
   confirmedAt             DateTime?     @map("confirmed_at")
   rejectedAt              DateTime?     @map("rejected_at")
-  confirmationToken       String?       @map("confirmation_token")
+  confirmationToken       String?       @map("confirmation_token") @db.Text
   confirmationExpiresAt   DateTime?     @map("confirmation_expires_at")
   createdAt               DateTime      @default(now()) @map("created_at")
   updatedAt               DateTime      @updatedAt @map("updated_at")

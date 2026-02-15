@@ -1,20 +1,42 @@
-import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Calendar, BookOpen, Clock, ArrowRight, Video, User, Sparkles, GraduationCap } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { studentApi } from '@/lib/api';
-import { formatDate, formatTime, getDuration, getRelativeTime } from '@/lib/utils';
-import { useAuthStore } from '@/stores/auth';
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  BookOpen,
+  Clock,
+  ArrowRight,
+  Video,
+  User,
+  Sparkles,
+  GraduationCap,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { studentApi } from "@/lib/api";
+import {
+  formatDate,
+  formatTime,
+  getDuration,
+  getRelativeTime,
+} from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth";
+import BookingStatusBadge from "@/components/booking/BookingStatusBadge";
+import { ProfileCompletionCard } from "@/components/student/ProfileCompletionCard";
 
 export function StudentDashboard() {
   const { user } = useAuthStore();
   const { data, isLoading } = useQuery({
-    queryKey: ['student-dashboard'],
+    queryKey: ["student-dashboard"],
     queryFn: studentApi.getDashboard,
+  });
+
+  // Fetch profile completion data
+  const { data: profileData } = useQuery({
+    queryKey: ["student-profile"],
+    queryFn: studentApi.getProfile,
   });
 
   return (
@@ -31,7 +53,9 @@ export function StudentDashboard() {
               Student
             </Badge>
           </div>
-          <p className="text-navy-500">Continue your Spanish learning journey.</p>
+          <p className="text-navy-500">
+            Continue your Spanish learning journey.
+          </p>
         </div>
         <Button variant="primary" className="shadow-glow-red" asChild>
           <Link to="/dashboard/book">
@@ -55,7 +79,9 @@ export function StudentDashboard() {
                     <Calendar className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-navy-600">Upcoming Sessions</p>
+                    <p className="text-sm font-medium text-navy-600">
+                      Upcoming Sessions
+                    </p>
                     {isLoading ? (
                       <Skeleton className="h-10 w-20 mt-1" />
                     ) : (
@@ -83,7 +109,9 @@ export function StudentDashboard() {
                     <BookOpen className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-navy-600">Completed Sessions</p>
+                    <p className="text-sm font-medium text-navy-600">
+                      Completed Sessions
+                    </p>
                     {isLoading ? (
                       <Skeleton className="h-10 w-20 mt-1" />
                     ) : (
@@ -99,6 +127,11 @@ export function StudentDashboard() {
         </motion.div>
       </div>
 
+      {/* Profile Completion Card - Show if completion < 100% */}
+      {profileData?.completion && profileData.completion.percentage < 100 && (
+        <ProfileCompletionCard completion={profileData.completion} />
+      )}
+
       {/* Next Session */}
       <Card variant="elevated">
         <CardHeader className="flex flex-row items-center justify-between border-b border-spanish-cream-200 pb-4">
@@ -108,7 +141,12 @@ export function StudentDashboard() {
             </div>
             <CardTitle className="text-xl">Next Session</CardTitle>
           </div>
-          <Button variant="ghost" size="sm" className="text-spanish-red-600 hover:text-spanish-red-700 hover:bg-spanish-red-50" asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-spanish-red-600 hover:text-spanish-red-700 hover:bg-spanish-red-50"
+            asChild
+          >
             <Link to="/dashboard/bookings">
               View All <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
@@ -133,31 +171,53 @@ export function StudentDashboard() {
                     <Clock className="h-8 w-8 text-navy-800" />
                   </div>
                   <div>
-                    <Badge variant="gold-solid" className="mb-2 shadow-sm">
-                      {getRelativeTime(data.nextSession.slot.startTime)}
-                    </Badge>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="gold-solid" className="shadow-sm">
+                        {getRelativeTime(data.nextSession.slot.startTime)}
+                      </Badge>
+                      <BookingStatusBadge status={data.nextSession.status} />
+                    </div>
                     <p className="font-display font-bold text-xl text-navy-800">
-                      {data.nextSession.slot.title || 'Spanish Class'}
+                      {data.nextSession.slot.title || "Spanish Class"}
                     </p>
                     <p className="text-navy-500 mt-1">
-                      {formatDate(data.nextSession.slot.startTime)} at{' '}
-                      <span className="font-semibold text-navy-700">{formatTime(data.nextSession.slot.startTime)}</span>
+                      {formatDate(data.nextSession.slot.startTime)} at{" "}
+                      <span className="font-semibold text-navy-700">
+                        {formatTime(data.nextSession.slot.startTime)}
+                      </span>
                     </p>
                     <div className="flex items-center gap-4 mt-3">
                       <span className="flex items-center gap-1.5 text-sm text-navy-500 bg-white/80 px-3 py-1.5 rounded-full border border-spanish-cream-200">
                         <Clock className="h-4 w-4 text-gold-500" />
-                        {getDuration(data.nextSession.slot.startTime, data.nextSession.slot.endTime)}
+                        {getDuration(
+                          data.nextSession.slot.startTime,
+                          data.nextSession.slot.endTime,
+                        )}
                       </span>
                       <span className="flex items-center gap-1.5 text-sm text-navy-500 bg-white/80 px-3 py-1.5 rounded-full border border-spanish-cream-200">
                         <User className="h-4 w-4 text-spanish-red-500" />
-                        {data.nextSession.slot.professor?.firstName}{' '}
+                        {data.nextSession.slot.professor?.firstName}{" "}
                         {data.nextSession.slot.professor?.lastName}
                       </span>
                     </div>
                   </div>
                 </div>
-                {data.nextSession.slot.meetLink && (
-                  <Button variant="primary" size="lg" className="shadow-glow-red flex-shrink-0" asChild>
+                {data.nextSession.status === "PENDING_CONFIRMATION" ? (
+                  <div className="flex flex-col items-center gap-2 text-center flex-shrink-0">
+                    <p className="text-sm text-amber-600 font-medium">
+                      ⏳ Awaiting Professor Approval
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      You'll receive an email once approved
+                    </p>
+                  </div>
+                ) : data.nextSession.slot.meetLink ? (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="shadow-glow-red flex-shrink-0"
+                    asChild
+                  >
                     <a
                       href={data.nextSession.slot.meetLink}
                       target="_blank"
@@ -167,7 +227,7 @@ export function StudentDashboard() {
                       Join Session
                     </a>
                   </Button>
-                )}
+                ) : null}
               </div>
             </motion.div>
           ) : (
@@ -175,8 +235,12 @@ export function StudentDashboard() {
               <div className="h-20 w-20 mx-auto mb-6 rounded-2xl bg-spanish-cream-100 flex items-center justify-center">
                 <Calendar className="h-10 w-10 text-spanish-cream-400" />
               </div>
-              <p className="text-navy-600 font-medium mb-2">No upcoming sessions</p>
-              <p className="text-navy-400 text-sm mb-6">Book your first class to start learning</p>
+              <p className="text-navy-600 font-medium mb-2">
+                No upcoming sessions
+              </p>
+              <p className="text-navy-400 text-sm mb-6">
+                Book your first class to start learning
+              </p>
               <Button variant="primary" className="shadow-glow-red" asChild>
                 <Link to="/dashboard/book">Book Your First Class</Link>
               </Button>
@@ -188,27 +252,43 @@ export function StudentDashboard() {
       {/* Quick Actions */}
       <div className="grid gap-5 sm:grid-cols-2">
         <Link to="/dashboard/book">
-          <Card hover variant="elevated" className="cursor-pointer h-full group">
+          <Card
+            hover
+            variant="elevated"
+            className="cursor-pointer h-full group"
+          >
             <CardContent className="p-6 flex items-center gap-4">
               <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-gold-400 to-gold-500 flex items-center justify-center shadow-lg group-hover:shadow-glow-gold transition-shadow">
                 <Calendar className="h-7 w-7 text-navy-800" />
               </div>
               <div>
-                <p className="font-semibold text-lg text-navy-800 group-hover:text-gold-600 transition-colors">Browse Available Classes</p>
-                <p className="text-sm text-navy-500">Find and book your next session</p>
+                <p className="font-semibold text-lg text-navy-800 group-hover:text-gold-600 transition-colors">
+                  Browse Available Classes
+                </p>
+                <p className="text-sm text-navy-500">
+                  Find and book your next session
+                </p>
               </div>
             </CardContent>
           </Card>
         </Link>
         <Link to="/dashboard/bookings">
-          <Card hover variant="elevated" className="cursor-pointer h-full group">
+          <Card
+            hover
+            variant="elevated"
+            className="cursor-pointer h-full group"
+          >
             <CardContent className="p-6 flex items-center gap-4">
               <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-spanish-olive-500 to-spanish-olive-600 flex items-center justify-center shadow-lg transition-shadow">
                 <BookOpen className="h-7 w-7 text-white" />
               </div>
               <div>
-                <p className="font-semibold text-lg text-navy-800 group-hover:text-spanish-olive-600 transition-colors">My Bookings</p>
-                <p className="text-sm text-navy-500">View and manage your sessions</p>
+                <p className="font-semibold text-lg text-navy-800 group-hover:text-spanish-olive-600 transition-colors">
+                  My Bookings
+                </p>
+                <p className="text-sm text-navy-500">
+                  View and manage your sessions
+                </p>
               </div>
             </CardContent>
           </Card>

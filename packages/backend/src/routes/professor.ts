@@ -96,7 +96,7 @@ router.get("/dashboard", async (req, res, next) => {
       },
       include: {
         bookings: {
-          where: { status: "CONFIRMED" },
+          where: { status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] } },
           include: {
             student: {
               select: {
@@ -174,7 +174,7 @@ router.get(
           where,
           include: {
             bookings: {
-              where: { status: "CONFIRMED" },
+              where: { status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] } },
               include: {
                 student: {
                   select: {
@@ -721,7 +721,11 @@ router.post(
 
       // Check if already booked
       const existingBooking = await prisma.booking.findFirst({
-        where: { slotId, studentId, status: "CONFIRMED" },
+        where: {
+          slotId,
+          studentId,
+          status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
+        },
       });
 
       if (existingBooking) {
@@ -908,7 +912,7 @@ router.delete("/slots/:id", async (req, res, next) => {
       },
       include: {
         bookings: {
-          where: { status: "CONFIRMED" },
+          where: { status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] } },
         },
       },
     });
@@ -950,7 +954,7 @@ router.post("/slots/:id/cancel-with-bookings", async (req, res, next) => {
       },
       include: {
         bookings: {
-          where: { status: "CONFIRMED" },
+          where: { status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] } },
           select: {
             id: true,
             student: {
@@ -979,11 +983,11 @@ router.post("/slots/:id/cancel-with-bookings", async (req, res, next) => {
 
     // Cancel all bookings and slot in a transaction
     await prisma.$transaction([
-      // Cancel all confirmed bookings
+      // Cancel all confirmed and pending bookings
       prisma.booking.updateMany({
         where: {
           slotId: slot.id,
-          status: "CONFIRMED",
+          status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
         },
         data: {
           status: "CANCELLED_BY_PROFESSOR",
@@ -1057,7 +1061,9 @@ router.get(
             _count: {
               select: {
                 bookings: {
-                  where: { status: "CONFIRMED" },
+                  where: {
+                    status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
+                  },
                 },
               },
             },

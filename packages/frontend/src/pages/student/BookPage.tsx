@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/dialog";
 import { studentApi } from "@/lib/api";
 import { cn, formatDate, formatTime, getDuration } from "@/lib/utils";
+import { SEOMeta } from "@/components/shared/SEOMeta";
 import type { AvailabilitySlot } from "@spanish-class/shared";
 
 type ViewMode = "list" | "calendar";
@@ -164,172 +165,180 @@ export function BookPage() {
   const selectedDateSlots = selectedDate ? getSlotsByDate(selectedDate) : [];
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">
-            Book a Class
-          </h1>
-          <p className="text-muted-foreground">
-            Browse and book available sessions
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Slot Type Filter */}
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="All types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="INDIVIDUAL">Individual</SelectItem>
-                <SelectItem value="GROUP">Group</SelectItem>
-              </SelectContent>
-            </Select>
+    <>
+      <SEOMeta
+        title="Book a Spanish Lesson"
+        description="Browse and book available Spanish lessons with native teachers. Flexible scheduling for individual and group classes starting at 2000 RSD."
+        canonical="/book"
+        noindex={true}
+      />
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-navy-800">
+              Book a Class
+            </h1>
+            <p className="text-muted-foreground">
+              Browse and book available sessions
+            </p>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Slot Type Filter */}
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={filter} onValueChange={setFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="All types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="INDIVIDUAL">Individual</SelectItem>
+                  <SelectItem value="GROUP">Group</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* For Me Only Filter */}
-          <Button
-            variant={forMeOnly ? "primary" : "outline"}
-            size="sm"
-            onClick={() => setForMeOnly(!forMeOnly)}
-            className="gap-1"
-          >
-            <Star className={cn("h-4 w-4", forMeOnly && "fill-current")} />
-            For Me Only
-          </Button>
-
-          {/* View Toggle */}
-          <div className="flex rounded-lg border bg-muted p-1">
+            {/* For Me Only Filter */}
             <Button
-              variant={viewMode === "list" ? "secondary" : "ghost"}
+              variant={forMeOnly ? "primary" : "outline"}
               size="sm"
-              onClick={() => setViewMode("list")}
+              onClick={() => setForMeOnly(!forMeOnly)}
               className="gap-1"
             >
-              <List className="h-4 w-4" />
-              <span className="hidden sm:inline">List</span>
+              <Star className={cn("h-4 w-4", forMeOnly && "fill-current")} />
+              For Me Only
             </Button>
-            <Button
-              variant={viewMode === "calendar" ? "secondary" : "ghost"}
-              size="sm"
-              onClick={() => setViewMode("calendar")}
-              className="gap-1"
-            >
-              <CalendarDays className="h-4 w-4" />
-              <span className="hidden sm:inline">Calendar</span>
-            </Button>
+
+            {/* View Toggle */}
+            <div className="flex rounded-lg border bg-muted p-1">
+              <Button
+                variant={viewMode === "list" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="gap-1"
+              >
+                <List className="h-4 w-4" />
+                <span className="hidden sm:inline">List</span>
+              </Button>
+              <Button
+                variant={viewMode === "calendar" ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setViewMode("calendar")}
+                className="gap-1"
+              >
+                <CalendarDays className="h-4 w-4" />
+                <span className="hidden sm:inline">Calendar</span>
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Content based on view mode */}
-      {viewMode === "list" ? (
-        <ListView
-          isLoading={isLoading}
-          slotsByDate={slotsByDate}
-          onSelectSlot={setSelectedSlot}
-          forMeOnly={forMeOnly}
-          professor={professor}
-        />
-      ) : (
-        <CalendarView
-          isLoading={isLoading}
-          currentMonth={currentMonth}
-          setCurrentMonth={setCurrentMonth}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          days={days}
-          getSlotsByDate={getSlotsByDate}
-          selectedDateSlots={selectedDateSlots}
-          onSelectSlot={setSelectedSlot}
-          forMeOnly={forMeOnly}
-          totalSlots={data?.data?.length || 0}
-          professor={professor}
-        />
-      )}
+        {/* Content based on view mode */}
+        {viewMode === "list" ? (
+          <ListView
+            isLoading={isLoading}
+            slotsByDate={slotsByDate}
+            onSelectSlot={setSelectedSlot}
+            forMeOnly={forMeOnly}
+            professor={professor}
+          />
+        ) : (
+          <CalendarView
+            isLoading={isLoading}
+            currentMonth={currentMonth}
+            setCurrentMonth={setCurrentMonth}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            days={days}
+            getSlotsByDate={getSlotsByDate}
+            selectedDateSlots={selectedDateSlots}
+            onSelectSlot={setSelectedSlot}
+            forMeOnly={forMeOnly}
+            totalSlots={data?.data?.length || 0}
+            professor={professor}
+          />
+        )}
 
-      {/* Booking Confirmation Dialog */}
-      <Dialog
-        open={!!selectedSlot && !bookingSuccess}
-        onOpenChange={() => setSelectedSlot(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Booking</DialogTitle>
-            <DialogDescription>
-              You're about to book the following session:
-            </DialogDescription>
-          </DialogHeader>
-          {selectedSlot && (
-            <div className="p-4 rounded-lg bg-gray-50 space-y-2">
-              <p className="font-semibold">
-                {selectedSlot.title || "Spanish Class"}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {formatDate(selectedSlot.startTime)}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {formatTime(selectedSlot.startTime)} -{" "}
-                {formatTime(selectedSlot.endTime)} (
-                {getDuration(selectedSlot.startTime, selectedSlot.endTime)})
-              </p>
-              <div className="flex gap-2 mt-2">
-                <Badge variant="secondary">
-                  {selectedSlot.slotType === "GROUP"
-                    ? "Group Session"
-                    : "Individual Session"}
-                </Badge>
-                {selectedSlot.isPrivate && (
-                  <Badge variant="default">
-                    <Star className="mr-1 h-3 w-3 fill-current" />
-                    Reserved for you
+        {/* Booking Confirmation Dialog */}
+        <Dialog
+          open={!!selectedSlot && !bookingSuccess}
+          onOpenChange={() => setSelectedSlot(null)}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Booking</DialogTitle>
+              <DialogDescription>
+                You're about to book the following session:
+              </DialogDescription>
+            </DialogHeader>
+            {selectedSlot && (
+              <div className="p-4 rounded-lg bg-gray-50 space-y-2">
+                <p className="font-semibold">
+                  {selectedSlot.title || "Spanish Class"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {formatDate(selectedSlot.startTime)}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {formatTime(selectedSlot.startTime)} -{" "}
+                  {formatTime(selectedSlot.endTime)} (
+                  {getDuration(selectedSlot.startTime, selectedSlot.endTime)})
+                </p>
+                <div className="flex gap-2 mt-2">
+                  <Badge variant="secondary">
+                    {selectedSlot.slotType === "GROUP"
+                      ? "Group Session"
+                      : "Individual Session"}
                   </Badge>
-                )}
+                  {selectedSlot.isPrivate && (
+                    <Badge variant="default">
+                      <Star className="mr-1 h-3 w-3 fill-current" />
+                      Reserved for you
+                    </Badge>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setSelectedSlot(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleBook}
-              isLoading={bookMutation.isPending}
-            >
-              Confirm Booking
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            )}
+            <DialogFooter>
+              <Button variant="ghost" onClick={() => setSelectedSlot(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleBook}
+                isLoading={bookMutation.isPending}
+              >
+                Confirm Booking
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-      {/* Success Dialog */}
-      <Dialog open={bookingSuccess} onOpenChange={closeDialog}>
-        <DialogContent>
-          <div className="text-center py-4">
-            <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="h-8 w-8 text-green-600" />
+        {/* Success Dialog */}
+        <Dialog open={bookingSuccess} onOpenChange={closeDialog}>
+          <DialogContent>
+            <div className="text-center py-4">
+              <div className="h-16 w-16 rounded-full bg-amber-100 flex items-center justify-center mx-auto mb-4">
+                <Clock className="h-8 w-8 text-amber-600" />
+              </div>
+              <DialogTitle className="text-xl mb-2">
+                Booking Request Sent!
+              </DialogTitle>
+              <DialogDescription className="text-base">
+                Your booking request is pending professor approval. You'll
+                receive an email once the professor approves your request.
+              </DialogDescription>
             </div>
-            <DialogTitle className="text-xl mb-2">
-              Booking Confirmed!
-            </DialogTitle>
-            <DialogDescription className="text-base">
-              Your session has been booked successfully. Check your email for
-              confirmation details and the video meeting link.
-            </DialogDescription>
-          </div>
-          <DialogFooter className="sm:justify-center">
-            <Button variant="primary" onClick={closeDialog}>
-              Done
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+            <DialogFooter className="sm:justify-center">
+              <Button variant="primary" onClick={closeDialog}>
+                Done
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </>
   );
 }
 
