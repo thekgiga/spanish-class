@@ -1,41 +1,106 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'react-hot-toast';
-import { useAuthStore } from '@/stores/auth';
+import { useEffect, lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "react-hot-toast";
+import { useAuthStore } from "@/stores/auth";
+import { SkipLink } from "@/components/shared/SkipLink";
+import { PageSkeleton } from "@/components/shared/LoadingSkeleton";
 
-// Layouts
-import { PublicLayout } from '@/components/layout/PublicLayout';
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
+// Layouts - Keep non-lazy to avoid layout shift
+import { PublicLayout } from "@/components/layout/PublicLayout";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
-// Public Pages
-import { HomePage } from '@/pages/public/HomePage';
-import { LoginPage } from '@/pages/auth/LoginPage';
-import { RegisterPage } from '@/pages/auth/RegisterPage';
+// Lazy-loaded Public Pages
+const HomePage = lazy(() =>
+  import("@/pages/public/HomePage").then((m) => ({ default: m.HomePage })),
+);
+const AboutPage = lazy(() =>
+  import("@/pages/public/AboutPage").then((m) => ({ default: m.AboutPage })),
+);
+const LoginPage = lazy(() =>
+  import("@/pages/auth/LoginPage").then((m) => ({ default: m.LoginPage })),
+);
+const RegisterPage = lazy(() =>
+  import("@/pages/auth/RegisterPage").then((m) => ({
+    default: m.RegisterPage,
+  })),
+);
 
-// Admin Pages
-import { AdminDashboard } from '@/pages/admin/AdminDashboard';
-import { SlotsPage } from '@/pages/admin/SlotsPage';
-import { NewSlotPage } from '@/pages/admin/NewSlotPage';
-import { StudentsPage } from '@/pages/admin/StudentsPage';
-import { StudentDetailPage } from '@/pages/admin/StudentDetailPage';
-import { CalendarPage } from '@/pages/admin/CalendarPage';
-import { BulkSlotPage } from '@/pages/admin/BulkSlotPage';
-import { EmailLogsPage } from '@/pages/admin/EmailLogsPage';
+// Lazy-loaded Admin Pages
+const AdminDashboard = lazy(() =>
+  import("@/pages/admin/AdminDashboard").then((m) => ({
+    default: m.AdminDashboard,
+  })),
+);
+const SlotsPage = lazy(() =>
+  import("@/pages/admin/SlotsPage").then((m) => ({ default: m.SlotsPage })),
+);
+const NewSlotPage = lazy(() =>
+  import("@/pages/admin/NewSlotPage").then((m) => ({ default: m.NewSlotPage })),
+);
+const StudentsPage = lazy(() =>
+  import("@/pages/admin/StudentsPage").then((m) => ({
+    default: m.StudentsPage,
+  })),
+);
+const StudentDetailPage = lazy(() =>
+  import("@/pages/admin/StudentDetailPage").then((m) => ({
+    default: m.StudentDetailPage,
+  })),
+);
+const CalendarPage = lazy(() =>
+  import("@/pages/admin/CalendarPage").then((m) => ({
+    default: m.CalendarPage,
+  })),
+);
+const BulkSlotPage = lazy(() =>
+  import("@/pages/admin/BulkSlotPage").then((m) => ({
+    default: m.BulkSlotPage,
+  })),
+);
+const EmailLogsPage = lazy(() =>
+  import("@/pages/admin/EmailLogsPage").then((m) => ({
+    default: m.EmailLogsPage,
+  })),
+);
+const PendingBookingsPage = lazy(() =>
+  import("@/pages/admin/PendingBookingsPage").then((m) => ({
+    default: m.PendingBookingsPage,
+  })),
+);
 
-// Student Pages
-import { StudentDashboard } from '@/pages/student/StudentDashboard';
-import { BookPage } from '@/pages/student/BookPage';
-import { BookingsPage } from '@/pages/student/BookingsPage';
-import { StudentProfilePage } from '@/pages/student/StudentProfilePage';
+// Lazy-loaded Student Pages
+const StudentDashboard = lazy(() =>
+  import("@/pages/student/StudentDashboard").then((m) => ({
+    default: m.StudentDashboard,
+  })),
+);
+const BookPage = lazy(() =>
+  import("@/pages/student/BookPage").then((m) => ({ default: m.BookPage })),
+);
+const BookingsPage = lazy(() =>
+  import("@/pages/student/BookingsPage").then((m) => ({
+    default: m.BookingsPage,
+  })),
+);
+const StudentProfilePage = lazy(() =>
+  import("@/pages/student/StudentProfilePage").then((m) => ({
+    default: m.StudentProfilePage,
+  })),
+);
 
-// Shared Pages
-import { SettingsPage } from '@/pages/shared/SettingsPage';
+// Lazy-loaded Shared Pages
+const SettingsPage = lazy(() =>
+  import("@/pages/shared/SettingsPage").then((m) => ({
+    default: m.SettingsPage,
+  })),
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
       retry: 1,
     },
   },
@@ -77,7 +142,7 @@ function AuthRedirect({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuthStore();
 
   if (isAuthenticated) {
-    return <Navigate to={user?.isAdmin ? '/admin' : '/dashboard'} replace />;
+    return <Navigate to={user?.isAdmin ? "/admin" : "/dashboard"} replace />;
   }
 
   return <>{children}</>;
@@ -99,68 +164,75 @@ function AppRoutes() {
   }
 
   return (
-    <Routes>
-      {/* Public Routes */}
-      <Route element={<PublicLayout />}>
-        <Route path="/" element={<HomePage />} />
-        <Route
-          path="/login"
-          element={
-            <AuthRedirect>
-              <LoginPage />
-            </AuthRedirect>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <AuthRedirect>
-              <RegisterPage />
-            </AuthRedirect>
-          }
-        />
-      </Route>
+    <>
+      <SkipLink />
+      <Suspense fallback={<PageSkeleton />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route
+              path="/login"
+              element={
+                <AuthRedirect>
+                  <LoginPage />
+                </AuthRedirect>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <AuthRedirect>
+                  <RegisterPage />
+                </AuthRedirect>
+              }
+            />
+          </Route>
 
-      {/* Admin Routes */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute requireAdmin>
-            <DashboardLayout isAdmin />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-        <Route path="calendar" element={<CalendarPage />} />
-        <Route path="slots" element={<SlotsPage />} />
-        <Route path="slots/new" element={<NewSlotPage />} />
-        <Route path="slots/bulk" element={<BulkSlotPage />} />
-        <Route path="slots/:id" element={<NewSlotPage />} />
-        <Route path="students" element={<StudentsPage />} />
-        <Route path="students/:id" element={<StudentDetailPage />} />
-        <Route path="email-logs" element={<EmailLogsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
-      </Route>
+          {/* Admin Routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute requireAdmin>
+                <DashboardLayout isAdmin />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="slots" element={<SlotsPage />} />
+            <Route path="slots/new" element={<NewSlotPage />} />
+            <Route path="slots/bulk" element={<BulkSlotPage />} />
+            <Route path="slots/:id" element={<NewSlotPage />} />
+            <Route path="students" element={<StudentsPage />} />
+            <Route path="students/:id" element={<StudentDetailPage />} />
+            <Route path="pending-approvals" element={<PendingBookingsPage />} />
+            <Route path="email-logs" element={<EmailLogsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
 
-      {/* Student Routes */}
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<StudentDashboard />} />
-        <Route path="book" element={<BookPage />} />
-        <Route path="bookings" element={<BookingsPage />} />
-        <Route path="profile" element={<StudentProfilePage />} />
-        <Route path="settings" element={<SettingsPage />} />
-      </Route>
+          {/* Student Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<StudentDashboard />} />
+            <Route path="book" element={<BookPage />} />
+            <Route path="bookings" element={<BookingsPage />} />
+            <Route path="profile" element={<StudentProfilePage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
 
-      {/* 404 */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+          {/* 404 */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </>
   );
 }
 
@@ -174,9 +246,9 @@ export default function App() {
           toastOptions={{
             duration: 4000,
             style: {
-              borderRadius: '12px',
-              background: '#1a1f36',
-              color: '#fff',
+              borderRadius: "12px",
+              background: "#1a1f36",
+              color: "#fff",
             },
           }}
         />

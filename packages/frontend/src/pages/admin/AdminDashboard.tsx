@@ -141,7 +141,7 @@ export function AdminDashboard() {
                   className="border-amber-300 hover:bg-amber-100"
                   asChild
                 >
-                  <Link to="/admin/slots">
+                  <Link to="/admin/pending-approvals">
                     View All <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
