@@ -4,9 +4,8 @@ import { motion } from 'framer-motion';
 import { Clock, CheckCircle, XCircle, Calendar, User } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -121,12 +120,6 @@ export function PendingApprovalsPage() {
                           </span>
                         </div>
                       </div>
-
-                      {booking.slot.title && (
-                        <div className="mt-2">
-                          <Badge variant="secondary">{booking.slot.title}</Badge>
-                        </div>
-                      )}
                     </div>
 
                     <div className="flex flex-col gap-2">

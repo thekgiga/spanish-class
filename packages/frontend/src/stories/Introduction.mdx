@@ -1,0 +1,128 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction" />
+
+# Spanish Class Design System
+
+Welcome to the **Spanish Class** premium design system documentation.
+
+This Storybook showcases our Spanish-inspired component library built for a modern, accessible online learning platform.
+
+## 🎨 Design Philosophy
+
+Our design system draws inspiration from Spanish culture and architecture:
+
+- **Spanish Red** (#B91C1C) - Bold and passionate primary color
+- **Gold** (#D97706) - Warm premium accent
+- **Playfair Display** - Elegant serif typography with Spanish baroque influence
+- **Moorish Patterns** - Subtle geometric backgrounds inspired by Alhambra
+- **Azulejo Tiles** - Decorative borders inspired by traditional Spanish tiles
+
+## ♿ Accessibility First
+
+All components meet **WCAG 2.1 AA** standards:
+
+- ✅ Minimum 4.5:1 color contrast for text
+- ✅ 44x44px touch targets on mobile
+- ✅ Full keyboard navigation support
+- ✅ Screen reader friendly with ARIA attributes
+- ✅ Visible focus indicators (2px offset, 3:1 contrast)
+
+## 🧩 Component Categories
+
+### UI Components
+Core building blocks for the interface:
+- **Button** - Primary actions with multiple variants
+- **Badge** - Status indicators and labels
+- **Card** - Content containers with shadows
+- **Input** - Form inputs with icons and validation
+- **Avatar** - User profile pictures with status
+
+### Layout Components
+Structure and navigation:
+- **Header** - Main navigation bar
+- **Footer** - Site footer with links
+- **MobileNav** - Mobile slide-in drawer
+
+### Shared Components
+Reusable utilities:
+- **SEOMeta** - Dynamic meta tags for SEO
+- **LoadingSkeleton** - Content loading states
+- **ResponsiveImage** - Optimized images with srcset
+
+## 🚀 Getting Started
+
+### Installation
+
+```bash
+npm install
+npm run storybook
+```
+
+### Using Components
+
+```tsx
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+
+function MyComponent() {
+  return (
+    <Card>
+      <CardContent>
+        <Button variant="primary">
+          Click me
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+## 🎯 Design Tokens
+
+### Colors
+
+- **Spanish Red**: `#B91C1C` (50-900 scale)
+- **Gold**: `#D97706` (50-900 scale)
+- **Clay Neutrals**: Warm gray tones
+- **Terracotta**: Accent variations
+
+### Typography
+
+- **Headings**: Playfair Display
+- **Body**: Inter Variable
+- **Scales**: Fluid with clamp()
+
+### Spacing
+
+8px base unit system: `0, 1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 56, 64`
+
+### Shadows
+
+- **sm**: Subtle elevation
+- **md**: Medium depth
+- **lg**: Prominent elevation
+- **glow-spanish**: Red glow effect
+- **glow-gold**: Gold glow effect
+
+## 📚 Resources
+
+- [Tailwind CSS](https://tailwindcss.com)
+- [Radix UI](https://www.radix-ui.com)
+- [Framer Motion](https://www.framer.com/motion)
+- [WCAG Guidelines](https://www.w3.org/WAI/WCAG21/quickref)
+
+## 🤝 Contributing
+
+When creating new components:
+
+1. Follow accessibility guidelines
+2. Use design tokens from Tailwind config
+3. Include all required ARIA attributes
+4. Test keyboard navigation
+5. Verify color contrast
+6. Add Storybook stories with examples
+
+---
+
+**Enjoy exploring the Spanish Class design system!** 🇪🇸
