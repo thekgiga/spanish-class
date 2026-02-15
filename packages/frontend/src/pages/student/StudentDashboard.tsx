@@ -24,12 +24,19 @@ import {
 } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth";
 import BookingStatusBadge from "@/components/booking/BookingStatusBadge";
+import { ProfileCompletionCard } from "@/components/student/ProfileCompletionCard";
 
 export function StudentDashboard() {
   const { user } = useAuthStore();
   const { data, isLoading } = useQuery({
     queryKey: ["student-dashboard"],
     queryFn: studentApi.getDashboard,
+  });
+
+  // Fetch profile completion data
+  const { data: profileData } = useQuery({
+    queryKey: ["student-profile"],
+    queryFn: studentApi.getProfile,
   });
 
   return (
@@ -119,6 +126,11 @@ export function StudentDashboard() {
           </Card>
         </motion.div>
       </div>
+
+      {/* Profile Completion Card - Show if completion < 100% */}
+      {profileData?.completion && profileData.completion.percentage < 100 && (
+        <ProfileCompletionCard completion={profileData.completion} />
+      )}
 
       {/* Next Session */}
       <Card variant="elevated">

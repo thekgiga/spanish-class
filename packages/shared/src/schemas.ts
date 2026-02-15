@@ -167,6 +167,7 @@ export const updateNoteSchema = z.object({
 
 // Student Profile Enums
 export const spanishLevelEnum = z.enum([
+  "I_DONT_KNOW",
   "BEGINNER",
   "ELEMENTARY",
   "INTERMEDIATE",
@@ -205,7 +206,7 @@ export const updateStudentProfileSchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
     .optional()
     .nullable(),
-  phoneNumber: z.string().max(20).optional().nullable(),
+  phoneNumber: z.string().max(50).optional().nullable(),
   aboutMe: z.string().max(1000).optional().nullable(),
 
   // Learning preferences (US-17)

@@ -1,0 +1,381 @@
+openapi: 3.0.3
+info:
+  title: Student Profile API
+  description: API endpoints for managing student profile data and completion tracking
+  version: 1.0.0
+  contact:
+    name: Spanish Class Platform
+
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+  - url: https://api.spanish-class.com/api
+    description: Production server
+
+paths:
+  /student/profile:
+    get:
+      summary: Get student profile with completion status
+      description: Retrieves the authenticated student's profile data along with calculated completion percentage and detailed field-by-field breakdown
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Profile data retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      profile:
+                        $ref: '#/components/schemas/StudentProfile'
+                      completion:
+                        $ref: '#/components/schemas/ProfileCompletion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    put:
+      summary: Update student profile
+      description: Updates one or more fields in the student's profile and returns updated data with recalculated completion status
+      tags:
+        - Student Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStudentProfileRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      profile:
+                        $ref: '#/components/schemas/StudentProfile'
+                      completion:
+                        $ref: '#/components/schemas/ProfileCompletion'
+                  message:
+                    type: string
+                    example: Profile updated successfully
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    StudentProfile:
+      type: object
+      required:
+        - id
+        - email
+        - firstName
+        - lastName
+        - timezone
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: cuid
+          example: cl1a2b3c4d5e6f7g8h9i0j1k
+          description: Unique user identifier
+        email:
+          type: string
+          format: email
+          example: student@example.com
+          description: User's email address
+        firstName:
+          type: string
+          example: John
+          description: User's first name
+        lastName:
+          type: string
+          example: Doe
+          description: User's last name
+        timezone:
+          type: string
+          example: Europe/Madrid
+          description: User's timezone
+        languagePreference:
+          type: string
+          nullable: true
+          enum: [en, es, sr]
+          example: en
+          description: Preferred UI language
+        dateOfBirth:
+          type: string
+          format: date
+          nullable: true
+          example: '1995-06-15'
+          description: Student's date of birth
+        phoneNumber:
+          type: string
+          nullable: true
+          example: '+1 555-123-4567'
+          description: Contact phone number
+        aboutMe:
+          type: string
+          nullable: true
+          example: I'm a software engineer interested in learning Spanish for travel and work opportunities in Latin America.
+          description: Student's self-description and background
+        spanishLevel:
+          type: string
+          nullable: true
+          enum:
+            - BEGINNER
+            - ELEMENTARY
+            - INTERMEDIATE
+            - UPPER_INTERMEDIATE
+            - ADVANCED
+            - NATIVE
+          example: INTERMEDIATE
+          description: Current Spanish proficiency level
+        preferredClassTypes:
+          type: array
+          nullable: true
+          items:
+            type: string
+            enum:
+              - PRIVATE_LESSONS
+              - GROUP_CLASSES
+              - CONVERSATION_PRACTICE
+              - EXAM_PREPARATION
+              - BUSINESS_SPANISH
+              - GRAMMAR_FOCUS
+              - PRONUNCIATION
+              - WRITING_SKILLS
+          example: [PRIVATE_LESSONS, CONVERSATION_PRACTICE]
+          description: Preferred types of classes
+        learningGoals:
+          type: string
+          nullable: true
+          example: I want to achieve conversational fluency for my upcoming trip to Spain and be able to conduct basic business meetings in Spanish.
+          description: Student's learning objectives
+        availabilityNotes:
+          type: string
+          nullable: true
+          example: Prefer evening classes after 6pm EST. Weekends are also good for me.
+          description: Scheduling preferences and constraints
+        createdAt:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00Z'
+          description: Account creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          example: '2024-02-15T14:22:00Z'
+          description: Last profile update timestamp
+
+    UpdateStudentProfileRequest:
+      type: object
+      properties:
+        dateOfBirth:
+          type: string
+          format: date
+          nullable: true
+          example: '1995-06-15'
+          description: Student's date of birth (age must be 13-120 years)
+        phoneNumber:
+          type: string
+          nullable: true
+          maxLength: 50
+          example: '+1 555-123-4567'
+          description: Contact phone number
+        aboutMe:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: I'm a software engineer interested in learning Spanish for travel.
+          description: Student's self-description (max 1000 characters)
+        spanishLevel:
+          type: string
+          nullable: true
+          enum:
+            - BEGINNER
+            - ELEMENTARY
+            - INTERMEDIATE
+            - UPPER_INTERMEDIATE
+            - ADVANCED
+            - NATIVE
+          example: INTERMEDIATE
+          description: Current Spanish proficiency level
+        preferredClassTypes:
+          type: array
+          nullable: true
+          items:
+            type: string
+            enum:
+              - PRIVATE_LESSONS
+              - GROUP_CLASSES
+              - CONVERSATION_PRACTICE
+              - EXAM_PREPARATION
+              - BUSINESS_SPANISH
+              - GRAMMAR_FOCUS
+              - PRONUNCIATION
+              - WRITING_SKILLS
+          example: [PRIVATE_LESSONS, CONVERSATION_PRACTICE]
+          description: Preferred types of classes
+        learningGoals:
+          type: string
+          nullable: true
+          maxLength: 2000
+          example: I want to achieve conversational fluency for travel and business.
+          description: Student's learning objectives (max 2000 characters)
+        availabilityNotes:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: Prefer evening classes after 6pm EST.
+          description: Scheduling preferences (max 1000 characters)
+
+    ProfileCompletion:
+      type: object
+      required:
+        - percentage
+        - completedCount
+        - totalCount
+        - items
+      properties:
+        percentage:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 71
+          description: Profile completion percentage (0-100)
+        completedCount:
+          type: integer
+          minimum: 0
+          maximum: 7
+          example: 5
+          description: Number of completed profile fields
+        totalCount:
+          type: integer
+          minimum: 7
+          maximum: 7
+          example: 7
+          description: Total number of trackable fields (always 7)
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileCompletionItem'
+          description: Detailed field-by-field completion status
+
+    ProfileCompletionItem:
+      type: object
+      required:
+        - field
+        - label
+        - completed
+      properties:
+        field:
+          type: string
+          example: dateOfBirth
+          description: Field name in camelCase
+        label:
+          type: string
+          example: Date of Birth
+          description: User-friendly field label
+        completed:
+          type: boolean
+          example: true
+          description: Whether this field is filled
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Invalid request data
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details (e.g., validation errors)
+
+  responses:
+    BadRequest:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: Validation failed
+            details:
+              dateOfBirth: Age must be between 13 and 120 years
+              aboutMe: Text must not exceed 1000 characters
+
+    Unauthorized:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: Unauthorized
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: User not found
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error: An unexpected error occurred
+
+tags:
+  - name: Student Profile
+    description: Operations related to student profile management and completion tracking

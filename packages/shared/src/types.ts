@@ -246,7 +246,7 @@ export interface ProfileCompletion {
   items?: Array<{
     field: string;
     label: string;
-    isComplete: boolean;
+    completed: boolean; // Using 'completed' to match backend implementation
   }>;
 }
 
