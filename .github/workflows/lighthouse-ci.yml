@@ -1,0 +1,62 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    paths:
+      - 'packages/frontend/**'
+      - '.github/workflows/lighthouse-ci.yml'
+
+jobs:
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/frontend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        run: npm run build
+        env:
+          VITE_SITE_URL: https://spanishclass.com
+          VITE_API_URL: https://api.spanishclass.com
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            http://localhost:4173/
+            http://localhost:4173/login
+            http://localhost:4173/register
+          configPath: './packages/frontend/lighthouse.config.js'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          runs: 3
+
+      - name: Check Lighthouse scores
+        run: |
+          echo "Checking Lighthouse budget compliance..."
+          # Budget checks are handled by lighthouse.config.js
+          # Performance >= 90
+          # Accessibility >= 95
+          # SEO >= 95
+
+      - name: Upload Lighthouse results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-results
+          path: .lighthouseci
+          retention-days: 30

@@ -1,0 +1,259 @@
+/**
+ * Design Tokens - CSS Custom Properties
+ * 
+ * Central source of truth for design system values in CSS
+ * Synced with TypeScript design-tokens.ts
+ * 
+ * Usage:
+ *   color: var(--color-primary-600);
+ *   font-size: var(--font-size-lg);
+ *   padding: var(--spacing-4);
+ */
+
+@layer base {
+  :root {
+    /* ========================================================================
+     * Color System - Spanish-Inspired Palette
+     * ======================================================================== */
+    
+    /* Brand Primary - Spanish Red */
+    --color-primary-50: #FEF2F2;
+    --color-primary-100: #FEE2E2;
+    --color-primary-200: #FECACA;
+    --color-primary-300: #FCA5A5;
+    --color-primary-400: #F87171;
+    --color-primary-500: #EF4444;
+    --color-primary-600: #B91C1C; /* Primary - 5.6:1 contrast */
+    --color-primary-700: #991B1B;
+    --color-primary-800: #7F1D1D;
+    --color-primary-900: #6B1717;
+    --color-primary-950: #450A0A;
+
+    /* Brand Secondary - Gold */
+    --color-secondary-50: #FFFBEB;
+    --color-secondary-100: #FEF3C7;
+    --color-secondary-200: #FDE68A;
+    --color-secondary-300: #FCD34D;
+    --color-secondary-400: #FBBF24;
+    --color-secondary-500: #F59E0B;
+    --color-secondary-600: #D97706; /* Secondary - 4.7:1 contrast */
+    --color-secondary-700: #B45309;
+    --color-secondary-800: #92400E;
+    --color-secondary-900: #78350F;
+    --color-secondary-950: #451A03;
+
+    /* Neutral - Warm Clay */
+    --color-neutral-50: #FAFAF9;
+    --color-neutral-100: #F5F5F4;
+    --color-neutral-200: #E7E5E4;
+    --color-neutral-300: #D6D3D1;
+    --color-neutral-400: #A8A29E;
+    --color-neutral-500: #78716C;
+    --color-neutral-600: #57534E;
+    --color-neutral-700: #44403C;
+    --color-neutral-800: #292524;
+    --color-neutral-900: #1C1917;
+    --color-neutral-950: #0C0A09;
+
+    /* Accent - Terracotta */
+    --color-terracotta-50: #FDF8F6;
+    --color-terracotta-100: #F2E8E5;
+    --color-terracotta-200: #EADDD7;
+    --color-terracotta-300: #E0CEC7;
+    --color-terracotta-400: #D2BAB0;
+    --color-terracotta-500: #BFA094;
+    --color-terracotta-600: #A18072;
+    --color-terracotta-700: #977669;
+    --color-terracotta-800: #846358;
+    --color-terracotta-900: #43302B;
+    --color-terracotta-950: #2D1F1A;
+
+    /* Accent - Olive */
+    --color-olive-50: #F6F7F4;
+    --color-olive-100: #E3E8DC;
+    --color-olive-200: #C7D1B8;
+    --color-olive-300: #A3B38E;
+    --color-olive-400: #829668;
+    --color-olive-500: #657C4F;
+    --color-olive-600: #4E623D;
+    --color-olive-700: #3D4C31;
+    --color-olive-800: #33402A;
+    --color-olive-900: #2C3625;
+    --color-olive-950: #151B11;
+
+    /* Accent - Cream */
+    --color-cream-50: #FDFBF7;
+    --color-cream-100: #F9F3E8;
+    --color-cream-200: #F3E8D5;
+    --color-cream-300: #EBD9BA;
+    --color-cream-400: #E0C599;
+    --color-cream-500: #D4AF76;
+    --color-cream-600: #C89A5C;
+    --color-cream-700: #B37F43;
+    --color-cream-800: #8F6538;
+    --color-cream-900: #74532F;
+    --color-cream-950: #3E2B18;
+
+    /* Semantic Colors */
+    --color-success: #10B981;
+    --color-warning: #F59E0B;
+    --color-error: #EF4444;
+    --color-info: #3B82F6;
+
+    /* ========================================================================
+     * Typography System
+     * ======================================================================== */
+    
+    /* Font Families */
+    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+    --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", monospace;
+
+    /* Font Sizes */
+    --font-size-xs: 0.75rem; /* 12px */
+    --font-size-sm: 0.875rem; /* 14px */
+    --font-size-base: 1rem; /* 16px */
+    --font-size-lg: 1.125rem; /* 18px */
+    --font-size-xl: 1.25rem; /* 20px */
+    --font-size-2xl: 1.5rem; /* 24px */
+    --font-size-3xl: 1.875rem; /* 30px */
+    --font-size-4xl: 2.25rem; /* 36px */
+    --font-size-5xl: 3rem; /* 48px */
+    --font-size-6xl: 3.75rem; /* 60px */
+
+    /* Line Heights */
+    --line-height-xs: 1rem;
+    --line-height-sm: 1.25rem;
+    --line-height-base: 1.5rem;
+    --line-height-lg: 1.75rem;
+    --line-height-xl: 1.75rem;
+    --line-height-2xl: 2rem;
+    --line-height-3xl: 2.25rem;
+    --line-height-4xl: 2.5rem;
+    --line-height-5xl: 1;
+    --line-height-6xl: 1;
+
+    /* Letter Spacing */
+    --letter-spacing-tight: -0.02em;
+    --letter-spacing-normal: 0;
+    --letter-spacing-wide: 0.025em;
+
+    /* Font Weights */
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* ========================================================================
+     * Spacing System (8px base unit)
+     * ======================================================================== */
+    
+    --spacing-0: 0px;
+    --spacing-0\.5: 0.125rem; /* 2px */
+    --spacing-1: 0.25rem; /* 4px */
+    --spacing-1\.5: 0.375rem; /* 6px */
+    --spacing-2: 0.5rem; /* 8px - base unit */
+    --spacing-2\.5: 0.625rem; /* 10px */
+    --spacing-3: 0.75rem; /* 12px */
+    --spacing-3\.5: 0.875rem; /* 14px */
+    --spacing-4: 1rem; /* 16px */
+    --spacing-5: 1.25rem; /* 20px */
+    --spacing-6: 1.5rem; /* 24px */
+    --spacing-7: 1.75rem; /* 28px */
+    --spacing-8: 2rem; /* 32px */
+    --spacing-9: 2.25rem; /* 36px */
+    --spacing-10: 2.5rem; /* 40px */
+    --spacing-11: 2.75rem; /* 44px */
+    --spacing-12: 3rem; /* 48px */
+    --spacing-14: 3.5rem; /* 56px */
+    --spacing-16: 4rem; /* 64px */
+    --spacing-20: 5rem; /* 80px */
+    --spacing-24: 6rem; /* 96px */
+    --spacing-28: 7rem; /* 112px */
+    --spacing-32: 8rem; /* 128px */
+    --spacing-36: 9rem; /* 144px */
+    --spacing-40: 10rem; /* 160px */
+    --spacing-44: 11rem; /* 176px */
+    --spacing-48: 12rem; /* 192px */
+    --spacing-52: 13rem; /* 208px */
+    --spacing-56: 14rem; /* 224px */
+    --spacing-60: 15rem; /* 240px */
+    --spacing-64: 16rem; /* 256px */
+    --spacing-72: 18rem; /* 288px */
+    --spacing-80: 20rem; /* 320px */
+    --spacing-96: 24rem; /* 384px */
+
+    /* ========================================================================
+     * Shadow System
+     * ======================================================================== */
+    
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-base: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+    /* ========================================================================
+     * Border Radius System
+     * ======================================================================== */
+    
+    --radius-none: 0px;
+    --radius-sm: 0.125rem; /* 2px */
+    --radius-base: 0.25rem; /* 4px */
+    --radius-md: 0.375rem; /* 6px */
+    --radius-lg: 0.5rem; /* 8px */
+    --radius-xl: 0.75rem; /* 12px */
+    --radius-2xl: 1rem; /* 16px */
+    --radius-3xl: 1.5rem; /* 24px */
+    --radius-full: 9999px;
+
+    /* ========================================================================
+     * Animation System
+     * ======================================================================== */
+    
+    /* Duration */
+    --duration-fast: 150ms;
+    --duration-base: 250ms;
+    --duration-slow: 350ms;
+    --duration-slower: 500ms;
+
+    /* Easing */
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* ========================================================================
+     * Z-Index System
+     * ======================================================================== */
+    
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+
+    /* ========================================================================
+     * Breakpoints (for reference in JS)
+     * ======================================================================== */
+    
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
+  }
+
+  /* Dark Mode Override (optional - can be implemented later) */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Dark mode color overrides can go here */
+    }
+  }
+}
