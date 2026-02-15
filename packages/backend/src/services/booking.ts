@@ -7,8 +7,11 @@ import {
   sendBookingNotificationToProfessor,
   sendCancellationToStudent,
   sendCancellationToProfessor,
+  sendConfirmationRequestToProfessor,
+  sendPendingConfirmationToStudent,
 } from "./email.js";
 import { createMeetingRoom, getMeetingProvider } from "./meeting-provider.js";
+import { generateConfirmationToken } from "./confirmation-token.js";
 
 type TransactionClient = Prisma.TransactionClient;
 
@@ -92,7 +95,7 @@ async function attemptBooking(
     where: {
       slotId,
       studentId: student.id,
-      status: "CONFIRMED",
+      status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
     },
   });
 
@@ -100,13 +103,35 @@ async function attemptBooking(
     throw new AppError(400, "You have already booked this slot");
   }
 
-  // Create the booking
+  // Generate confirmation token for professor approval
+  const { token, expiresAt, jti } = generateConfirmationToken(
+    "", // Will be updated after booking is created
+    slot.professorId,
+    student.id,
+  );
+
+  // Create the booking with PENDING_CONFIRMATION status
   const booking = await tx.booking.create({
     data: {
       slotId,
       studentId: student.id,
-      status: "CONFIRMED",
+      status: "PENDING_CONFIRMATION",
+      confirmationToken: token,
+      confirmationExpiresAt: expiresAt,
     },
+  });
+
+  // Update the token with the actual booking ID
+  const { token: finalToken } = generateConfirmationToken(
+    booking.id,
+    slot.professorId,
+    student.id,
+  );
+
+  // Update booking with correct token
+  await tx.booking.update({
+    where: { id: booking.id },
+    data: { confirmationToken: finalToken },
   });
 
   // Generate meeting room if not already created (idempotent)
@@ -174,19 +199,21 @@ export async function bookSlot(
           )
         : null;
 
-      // Send emails (don't await, let them run in background)
+      // Send confirmation request emails (don't await, let them run in background)
       const slotForEmail =
         slot as unknown as import("@spanish-class/shared").AvailabilitySlot;
       Promise.all([
-        sendBookingConfirmationToStudent({
+        sendPendingConfirmationToStudent({
           slot: slotForEmail,
           professor: slot.professor,
           student,
         }),
-        sendBookingNotificationToProfessor({
+        sendConfirmationRequestToProfessor({
           slot: slotForEmail,
           professor: slot.professor,
           student,
+          confirmationToken: booking.confirmationToken || "",
+          expiresAt: booking.confirmationExpiresAt || new Date(),
         }),
       ]).catch((err: unknown) =>
         console.error("Failed to send booking emails:", err),

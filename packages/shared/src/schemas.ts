@@ -328,3 +328,62 @@ export type CreatePrivateInvitationInput = z.infer<
 export type CancelPrivateInvitationInput = z.infer<
   typeof cancelPrivateInvitationSchema
 >;
+
+// Pricing Schemas
+export const createPricingSchema = z.object({
+  studentId: z.string().min(1, "Student ID is required"),
+  priceRSD: z
+    .number()
+    .int()
+    .min(0, "Price must be non-negative")
+    .max(100000, "Price must be under 100,000 RSD"),
+  notes: z.string().max(500).optional(),
+});
+
+export const updatePricingSchema = z.object({
+  priceRSD: z
+    .number()
+    .int()
+    .min(0, "Price must be non-negative")
+    .max(100000, "Price must be under 100,000 RSD"),
+  notes: z.string().max(500).optional(),
+});
+
+export type CreatePricingInput = z.infer<typeof createPricingSchema>;
+export type UpdatePricingInput = z.infer<typeof updatePricingSchema>;
+
+// Rating Schemas
+export const createRatingSchema = z.object({
+  rateeId: z.string().min(1, "Ratee ID is required"),
+  bookingId: z.string().optional(),
+  rating: z
+    .number()
+    .int()
+    .min(1, "Rating must be at least 1")
+    .max(5, "Rating must be at most 5"),
+  comment: z.string().max(1000).optional(),
+  isAnonymous: z.boolean().default(false),
+});
+
+export type CreateRatingInput = z.infer<typeof createRatingSchema>;
+
+// Booking Confirmation Schemas
+export const confirmBookingSchema = z.object({
+  token: z.string().min(1, "Confirmation token is required"),
+});
+
+export const rejectBookingSchema = z.object({
+  token: z.string().min(1, "Confirmation token is required"),
+  reason: z.string().max(500).optional(),
+});
+
+export type ConfirmBookingInput = z.infer<typeof confirmBookingSchema>;
+export type RejectBookingInput = z.infer<typeof rejectBookingSchema>;
+
+// Referral Schemas
+export const createReferralSchema = z.object({
+  referredEmail: z.string().email("Invalid email address"),
+  referralCode: z.string().min(1, "Referral code is required"),
+});
+
+export type CreateReferralInput = z.infer<typeof createReferralSchema>;

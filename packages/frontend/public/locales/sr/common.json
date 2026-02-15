@@ -1,0 +1,25 @@
+{
+  "appName": "Platforma za Španski",
+  "welcome": "Dobrodošli",
+  "loading": "Učitavanje...",
+  "error": "Greška",
+  "success": "Uspešno",
+  "cancel": "Otkaži",
+  "confirm": "Potvrdi",
+  "save": "Sačuvaj",
+  "delete": "Obriši",
+  "edit": "Izmeni",
+  "close": "Zatvori",
+  "back": "Nazad",
+  "next": "Sledeće",
+  "submit": "Pošalji",
+  "search": "Pretraži",
+  "filter": "Filter",
+  "clear": "Obriši",
+  "selectLanguage": "Izaberi Jezik",
+  "languages": {
+    "en": "English",
+    "sr": "Српски (Serbian)",
+    "es": "Español (Spanish)"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "bookSlot": "Reservar Horario",
+  "cancelBooking": "Cancelar Reserva",
+  "bookingConfirmed": "Reserva Confirmada",
+  "bookingPending": "Reserva Pendiente",
+  "bookingRejected": "Reserva Rechazada",
+  "bookingExpired": "Reserva Expirada",
+  "myBookings": "Mis Reservas",
+  "upcomingClasses": "Clases Próximas",
+  "pastClasses": "Clases Pasadas",
+  "noBookings": "No hay reservas",
+  "professorName": "Profesor",
+  "studentName": "Estudiante",
+  "classTime": "Hora de Clase",
+  "duration": "Duración",
+  "status": "Estado",
+  "joinClass": "Unirse a la Clase",
+  "waitingConfirmation": "Esperando confirmación del profesor",
+  "confirmationExpiry": "La solicitud expira en",
+  "hours": "horas"
+}

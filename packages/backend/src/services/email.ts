@@ -1026,3 +1026,426 @@ export async function sendPrivateInvitationEmail(
     throw err;
   }
 }
+
+// New confirmation workflow email functions
+
+interface ConfirmationEmailData {
+  slot: AvailabilitySlot;
+  professor: UserPublic;
+  student: UserPublic;
+  confirmationToken?: string;
+  expiresAt?: Date;
+  reason?: string;
+  price?: number;
+}
+
+/**
+ * Send confirmation request to professor (T039)
+ */
+export async function sendConfirmationRequestToProfessor(
+  data: ConfirmationEmailData,
+): Promise<void> {
+  const { slot, professor, student, confirmationToken, expiresAt } = data;
+
+  if (!confirmationToken || !expiresAt) {
+    throw new Error("Confirmation token and expiry date are required");
+  }
+
+  const duration = Math.round(
+    (new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) / 60000,
+  );
+  const dateStr = formatDateTime(slot.startTime, professor.timezone);
+
+  const confirmUrl = `${FRONTEND_URL}/bookings/confirm?token=${confirmationToken}`;
+  const rejectUrl = `${FRONTEND_URL}/bookings/reject?token=${confirmationToken}`;
+
+  const hoursUntilExpiry = Math.round(
+    (expiresAt.getTime() - Date.now()) / (1000 * 60 * 60),
+  );
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1a1f36 0%, #2d3748 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+        .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+        .details { background: #f7fafc; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .button { display: inline-block; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px 5px; }
+        .confirm-button { background: #10b981; color: white; }
+        .reject-button { background: #ef4444; color: white; }
+        .warning { background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 20px 0; color: #92400e; }
+        h1 { margin: 0; font-size: 24px; }
+        .emoji { font-size: 32px; margin-bottom: 10px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="emoji">📋</div>
+          <h1>New Booking Request</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${professor.firstName},</p>
+          <p>A student has requested to book your class. Please review and respond within 48 hours.</p>
+
+          <div class="details">
+            <p><strong>Student:</strong> ${student.firstName} ${student.lastName}</p>
+            <p><strong>Class Time:</strong> ${dateStr}</p>
+            <p><strong>Duration:</strong> ${duration} minutes</p>
+            ${slot.title ? `<p><strong>Class:</strong> ${slot.title}</p>` : ""}
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${confirmUrl}" class="button confirm-button">✓ Confirm Booking</a>
+            <a href="${rejectUrl}" class="button reject-button">✗ Reject Booking</a>
+          </div>
+
+          <div class="warning">
+            <strong>⏰ Action Required:</strong> This request will expire automatically if not acted upon within 48 hours (expires in ${hoursUntilExpiry} hours).
+          </div>
+        </div>
+        <div class="footer">
+          <p>Spanish Class Platform</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const subject = `New Booking Request from ${student.firstName} ${student.lastName} - Action Required`;
+
+  try {
+    const { data: resendData, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: professor.email,
+      subject,
+      html,
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: "confirmation_request",
+        fromAddress: EMAIL_FROM,
+        toAddress: professor.email,
+        subject,
+        htmlContent: html,
+        status: "failed",
+        error: error.message,
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: "confirmation_request",
+      fromAddress: EMAIL_FROM,
+      toAddress: professor.email,
+      subject,
+      htmlContent: html,
+      status: "sent",
+      metadata: { resendId: resendData?.id },
+    });
+  } catch (err) {
+    console.error("Failed to send confirmation request:", err);
+    throw err;
+  }
+}
+
+/**
+ * Send pending confirmation notification to student (T040)
+ */
+export async function sendPendingConfirmationToStudent(
+  data: ConfirmationEmailData,
+): Promise<void> {
+  const { slot, professor, student } = data;
+
+  const dateStr = formatDateTime(slot.startTime, student.timezone);
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+        .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+        .details { background: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6; }
+        .steps { background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .step { margin: 10px 0; color: #1e40af; }
+        h1 { margin: 0; font-size: 24px; }
+        .emoji { font-size: 32px; margin-bottom: 10px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="emoji">⏳</div>
+          <h1>Booking Request Submitted</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${student.firstName},</p>
+          <p>We've sent your booking request to ${professor.firstName} ${professor.lastName}. They have 48 hours to confirm or reject it.</p>
+
+          <div class="details">
+            <p><strong>Professor:</strong> ${professor.firstName} ${professor.lastName}</p>
+            <p><strong>Requested Time:</strong> ${dateStr}</p>
+          </div>
+
+          <div class="steps">
+            <p><strong>What happens next?</strong></p>
+            <p class="step">✓ The professor will review your request</p>
+            <p class="step">✓ You'll receive an email once they confirm or reject</p>
+            <p class="step">✓ If not confirmed within 48 hours, the request will expire</p>
+          </div>
+        </div>
+        <div class="footer">
+          <p>Spanish Class Platform</p>
+          <p>You can view your booking status in your dashboard.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const subject = `Booking Request Submitted - Awaiting Confirmation`;
+
+  try {
+    const { data: resendData, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: student.email,
+      subject,
+      html,
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: "pending_confirmation",
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: "failed",
+        error: error.message,
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: "pending_confirmation",
+      fromAddress: EMAIL_FROM,
+      toAddress: student.email,
+      subject,
+      htmlContent: html,
+      status: "sent",
+      metadata: { resendId: resendData?.id },
+    });
+  } catch (err) {
+    console.error("Failed to send pending confirmation:", err);
+    throw err;
+  }
+}
+
+/**
+ * Send booking confirmed notification to student (T041)
+ */
+export async function sendBookingConfirmedToStudent(
+  data: ConfirmationEmailData,
+): Promise<void> {
+  const { slot, professor, student, price } = data;
+
+  const duration = Math.round(
+    (new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) / 60000,
+  );
+  const dateStr = formatDateTime(slot.startTime, student.timezone);
+
+  const provider = getMeetingProvider();
+  const meetLink = slot.meetLink
+    ? provider.getJoinUrl(slot.meetLink, `${student.firstName} ${student.lastName}`)
+    : null;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+        .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+        .details { background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981; }
+        .button { display: inline-block; background: #3b82f6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px 5px; }
+        h1 { margin: 0; font-size: 24px; }
+        .emoji { font-size: 32px; margin-bottom: 10px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="emoji">✅</div>
+          <h1>Class Confirmed!</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${student.firstName},</p>
+          <p>Good news! ${professor.firstName} ${professor.lastName} has confirmed your class booking.</p>
+
+          <div class="details">
+            <p><strong>Professor:</strong> ${professor.firstName} ${professor.lastName}</p>
+            <p><strong>Class Time:</strong> ${dateStr}</p>
+            <p><strong>Duration:</strong> ${duration} minutes</p>
+            ${price ? `<p><strong>Price:</strong> ${price} RSD</p>` : ""}
+          </div>
+
+          ${meetLink ? `
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${meetLink}" class="button">Join Video Class</a>
+            </div>
+          ` : ""}
+        </div>
+        <div class="footer">
+          <p>Spanish Class Platform</p>
+          <p>See you in class!</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const subject = `✅ Class Confirmed - ${formatDateTime(slot.startTime, student.timezone)}`;
+
+  try {
+    const { data: resendData, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: student.email,
+      subject,
+      html,
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: "booking_confirmed",
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: "failed",
+        error: error.message,
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: "booking_confirmed",
+      fromAddress: EMAIL_FROM,
+      toAddress: student.email,
+      subject,
+      htmlContent: html,
+      status: "sent",
+      metadata: { resendId: resendData?.id },
+    });
+  } catch (err) {
+    console.error("Failed to send booking confirmed email:", err);
+    throw err;
+  }
+}
+
+/**
+ * Send booking rejection notification to student (T042)
+ */
+export async function sendBookingRejectionToStudent(
+  data: ConfirmationEmailData,
+): Promise<void> {
+  const { slot, professor, student, reason } = data;
+
+  const dateStr = formatDateTime(slot.startTime, student.timezone);
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+        .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+        .details { background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626; }
+        .button { display: inline-block; background: #3b82f6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px 5px; }
+        h1 { margin: 0; font-size: 24px; }
+        .emoji { font-size: 32px; margin-bottom: 10px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="emoji">❌</div>
+          <h1>Booking Request Declined</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${student.firstName},</p>
+          <p>Unfortunately, ${professor.firstName} ${professor.lastName} is unable to accept your booking request at this time.</p>
+
+          <div class="details">
+            <p><strong>Professor:</strong> ${professor.firstName} ${professor.lastName}</p>
+            <p><strong>Requested Time:</strong> ${dateStr}</p>
+            ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${FRONTEND_URL}/slots" class="button">Browse Available Slots</a>
+          </div>
+
+          <p style="text-align: center; color: #6b7280; font-size: 14px;">
+            If you have questions, please contact support.
+          </p>
+        </div>
+        <div class="footer">
+          <p>Spanish Class Platform</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const subject = `Booking Request Declined - ${professor.firstName} ${professor.lastName}`;
+
+  try {
+    const { data: resendData, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: student.email,
+      subject,
+      html,
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: "booking_rejected",
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: "failed",
+        error: error.message,
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: "booking_rejected",
+      fromAddress: EMAIL_FROM,
+      toAddress: student.email,
+      subject,
+      htmlContent: html,
+      status: "sent",
+      metadata: { resendId: resendData?.id },
+    });
+  } catch (err) {
+    console.error("Failed to send booking rejection email:", err);
+    throw err;
+  }
+}

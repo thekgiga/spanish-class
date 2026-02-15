@@ -14,7 +14,7 @@ npm run dev        # Start development servers
 
 - Node.js 18+
 - MySQL 8+
-- Redis 6+ (for email reminders via BullMQ)
+- Redis 6+ (for job queue and caching)
 
 ## Environment Setup
 

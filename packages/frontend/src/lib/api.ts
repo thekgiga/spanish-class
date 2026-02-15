@@ -279,3 +279,136 @@ export const studentApi = {
 };
 
 export default api;
+
+// Booking Confirmation APIs (T050)
+export const confirmBooking = async (token: string): Promise<void> => {
+  await api.post('/bookings/confirm-booking', { token });
+};
+
+export const rejectBooking = async (token: string, reason?: string): Promise<void> => {
+  await api.post('/bookings/reject-booking', { token, reason });
+};
+
+// Pricing APIs (T061)
+export const getStudentsWithPricing = async (): Promise<any[]> => {
+  const response = await api.get('/pricing/students');
+  return response.data.data;
+};
+
+export const getStudentPricing = async (studentId: string): Promise<any> => {
+  const response = await api.get(`/pricing/students/${studentId}`);
+  return response.data.data;
+};
+
+export const createStudentPricing = async (
+  studentId: string,
+  priceRSD: number,
+  notes?: string
+): Promise<any> => {
+  const response = await api.post(`/pricing/students/${studentId}`, {
+    priceRSD,
+    notes,
+  });
+  return response.data.data;
+};
+
+export const updateStudentPricing = async (
+  studentId: string,
+  priceRSD: number,
+  notes?: string
+): Promise<any> => {
+  const response = await api.put(`/pricing/students/${studentId}`, {
+    priceRSD,
+    notes,
+  });
+  return response.data.data;
+};
+
+export const deleteStudentPricing = async (studentId: string): Promise<void> => {
+  await api.delete(`/pricing/students/${studentId}`);
+};
+
+// Language detection API (T074)
+export const detectLanguage = async (): Promise<any> => {
+  const response = await api.get('/language/detect');
+  return response.data.data;
+};
+
+export const updateLanguagePreference = async (locale: string): Promise<any> => {
+  const response = await api.post('/language/preference', { locale });
+  return response.data.data;
+};
+
+// Group Classes APIs
+export const getSlotParticipants = async (slotId: string): Promise<any> => {
+  const response = await api.get(`/availability/${slotId}/participants`);
+  return response.data.data;
+};
+
+// Analytics APIs
+export const getProfessorAnalytics = async (startDate?: string, endDate?: string): Promise<any> => {
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  
+  const response = await api.get(`/analytics/professor?${params.toString()}`);
+  return response.data.data;
+};
+
+export const getStudentEngagementStats = async (studentId: string): Promise<any> => {
+  const response = await api.get(`/analytics/student/${studentId}`);
+  return response.data.data;
+};
+
+export const getPlatformAnalytics = async (startDate?: string, endDate?: string): Promise<any> => {
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  
+  const response = await api.get(`/analytics/platform?${params.toString()}`);
+  return response.data.data;
+};
+
+// Referral APIs
+export const getMyReferralCode = async (): Promise<any> => {
+  const response = await api.get('/referrals/my-code');
+  return response.data.data;
+};
+
+export const trackReferral = async (referralCode: string): Promise<any> => {
+  const response = await api.post('/referrals/track', { referralCode });
+  return response.data.data;
+};
+
+export const getReferralStats = async (): Promise<any> => {
+  const response = await api.get('/referrals/stats');
+  return response.data.data;
+};
+
+// Rating APIs
+export const submitRating = async (
+  rateeId: string,
+  rating: number,
+  comment?: string,
+  bookingId?: string,
+  isAnonymous?: boolean
+): Promise<any> => {
+  const response = await api.post('/ratings', {
+    rateeId,
+    rating,
+    comment,
+    bookingId,
+    isAnonymous,
+  });
+  return response.data.data;
+};
+
+export const getUserRatings = async (userId: string): Promise<any> => {
+  const response = await api.get(`/ratings/user/${userId}`);
+  return response.data.data;
+};
+
+export const getPendingRatings = async (): Promise<any> => {
+  const response = await api.get('/ratings/pending');
+  return response.data.data;
+};

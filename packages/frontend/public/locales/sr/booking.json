@@ -1,0 +1,21 @@
+{
+  "bookSlot": "Rezerviši Termin",
+  "cancelBooking": "Otkaži Rezervaciju",
+  "bookingConfirmed": "Rezervacija Potvrđena",
+  "bookingPending": "Rezervacija na Čekanju",
+  "bookingRejected": "Rezervacija Odbijena",
+  "bookingExpired": "Rezervacija Istekla",
+  "myBookings": "Moje Rezervacije",
+  "upcomingClasses": "Predstojeci Časovi",
+  "pastClasses": "Prošli Časovi",
+  "noBookings": "Nema rezervacija",
+  "professorName": "Profesor",
+  "studentName": "Student",
+  "classTime": "Vreme Časa",
+  "duration": "Trajanje",
+  "status": "Status",
+  "joinClass": "Pridruži se Času",
+  "waitingConfirmation": "Čeka se potvrda profesora",
+  "confirmationExpiry": "Zahtev ističe za",
+  "hours": "sati"
+}

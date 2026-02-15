@@ -1,0 +1,17 @@
+{
+  "dashboard": "Panel de Control",
+  "overview": "Resumen",
+  "statistics": "Estadísticas",
+  "totalStudents": "Total de Estudiantes",
+  "totalBookings": "Total de Reservas",
+  "upcomingSlots": "Horarios Próximos",
+  "todaySessions": "Sesiones de Hoy",
+  "completedThisMonth": "Completadas Este Mes",
+  "upcomingBookings": "Reservas Próximas",
+  "completedSessions": "Sesiones Completadas",
+  "nextSession": "Próxima Sesión",
+  "noUpcomingSessions": "No hay sesiones próximas",
+  "availableSlots": "Horarios Disponibles",
+  "createSlot": "Crear Horario",
+  "pendingApprovals": "Aprobaciones Pendientes"
+}
