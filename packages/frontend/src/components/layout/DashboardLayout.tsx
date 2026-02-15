@@ -19,8 +19,10 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/auth";
 import { getInitials } from "@/lib/utils";
+import { usePendingBookingsCount } from "@/hooks/usePendingBookingsCount";
 
 interface NavItem {
   href: string;
@@ -63,6 +65,9 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
   const { user, logout } = useAuthStore();
 
   const navItems = isAdmin ? adminNavItems : studentNavItems;
+
+  // Fetch pending bookings count for admin badge
+  const { data: pendingData } = usePendingBookingsCount(isAdmin);
 
   const handleLogout = async () => {
     await logout();
@@ -197,6 +202,15 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
                       {item.badge}
                     </span>
                   )}
+                  {!collapsed &&
+                    isAdmin &&
+                    item.href === "/admin" &&
+                    pendingData &&
+                    pendingData.count > 0 && (
+                      <Badge variant="warning" className="text-xs px-2 py-0.5">
+                        {pendingData.count}
+                      </Badge>
+                    )}
                 </Link>
               </motion.div>
             ))}
