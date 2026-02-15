@@ -1,0 +1,179 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Design Tokens Schema",
+  "description": "Type-safe design token definitions for the Spanish Class premium frontend",
+  "type": "object",
+  "properties": {
+    "colors": {
+      "type": "object",
+      "properties": {
+        "brand": {
+          "type": "object",
+          "properties": {
+            "spanishRed": { "$ref": "#/definitions/colorScale" },
+            "gold": { "$ref": "#/definitions/colorScale" },
+            "terracotta": { "$ref": "#/definitions/colorScale" }
+          },
+          "required": ["spanishRed", "gold"]
+        },
+        "semantic": {
+          "type": "object",
+          "properties": {
+            "primary": { "$ref": "#/definitions/colorValue" },
+            "secondary": { "$ref": "#/definitions/colorValue" },
+            "success": { "$ref": "#/definitions/colorValue" },
+            "danger": { "$ref": "#/definitions/colorValue" },
+            "warning": { "$ref": "#/definitions/colorValue" },
+            "info": { "$ref": "#/definitions/colorValue" }
+          },
+          "required": ["primary", "secondary"]
+        },
+        "neutral": {
+          "type": "object",
+          "properties": {
+            "clay": { "$ref": "#/definitions/colorScale" }
+          },
+          "required": ["clay"]
+        }
+      },
+      "required": ["brand", "semantic", "neutral"]
+    },
+    "typography": {
+      "type": "object",
+      "properties": {
+        "families": {
+          "type": "object",
+          "properties": {
+            "sans": { "type": "string" },
+            "serif": { "type": "string" },
+            "mono": { "type": "string" }
+          },
+          "required": ["sans", "serif"]
+        },
+        "sizes": { "$ref": "#/definitions/sizeScale" },
+        "weights": { "$ref": "#/definitions/weightScale" },
+        "lineHeights": { "$ref": "#/definitions/lineHeightScale" }
+      },
+      "required": ["families", "sizes", "weights", "lineHeights"]
+    },
+    "spacing": { "$ref": "#/definitions/spacingScale" },
+    "borderRadius": { "$ref": "#/definitions/radiusScale" },
+    "shadows": { "$ref": "#/definitions/shadowScale" },
+    "animation": {
+      "type": "object",
+      "properties": {
+        "duration": {
+          "type": "object",
+          "properties": {
+            "fast": { "type": "string", "pattern": "^\\d+ms$" },
+            "normal": { "type": "string", "pattern": "^\\d+ms$" },
+            "slow": { "type": "string", "pattern": "^\\d+ms$" }
+          }
+        },
+        "easing": {
+          "type": "object",
+          "properties": {
+            "in": { "type": "string" },
+            "out": { "type": "string" },
+            "inOut": { "type": "string" }
+          }
+        }
+      }
+    }
+  },
+  "required": ["colors", "typography", "spacing", "borderRadius", "shadows"],
+  "definitions": {
+    "colorScale": {
+      "type": "object",
+      "properties": {
+        "50": { "$ref": "#/definitions/colorValue" },
+        "100": { "$ref": "#/definitions/colorValue" },
+        "200": { "$ref": "#/definitions/colorValue" },
+        "300": { "$ref": "#/definitions/colorValue" },
+        "400": { "$ref": "#/definitions/colorValue" },
+        "500": { "$ref": "#/definitions/colorValue" },
+        "600": { "$ref": "#/definitions/colorValue" },
+        "700": { "$ref": "#/definitions/colorValue" },
+        "800": { "$ref": "#/definitions/colorValue" },
+        "900": { "$ref": "#/definitions/colorValue" }
+      },
+      "required": ["50", "100", "200", "300", "400", "500", "600", "700", "800", "900"]
+    },
+    "colorValue": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+        },
+        "contrast": {
+          "type": "string",
+          "description": "Contrast ratio on white background (e.g., '4.5:1')"
+        },
+        "wcag": {
+          "type": "string",
+          "enum": ["AA", "AAA", "fail"]
+        },
+        "usage": {
+          "type": "string",
+          "description": "When and where to use this color"
+        }
+      },
+      "required": ["value", "contrast", "wcag"]
+    },
+    "sizeScale": {
+      "type": "object",
+      "patternProperties": {
+        "^(xs|sm|base|lg|xl|2xl|3xl|4xl|5xl|6xl|fluid-.+)$": {
+          "type": "string",
+          "pattern": "^(\\d+(\\.\\d+)?rem|clamp\\(.+\\))$"
+        }
+      }
+    },
+    "weightScale": {
+      "type": "object",
+      "properties": {
+        "normal": { "type": "number", "enum": [400] },
+        "medium": { "type": "number", "enum": [500] },
+        "semibold": { "type": "number", "enum": [600] },
+        "bold": { "type": "number", "enum": [700] }
+      }
+    },
+    "lineHeightScale": {
+      "type": "object",
+      "properties": {
+        "tight": { "type": "number", "minimum": 1, "maximum": 2 },
+        "snug": { "type": "number", "minimum": 1, "maximum": 2 },
+        "normal": { "type": "number", "minimum": 1, "maximum": 2 },
+        "relaxed": { "type": "number", "minimum": 1, "maximum": 2 },
+        "loose": { "type": "number", "minimum": 1, "maximum": 2 }
+      }
+    },
+    "spacingScale": {
+      "type": "object",
+      "patternProperties": {
+        "^(0|1|2|3|4|5|6|8|10|12|16|20|24|32|40|48|56|64)$": {
+          "type": "string",
+          "pattern": "^\\d+(\\.\\d+)?rem$"
+        }
+      }
+    },
+    "radiusScale": {
+      "type": "object",
+      "patternProperties": {
+        "^(none|sm|DEFAULT|md|lg|xl|2xl|3xl|full)$": {
+          "type": "string",
+          "pattern": "^(\\d+(\\.\\d+)?rem|9999px|0)$"
+        }
+      }
+    },
+    "shadowScale": {
+      "type": "object",
+      "patternProperties": {
+        "^(sm|DEFAULT|md|lg|xl|2xl|glow.+)$": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
