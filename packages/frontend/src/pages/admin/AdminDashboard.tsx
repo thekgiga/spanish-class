@@ -1,44 +1,54 @@
-import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { Users, Calendar, BookOpen, Clock, ArrowRight, Video } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { professorApi } from '@/lib/api';
-import { formatTime, getDuration } from '@/lib/utils';
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import {
+  Users,
+  Calendar,
+  BookOpen,
+  Clock,
+  ArrowRight,
+  Video,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { professorApi } from "@/lib/api";
+import { formatTime, getDuration } from "@/lib/utils";
+import { usePendingBookingsCount } from "@/hooks/usePendingBookingsCount";
 
 export function AdminDashboard() {
   const { data, isLoading } = useQuery({
-    queryKey: ['professor-dashboard'],
+    queryKey: ["professor-dashboard"],
     queryFn: professorApi.getDashboard,
   });
 
+  const { data: pendingData } = usePendingBookingsCount();
+
   const stats = [
     {
-      label: 'Total Students',
+      label: "Total Students",
       value: data?.stats.totalStudents || 0,
       icon: Users,
-      color: 'bg-blue-100 text-blue-600',
+      color: "bg-blue-100 text-blue-600",
     },
     {
-      label: 'Active Bookings',
+      label: "Active Bookings",
       value: data?.stats.totalBookings || 0,
       icon: BookOpen,
-      color: 'bg-green-100 text-green-600',
+      color: "bg-green-100 text-green-600",
     },
     {
-      label: 'Upcoming Slots',
+      label: "Upcoming Slots",
       value: data?.stats.upcomingSlots || 0,
       icon: Calendar,
-      color: 'bg-purple-100 text-purple-600',
+      color: "bg-purple-100 text-purple-600",
     },
     {
       label: "Today's Sessions",
       value: data?.stats.todaySessions || 0,
       icon: Clock,
-      color: 'bg-gold-100 text-gold-600',
+      color: "bg-gold-100 text-gold-600",
     },
   ];
 
@@ -47,8 +57,12 @@ export function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back! Here's your overview.</p>
+          <h1 className="text-2xl font-display font-bold text-navy-800">
+            Dashboard
+          </h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's your overview.
+          </p>
         </div>
         <Button variant="primary" asChild>
           <Link to="/admin/slots/new">
@@ -71,14 +85,20 @@ export function AdminDashboard() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-muted-foreground">{stat.label}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {stat.label}
+                    </p>
                     {isLoading ? (
                       <Skeleton className="h-8 w-16 mt-1" />
                     ) : (
-                      <p className="text-3xl font-bold text-navy-800 mt-1">{stat.value}</p>
+                      <p className="text-3xl font-bold text-navy-800 mt-1">
+                        {stat.value}
+                      </p>
                     )}
                   </div>
-                  <div className={`h-12 w-12 rounded-xl ${stat.color} flex items-center justify-center`}>
+                  <div
+                    className={`h-12 w-12 rounded-xl ${stat.color} flex items-center justify-center`}
+                  >
                     <stat.icon className="h-6 w-6" />
                   </div>
                 </div>
@@ -87,6 +107,49 @@ export function AdminDashboard() {
           </motion.div>
         ))}
       </div>
+
+      {/* Pending Approvals Card */}
+      {pendingData && pendingData.count > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-lg">
+                    <Clock className="h-7 w-7 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-amber-900">
+                      Pending Approvals
+                    </p>
+                    <p className="text-3xl font-bold text-amber-600 mt-1">
+                      {pendingData.count}
+                    </p>
+                    <p className="text-xs text-amber-700 mt-1">
+                      {pendingData.count === 1
+                        ? "booking awaits"
+                        : "bookings await"}{" "}
+                      your approval
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="border-amber-300 hover:bg-amber-100"
+                  asChild
+                >
+                  <Link to="/admin/slots">
+                    View All <ArrowRight className="ml-1 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Today's Sessions */}
       <Card>
@@ -118,17 +181,23 @@ export function AdminDashboard() {
                     </div>
                     <div>
                       <p className="font-medium text-navy-800">
-                        {slot.title || 'Spanish Class'}
+                        {slot.title || "Spanish Class"}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {formatTime(slot.startTime)} - {formatTime(slot.endTime)} ({getDuration(slot.startTime, slot.endTime)})
+                        {formatTime(slot.startTime)} -{" "}
+                        {formatTime(slot.endTime)} (
+                        {getDuration(slot.startTime, slot.endTime)})
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <Badge variant={slot.slotType === 'GROUP' ? 'secondary' : 'default'}>
-                        {slot.slotType === 'GROUP' ? 'Group' : 'Individual'}
+                      <Badge
+                        variant={
+                          slot.slotType === "GROUP" ? "secondary" : "default"
+                        }
+                      >
+                        {slot.slotType === "GROUP" ? "Group" : "Individual"}
                       </Badge>
                       <p className="text-sm text-muted-foreground mt-1">
                         {slot.currentParticipants}/{slot.maxParticipants} booked
@@ -136,7 +205,11 @@ export function AdminDashboard() {
                     </div>
                     {slot.meetLink && (
                       <Button size="sm" variant="primary" asChild>
-                        <a href={slot.meetLink} target="_blank" rel="noopener noreferrer">
+                        <a
+                          href={slot.meetLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
                           <Video className="mr-1 h-4 w-4" />
                           Join Meet
                         </a>
@@ -168,7 +241,9 @@ export function AdminDashboard() {
               </div>
               <div>
                 <p className="font-medium text-navy-800">View Students</p>
-                <p className="text-sm text-muted-foreground">Manage student profiles</p>
+                <p className="text-sm text-muted-foreground">
+                  Manage student profiles
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -181,7 +256,9 @@ export function AdminDashboard() {
               </div>
               <div>
                 <p className="font-medium text-navy-800">Manage Availability</p>
-                <p className="text-sm text-muted-foreground">Edit your schedule</p>
+                <p className="text-sm text-muted-foreground">
+                  Edit your schedule
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -194,7 +271,9 @@ export function AdminDashboard() {
               </div>
               <div>
                 <p className="font-medium text-navy-800">Account Settings</p>
-                <p className="text-sm text-muted-foreground">Update your profile</p>
+                <p className="text-sm text-muted-foreground">
+                  Update your profile
+                </p>
               </div>
             </CardContent>
           </Card>
