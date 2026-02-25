@@ -14,6 +14,10 @@
 
 set -e
 
+# Get script directory and project root
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 # Configuration - UPDATE THESE VALUES
 CPANEL_USER="gigovicr"
 CPANEL_HOST="casovispanskog.rs"
@@ -35,13 +39,11 @@ echo ""
 
 # Step 1: Build deployment package
 echo -e "${GREEN}[1/6]${NC} Building deployment package..."
-./scripts/build/build-deploy-package.sh
+"$PROJECT_ROOT/scripts/build/build-deploy-package.sh"
 
 # Step 2: Copy dev environment configuration
 echo -e "${GREEN}[2/6]${NC} Copying DEV environment configuration..."
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DEV_ENV_SOURCE="$PROJECT_ROOT/config/dev/.env"
 
 if [ ! -f "$DEV_ENV_SOURCE" ]; then
