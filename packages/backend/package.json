@@ -19,6 +19,7 @@
   "dependencies": {
     "@jitsi/react-sdk": "^1.4.4",
     "@prisma/client": "^5.14.0",
+    "prisma": "^5.14.0",
     "@spanish-class/shared": "*",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.69.2",
@@ -47,7 +48,6 @@
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "playwright": "^1.58.2",
-    "prisma": "^5.14.0",
     "react-email": "^5.2.8",
     "tsx": "^4.7.0",
     "typescript": "^5.4.0",

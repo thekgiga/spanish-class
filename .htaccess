@@ -1,34 +1,29 @@
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION BEGIN
+PassengerAppRoot "/home/gigovicr/dev-casovispanskog-backend"
+PassengerBaseURI "/"
+PassengerNodejs "/home/gigovicr/nodevenv/dev-casovispanskog-backend/20/bin/node"
+PassengerAppType node
+PassengerStartupFile dist/index.js
+# DO NOT REMOVE. CLOUDLINUX PASSENGER CONFIGURATION END
+
 # ===========================================
-# Spanish Class Platform - Production .htaccess
+# Spanish Class Platform - Development .htaccess
 # ===========================================
-#
-# INSTRUCTIONS:
-# 1. Copy this file to your public_html directory
-# 2. Rename it to .htaccess (remove .template)
-# 3. After SSL is installed, uncomment the Force HTTPS section
-#
-# Location: ~/public_html/.htaccess
-#
 
 # Enable RewriteEngine
 RewriteEngine On
 
 # ===========================================
-# Force HTTPS (Uncomment after SSL is installed)
+# Force HTTPS
 # ===========================================
-# IMPORTANT: Only uncomment these lines AFTER you have installed an SSL certificate
-# via cPanel SSL/TLS Status → Run AutoSSL
-#
-# RewriteCond %{HTTPS} off
-# RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # ===========================================
-# API Proxy to Node.js Backend
+# API Routing
 # ===========================================
-# This proxies all /api/* requests to your Node.js backend running on port 3001
-#
-RewriteCond %{REQUEST_URI} ^/api/
-RewriteRule ^api/(.*)$ http://localhost:3001/api/$1 [P,L]
+# Passenger handles the Node.js app at the root
+# The Express app serves /api routes
 
 # ===========================================
 # Frontend Routing (React Router)
@@ -38,6 +33,7 @@ RewriteRule ^api/(.*)$ http://localhost:3001/api/$1 [P,L]
 #
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/api/
 RewriteRule ^ /index.html [L]
 
 # ===========================================
@@ -56,8 +52,8 @@ RewriteRule ^ /index.html [L]
     # Referrer policy
     Header set Referrer-Policy "strict-origin-when-cross-origin"
 
-    # Only after SSL is installed, uncomment this:
-    # Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    # Strict Transport Security
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
 
 # ===========================================
@@ -134,24 +130,7 @@ AddDefaultCharset UTF-8
 # ===========================================
 Options -Indexes
 
-# ===========================================
-# Custom Error Pages (Optional)
-# ===========================================
-# Uncomment and customize if you want custom error pages
-# ErrorDocument 404 /404.html
-# ErrorDocument 500 /500.html
-
-# ===========================================
-# Notes
-# ===========================================
-#
-# Testing the configuration:
-# 1. Test API proxy: curl https://yourdomain.com/api/health
-# 2. Test frontend routing: Visit https://yourdomain.com/login
-# 3. Check browser console for any errors
-#
-# Troubleshooting:
-# - If you get 500 errors, check cPanel error logs
-# - If API requests fail, verify backend is running on port 3001
-# - If you get "too many redirects", remove the Force HTTPS section
-#
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION BEGIN
+<IfModule Litespeed>
+</IfModule>
+# DO NOT REMOVE OR MODIFY. CLOUDLINUX ENV VARS CONFIGURATION END

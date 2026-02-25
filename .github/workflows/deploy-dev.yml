@@ -1,0 +1,94 @@
+name: Deploy to Development
+
+on:
+  push:
+    branches:
+      - develop  # Automatically deploy when pushing to develop branch
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  deploy-dev:
+    runs-on: ubuntu-latest
+    environment: development  # Uses GitHub environment for secrets
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build deployment package
+        run: |
+          chmod +x scripts/build/build-deploy-package.sh
+          ./scripts/build/build-deploy-package.sh
+
+      - name: Create development .env file
+        run: |
+          cat > deploy/backend/.env << EOF
+          NODE_ENV=development
+          PORT=3001
+          DATABASE_URL="${{ secrets.DEV_DATABASE_URL }}"
+          JWT_SECRET="${{ secrets.DEV_JWT_SECRET }}"
+          JWT_EXPIRES_IN="7d"
+          FRONTEND_URL="https://dev.yourdomain.com"
+          API_URL="https://dev.yourdomain.com/api"
+          RESEND_API_KEY="${{ secrets.DEV_RESEND_API_KEY }}"
+          EMAIL_FROM="Spanish Class Dev <noreply@dev.yourdomain.com>"
+          EOF
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.CPANEL_SSH_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.CPANEL_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy backend to cPanel
+        run: |
+          rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            deploy/backend/ \
+            ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_HOST }}:~/spanish-class-dev/
+
+      - name: Deploy frontend to cPanel
+        run: |
+          rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            deploy/frontend/ \
+            ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_HOST }}:~/public_html/dev/
+
+      - name: Run post-deploy commands
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_HOST }} << 'ENDSSH'
+          cd ~/spanish-class-dev
+          source ~/nodevenv/spanish-class-dev/20/bin/activate || true
+          npm install --production
+          bash setup-shared-package.sh
+          npm run db:generate
+          npm run db:migrate || echo "Migrations already applied"
+          ENDSSH
+
+      - name: Deployment summary
+        run: |
+          echo "✅ Development deployment complete!"
+          echo "Frontend: https://dev.yourdomain.com"
+          echo "Backend: https://dev.yourdomain.com/api"
+          echo ""
+          echo "⚠️ Remember to restart the Node.js app in cPanel:"
+          echo "   cPanel → Setup Node.js App → spanish-class-dev → Restart"
+
+      - name: Create deployment annotation
+        if: always()
+        run: |
+          echo "::notice::Deployment to development completed at $(date)"

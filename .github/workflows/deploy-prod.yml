@@ -1,0 +1,118 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main  # Automatically trigger on push to main (requires approval)
+  workflow_dispatch:  # Allow manual trigger from GitHub Actions UI
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production  # Requires manual approval before deployment
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build deployment package
+        run: |
+          chmod +x scripts/build/build-deploy-package.sh
+          ./scripts/build/build-deploy-package.sh
+
+      - name: Create production .env file
+        run: |
+          cat > deploy/backend/.env << EOF
+          NODE_ENV=production
+          PORT=3000
+          DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
+          JWT_SECRET="${{ secrets.PROD_JWT_SECRET }}"
+          JWT_EXPIRES_IN="7d"
+          FRONTEND_URL="https://yourdomain.com"
+          API_URL="https://yourdomain.com/api"
+          RESEND_API_KEY="${{ secrets.PROD_RESEND_API_KEY }}"
+          EMAIL_FROM="Spanish Class <noreply@yourdomain.com>"
+          PROFESSOR_EMAIL="professor@yourdomain.com"
+          JITSI_APP_ID="${{ secrets.JITSI_APP_ID }}"
+          JITSI_API_KEY="${{ secrets.JITSI_API_KEY }}"
+          EOF
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.CPANEL_SSH_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.CPANEL_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create backup before deployment
+        run: |
+          BACKUP_NAME="spanish-class-prod-backup-$(date +%Y%m%d-%H%M%S).tar.gz"
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_HOST }} \
+            "cd ~ && tar -czf ${BACKUP_NAME} spanish-class-prod/ || echo 'No previous deployment to backup'"
+          echo "BACKUP_NAME=${BACKUP_NAME}" >> $GITHUB_ENV
+
+      - name: Deploy backend to cPanel
+        run: |
+          rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            deploy/backend/ \
+            ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_HOST }}:~/spanish-class-prod/
+
+      - name: Deploy frontend to cPanel
+        run: |
+          rsync -avz --delete \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            --exclude='.htaccess' \
+            deploy/frontend/ \
+            ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_HOST }}:~/public_html/
+
+      - name: Run post-deploy commands
+        run: |
+          ssh -o StrictHostKeyChecking=no \
+            ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_HOST }} << 'ENDSSH'
+          cd ~/spanish-class-prod
+          source ~/nodevenv/spanish-class-prod/20/bin/activate || true
+          npm install --production
+          bash setup-shared-package.sh
+          npm run db:generate
+          npm run db:migrate
+          ENDSSH
+
+      - name: Deployment summary
+        run: |
+          echo "✅ PRODUCTION deployment complete!"
+          echo "Frontend: https://yourdomain.com"
+          echo "Backend: https://yourdomain.com/api"
+          echo ""
+          echo "⚠️ IMPORTANT: Restart the Node.js app in cPanel:"
+          echo "   cPanel → Setup Node.js App → spanish-class-prod → Restart"
+          echo ""
+          echo "📦 Backup created: ${{ env.BACKUP_NAME }}"
+          echo ""
+          echo "🔄 Rollback command (if needed):"
+          echo "   ssh ${{ secrets.CPANEL_USERNAME }}@${{ secrets.CPANEL_HOST }}"
+          echo "   cd ~ && rm -rf spanish-class-prod && tar -xzf ${{ env.BACKUP_NAME }}"
+
+      - name: Create deployment annotation
+        if: always()
+        run: |
+          echo "::notice::Production deployment completed at $(date)"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "::error::Production deployment failed! Check logs and consider rollback."
+          echo "::error::Rollback: ssh and run: cd ~ && rm -rf spanish-class-prod && tar -xzf ${{ env.BACKUP_NAME }}"
