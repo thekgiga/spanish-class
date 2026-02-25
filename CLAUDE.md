@@ -72,21 +72,59 @@ spanish-class/
    - Add to decision tree if applicable
    - Update this file (CLAUDE.md) if adding new categories
 
-### Deployment Workflow
+### Environment Configuration
 
-**Development:**
+**System:** Backend uses `ENV` variable to load environment-specific configs from `config/` directory.
+
+**Structure:**
+```
+config/
+├── local/.env    # Local development (ENV=local)
+├── dev/.env      # Dev server (ENV=dev)
+├── prod/.env     # Production (ENV=prod)
+└── templates/    # Templates for generating configs
+```
+
+**Local Development Workflow:**
 ```bash
+# Initial setup (once)
+cp config/templates/.env.local.template config/local/.env
+nano config/local/.env  # Fill in actual values
+
+# Daily development
+npm run dev  # Automatically uses ENV=local → config/local/.env
+```
+
+**Deployment Workflow:**
+```bash
+# Initial setup (once per environment)
+cp config/templates/.env.dev.template config/dev/.env
+nano config/dev/.env  # Fill in actual values
+
+# Deploy (configs copied automatically)
 ./scripts/build/build-deploy-package.sh
-./scripts/deploy/deploy-dev.sh
+./scripts/deploy/deploy-dev.sh  # Includes config/dev/.env automatically
 ./scripts/database/migrate-remote-dev.sh  # Only if schema changed
 ```
 
 **Production:**
 ```bash
-# Test in dev first, then:
-./scripts/deploy/deploy-prod.sh
+# Setup (once)
+cp config/templates/.env.prod.template config/prod/.env
+nano config/prod/.env  # Fill in actual values (different secrets!)
+
+# Deploy (test in dev first!)
+./scripts/deploy/deploy-prod.sh  # Includes config/prod/.env automatically
 ./scripts/database/migrate-remote-prod.sh  # EXTREME CAUTION!
 ```
+
+**Key Points:**
+- Configs are **never committed** to git (entire `config/` is git-ignored)
+- Deployment scripts **automatically copy** the correct config
+- Backend loads from `config/$ENV/.env` based on `ENV` variable
+- NPM scripts set `ENV=local` for local development
+- Deployment scripts set `ENV=dev` or `ENV=prod` on the server
+- See `config/README.md` for detailed configuration documentation
 
 ### Database Operations
 

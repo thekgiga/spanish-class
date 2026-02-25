@@ -24,15 +24,13 @@ Copy templates and fill in actual values:
 
 ```bash
 # For local development
-cp config/templates/.env.local.template packages/backend/.env
+cp config/templates/.env.local.template config/local/.env
 
 # For dev server
 cp config/templates/.env.dev.template config/dev/.env
-cp config/templates/.htaccess.dev.template config/dev/.htaccess
 
 # For production
 cp config/templates/.env.prod.template config/prod/.env
-cp config/templates/.htaccess.prod.template config/prod/.htaccess
 ```
 
 ### 2. Edit Configuration Files
@@ -43,6 +41,9 @@ Replace ALL `CHANGE_ME` placeholders with actual values:
 # Generate JWT secret
 openssl rand -base64 32
 
+# Edit local config
+nano config/local/.env
+
 # Edit dev config
 nano config/dev/.env
 
@@ -52,31 +53,38 @@ nano config/prod/.env
 
 ### 3. Deployment
 
-Use the sync-config script to deploy:
+Configs are **automatically copied** during deployment. Just run:
 
 ```bash
-# Deploy to dev
-./scripts/deploy/sync-config.sh dev
+# Deploy to dev (includes config/dev/.env automatically)
+./scripts/deploy/deploy-dev.sh
 
-# Deploy to prod (requires confirmation)
-./scripts/deploy/sync-config.sh prod
+# Deploy to prod (includes config/prod/.env automatically)
+./scripts/deploy/deploy-prod.sh
 ```
+
+The deployment scripts will:
+- Validate that config file exists
+- Check for `CHANGE_ME` placeholders and warn if found
+- Copy config to deployment package automatically
+- Deploy everything together
 
 ## Environment Files
 
-### Local Development
+### Local Development (config/local/)
 - `.env` - Backend environment variables
 - No .htaccess needed (uses Vite dev server)
+- Loaded via `ENV=local` (default)
 
-### Dev Server (dev.casovispanskog.rs)
+### Dev Server (config/dev/)
 - `.env` - Backend environment variables
-- `.htaccess` - Apache/Passenger configuration
 - Database: `gigovicr_spanish_dev`
+- Loaded via `ENV=dev` (set by deployment)
 
-### Production Server (casovispanskog.rs)
+### Production Server (config/prod/)
 - `.env` - Backend environment variables
-- `.htaccess` - Apache/Passenger configuration
 - Database: `gigovicr_spanish_class`
+- Loaded via `ENV=prod` (set by deployment)
 
 ## Configuration Variables
 
@@ -99,14 +107,21 @@ Optional:
 - `JITSI_APP_ID` - Jitsi video conferencing
 - `JITSI_API_KEY` - Jitsi API key
 
-### .htaccess
+## Environment Loading
 
-Required for dev/prod servers only (not local):
-- Passenger configuration (Node.js app setup)
-- HTTPS redirect rules
-- Frontend routing (React Router)
-- Security headers
-- Caching rules
+The backend uses the `ENV` variable to determine which config to load:
+
+```typescript
+// Backend loads from config/$ENV/.env
+ENV=local  → config/local/.env  (default for development)
+ENV=dev    → config/dev/.env    (set by deploy-dev.sh)
+ENV=prod   → config/prod/.env   (set by deploy-prod.sh)
+```
+
+This is handled automatically by:
+- `packages/backend/src/config/env.ts` - Environment loader
+- NPM scripts set `ENV=local` for local development
+- Deployment scripts set `ENV=dev` or `ENV=prod` on the server
 
 ## Generating Secrets
 
@@ -122,15 +137,10 @@ openssl rand -base64 24
 
 ### Backend not loading .env
 - Check file is named `.env` exactly (no .template suffix)
-- Verify file is in correct location (`dev-casovispanskog-backend/`)
+- Verify file is in correct location: `config/local/.env`, `config/dev/.env`, or `config/prod/.env`
+- Check `ENV` variable is set correctly (local/dev/prod)
 - Check file permissions (should be readable)
-
-### .htaccess typos
-- Always use templates to avoid typos
-- Key areas to check:
-  - `PassengerStartupFile` → must be `dist/index.js` (not disct/)
-  - `PassengerAppRoot` → correct backend directory path
-  - `PassengerNodejs` → correct Node.js binary path
+- Look for "Loaded environment config" message in console output
 
 ### Database connection fails
 - Verify DATABASE_URL format: `mysql://user:pass@host:3306/dbname`
