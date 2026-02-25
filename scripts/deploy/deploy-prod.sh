@@ -53,7 +53,7 @@ echo ""
 
 # Step 1: Build deployment package
 echo -e "${GREEN}[1/7]${NC} Building production deployment package..."
-./build-deploy-package.sh
+./scripts/build/build-deploy-package.sh
 
 # Step 2: Copy production environment configuration
 echo -e "${GREEN}[2/7]${NC} Copying PRODUCTION environment configuration..."
