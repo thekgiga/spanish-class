@@ -5,16 +5,16 @@
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "ENV=local tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "clean": "rm -rf dist",
     "typecheck": "tsc --noEmit",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio"
+    "db:generate": "ENV=local prisma generate",
+    "db:push": "ENV=local prisma db push",
+    "db:migrate": "ENV=local prisma migrate dev",
+    "db:seed": "ENV=local tsx prisma/seed.ts",
+    "db:studio": "ENV=local prisma studio"
   },
   "dependencies": {
     "@jitsi/react-sdk": "^1.4.4",
