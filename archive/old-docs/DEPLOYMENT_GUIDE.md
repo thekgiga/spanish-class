@@ -1,6 +1,40 @@
-# Deployment Guide for unlimited.rs OPTIMUM+ Hosting
+# Spanish Class Platform - cPanel Deployment Guide
 
-This guide will help you deploy the Spanish Class Platform on your unlimited.rs cPanel hosting.
+Complete step-by-step guide for deploying to cPanel shared hosting (unlimited.rs or similar).
+
+## 📋 Table of Contents
+
+1. [Quick Start](#quick-start)
+2. [Prerequisites](#prerequisites)
+3. [Local Build Process](#local-build-process)
+4. [cPanel Setup](#cpanel-setup)
+5. [Backend Deployment](#backend-deployment)
+6. [Frontend Deployment](#frontend-deployment)
+7. [Starting the Application](#starting-the-application)
+8. [Troubleshooting](#troubleshooting)
+9. [Maintenance & Updates](#maintenance--updates)
+
+---
+
+## 🚀 Quick Start
+
+**TL;DR for experienced users:**
+
+```bash
+# 1. Build deployment package locally
+./build-deploy-package.sh
+
+# 2. Upload deploy/backend/* to ~/spanish-class-backend/
+# 3. Upload deploy/frontend/* to ~/public_html/
+# 4. Create .env on server from .env.template
+# 5. Run npm install via cPanel Node.js interface
+# 6. Run db migrations via SSH: npm run db:generate && npm run db:push
+# 7. Start Node.js app in cPanel
+```
+
+**This guide covers two deployment approaches:**
+- **Option 1**: Build on cPanel server (requires more resources)
+- **Option 2**: Build locally and upload production files (recommended for shared hosting)
 
 ## Architecture Overview
 
@@ -65,7 +99,281 @@ mysql://myuser_spanish_app:SecurePassword123@localhost:3306/myuser_spanish_class
 
 ## Part 2: Application Deployment
 
-### Option A: Deployment via SSH (Recommended)
+### **Option A: Build Locally and Deploy** (Recommended for cPanel)
+
+This approach builds the application on your local machine and uploads only the production-ready files. This is **recommended for shared hosting** because it:
+- Avoids resource-intensive builds on the server
+- Reduces deployment time
+- Avoids monorepo/turborepo compatibility issues with cPanel
+- Smaller upload size (no source files, no dev dependencies)
+
+#### Local Build Process
+
+**Step 1: Build Deployment Package Locally**
+
+On your local machine:
+
+```bash
+# Navigate to project directory
+cd /path/to/spanish-class
+
+# Make script executable (first time only)
+chmod +x build-deploy-package.sh
+
+# Run the build script
+./build-deploy-package.sh
+```
+
+This creates a `deploy/` directory with:
+```
+deploy/
+├── backend/
+│   ├── dist/                   # Compiled JavaScript
+│   ├── prisma/                 # Database schema
+│   ├── _shared_lib/            # Bundled shared monorepo packages
+│   │   └── @spanish-class/
+│   │       └── shared/         # Shared package
+│   ├── package.json            # Production dependencies only
+│   ├── setup-shared-package.sh # Post-install symlink script
+│   └── .env.template           # Environment template
+├── frontend/              # Static files ready to serve
+│   ├── index.html
+│   ├── assets/
+│   └── icons/
+├── README.md              # Quick reference
+└── DEPLOYMENT_SUMMARY.txt # Build info
+```
+
+**⚠️ IMPORTANT: Understanding the `_shared_lib` Directory**
+
+cPanel's CloudLinux NodeJS Selector has a specific requirement: **`node_modules` must be a symlink** to a virtual environment created by cPanel. Our monorepo includes a shared package (`@spanish-class/shared`) that needs to be available at runtime.
+
+**The Solution:**
+- The shared package is bundled in `_shared_lib/@spanish-class/shared` (NOT `node_modules`)
+- After npm install on cPanel, we run `setup-shared-package.sh` to create a symlink:
+  ```
+  node_modules/@spanish-class/shared → _shared_lib/@spanish-class/shared
+  ```
+- This satisfies both cPanel's requirement and our import resolution
+
+**Do NOT:**
+- ❌ Delete or rename the `_shared_lib` directory
+- ❌ Create a `node_modules` folder manually
+- ❌ Skip running `setup-shared-package.sh` after npm install
+
+**Step 2: Upload Backend to Server**
+
+**Via cPanel File Manager:**
+1. Log in to cPanel
+2. Navigate to File Manager
+3. Create directory: `/home/username/spanish-class-backend`
+4. Upload all files from `deploy/backend/` to this directory
+   - You can zip the `deploy/backend` folder first for faster upload
+   - Then extract on the server
+
+**Via SSH/SCP:**
+```bash
+# From your local machine
+scp -r deploy/backend/* username@yourdomain.com:~/spanish-class-backend/
+```
+
+**Via SFTP (FileZilla, Cyberduck, etc.):**
+- Connect to your server via SFTP
+- Navigate to `/home/username/`
+- Create folder: `spanish-class-backend`
+- Upload all contents of `deploy/backend/`
+
+**Step 3: Upload Frontend to Server**
+
+```bash
+# Via SCP
+scp -r deploy/frontend/* username@yourdomain.com:~/public_html/
+
+# Or use cPanel File Manager to upload to public_html
+```
+
+**Step 4: Create Environment File on Server**
+
+Connect via SSH or use cPanel File Manager:
+
+```bash
+cd ~/spanish-class-backend
+nano .env
+```
+
+**Copy this template and fill in your values:**
+
+```env
+# Database Configuration (from Part 1)
+DATABASE_URL="mysql://myuser_spanish_app:YOUR_PASSWORD@localhost:3306/myuser_spanish_class"
+
+# JWT Authentication - GENERATE A SECURE RANDOM STRING!
+JWT_SECRET="CHANGE_THIS_TO_LONG_RANDOM_STRING_MIN_32_CHARS"
+JWT_EXPIRES_IN="7d"
+
+# Email Configuration (Resend) - Optional
+RESEND_API_KEY="re_your_key_here"
+EMAIL_FROM="Spanish Class <noreply@yourdomain.com>"
+PROFESSOR_EMAIL="professor@yourdomain.com"
+
+# Application URLs
+FRONTEND_URL="https://yourdomain.com"
+API_URL="https://yourdomain.com/api"
+
+# Environment
+NODE_ENV="production"
+PORT=3001
+```
+
+**Generate secure JWT_SECRET:**
+```bash
+# On server or local machine
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+```
+
+**Step 5: Install Production Dependencies**
+
+**Via cPanel Node.js Interface (Recommended):**
+1. cPanel → Software → Setup Node.js App
+2. Create application:
+   - Node.js version: 20.x (or latest 18.x+)
+   - Application mode: Production
+   - Application root: `spanish-class-backend`
+   - Application startup file: `dist/index.js`
+3. Click "Create"
+4. Scroll to "Detected configuration files"
+5. Click "Run NPM Install"
+6. Wait for completion (2-5 minutes)
+
+**Via SSH:**
+```bash
+cd ~/spanish-class-backend
+source /home/username/nodevenv/spanish-class-backend/20/bin/activate
+npm install --production
+```
+
+**Step 5b: Setup Shared Package Symlink** ⭐ **CRITICAL STEP**
+
+After npm install completes, you **MUST** run the setup script to create symlinks for the shared package:
+
+**Via SSH:**
+```bash
+cd ~/spanish-class-backend
+bash setup-shared-package.sh
+```
+
+**Expected output:**
+```
+Setting up shared package symlink...
+✓ Shared package symlink created successfully
+  node_modules/@spanish-class/shared -> _shared_lib/@spanish-class/shared
+```
+
+**Via cPanel Terminal:**
+1. cPanel → Advanced → Terminal
+2. Navigate to your backend directory: `cd ~/spanish-class-backend`
+3. Run: `bash setup-shared-package.sh`
+
+**Verification:**
+```bash
+ls -la node_modules/@spanish-class/
+# You should see: shared -> ../../_shared_lib/@spanish-class/shared
+```
+
+**If you skip this step**, the application will fail with:
+```
+Error: Cannot find module '@spanish-class/shared'
+```
+
+**Step 6: Initialize Database**
+
+```bash
+cd ~/spanish-class-backend
+source /home/username/nodevenv/spanish-class-backend/20/bin/activate
+
+# Generate Prisma Client
+npm run db:generate
+
+# Create database tables
+npm run db:push
+
+# Optional: Seed initial data (creates test users)
+npm run db:seed
+```
+
+**Step 7: Configure Frontend Routing**
+
+Create `.htaccess` in `public_html`:
+
+```bash
+cd ~/public_html
+nano .htaccess
+```
+
+Add:
+```apache
+# Enable Rewrite Engine
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Force HTTPS (uncomment after SSL installed)
+  # RewriteCond %{HTTPS} off
+  # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Handle React Router - redirect all requests to index.html
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# Cache Control
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresDefault "access plus 1 week"
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript
+</IfModule>
+```
+
+**Step 8: Start Backend Application**
+
+**Via cPanel:**
+1. cPanel → Setup Node.js App
+2. Find your application
+3. Click "Start"
+4. Status should show "Running"
+
+**Verify:**
+```bash
+curl https://yourdomain.com/health
+# Should return: {"status":"ok","timestamp":"..."}
+```
+
+**Step 9: Test Frontend**
+
+Visit `https://yourdomain.com` - you should see the Spanish Class login page.
+
+---
+
+### **Option B: Build on Server via SSH**
 
 #### Step 1: Enable SSH Access
 
@@ -393,6 +701,60 @@ pm2 restart spanish-class-api
 ---
 
 ## Troubleshooting
+
+### Cannot Find Module '@spanish-class/shared'
+
+**Problem**: Application fails with `Error: Cannot find module '@spanish-class/shared'`
+
+**Cause**: The shared package symlink was not created after npm install.
+
+**Solutions**:
+1. Run the setup script:
+   ```bash
+   cd ~/spanish-class-backend
+   bash setup-shared-package.sh
+   ```
+
+2. Verify symlink exists:
+   ```bash
+   ls -la node_modules/@spanish-class/
+   # Should show: shared -> ../../_shared_lib/@spanish-class/shared
+   ```
+
+3. If symlink creation fails, check:
+   - `_shared_lib` directory exists and contains the shared package
+   - `node_modules` is a symlink (created by cPanel NodeJS Selector)
+   - You have permissions to create symlinks in `node_modules`
+
+4. If you accidentally created a `node_modules` folder manually:
+   ```bash
+   rm -rf node_modules
+   # Then reinstall via cPanel NodeJS Selector
+   ```
+
+### node_modules is a Directory, Not a Symlink
+
+**Problem**: cPanel complains about `node_modules` being a folder
+
+**Cause**: A `node_modules` folder was uploaded or created manually, conflicting with cPanel's symlink requirement.
+
+**Solutions**:
+1. **Delete the manual `node_modules` folder:**
+   ```bash
+   cd ~/spanish-class-backend
+   rm -rf node_modules
+   ```
+
+2. **Reinstall via cPanel NodeJS Selector:**
+   - cPanel → Setup Node.js App → Find your application → Run NPM Install
+   - This creates `node_modules` as a symlink to the virtual environment
+
+3. **Run the setup script:**
+   ```bash
+   bash setup-shared-package.sh
+   ```
+
+**Prevention**: Never upload `node_modules` from your local machine. Always use the `./build-deploy-package.sh` script which excludes `node_modules` from the deployment package.
 
 ### Database Connection Issues
 

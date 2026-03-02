@@ -28,7 +28,7 @@ export async function expirePendingBookings(): Promise<{
     const result = await prisma.booking.updateMany({
       where: {
         id: {
-          in: expiredBookings.map((b) => b.id),
+          in: expiredBookings.map((b: { id: string }) => b.id),
         },
       },
       data: {

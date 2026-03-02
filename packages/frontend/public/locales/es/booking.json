@@ -1,21 +1,148 @@
 {
-  "bookSlot": "Reservar Horario",
-  "cancelBooking": "Cancelar Reserva",
-  "bookingConfirmed": "Reserva Confirmada",
-  "bookingPending": "Reserva Pendiente",
-  "bookingRejected": "Reserva Rechazada",
-  "bookingExpired": "Reserva Expirada",
-  "myBookings": "Mis Reservas",
-  "upcomingClasses": "Clases Próximas",
-  "pastClasses": "Clases Pasadas",
-  "noBookings": "No hay reservas",
-  "professorName": "Profesor",
-  "studentName": "Estudiante",
-  "classTime": "Hora de Clase",
-  "duration": "Duración",
-  "status": "Estado",
-  "joinClass": "Unirse a la Clase",
-  "waitingConfirmation": "Esperando confirmación del profesor",
-  "confirmationExpiry": "La solicitud expira en",
-  "hours": "horas"
+  "page": {
+    "book_title": "Reservar una clase",
+    "book_subtitle": "Explore y reserve sesiones disponibles",
+    "bookings_title": "Mis reservas",
+    "bookings_subtitle": "Administra tus sesiones próximas y pasadas",
+    "no_slots": "No hay clases disponibles en este momento. Por favor, vuelve más tarde.",
+    "loading": "Cargando clases disponibles...",
+    "seo_title": "Reservar una lección de español",
+    "seo_description": "Explore y reserve lecciones de español disponibles con profesores nativos. Horarios flexibles para clases individuales y grupales desde 2000 RSD."
+  },
+  "tabs": {
+    "upcoming": "Próximas",
+    "past": "Pasadas"
+  },
+  "filters": {
+    "all": "Todos los tipos",
+    "group": "Grupales",
+    "private": "Individuales",
+    "search_placeholder": "Buscar por título o descripción...",
+    "for_me_only": "Solo para mí"
+  },
+  "views": {
+    "list": "Lista",
+    "calendar": "Calendario"
+  },
+  "slot_card": {
+    "spots_left": "{{count}} lugar disponible",
+    "spots_left_plural": "{{count}} lugares disponibles",
+    "full": "Completo",
+    "duration": "{{duration}} min",
+    "book_now": "Reservar ahora",
+    "view_details": "Ver detalles"
+  },
+  "booking_modal": {
+    "title": "Confirmar reserva",
+    "description": "Estás a punto de reservar la siguiente sesión:",
+    "class_details": "Detalles de la clase",
+    "date": "Fecha",
+    "time": "Hora",
+    "duration": "Duración",
+    "professor": "Profesor",
+    "type": "Tipo",
+    "type_individual": "Sesión individual",
+    "type_group": "Sesión grupal",
+    "private": "Privada",
+    "group": "Grupal ({{current}}/{{max}} estudiantes)",
+    "price": "Precio",
+    "free": "Gratis",
+    "notes_label": "Notas (opcional)",
+    "notes_placeholder": "¿Alguna solicitud especial o pregunta?",
+    "confirm_button": "Confirmar reserva",
+    "cancel_button": "Cancelar",
+    "success_title": "¡Solicitud de reserva enviada!",
+    "success_description": "Tu solicitud de reserva está pendiente de aprobación del profesor. Recibirás un correo electrónico una vez que el profesor apruebe tu solicitud.",
+    "success_button": "Listo",
+    "reserved_for_you": "Reservado para ti",
+    "class_title": "Clase de español",
+    "success_message": "¡Clase reservada con éxito!",
+    "error_message": "Error al reservar la clase"
+  },
+  "bookings": {
+    "no_upcoming": "No hay sesiones próximas",
+    "no_past": "No hay sesiones pasadas",
+    "book_class": "Reservar una clase",
+    "book_new_class": "Reservar nueva clase",
+    "join": "Unirse",
+    "cancel": "Cancelar",
+    "cant_cancel": "No se puede cancelar dentro de 24 horas",
+    "relative_time_in": "en",
+    "private_class": "Clase privada"
+  },
+  "cancel": {
+    "button": "Cancelar reserva",
+    "title": "Cancelar reserva",
+    "confirm": "¿Estás seguro de que quieres cancelar esta reserva?",
+    "description": "¿Estás seguro de que quieres cancelar esta sesión?",
+    "reason_label": "Motivo (opcional)",
+    "reason_placeholder": "Cuéntanos por qué estás cancelando...",
+    "warning": "Ten en cuenta que las cancelaciones deben hacerse al menos 24 horas antes de la sesión.",
+    "submit": "Confirmar cancelación",
+    "keep": "Mantener reserva",
+    "success": "Reserva cancelada con éxito",
+    "error": "Error al cancelar la reserva"
+  },
+  "status": {
+    "confirmed": "Confirmada",
+    "pending": "Pendiente de aprobación",
+    "cancelled": "Cancelada",
+    "completed": "Completada"
+  },
+  "actions": {
+    "join_class": "Unirse a la clase",
+    "view_recording": "Ver grabación",
+    "waiting_confirmation": "Esperando confirmación"
+  },
+  "empty_states": {
+    "no_slots": "No hay espacios disponibles en este momento. ¡Vuelve más tarde!",
+    "no_private_sessions": "No hay sesiones privadas disponibles",
+    "no_private_sessions_description": "Actualmente no hay sesiones privadas programadas para ti. Por favor, contacta a tu profesor para organizar una sesión dedicada lo antes posible.",
+    "no_slots_on_date": "No hay espacios disponibles en este día",
+    "select_date": "Haz clic en una fecha para ver los espacios disponibles"
+  },
+  "calendar": {
+    "today": "Hoy",
+    "select_date": "Selecciona una fecha",
+    "legend_available": "Disponible",
+    "legend_for_you": "Para ti",
+    "legend_booked": "Reservada",
+    "weekday_mon": "Lun",
+    "weekday_tue": "Mar",
+    "weekday_wed": "Mié",
+    "weekday_thu": "Jue",
+    "weekday_fri": "Vie",
+    "weekday_sat": "Sáb",
+    "weekday_sun": "Dom"
+  },
+  "slot": {
+    "spots_filled": "{{current}}/{{max}} lugares ocupados",
+    "already_booked": "Ya reservado",
+    "book_now": "Reservar ahora",
+    "booked": "Reservado",
+    "private_invitation": "Invitación privada"
+  },
+  "confirmation": {
+    "title": "Confirmación de reserva",
+    "subtitle": "Por favor, confirma o rechaza esta solicitud de reserva",
+    "invalid_token": "Token de confirmación inválido o faltante",
+    "confirmed_title": "¡Reserva confirmada!",
+    "confirmed_message": "El estudiante ha sido notificado. Redirigiendo al panel...",
+    "rejected_title": "Reserva rechazada",
+    "rejected_message": "El estudiante ha sido notificado. Redirigiendo al panel...",
+    "reason_label": "Motivo del rechazo (opcional)",
+    "reason_placeholder": "Proporciona un motivo si rechazas...",
+    "confirm_booking": "Reserva",
+    "confirming": "Confirmando...",
+    "reject_booking": "Rechazar reserva",
+    "rejecting": "Rechazando...",
+    "confirm_error": "Error al confirmar la reserva",
+    "reject_error": "Error al rechazar la reserva"
+  },
+  "pending_list": {
+    "no_pending": "No hay confirmaciones de reserva pendientes",
+    "class_time": "Hora de la clase",
+    "confirmation_expiry": "Expiración de la confirmación",
+    "booking_pending": "Pendiente"
+  }
 }

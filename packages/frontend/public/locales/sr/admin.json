@@ -1,0 +1,347 @@
+{
+  "dashboard": {
+    "title": "Admin kontrolna tabla",
+    "subtitle": "Upravljajte vašom Spanish Class platformom",
+    "welcome": "Dobrodošli nazad, {{name}}!",
+    "stats": {
+      "total_students": "Ukupno studenata",
+      "active_bookings": "Aktivna zakazivanja",
+      "pending_approvals": "Odobrenja na čekanju",
+      "revenue_month": "Prihod ovog meseca"
+    },
+    "quick_actions": {
+      "create_slot": "Napravite novi termin",
+      "view_calendar": "Pogledajte kalendar",
+      "manage_students": "Upravljajte studentima",
+      "view_analytics": "Pogledajte analitiku"
+    }
+  },
+  "slots": {
+    "title": "Termini časova",
+    "subtitle": "Upravljajte dostupnim vremenima časova",
+    "create_button": "Napravite novi termin",
+    "bulk_create": "Masovno kreiranje",
+    "bulk_page": {
+      "title": "Napravite ponavljajuće termine",
+      "subtitle": "Postavite više termina odjednom za raspon datuma",
+      "card_title": "Ponavljajući raspored",
+      "card_description": "Napravite isti vremenski termin preko više dana",
+      "start_date": "Datum početka",
+      "end_date": "Datum završetka",
+      "days_of_week": "Dani u nedelji",
+      "time": "Vreme",
+      "start_time": "Vreme početka",
+      "duration": "Trajanje (minuti)",
+      "slot_type": "Tip termina",
+      "individual": "Individualni (1-na-1)",
+      "group": "Grupna sesija",
+      "max_participants": "Maksimalno učesnika",
+      "title_optional": "Naslov (opciono)",
+      "title_placeholder": "npr. Jutarnji čas španskog",
+      "description_optional": "Opis (opciono)",
+      "description_placeholder": "Šta će ove sesije pokrivati?",
+      "create_button": "Napravite termine",
+      "creating": "Kreiranje...",
+      "success": "Uspešno kreirano {{count}} termina!",
+      "error": "Neuspelo kreiranje termina"
+    },
+    "filters": {
+      "all": "Svi termini",
+      "upcoming": "Predstojeći",
+      "past": "Prošli",
+      "cancelled": "Otkazani"
+    },
+    "table": {
+      "title": "Naslov",
+      "date": "Datum",
+      "time": "Vreme",
+      "duration": "Trajanje",
+      "type": "Tip",
+      "capacity": "Kapacitet",
+      "booked": "Zakazano",
+      "status": "Status",
+      "actions": "Akcije"
+    },
+    "actions": {
+      "edit": "Uredite termin",
+      "delete": "Obrišite",
+      "cancel": "Otkažite",
+      "view": "Pogledajte detalje"
+    },
+    "no_slots": "Nema pronađenih termina",
+    "create_success": "Termin uspešno kreiran",
+    "update_success": "Termin uspešno ažuriran",
+    "delete_success": "Termin uspešno obrisan",
+    "recurring_success": "{{count}} ponavljajućih termina kreirano",
+    "form": {
+      "mode": {
+        "single": "Pojedinačni",
+        "recurring": "Ponavljajući"
+      },
+      "date_time": {
+        "title": "Datum i vreme",
+        "subtitle_single": "Izaberite kada se ova sesija održava",
+        "subtitle_recurring": "Prvo pojavljivanje i obrazac ponavljanja",
+        "select_date": "Izaberite datum",
+        "start_time": "Vreme početka",
+        "duration": "Trajanje",
+        "overlap_warning": "Ovo vreme se preklapa sa postojećim terminom"
+      },
+      "duration_presets": {
+        "30_min": "30 min",
+        "45_min": "45 min",
+        "60_min": "60 min",
+        "90_min": "90 min",
+        "120_min": "120 min"
+      },
+      "weekdays": {
+        "sun": "Ned",
+        "mon": "Pon",
+        "tue": "Uto",
+        "wed": "Sre",
+        "thu": "Čet",
+        "fri": "Pet",
+        "sat": "Sub"
+      },
+      "existing_slots": {
+        "title": "Postojeći termini",
+        "subtitle": "Već zakazano za {{date}}",
+        "no_slots": "Nema zakazanih termina za ovaj dan",
+        "spanish_class": "Čas španskog",
+        "booked": "Zakazano",
+        "open": "Otvoreno"
+      },
+      "recurring": {
+        "title": "Ponovite na",
+        "subtitle": "Izaberite koje dane se ovaj termin ponavlja",
+        "end_date": "Datum završetka (opciono)",
+        "weeks_ahead": "Generiši nedelje unapred",
+        "weeks_count": "{{count}} nedelja"
+      },
+      "session_type": {
+        "title": "Tip sesije",
+        "individual": "Individualni",
+        "individual_desc": "1-na-1 sesija",
+        "group": "Grupni",
+        "group_desc": "Više studenata",
+        "max_participants": "Maksimalno učesnika"
+      },
+      "booked_students": {
+        "title": "Zakazani studenti",
+        "no_bookings": "Nijedan student još nije zakazao ovaj termin",
+        "count": "{{count}} student zakazan",
+        "count_plural": "{{count}} studenata zakazano",
+        "no_bookings_yet": "Još nema zakazivanja",
+        "can_book": "Studenti mogu zakazati ovaj termin sa svoje kontrolne table",
+        "view_student": "Pogledaj",
+        "join_meeting": "Pridružite se sastanku"
+      },
+      "details": {
+        "title": "Detalji (Opciono)",
+        "title_label": "Naslov",
+        "title_placeholder": "npr. Konverzacijska praksa",
+        "description_label": "Opis",
+        "description_placeholder": "Šta će ova sesija pokrivati?"
+      },
+      "private_slot": {
+        "title": "Privatni termin",
+        "subtitle": "Vidljivo samo izabranim studentima",
+        "search_placeholder": "Pretražite studente...",
+        "no_students": "Nema pronađenih studenata",
+        "selected": "{{count}} izabrano",
+        "remove": "Uklonite"
+      },
+      "direct_booking": {
+        "title": "Pošaljite pozivnicu",
+        "subtitle": "Zakažite ovaj termin za studenta i pošaljite im pozivnicu",
+        "search_placeholder": "Pretražite studente da pozovete...",
+        "no_students": "Nema pronađenih studenata",
+        "clear": "Obriši"
+      },
+      "buttons": {
+        "back": "Nazad",
+        "save": "Sačuvajte izmene",
+        "create": "Napravite termin",
+        "creating": "Kreiranje...",
+        "cancel_slot": "Otkažite termin"
+      },
+      "cancel_dialog": {
+        "title": "Otkažite termin",
+        "message": "Da li ste sigurni da želite da otkažete ovaj termin? Ovo će obavestiti svih {{count}} zakazanog studenta.",
+        "message_plural": "Da li ste sigurni da želite da otkažete ovaj termin? Ovo će obavestiti svih {{count}} zakazanih studenata.",
+        "reason_label": "Razlog otkazivanja (opciono)",
+        "reason_placeholder": "Recite studentima zašto je ova sesija otkazana...",
+        "button_cancel": "Ne, vratite se nazad",
+        "button_confirm": "Da, otkažite termin",
+        "deleting": "Brisanje..."
+      }
+    }
+  },
+  "students": {
+    "title": "Studenti",
+    "subtitle": "Upravljajte studentskim nalozima",
+    "search_placeholder": "Pretražite po imenu ili email-u...",
+    "table": {
+      "name": "Ime",
+      "email": "Email",
+      "joined": "Pridružen",
+      "bookings": "Zakazivanja",
+      "status": "Status",
+      "actions": "Akcije"
+    },
+    "status": {
+      "active": "Aktivan",
+      "inactive": "Neaktivan"
+    },
+    "no_students": "Nema pronađenih studenata",
+    "page": {
+      "registered_count": "{{count}} registrovanih studenata",
+      "search_placeholder": "Pretražite studente...",
+      "bookings_count": "{{count}} zakazivanja",
+      "joined": "Pridružen",
+      "view": "Pogledaj",
+      "no_search_results": "Nema studenata koji odgovaraju vašoj pretrazi",
+      "no_students_yet": "Još nema registrovanih studenata"
+    },
+    "detail": {
+      "title": "Profil studenta",
+      "joined": "Pridružen",
+      "upcoming": "Predstojeći",
+      "completed": "Završeno",
+      "tabs": {
+        "profile": "Profil",
+        "bookings": "Zakazivanja",
+        "notes": "Beleške"
+      },
+      "personal_details": {
+        "title": "Lični detalji",
+        "dob": "Datum rođenja:",
+        "about": "O",
+        "no_details": "Još nema navedenih ličnih detalja"
+      },
+      "learning_preferences": {
+        "title": "Preferencije učenja",
+        "spanish_level": "Nivo španskog",
+        "preferred_class_types": "Preferirani tipovi časova",
+        "no_preferences": "Još nisu postavljene preferencije učenja"
+      },
+      "learning_goals": {
+        "title": "Ciljevi učenja"
+      },
+      "availability_notes": {
+        "title": "Napomene o dostupnosti"
+      },
+      "bookings_tab": {
+        "spanish_class": "Čas španskog",
+        "no_bookings": "Još nema zakazivanja"
+      },
+      "notes_tab": {
+        "add_note": "Dodajte belešku",
+        "no_notes": "Još nema beleški. Dodajte belešku da pratite napredak ovog studenta.",
+        "edit_note": "Uredite belešku",
+        "save": "Sačuvaj",
+        "update": "Ažuriraj",
+        "cancel": "Otkaži",
+        "note_placeholder": "Napišite vašu belešku ovde..."
+      }
+    }
+  },
+  "calendar": {
+    "title": "Kalendar",
+    "subtitle": "Pogledajte sve zakazane časove",
+    "views": {
+      "month": "Mesec",
+      "week": "Nedelja",
+      "day": "Dan",
+      "mon": "Pon",
+      "tue": "Uto",
+      "wed": "Sre",
+      "thu": "Čet",
+      "fri": "Pet",
+      "sat": "Sub",
+      "sun": "Ned"
+    },
+    "today": "Danas",
+    "prev": "Prethodni",
+    "next": "Sledeći",
+    "selected_date": "Izaberite datum",
+    "slot_card": {
+      "full": "Popunjeno",
+      "spanish_class": "Čas španskog",
+      "booked": "zakazano",
+      "join": "Pridružite se"
+    },
+    "no_slots": "Nema termina ovog dana",
+    "create_slot": "Napravite termin",
+    "click_to_see": "Kliknite na datum da vidite termine"
+  },
+  "approvals": {
+    "title": "Odobrenja na čekanju",
+    "subtitle": "Pregledajte i odobrite ili odbijte zahteve za zakazivanje",
+    "approve_button": "Odobrite",
+    "reject_button": "Odbijte",
+    "no_pending": "Nema odobrenja na čekanju",
+    "approve_success": "Zakazivanje uspešno odobreno",
+    "reject_success": "Zakazivanje odbijeno",
+    "approve_error": "Neuspelo odobravanje zakazivanja",
+    "reject_error": "Neuspelo odbijanje zakazivanja",
+    "card": {
+      "class_time": "Vreme časa:",
+      "expires": "Ističe:",
+      "at": "u"
+    },
+    "all_caught_up": {
+      "title": "Sve je završeno!",
+      "message": "Trenutno nema odobrenja zakazivanja na čekanju"
+    },
+    "reject_dialog": {
+      "title": "Odbijte zakazivanje",
+      "description": "Molimo navedite razlog odbijanja ovog zakazivanja. Student će biti obavešten.",
+      "reason_label": "Razlog odbijanja *",
+      "reason_placeholder": "Unesite razlog odbijanja...",
+      "reason_required": "Molimo navedite razlog odbijanja",
+      "cancel": "Otkaži",
+      "confirm": "Odbijte zakazivanje"
+    }
+  },
+  "email_logs": {
+    "title": "Email zapisi",
+    "subtitle": "Pogledajte istoriju poslatih email-ova",
+    "table": {
+      "recipient": "Primalac",
+      "subject": "Predmet",
+      "sent_at": "Poslato",
+      "status": "Status"
+    },
+    "status": {
+      "sent": "Poslato",
+      "failed": "Neuspelo",
+      "pending": "Na čekanju"
+    },
+    "view": "Pogledaj",
+    "no_logs": "Nema pronađenih email zapisa",
+    "pagination": {
+      "showing": "Prikazuje {{start}} do {{end}} od {{total}} email-ova",
+      "page": "Stranica {{current}} od {{total}}"
+    },
+    "detail": {
+      "title": "Detalji email-a",
+      "from": "Od",
+      "to": "Za",
+      "type": "Tip",
+      "status": "Status",
+      "subject": "Predmet",
+      "sent_at": "Poslato",
+      "error": "Greška",
+      "email_content": "Sadržaj email-a"
+    }
+  },
+  "analytics": {
+    "title": "Analitika",
+    "subtitle": "Statistike i uvidi platforme",
+    "revenue": "Prihod",
+    "bookings": "Zakazivanja",
+    "students": "Studenti",
+    "sessions": "Sesije"
+  }
+}

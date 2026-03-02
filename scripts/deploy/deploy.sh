@@ -1,23 +1,16 @@
 #!/bin/bash
 
-# ===========================================
-# Spanish Class Platform - Deployment Script
-# For unlimited.rs cPanel Hosting
-# ===========================================
+###############################################################################
+# Spanish Class Platform - Production Deployment Builder
 #
-# This script automates the deployment process for the Spanish Class Platform.
-# Run this script on your cPanel server via SSH.
+# This script builds the application locally and creates a production-ready
+# deployment package for cPanel hosting.
 #
-# Prerequisites:
-# 1. SSH access to your server
-# 2. Git installed
-# 3. Node.js 18+ with npm 8+ installed
-# 4. Database created and configured in .env
-#
-# Usage:
-#   chmod +x deploy.sh
-#   ./deploy.sh
-#
+# Usage: ./deploy.sh
+# Output: ./deploy/ directory containing production files
+###############################################################################
+
+set -e  # Exit on error
 
 set -e  # Exit on any error
 

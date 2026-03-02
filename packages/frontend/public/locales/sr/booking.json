@@ -1,21 +1,148 @@
 {
-  "bookSlot": "Rezerviši Termin",
-  "cancelBooking": "Otkaži Rezervaciju",
-  "bookingConfirmed": "Rezervacija Potvrđena",
-  "bookingPending": "Rezervacija na Čekanju",
-  "bookingRejected": "Rezervacija Odbijena",
-  "bookingExpired": "Rezervacija Istekla",
-  "myBookings": "Moje Rezervacije",
-  "upcomingClasses": "Predstojeci Časovi",
-  "pastClasses": "Prošli Časovi",
-  "noBookings": "Nema rezervacija",
-  "professorName": "Profesor",
-  "studentName": "Student",
-  "classTime": "Vreme Časa",
-  "duration": "Trajanje",
-  "status": "Status",
-  "joinClass": "Pridruži se Času",
-  "waitingConfirmation": "Čeka se potvrda profesora",
-  "confirmationExpiry": "Zahtev ističe za",
-  "hours": "sati"
+  "page": {
+    "book_title": "Zakažite čas",
+    "book_subtitle": "Pregledajte i zakažite dostupne sesije",
+    "bookings_title": "Moja zakazivanja",
+    "bookings_subtitle": "Upravljajte vašim predstojećim i prošlim sesijama",
+    "no_slots": "Trenutno nema dostupnih časova. Molimo proverite ponovo kasnije.",
+    "loading": "Učitavanje dostupnih časova...",
+    "seo_title": "Zakažite čas španskog",
+    "seo_description": "Pregledajte i zakažite dostupne časove španskog sa izvornim govornicima. Fleksibilno raspoređivanje za individualne i grupne časove počevši od 2000 RSD."
+  },
+  "tabs": {
+    "upcoming": "Predstojećе",
+    "past": "Prošli"
+  },
+  "filters": {
+    "all": "Svi tipovi",
+    "group": "Grupni",
+    "private": "Individualni",
+    "search_placeholder": "Pretražite po naslovu ili opisu...",
+    "for_me_only": "Samo za mene"
+  },
+  "views": {
+    "list": "Lista",
+    "calendar": "Kalendar"
+  },
+  "slot_card": {
+    "spots_left": "{{count}} preostalo mesto",
+    "spots_left_plural": "{{count}} preostalih mesta",
+    "full": "Popunjeno",
+    "duration": "{{duration}} min",
+    "book_now": "Zakažite sada",
+    "view_details": "Pogledajte detalje"
+  },
+  "booking_modal": {
+    "title": "Potvrdite zakazivanje",
+    "description": "Upravo zakazujete sledeću sesiju:",
+    "class_details": "Detalji časa",
+    "date": "Datum",
+    "time": "Vreme",
+    "duration": "Trajanje",
+    "professor": "Profesor",
+    "type": "Tip",
+    "type_individual": "Individualna sesija",
+    "type_group": "Grupna sesija",
+    "private": "Privatni",
+    "group": "Grupni ({{current}}/{{max}} studenata)",
+    "price": "Cena",
+    "free": "Besplatno",
+    "notes_label": "Napomene (opciono)",
+    "notes_placeholder": "Imate li posebne zahteve ili pitanja?",
+    "confirm_button": "Potvrdite zakazivanje",
+    "cancel_button": "Otkaži",
+    "success_title": "Zahtev za zakazivanje poslat!",
+    "success_description": "Vaš zahtev za zakazivanje čeka odobrenje profesora. Dobićete email kada profesor odobri vaš zahtev.",
+    "success_button": "Gotovo",
+    "reserved_for_you": "Rezervisano za vas",
+    "class_title": "Čas španskog",
+    "success_message": "Čas uspešno zakazan!",
+    "error_message": "Neuspelo zakazivanje časa"
+  },
+  "bookings": {
+    "no_upcoming": "Nema predstojećih sesija",
+    "no_past": "Nema prošlih sesija",
+    "book_class": "Zakažite čas",
+    "book_new_class": "Zakažite novi čas",
+    "join": "Pridružite se",
+    "cancel": "Otkaži",
+    "cant_cancel": "Nije moguće otkazati u roku od 24 sata",
+    "relative_time_in": "za",
+    "private_class": "Privatni čas"
+  },
+  "cancel": {
+    "button": "Otkažite zakazivanje",
+    "title": "Otkažite zakazivanje",
+    "confirm": "Da li ste sigurni da želite da otkažete ovo zakazivanje?",
+    "description": "Da li ste sigurni da želite da otkažete ovu sesiju?",
+    "reason_label": "Razlog (opciono)",
+    "reason_placeholder": "Recite nam zašto otkazujete...",
+    "warning": "Molimo imajte na umu da otkazivanja moraju biti napravljena najmanje 24 sata pre sesije.",
+    "submit": "Potvrdite otkazivanje",
+    "keep": "Zadržite zakazivanje",
+    "success": "Zakazivanje uspešno otkazano",
+    "error": "Neuspelo otkazivanje zakazivanja"
+  },
+  "status": {
+    "confirmed": "Potvrđeno",
+    "pending": "Čeka odobrenje",
+    "cancelled": "Otkazano",
+    "completed": "Završeno"
+  },
+  "actions": {
+    "join_class": "Pridružite se času",
+    "view_recording": "Pogledajte snimak",
+    "waiting_confirmation": "Čeka se potvrda"
+  },
+  "empty_states": {
+    "no_slots": "Trenutno nema dostupnih termina. Proverite ponovo kasnije!",
+    "no_private_sessions": "Nema dostupnih privatnih sesija",
+    "no_private_sessions_description": "Trenutno nema zakazanih privatnih sesija za vas. Molimo kontaktirajte vašeg profesora da zakažete posvećenu sesiju u najskorije vreme.",
+    "no_slots_on_date": "Nema dostupnih termina ovog dana",
+    "select_date": "Kliknite na datum da vidite dostupne termine"
+  },
+  "calendar": {
+    "today": "Danas",
+    "select_date": "Izaberite datum",
+    "legend_available": "Dostupno",
+    "legend_for_you": "Za vas",
+    "legend_booked": "Zakazano",
+    "weekday_mon": "Pon",
+    "weekday_tue": "Uto",
+    "weekday_wed": "Sre",
+    "weekday_thu": "Čet",
+    "weekday_fri": "Pet",
+    "weekday_sat": "Sub",
+    "weekday_sun": "Ned"
+  },
+  "slot": {
+    "spots_filled": "{{current}}/{{max}} mesta popunjeno",
+    "already_booked": "Već zakazano",
+    "book_now": "Zakažite sada",
+    "booked": "Zakazano",
+    "private_invitation": "Privatna pozivnica"
+  },
+  "confirmation": {
+    "title": "Potvrda zakazivanja",
+    "subtitle": "Molimo potvrdite ili odbijte ovaj zahtev za zakazivanje",
+    "invalid_token": "Nevažeći ili nedostajući token za potvrdu",
+    "confirmed_title": "Zakazivanje potvrđeno!",
+    "confirmed_message": "Student je obavešten. Preusmeravanje na kontrolnu tablu...",
+    "rejected_title": "Zakazivanje odbijeno",
+    "rejected_message": "Student je obavešten. Preusmeravanje na kontrolnu tablu...",
+    "reason_label": "Razlog odbijanja (opciono)",
+    "reason_placeholder": "Navedite razlog ako odbijate...",
+    "confirm_booking": "Zakazivanje",
+    "confirming": "Potvrđivanje...",
+    "reject_booking": "Odbijte zakazivanje",
+    "rejecting": "Odbijanje...",
+    "confirm_error": "Neuspelo potvrđivanje zakazivanja",
+    "reject_error": "Neuspelo odbijanje zakazivanja"
+  },
+  "pending_list": {
+    "no_pending": "Nema potvrda zakazivanja na čekanju",
+    "class_time": "Vreme časa",
+    "confirmation_expiry": "Istek potvrde",
+    "booking_pending": "Na čekanju"
+  }
 }

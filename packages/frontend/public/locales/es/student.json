@@ -1,0 +1,148 @@
+{
+  "dashboard": {
+    "welcome_greeting": "¡Hola, {{name}}! 👋",
+    "student_badge": "Estudiante",
+    "subtitle": "Continúa tu viaje de aprendizaje del español",
+    "book_class_button": "Reservar una clase",
+    "stats": {
+      "upcoming_sessions": "Sesiones próximas",
+      "classes_completed": "Clases completadas",
+      "total_hours": "Horas totales",
+      "day_streak": "Racha de días"
+    },
+    "learning_progress": {
+      "title": "Progreso de aprendizaje",
+      "subtitle": "Rastrea tu mejora",
+      "complete_badge": "{{percentage}}% completado",
+      "conversation_skills": "Habilidades de conversación",
+      "grammar_mastery": "Dominio de gramática",
+      "vocabulary": "Vocabulario"
+    },
+    "next_session": {
+      "title": "Próxima sesión",
+      "subtitle": "Tu clase próxima",
+      "view_all": "Ver todo",
+      "class_title": "Clase de español",
+      "at": "a las",
+      "awaiting_approval": "⏳ Esperando aprobación",
+      "notify_by_email": "Recibirás notificación por correo electrónico",
+      "join_now": "Unirse ahora",
+      "no_sessions_title": "No hay sesiones próximas",
+      "no_sessions_subtitle": "Reserva tu primera clase para comenzar a aprender",
+      "book_first_class": "Reserva tu primera clase"
+    },
+    "quick_actions": {
+      "browse_title": "Explorar clases disponibles",
+      "browse_subtitle": "Encuentra y reserva tu próxima sesión",
+      "my_bookings_title": "Mis reservas",
+      "my_bookings_subtitle": "Ve y administra tus sesiones"
+    }
+  },
+  "profile": {
+    "title": "Mi perfil",
+    "subtitle": "Completa tu perfil para ayudar a tu profesor a personalizar tu experiencia de aprendizaje",
+    "completion_title": "Completitud del perfil",
+    "completion_complete": "Completo",
+    "completion_fields": "{{completed}} de {{total}} campos completados",
+    "edit_profile": "Editar perfil",
+    "save_profile": "Guardar perfil",
+    "cancel": "Cancelar",
+    "tabs": {
+      "personal": "Información personal",
+      "preferences": "Preferencias",
+      "security": "Seguridad"
+    },
+    "personal_info": {
+      "title": "Detalles personales",
+      "description": "Tu información personal",
+      "description_edit": "Cuéntanos un poco sobre ti",
+      "first_name": "Nombre",
+      "first_name_required": "El nombre es obligatorio",
+      "last_name": "Apellido",
+      "last_name_required": "El apellido es obligatorio",
+      "email": "Correo electrónico",
+      "email_note": "El correo electrónico no se puede cambiar",
+      "phone": "Número de teléfono",
+      "phone_placeholder": "+34 (600) 000-000",
+      "timezone": "Zona horaria",
+      "timezone_note": "Configura tu zona horaria para horarios de sesión precisos",
+      "date_of_birth": "Fecha de nacimiento",
+      "about_me": "Sobre mí",
+      "about_me_placeholder": "Cuéntanos un poco sobre ti, tu experiencia y por qué estás aprendiendo español...",
+      "about_me_note": "Esto ayuda a tu profesor a comprender tu experiencia y personalizar las lecciones",
+      "not_provided": "No proporcionado",
+      "save_button": "Guardar cambios",
+      "success": "Perfil actualizado con éxito",
+      "error": "Error al actualizar el perfil"
+    },
+    "preferences": {
+      "title": "Preferencias de aprendizaje",
+      "description": "Ayúdanos a adaptar tu experiencia de aprendizaje",
+      "spanish_level": "Nivel de español",
+      "spanish_level_placeholder": "Selecciona tu nivel actual",
+      "preferred_class_types": "Tipos de clase preferidos",
+      "preferred_class_types_note": "Selecciona los tipos de clases que te interesan",
+      "learning_goals": "Objetivos de aprendizaje",
+      "learning_goals_placeholder": "¿Qué esperas lograr? (p. ej., preparación para examen DELE, comunicación empresarial, viajes, etc.)",
+      "availability_notes": "Notas de disponibilidad",
+      "availability_notes_placeholder": "Cuéntanos tus horarios preferidos o cualquier restricción de programación...",
+      "none_selected": "Ninguno seleccionado",
+      "not_selected": "No seleccionado",
+      "language": "Idioma de la interfaz",
+      "notifications": "Notificaciones por correo",
+      "newsletter": "Actualizaciones del boletín"
+    },
+    "spanish_levels": {
+      "UNKNOWN": {
+        "label": "No lo sé",
+        "description": "Aún no estoy seguro"
+      },
+      "BEGINNER": {
+        "label": "Principiante (A1)",
+        "description": "Recién empezando"
+      },
+      "ELEMENTARY": {
+        "label": "Elemental (A2)",
+        "description": "Conversaciones básicas"
+      },
+      "INTERMEDIATE": {
+        "label": "Intermedio (B1)",
+        "description": "Cómodo con lo básico"
+      },
+      "UPPER_INTERMEDIATE": {
+        "label": "Intermedio superior (B2)",
+        "description": "Confiado en la mayoría de situaciones"
+      },
+      "ADVANCED": {
+        "label": "Avanzado (C1)",
+        "description": "Expreso ideas con fluidez"
+      },
+      "NATIVE": {
+        "label": "Nativo (C2)",
+        "description": "Nativo o casi nativo"
+      }
+    },
+    "class_types": {
+      "PRIVATE_LESSONS": "Lecciones privadas",
+      "GROUP_CLASSES": "Clases grupales",
+      "CONVERSATION_PRACTICE": "Práctica de conversación",
+      "EXAM_PREPARATION": "Preparación de exámenes",
+      "BUSINESS_SPANISH": "Español de negocios",
+      "GRAMMAR_FOCUS": "Enfoque en gramática",
+      "PRONUNCIATION": "Pronunciación",
+      "WRITING_SKILLS": "Habilidades de escritura"
+    },
+    "account_settings": {
+      "title": "Configuración de cuenta",
+      "description": "Información de tu cuenta"
+    },
+    "security": {
+      "title": "Configuración de seguridad",
+      "change_password": "Cambiar contraseña",
+      "current_password": "Contraseña actual",
+      "new_password": "Nueva contraseña",
+      "confirm_password": "Confirmar contraseña",
+      "update_button": "Actualizar contraseña"
+    }
+  }
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -19,6 +20,7 @@ interface StudentWithPricing extends UserPublic {
 }
 
 export default function StudentListWithPricing() {
+  const { t } = useTranslation("professor");
   const [students, setStudents] = useState<StudentWithPricing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export default function StudentListWithPricing() {
       const data = await getStudentsWithPricing();
       setStudents(data);
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to load students");
+      setError(err.response?.data?.error || t("student_pricing.error"));
     } finally {
       setLoading(false);
     }
@@ -59,7 +61,7 @@ export default function StudentListWithPricing() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <p className="text-gray-500">Loading students...</p>
+        <p className="text-gray-500">{t("student_pricing.loading")}</p>
       </div>
     );
   }
@@ -76,8 +78,7 @@ export default function StudentListWithPricing() {
     return (
       <Card>
         <CardContent className="p-8 text-center text-gray-500">
-          No students have booked with you yet. Students will appear here once
-          they make a booking.
+          {t("student_pricing.no_students")}
         </CardContent>
       </Card>
     );
@@ -87,11 +88,8 @@ export default function StudentListWithPricing() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Student Pricing Management</CardTitle>
-          <CardDescription>
-            Set custom prices for each student. This information is private and
-            only visible to you.
-          </CardDescription>
+          <CardTitle>{t("student_pricing.title")}</CardTitle>
+          <CardDescription>{t("student_pricing.description")}</CardDescription>
         </CardHeader>
       </Card>
 
@@ -125,7 +123,7 @@ export default function StudentListWithPricing() {
                   </>
                 ) : (
                   <Badge variant="outline" className="bg-gray-50">
-                    No pricing set
+                    {t("student_pricing.no_pricing_set")}
                   </Badge>
                 )}
 
@@ -136,7 +134,9 @@ export default function StudentListWithPricing() {
                   size="sm"
                 >
                   <Edit className="h-4 w-4 mr-2" />
-                  {student.pricing ? "Update" : "Set"} Price
+                  {student.pricing
+                    ? t("student_pricing.update_price")
+                    : t("student_pricing.set_price")}
                 </Button>
               </div>
             </CardContent>

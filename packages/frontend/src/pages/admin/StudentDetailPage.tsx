@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
+import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { toast } from "react-hot-toast";
 import {
   ArrowLeft,
   Calendar,
@@ -15,34 +16,35 @@ import {
   BookOpen,
   Target,
   MessageSquare,
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Textarea } from '@/components/ui/textarea';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { professorApi } from '@/lib/api';
-import { getInitials, formatDate, formatTime } from '@/lib/utils';
+} from "@/components/ui/dialog";
+import { professorApi } from "@/lib/api";
+import { getInitials, formatDate, formatTime } from "@/lib/utils";
 
 export function StudentDetailPage() {
+  const { t } = useTranslation("admin");
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<any>(null);
-  const [noteContent, setNoteContent] = useState('');
+  const [noteContent, setNoteContent] = useState("");
 
   const { data: student, isLoading } = useQuery({
-    queryKey: ['student', id],
+    queryKey: ["student", id],
     queryFn: () => professorApi.getStudent(id!),
     enabled: !!id,
   });
@@ -50,39 +52,42 @@ export function StudentDetailPage() {
   const createNoteMutation = useMutation({
     mutationFn: (content: string) => professorApi.createNote(id!, content),
     onSuccess: () => {
-      toast.success('Note added');
-      queryClient.invalidateQueries({ queryKey: ['student', id] });
+      toast.success(t("students.table.actions"));
+      queryClient.invalidateQueries({ queryKey: ["student", id] });
       setNoteDialogOpen(false);
-      setNoteContent('');
+      setNoteContent("");
     },
-    onError: () => toast.error('Failed to add note'),
+    onError: () => toast.error(t("students.table.actions")),
   });
 
   const updateNoteMutation = useMutation({
     mutationFn: ({ noteId, content }: { noteId: string; content: string }) =>
       professorApi.updateNote(id!, noteId, content),
     onSuccess: () => {
-      toast.success('Note updated');
-      queryClient.invalidateQueries({ queryKey: ['student', id] });
+      toast.success(t("students.table.actions"));
+      queryClient.invalidateQueries({ queryKey: ["student", id] });
       setEditingNote(null);
-      setNoteContent('');
+      setNoteContent("");
     },
-    onError: () => toast.error('Failed to update note'),
+    onError: () => toast.error(t("students.table.actions")),
   });
 
   const deleteNoteMutation = useMutation({
     mutationFn: (noteId: string) => professorApi.deleteNote(id!, noteId),
     onSuccess: () => {
-      toast.success('Note deleted');
-      queryClient.invalidateQueries({ queryKey: ['student', id] });
+      toast.success(t("students.table.actions"));
+      queryClient.invalidateQueries({ queryKey: ["student", id] });
     },
-    onError: () => toast.error('Failed to delete note'),
+    onError: () => toast.error(t("students.table.actions")),
   });
 
   const handleSaveNote = () => {
     if (!noteContent.trim()) return;
     if (editingNote) {
-      updateNoteMutation.mutate({ noteId: editingNote.id, content: noteContent });
+      updateNoteMutation.mutate({
+        noteId: editingNote.id,
+        content: noteContent,
+      });
     } else {
       createNoteMutation.mutate(noteContent);
     }
@@ -96,7 +101,7 @@ export function StudentDetailPage() {
 
   const openNewNote = () => {
     setEditingNote(null);
-    setNoteContent('');
+    setNoteContent("");
     setNoteDialogOpen(true);
   };
 
@@ -114,15 +119,21 @@ export function StudentDetailPage() {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">Student not found</p>
-        <Button variant="outline" className="mt-4" onClick={() => navigate('/admin/students')}>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => navigate("/admin/students")}
+        >
           Back to Students
         </Button>
       </div>
     );
   }
 
-  const confirmedBookings = student.bookings.filter((b) => b.status === 'CONFIRMED');
-  const pastBookings = student.bookings.filter((b) => b.status !== 'CONFIRMED');
+  const confirmedBookings = student.bookings.filter(
+    (b) => b.status === "CONFIRMED",
+  );
+  const pastBookings = student.bookings.filter((b) => b.status !== "CONFIRMED");
 
   return (
     <div className="space-y-6">
@@ -132,7 +143,9 @@ export function StudentDetailPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">Student Profile</h1>
+          <h1 className="text-2xl font-display font-bold text-navy-800">
+            {t("students.detail.title")}
+          </h1>
         </div>
       </div>
 
@@ -160,18 +173,30 @@ export function StudentDetailPage() {
                 </div>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
-                  Joined {formatDate(student.createdAt, { month: 'long', year: 'numeric' })}
+                  {t("students.detail.joined")}{" "}
+                  {formatDate(student.createdAt, {
+                    month: "long",
+                    year: "numeric",
+                  })}
                 </div>
               </div>
             </div>
             <div className="flex gap-4">
               <div className="text-center">
-                <p className="text-3xl font-bold text-navy-800">{confirmedBookings.length}</p>
-                <p className="text-sm text-muted-foreground">Upcoming</p>
+                <p className="text-3xl font-bold text-navy-800">
+                  {confirmedBookings.length}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t("students.detail.upcoming")}
+                </p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-navy-800">{pastBookings.length}</p>
-                <p className="text-sm text-muted-foreground">Completed</p>
+                <p className="text-3xl font-bold text-navy-800">
+                  {pastBookings.length}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {t("students.detail.completed")}
+                </p>
               </div>
             </div>
           </div>
@@ -181,9 +206,15 @@ export function StudentDetailPage() {
       {/* Tabs */}
       <Tabs defaultValue="profile">
         <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="bookings">Bookings</TabsTrigger>
-          <TabsTrigger value="notes">Notes ({student.notes?.length || 0})</TabsTrigger>
+          <TabsTrigger value="profile">
+            {t("students.detail.tabs.profile")}
+          </TabsTrigger>
+          <TabsTrigger value="bookings">
+            {t("students.detail.tabs.bookings")}
+          </TabsTrigger>
+          <TabsTrigger value="notes">
+            {t("students.detail.tabs.notes")} ({student.notes?.length || 0})
+          </TabsTrigger>
         </TabsList>
 
         {/* Profile Tab (US-19) */}
@@ -194,14 +225,16 @@ export function StudentDetailPage() {
               <CardContent className="p-6">
                 <h3 className="font-semibold text-navy-800 mb-4 flex items-center gap-2">
                   <MessageSquare className="h-5 w-5" />
-                  Personal Details
+                  {t("students.detail.personal_details.title")}
                 </h3>
                 <div className="space-y-3">
                   {student.dateOfBirth && (
                     <div className="flex items-center gap-3">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        <span className="text-muted-foreground">DOB: </span>
+                        <span className="text-muted-foreground">
+                          {t("students.detail.personal_details.dob")}{" "}
+                        </span>
                         {formatDate(student.dateOfBirth)}
                       </span>
                     </div>
@@ -214,12 +247,16 @@ export function StudentDetailPage() {
                   )}
                   {student.aboutMe ? (
                     <div className="mt-4">
-                      <p className="text-sm text-muted-foreground mb-1">About</p>
-                      <p className="text-sm bg-gray-50 p-3 rounded-lg">{student.aboutMe}</p>
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {t("students.detail.personal_details.about")}
+                      </p>
+                      <p className="text-sm bg-gray-50 p-3 rounded-lg">
+                        {student.aboutMe}
+                      </p>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground italic">
-                      No personal details provided yet
+                      {t("students.detail.personal_details.no_details")}
                     </p>
                   )}
                 </div>
@@ -231,34 +268,50 @@ export function StudentDetailPage() {
               <CardContent className="p-6">
                 <h3 className="font-semibold text-navy-800 mb-4 flex items-center gap-2">
                   <BookOpen className="h-5 w-5" />
-                  Learning Preferences
+                  {t("students.detail.learning_preferences.title")}
                 </h3>
                 <div className="space-y-3">
                   {student.spanishLevel && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Spanish Level</p>
+                      <p className="text-sm text-muted-foreground">
+                        {t(
+                          "students.detail.learning_preferences.spanish_level",
+                        )}
+                      </p>
                       <Badge variant="outline" className="mt-1">
-                        {student.spanishLevel.replace(/_/g, ' ')}
+                        {student.spanishLevel.replace(/_/g, " ")}
                       </Badge>
                     </div>
                   )}
-                  {student.preferredClassTypes && student.preferredClassTypes.length > 0 && (
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Preferred Class Types</p>
-                      <div className="flex flex-wrap gap-1">
-                        {student.preferredClassTypes.map((type: string) => (
-                          <Badge key={type} variant="secondary" className="text-xs">
-                            {type.replace(/_/g, ' ')}
-                          </Badge>
-                        ))}
+                  {student.preferredClassTypes &&
+                    student.preferredClassTypes.length > 0 && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {t(
+                            "students.detail.learning_preferences.preferred_class_types",
+                          )}
+                        </p>
+                        <div className="flex flex-wrap gap-1">
+                          {student.preferredClassTypes.map((type: string) => (
+                            <Badge
+                              key={type}
+                              variant="neutral"
+                              className="text-xs"
+                            >
+                              {type.replace(/_/g, " ")}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                  {!student.spanishLevel && !student.preferredClassTypes?.length && (
-                    <p className="text-sm text-muted-foreground italic">
-                      No learning preferences set yet
-                    </p>
-                  )}
+                    )}
+                  {!student.spanishLevel &&
+                    !student.preferredClassTypes?.length && (
+                      <p className="text-sm text-muted-foreground italic">
+                        {t(
+                          "students.detail.learning_preferences.no_preferences",
+                        )}
+                      </p>
+                    )}
                 </div>
               </CardContent>
             </Card>
@@ -269,7 +322,7 @@ export function StudentDetailPage() {
                 <CardContent className="p-6">
                   <h3 className="font-semibold text-navy-800 mb-4 flex items-center gap-2">
                     <Target className="h-5 w-5" />
-                    Learning Goals
+                    {t("students.detail.learning_goals.title")}
                   </h3>
                   <p className="text-sm bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
                     {student.learningGoals}
@@ -284,7 +337,7 @@ export function StudentDetailPage() {
                 <CardContent className="p-6">
                   <h3 className="font-semibold text-navy-800 mb-4 flex items-center gap-2">
                     <Clock className="h-5 w-5" />
-                    Availability Notes
+                    {t("students.detail.availability_notes.title")}
                   </h3>
                   <p className="text-sm bg-gray-50 p-3 rounded-lg whitespace-pre-wrap">
                     {student.availabilityNotes}
@@ -306,21 +359,22 @@ export function StudentDetailPage() {
                     </div>
                     <div>
                       <p className="font-medium text-navy-800">
-                        {booking.slot?.title || 'Spanish Class'}
+                        {booking.slot?.title ||
+                          t("students.detail.bookings_tab.spanish_class")}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {formatDate(booking.slot?.startTime)} at{' '}
+                        {formatDate(booking.slot?.startTime)} at{" "}
                         {formatTime(booking.slot?.startTime)}
                       </p>
                     </div>
                   </div>
                   <Badge
                     variant={
-                      booking.status === 'CONFIRMED'
-                        ? 'success'
-                        : booking.status === 'COMPLETED'
-                        ? 'secondary'
-                        : 'destructive'
+                      booking.status === "CONFIRMED"
+                        ? "success"
+                        : booking.status === "COMPLETED"
+                          ? "neutral"
+                          : "destructive"
                     }
                   >
                     {booking.status}
@@ -331,7 +385,7 @@ export function StudentDetailPage() {
           ) : (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
-                No bookings yet
+                {t("students.detail.bookings_tab.no_bookings")}
               </CardContent>
             </Card>
           )}
@@ -341,7 +395,7 @@ export function StudentDetailPage() {
           <div className="flex justify-end">
             <Button variant="primary" onClick={openNewNote}>
               <Plus className="mr-2 h-4 w-4" />
-              Add Note
+              {t("students.detail.notes_tab.add_note")}
             </Button>
           </div>
 
@@ -352,15 +406,19 @@ export function StudentDetailPage() {
                   <div className="flex justify-between items-start">
                     <p className="text-sm text-muted-foreground">
                       {formatDate(note.createdAt, {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
+                        month: "short",
+                        day: "numeric",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
                       })}
                     </p>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEditNote(note)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEditNote(note)}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button
@@ -379,7 +437,7 @@ export function StudentDetailPage() {
           ) : (
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
-                No notes yet. Add a note to track this student's progress.
+                {t("students.detail.notes_tab.no_notes")}
               </CardContent>
             </Card>
           )}
@@ -390,24 +448,32 @@ export function StudentDetailPage() {
       <Dialog open={noteDialogOpen} onOpenChange={setNoteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingNote ? 'Edit Note' : 'Add Note'}</DialogTitle>
+            <DialogTitle>
+              {editingNote
+                ? t("students.detail.notes_tab.edit_note")
+                : t("students.detail.notes_tab.add_note")}
+            </DialogTitle>
           </DialogHeader>
           <Textarea
             value={noteContent}
             onChange={(e) => setNoteContent(e.target.value)}
-            placeholder="Write your note here..."
+            placeholder={t("student_detail.notes_tab.note_placeholder")}
             rows={6}
           />
           <DialogFooter>
             <Button variant="ghost" onClick={() => setNoteDialogOpen(false)}>
-              Cancel
+              {t("students.detail.notes_tab.cancel")}
             </Button>
             <Button
               variant="primary"
               onClick={handleSaveNote}
-              isLoading={createNoteMutation.isPending || updateNoteMutation.isPending}
+              isLoading={
+                createNoteMutation.isPending || updateNoteMutation.isPending
+              }
             >
-              {editingNote ? 'Update' : 'Save'}
+              {editingNote
+                ? t("students.detail.notes_tab.update")
+                : t("students.detail.notes_tab.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

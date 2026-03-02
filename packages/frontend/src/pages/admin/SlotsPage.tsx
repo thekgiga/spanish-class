@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { toast } from 'react-hot-toast';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
 import {
   Calendar,
   Plus,
@@ -14,18 +15,18 @@ import {
   Edit,
   User,
   AlertTriangle,
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -33,33 +34,34 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { professorApi } from '@/lib/api';
-import { formatDate, formatTime } from '@/lib/utils';
-import type { AvailabilitySlot } from '@spanish-class/shared';
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { professorApi } from "@/lib/api";
+import { formatDate, formatTime } from "@/lib/utils";
+import type { AvailabilitySlot } from "@spanish-class/shared";
 
 export function SlotsPage() {
+  const { t } = useTranslation("admin");
   const [deleteSlot, setDeleteSlot] = useState<AvailabilitySlot | null>(null);
-  const [cancelReason, setCancelReason] = useState('');
+  const [cancelReason, setCancelReason] = useState("");
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
-    queryKey: ['professor-slots'],
+    queryKey: ["professor-slots"],
     queryFn: () => professorApi.getSlots({ limit: 100 }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => professorApi.deleteSlot(id),
     onSuccess: () => {
-      toast.success('Slot cancelled successfully');
-      queryClient.invalidateQueries({ queryKey: ['professor-slots'] });
+      toast.success(t("slots.delete_success"));
+      queryClient.invalidateQueries({ queryKey: ["professor-slots"] });
       setDeleteSlot(null);
-      setCancelReason('');
+      setCancelReason("");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to cancel slot');
+      toast.error(error.response?.data?.error || t("slots.delete_success"));
     },
   });
 
@@ -68,16 +70,19 @@ export function SlotsPage() {
       professorApi.cancelSlotWithBookings(id, reason),
     onSuccess: (data) => {
       if (data.cancelledBookingsCount > 0) {
-        toast.success(`Slot cancelled and ${data.cancelledBookingsCount} student(s) notified`);
+        toast.success(
+          t("slots.delete_success") +
+            ` (${data.cancelledBookingsCount} students notified)`,
+        );
       } else {
-        toast.success('Slot cancelled successfully');
+        toast.success(t("slots.delete_success"));
       }
-      queryClient.invalidateQueries({ queryKey: ['professor-slots'] });
+      queryClient.invalidateQueries({ queryKey: ["professor-slots"] });
       setDeleteSlot(null);
-      setCancelReason('');
+      setCancelReason("");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to cancel slot');
+      toast.error(error.response?.data?.error || t("slots.delete_success"));
     },
   });
 
@@ -95,12 +100,14 @@ export function SlotsPage() {
   };
 
   const now = new Date();
-  const upcomingSlots = data?.data?.filter(
-    (slot) => new Date(slot.startTime) >= now && slot.status !== 'CANCELLED'
-  ) || [];
-  const pastSlots = data?.data?.filter(
-    (slot) => new Date(slot.startTime) < now || slot.status === 'CANCELLED'
-  ) || [];
+  const upcomingSlots =
+    data?.data?.filter(
+      (slot) => new Date(slot.startTime) >= now && slot.status !== "CANCELLED",
+    ) || [];
+  const pastSlots =
+    data?.data?.filter(
+      (slot) => new Date(slot.startTime) < now || slot.status === "CANCELLED",
+    ) || [];
 
   const renderSlotCard = (slot: AvailabilitySlot) => (
     <motion.div
@@ -117,7 +124,7 @@ export function SlotsPage() {
               </div>
               <div>
                 <p className="font-medium text-navy-800">
-                  {slot.title || 'Spanish Class'}
+                  {slot.title || t("slots.table.title")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {formatDate(slot.startTime)}
@@ -128,7 +135,7 @@ export function SlotsPage() {
                     {formatTime(slot.startTime)} - {formatTime(slot.endTime)}
                   </div>
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    {slot.slotType === 'GROUP' ? (
+                    {slot.slotType === "GROUP" ? (
                       <Users className="h-4 w-4" />
                     ) : (
                       <User className="h-4 w-4" />
@@ -141,25 +148,30 @@ export function SlotsPage() {
             <div className="flex items-center gap-2">
               <Badge
                 variant={
-                  slot.status === 'AVAILABLE'
-                    ? 'success'
-                    : slot.status === 'FULLY_BOOKED'
-                    ? 'warning'
-                    : slot.status === 'CANCELLED'
-                    ? 'destructive'
-                    : 'secondary'
+                  slot.status === "AVAILABLE"
+                    ? "success"
+                    : slot.status === "FULLY_BOOKED"
+                      ? "warning"
+                      : slot.status === "CANCELLED"
+                        ? "destructive"
+                        : "neutral"
                 }
               >
-                {slot.status.replace('_', ' ')}
+                {slot.status.replace("_", " ")}
               </Badge>
-              {slot.meetLink && new Date(slot.startTime) > new Date() && slot.status !== 'CANCELLED' && (
-                <Button size="sm" variant="primary" asChild>
-                  <a href={slot.meetLink} target="_blank" rel="noopener noreferrer">
+              {slot.meetLink &&
+                new Date(slot.startTime) > new Date() &&
+                slot.status !== "CANCELLED" && (
+                  <a
+                    href={slot.meetLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-spanish-teal-500 to-spanish-teal-600 text-white hover:from-spanish-teal-600 hover:to-spanish-teal-700 shadow-lg h-9 px-4"
+                  >
                     <Video className="mr-1 h-4 w-4" />
-                    Join Meet
+                    {t("slots.actions.view")}
                   </a>
-                </Button>
-              )}
+                )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -170,7 +182,7 @@ export function SlotsPage() {
                   <DropdownMenuItem asChild>
                     <Link to={`/admin/slots/${slot.id}`}>
                       <Edit className="mr-2 h-4 w-4" />
-                      Edit
+                      {t("slots.actions.edit")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -178,14 +190,16 @@ export function SlotsPage() {
                     onClick={() => setDeleteSlot(slot)}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Cancel
+                    {t("slots.actions.cancel")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
           </div>
           {slot.description && (
-            <p className="mt-3 text-sm text-muted-foreground">{slot.description}</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {slot.description}
+            </p>
           )}
         </CardContent>
       </Card>
@@ -197,17 +211,19 @@ export function SlotsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">Availability</h1>
-          <p className="text-muted-foreground">Manage your teaching schedule</p>
+          <h1 className="text-2xl font-display font-bold text-navy-800">
+            {t("slots.title")}
+          </h1>
+          <p className="text-muted-foreground">{t("slots.subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" asChild>
-            <Link to="/admin/slots/bulk">Create Recurring</Link>
+            <Link to="/admin/slots/bulk">{t("slots.bulk_create")}</Link>
           </Button>
           <Button variant="primary" asChild>
             <Link to="/admin/slots/new">
               <Plus className="mr-2 h-4 w-4" />
-              New Slot
+              {t("slots.create_button")}
             </Link>
           </Button>
         </div>
@@ -216,8 +232,12 @@ export function SlotsPage() {
       {/* Tabs */}
       <Tabs defaultValue="upcoming">
         <TabsList>
-          <TabsTrigger value="upcoming">Upcoming ({upcomingSlots.length})</TabsTrigger>
-          <TabsTrigger value="past">Past & Cancelled ({pastSlots.length})</TabsTrigger>
+          <TabsTrigger value="upcoming">
+            {t("slots.filters.upcoming")} ({upcomingSlots.length})
+          </TabsTrigger>
+          <TabsTrigger value="past">
+            {t("slots.filters.past")} ({pastSlots.length})
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="upcoming" className="mt-6">
@@ -233,9 +253,9 @@ export function SlotsPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground">No upcoming slots</p>
+                <p className="text-muted-foreground">{t("slots.no_slots")}</p>
                 <Button variant="outline" className="mt-4" asChild>
-                  <Link to="/admin/slots/new">Create Your First Slot</Link>
+                  <Link to="/admin/slots/new">{t("slots.create_button")}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -254,7 +274,7 @@ export function SlotsPage() {
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">No past sessions</p>
+                <p className="text-muted-foreground">{t("slots.no_slots")}</p>
               </CardContent>
             </Card>
           )}
@@ -262,34 +282,40 @@ export function SlotsPage() {
       </Tabs>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deleteSlot} onOpenChange={(open) => {
-        if (!open) {
-          setDeleteSlot(null);
-          setCancelReason('');
-        }
-      }}>
+      <Dialog
+        open={!!deleteSlot}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteSlot(null);
+            setCancelReason("");
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {deleteSlot && deleteSlot.currentParticipants > 0 && (
                 <AlertTriangle className="h-5 w-5 text-destructive" />
               )}
-              Cancel Slot
+              {t("slots.actions.cancel")}
             </DialogTitle>
             <DialogDescription>
               {deleteSlot && deleteSlot.currentParticipants > 0
-                ? `This slot has ${deleteSlot.currentParticipants} active booking(s). All students will be notified via email.`
-                : 'Are you sure you want to cancel this slot? This action cannot be undone.'}
+                ? t("slots.delete_success")
+                : t("slots.delete_success")}
             </DialogDescription>
           </DialogHeader>
           {deleteSlot && deleteSlot.currentParticipants > 0 && (
             <div className="py-2">
-              <Label htmlFor="cancelReason" className="text-sm text-muted-foreground">
-                Reason for cancellation (optional)
+              <Label
+                htmlFor="cancelReason"
+                className="text-sm text-muted-foreground"
+              >
+                {t("slots.table.actions")}
               </Label>
               <Textarea
                 id="cancelReason"
-                placeholder="e.g., Schedule conflict, emergency..."
+                placeholder={t("slots.create_button")}
                 value={cancelReason}
                 onChange={(e) => setCancelReason(e.target.value)}
                 className="mt-2"
@@ -298,21 +324,24 @@ export function SlotsPage() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => {
-              setDeleteSlot(null);
-              setCancelReason('');
-            }}>
-              Keep Slot
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setDeleteSlot(null);
+                setCancelReason("");
+              }}
+            >
+              {t("slots.actions.view")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleCancelSlot}
-              isLoading={deleteMutation.isPending || cancelWithBookingsMutation.isPending}
+              isLoading={
+                deleteMutation.isPending || cancelWithBookingsMutation.isPending
+              }
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              {deleteSlot && deleteSlot.currentParticipants > 0
-                ? 'Cancel & Notify Students'
-                : 'Cancel Slot'}
+              {t("slots.actions.cancel")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,25 +1,140 @@
 {
-  "appName": "Spanish Class Platform",
-  "welcome": "Welcome",
-  "loading": "Loading...",
-  "error": "Error",
-  "success": "Success",
-  "cancel": "Cancel",
-  "confirm": "Confirm",
-  "save": "Save",
-  "delete": "Delete",
-  "edit": "Edit",
-  "close": "Close",
-  "back": "Back",
-  "next": "Next",
-  "submit": "Submit",
-  "search": "Search",
-  "filter": "Filter",
-  "clear": "Clear",
-  "selectLanguage": "Select Language",
-  "languages": {
-    "en": "English",
-    "sr": "Српски (Serbian)",
-    "es": "Español (Spanish)"
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "confirm": "Confirm",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "search": "Search",
+    "filter": "Filter",
+    "refresh": "Refresh",
+    "loading": "Loading...",
+    "view_all": "View All",
+    "show_more": "Show More",
+    "show_less": "Show Less"
+  },
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login",
+    "register": "Register",
+    "menu": "Menu"
+  },
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "this_week": "This Week",
+    "this_month": "This Month",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days",
+    "weeks": "weeks",
+    "months": "months",
+    "years": "years",
+    "ago": "ago",
+    "from_now": "from now"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "confirmed": "Confirmed",
+    "rejected": "Rejected"
+  },
+  "messages": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Information",
+    "loading": "Loading...",
+    "no_data": "No data available",
+    "something_went_wrong": "Something went wrong",
+    "try_again": "Please try again",
+    "required_field": "This field is required",
+    "invalid_email": "Please enter a valid email address",
+    "password_too_short": "Password must be at least 8 characters",
+    "passwords_dont_match": "Passwords don't match"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "of": "of",
+    "showing": "Showing",
+    "to": "to",
+    "results": "results"
+  },
+  "date_format": {
+    "short": "MMM D, YYYY",
+    "long": "MMMM D, YYYY",
+    "with_time": "MMM D, YYYY [at] h:mm A"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account settings",
+    "profile": {
+      "title": "Profile",
+      "description": "Update your personal information",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "email": "Email",
+      "email_note": "Email cannot be changed",
+      "timezone": "Timezone",
+      "save_button": "Save Changes",
+      "saving": "Saving..."
+    },
+    "success": "Settings saved successfully",
+    "error": "Failed to save settings"
+  },
+  "error_boundary": {
+    "title": "Something went wrong",
+    "message": "We're sorry, but something unexpected happened. Please try refreshing the page.",
+    "error_details": "Error details",
+    "try_again": "Try Again",
+    "refresh_page": "Refresh Page"
+  },
+  "rating": {
+    "title": "Rate {{name}}",
+    "description": "How was your experience? Your feedback helps improve the platform.",
+    "rating_label": "Rating",
+    "comment_label": "Comment (Optional)",
+    "comment_placeholder": "Share your thoughts...",
+    "anonymous": "Submit anonymously",
+    "submit": "Submit Rating"
+  },
+  "referral": {
+    "title": "Your Referral Link",
+    "description": "Share this link with friends to earn rewards when they sign up!",
+    "your_code": "Your Code: {{code}}",
+    "loading": "Loading..."
+  },
+  "participants": {
+    "title": "Participants ({{current}}/{{max}})",
+    "no_participants": "No participants yet",
+    "loading": "Loading participants..."
+  },
+  "footer": {
+    "instagram_title": "Follow us on Instagram"
+  },
+  "aria_labels": {
+    "mobile_navigation": "Mobile navigation",
+    "close_navigation": "Close navigation",
+    "top_navigation": "Top navigation",
+    "email_preview": "Email Preview"
   }
 }

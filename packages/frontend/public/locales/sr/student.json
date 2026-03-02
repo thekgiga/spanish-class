@@ -1,0 +1,148 @@
+{
+  "dashboard": {
+    "welcome_greeting": "¡Hola, {{name}}! 👋",
+    "student_badge": "Student",
+    "subtitle": "Nastavite vaše putovanje učenja španskog",
+    "book_class_button": "Zakažite čas",
+    "stats": {
+      "upcoming_sessions": "Predstojeće sesije",
+      "classes_completed": "Završeni časovi",
+      "total_hours": "Ukupno sati",
+      "day_streak": "Niz dana"
+    },
+    "learning_progress": {
+      "title": "Napredak u učenju",
+      "subtitle": "Pratite vaše napredovanje",
+      "complete_badge": "{{percentage}}% završeno",
+      "conversation_skills": "Konverzacijske veštine",
+      "grammar_mastery": "Poznavanje gramatike",
+      "vocabulary": "Rečnik"
+    },
+    "next_session": {
+      "title": "Sledeća sesija",
+      "subtitle": "Vaš predstojeći čas",
+      "view_all": "Pogledajte sve",
+      "class_title": "Čas španskog",
+      "at": "u",
+      "awaiting_approval": "⏳ Čeka odobrenje",
+      "notify_by_email": "Bićete obavešteni putem email-a",
+      "join_now": "Pridružite se sada",
+      "no_sessions_title": "Nema predstojećih sesija",
+      "no_sessions_subtitle": "Zakažite vaš prvi čas da počnete učenje",
+      "book_first_class": "Zakažite vaš prvi čas"
+    },
+    "quick_actions": {
+      "browse_title": "Pregledajte dostupne časove",
+      "browse_subtitle": "Pronađite i zakažite vašu sledeću sesiju",
+      "my_bookings_title": "Moja zakazivanja",
+      "my_bookings_subtitle": "Pregledajte i upravljajte vašim sesijama"
+    }
+  },
+  "profile": {
+    "title": "Moj profil",
+    "subtitle": "Popunite vaš profil da biste pomogli vašem profesoru da personalizuje vaše iskustvo učenja",
+    "completion_title": "Dovršenost profila",
+    "completion_complete": "Kompletno",
+    "completion_fields": "{{completed}} od {{total}} polja popunjeno",
+    "edit_profile": "Uredite profil",
+    "save_profile": "Sačuvajte profil",
+    "cancel": "Otkaži",
+    "tabs": {
+      "personal": "Lični podaci",
+      "preferences": "Preferencije",
+      "security": "Bezbednost"
+    },
+    "personal_info": {
+      "title": "Lični detalji",
+      "description": "Vaši lični podaci",
+      "description_edit": "Recite nam nešto o sebi",
+      "first_name": "Ime",
+      "first_name_required": "Ime je obavezno",
+      "last_name": "Prezime",
+      "last_name_required": "Prezime je obavezno",
+      "email": "Email",
+      "email_note": "Email se ne može promeniti",
+      "phone": "Broj telefona",
+      "phone_placeholder": "+381 (60) 000-0000",
+      "timezone": "Vremenska zona",
+      "timezone_note": "Podesite vašu vremensku zonu za tačno vreme sesija",
+      "date_of_birth": "Datum rođenja",
+      "about_me": "O meni",
+      "about_me_placeholder": "Recite nam nešto o sebi, vašoj pozadini i zašto učite španski...",
+      "about_me_note": "Ovo pomaže vašem profesoru da razume vašu pozadinu i personalizuje lekcije",
+      "not_provided": "Nije navedeno",
+      "save_button": "Sačuvajte izmene",
+      "success": "Profil uspešno ažuriran",
+      "error": "Neuspelo ažuriranje profila"
+    },
+    "preferences": {
+      "title": "Preferencije učenja",
+      "description": "Pomozite nam da prilagodimo vaše iskustvo učenja",
+      "spanish_level": "Nivo španskog",
+      "spanish_level_placeholder": "Izaberite vaš trenutni nivo",
+      "preferred_class_types": "Preferirani tipovi časova",
+      "preferred_class_types_note": "Izaberite tipove časova koji vas interesuju",
+      "learning_goals": "Ciljevi učenja",
+      "learning_goals_placeholder": "Šta se nadate da postignete? (npr. priprema za DELE ispit, poslovna komunikacija, putovanja, itd.)",
+      "availability_notes": "Napomene o dostupnosti",
+      "availability_notes_placeholder": "Recite nam vaša preferirana vremena ili bilo kakva ograničenja rasporeda...",
+      "none_selected": "Ništa nije izabrano",
+      "not_selected": "Nije izabrano",
+      "language": "Jezik interfejsa",
+      "notifications": "Email obaveštenja",
+      "newsletter": "Ažuriranja newsletter-a"
+    },
+    "spanish_levels": {
+      "UNKNOWN": {
+        "label": "Ne znam",
+        "description": "Nisam još siguran"
+      },
+      "BEGINNER": {
+        "label": "Početnik (A1)",
+        "description": "Tek počinjem"
+      },
+      "ELEMENTARY": {
+        "label": "Osnovno (A2)",
+        "description": "Osnovne konverzacije"
+      },
+      "INTERMEDIATE": {
+        "label": "Srednji (B1)",
+        "description": "Udoban sa osnovama"
+      },
+      "UPPER_INTERMEDIATE": {
+        "label": "Viši srednji (B2)",
+        "description": "Siguran u većini situacija"
+      },
+      "ADVANCED": {
+        "label": "Napredni (C1)",
+        "description": "Izražavam ideje tečno"
+      },
+      "NATIVE": {
+        "label": "Izvorni govornik (C2)",
+        "description": "Izvorni ili skoro izvorni"
+      }
+    },
+    "class_types": {
+      "PRIVATE_LESSONS": "Privatne lekcije",
+      "GROUP_CLASSES": "Grupni časovi",
+      "CONVERSATION_PRACTICE": "Konverzacijska praksa",
+      "EXAM_PREPARATION": "Priprema za ispit",
+      "BUSINESS_SPANISH": "Poslovni španski",
+      "GRAMMAR_FOCUS": "Fokus na gramatiku",
+      "PRONUNCIATION": "Izgovor",
+      "WRITING_SKILLS": "Veštine pisanja"
+    },
+    "account_settings": {
+      "title": "Podešavanja naloga",
+      "description": "Informacije o vašem nalogu"
+    },
+    "security": {
+      "title": "Bezbednosna podešavanja",
+      "change_password": "Promenite lozinku",
+      "current_password": "Trenutna lozinka",
+      "new_password": "Nova lozinka",
+      "confirm_password": "Potvrdite lozinku",
+      "update_button": "Ažurirajte lozinku"
+    }
+  }
+}

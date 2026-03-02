@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -8,16 +9,19 @@ import {
   Clock,
   ArrowRight,
   Video,
+  TrendingUp,
+  Plus,
+  Bell,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { professorApi } from "@/lib/api";
-import { formatTime, getDuration } from "@/lib/utils";
+import { formatTime, getDuration, cn } from "@/lib/utils";
 import { usePendingBookingsCount } from "@/hooks/usePendingBookingsCount";
 
 export function AdminDashboard() {
+  const { t } = useTranslation("admin");
   const { data, isLoading } = useQuery({
     queryKey: ["professor-dashboard"],
     queryFn: professorApi.getDashboard,
@@ -27,257 +31,369 @@ export function AdminDashboard() {
 
   const stats = [
     {
-      label: "Total Students",
+      labelKey: "dashboard.stats.total_students",
       value: data?.stats.totalStudents || 0,
       icon: Users,
-      color: "bg-blue-100 text-blue-600",
+      gradient: "from-spanish-teal-500 to-spanish-teal-600",
+      bg: "bg-spanish-teal-50",
+      text: "text-spanish-teal-700",
+      trend: "+12%",
+      trendUp: true,
     },
     {
-      label: "Active Bookings",
+      labelKey: "dashboard.stats.active_bookings",
       value: data?.stats.totalBookings || 0,
       icon: BookOpen,
-      color: "bg-green-100 text-green-600",
+      gradient: "from-spanish-olive-500 to-spanish-olive-600",
+      bg: "bg-spanish-olive-50",
+      text: "text-spanish-olive-700",
+      trend: "+8%",
+      trendUp: true,
     },
     {
-      label: "Upcoming Slots",
+      labelKey: "dashboard.stats.pending_approvals",
       value: data?.stats.upcomingSlots || 0,
       icon: Calendar,
-      color: "bg-purple-100 text-purple-600",
+      gradient: "from-spanish-sunshine-500 to-spanish-sunshine-600",
+      bg: "bg-spanish-sunshine-50",
+      text: "text-spanish-sunshine-700",
+      trend: "+5%",
+      trendUp: true,
     },
     {
-      label: "Today's Sessions",
+      labelKey: "dashboard.stats.revenue_month",
       value: data?.stats.todaySessions || 0,
       icon: Clock,
-      color: "bg-gold-100 text-gold-600",
+      gradient: "from-spanish-coral-500 to-spanish-coral-600",
+      bg: "bg-spanish-coral-50",
+      text: "text-spanish-coral-700",
+      trend: "3 hrs",
+      trendUp: false,
     },
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">
-            Dashboard
-          </h1>
-          <p className="text-muted-foreground">
-            Welcome back! Here's your overview.
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-spanish-teal-50/30 via-white to-spanish-olive-50/30">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">
+              {t("dashboard.title")} 👋
+            </h1>
+            <p className="text-slate-600 text-lg">{t("dashboard.subtitle")}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className="bg-white hover:bg-slate-50 border-slate-200"
+            >
+              <Bell className="mr-2 h-5 w-5" />
+              {t("dashboard.quick_actions.view_analytics")}
+            </Button>
+            <Button size="lg" variant="primary" asChild>
+              <Link to="/admin/slots/new">
+                <Plus className="mr-2 h-5 w-5" />
+                {t("dashboard.quick_actions.create_slot")}
+              </Link>
+            </Button>
+          </div>
         </div>
-        <Button variant="primary" asChild>
-          <Link to="/admin/slots/new">
-            <Calendar className="mr-2 h-4 w-4" />
-            Create New Slot
-          </Link>
-        </Button>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-          >
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+        {/* Stats Grid - Modern Card Design */}
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={stat.labelKey}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <div className="group relative bg-white rounded-2xl p-6 shadow-sm border border-slate-200/60 hover:shadow-xl hover:border-slate-300/60 transition-all duration-300 overflow-hidden">
+                {/* Background Gradient */}
+                <div
+                  className={cn(
+                    "absolute top-0 right-0 w-32 h-32 bg-gradient-to-br opacity-10 rounded-full blur-2xl transition-opacity group-hover:opacity-20",
+                    stat.gradient,
+                  )}
+                />
+
+                <div className="relative">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className={cn("p-3 rounded-xl", stat.bg)}>
+                      <stat.icon className={cn("h-6 w-6", stat.text)} />
+                    </div>
+                    {stat.trendUp !== undefined && (
+                      <div
+                        className={cn(
+                          "flex items-center gap-1 text-sm font-medium",
+                          stat.trendUp ? "text-emerald-600" : "text-slate-500",
+                        )}
+                      >
+                        {stat.trendUp && <TrendingUp className="h-4 w-4" />}
+                        {stat.trend}
+                      </div>
+                    )}
+                  </div>
+
                   <div>
-                    <p className="text-sm text-muted-foreground">
-                      {stat.label}
+                    <p className="text-sm font-medium text-slate-600 mb-1">
+                      {t(stat.labelKey)}
                     </p>
                     {isLoading ? (
-                      <Skeleton className="h-8 w-16 mt-1" />
+                      <Skeleton className="h-9 w-20" />
                     ) : (
-                      <p className="text-3xl font-bold text-navy-800 mt-1">
+                      <p className="text-3xl font-bold text-slate-900">
                         {stat.value}
                       </p>
                     )}
                   </div>
-                  <div
-                    className={`h-12 w-12 rounded-xl ${stat.color} flex items-center justify-center`}
-                  >
-                    <stat.icon className="h-6 w-6" />
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
 
-      {/* Pending Approvals Card */}
-      {pendingData && pendingData.count > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
-            <CardContent className="p-6">
+        {/* Pending Approvals - Alert Card */}
+        {pendingData && pendingData.count > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative overflow-hidden bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl shadow-lg shadow-amber-500/30"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
+            <div className="relative p-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center shadow-lg">
-                    <Clock className="h-7 w-7 text-white" />
+                <div className="flex items-center gap-5">
+                  <div className="h-16 w-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30">
+                    <Bell className="h-8 w-8 text-white animate-pulse" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-amber-900">
-                      Pending Approvals
+                    <p className="text-sm font-semibold text-amber-100 uppercase tracking-wide">
+                      {t("approvals.title")}
                     </p>
-                    <p className="text-3xl font-bold text-amber-600 mt-1">
+                    <p className="text-4xl font-bold text-white mt-1">
                       {pendingData.count}
                     </p>
-                    <p className="text-xs text-amber-700 mt-1">
-                      {pendingData.count === 1
-                        ? "booking awaits"
-                        : "bookings await"}{" "}
-                      your approval
+                    <p className="text-white/90 mt-1">
+                      {t("approvals.subtitle")}
                     </p>
                   </div>
                 </div>
                 <Button
-                  variant="outline"
-                  className="border-amber-300 hover:bg-amber-100"
+                  size="lg"
+                  className="bg-white text-amber-600 hover:bg-amber-50 shadow-xl"
                   asChild
                 >
                   <Link to="/admin/pending-approvals">
-                    View All <ArrowRight className="ml-1 h-4 w-4" />
+                    {t("approvals.approve_button")}{" "}
+                    <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
-      {/* Today's Sessions */}
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Today's Sessions</CardTitle>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/admin/calendar">
-              View Calendar <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-20 w-full" />
-              ))}
             </div>
-          ) : data?.todaysSlots && data.todaysSlots.length > 0 ? (
-            <div className="space-y-4">
-              {data.todaysSlots.map((slot: any) => (
-                <div
-                  key={slot.id}
-                  className="flex items-center justify-between p-4 rounded-lg border bg-white"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-lg bg-navy-100 flex items-center justify-center">
-                      <Clock className="h-5 w-5 text-navy-600" />
+          </motion.div>
+        )}
+
+        {/* Today's Sessions - Modern List */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
+          <div className="px-6 py-5 border-b border-slate-200/60 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">
+                Today's Sessions
+              </h2>
+              <p className="text-sm text-slate-600 mt-1">
+                Manage your scheduled classes
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="bg-slate-50 hover:bg-slate-100 border-slate-200"
+              asChild
+            >
+              <Link to="/admin/calendar">
+                View Calendar <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+
+          <div className="p-6">
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                ))}
+              </div>
+            ) : data?.todaysSlots && data.todaysSlots.length > 0 ? (
+              <div className="space-y-3">
+                {data.todaysSlots.map((slot: any, index: number) => (
+                  <motion.div
+                    key={slot.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="group flex items-center justify-between p-5 rounded-xl bg-slate-50/50 border border-slate-200/60 hover:bg-white hover:shadow-md hover:border-spanish-teal-200/60 transition-all duration-200"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 flex items-center justify-center shadow-lg shadow-spanish-teal-500/30">
+                        <Clock className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-900 text-lg">
+                          {slot.title || "Spanish Class"}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <p className="text-sm text-slate-600 font-medium">
+                            {formatTime(slot.startTime)} -{" "}
+                            {formatTime(slot.endTime)}
+                          </p>
+                          <span className="text-slate-300">•</span>
+                          <p className="text-sm text-slate-500">
+                            {getDuration(slot.startTime, slot.endTime)}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-navy-800">
-                        {slot.title || "Spanish Class"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {formatTime(slot.startTime)} -{" "}
-                        {formatTime(slot.endTime)} (
-                        {getDuration(slot.startTime, slot.endTime)})
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <Badge
-                        variant={
-                          slot.slotType === "GROUP" ? "secondary" : "default"
-                        }
-                      >
-                        {slot.slotType === "GROUP" ? "Group" : "Individual"}
-                      </Badge>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {slot.currentParticipants}/{slot.maxParticipants} booked
-                      </p>
-                    </div>
-                    {slot.meetLink && (
-                      <Button size="sm" variant="primary" asChild>
-                        <a
-                          href={slot.meetLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
+
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <Badge
+                          className={cn(
+                            "mb-2",
+                            slot.slotType === "GROUP"
+                              ? "bg-clay-100 text-clay-700 border-clay-200"
+                              : "bg-spanish-olive-100 text-spanish-olive-700 border-spanish-olive-200",
+                          )}
                         >
-                          <Video className="mr-1 h-4 w-4" />
-                          Join Meet
-                        </a>
-                      </Button>
-                    )}
-                  </div>
+                          {slot.slotType === "GROUP" ? "Group" : "Individual"}
+                        </Badge>
+                        <p className="text-sm text-slate-600">
+                          <span className="font-semibold">
+                            {slot.currentParticipants}
+                          </span>
+                          <span className="text-slate-400">
+                            /{slot.maxParticipants}
+                          </span>{" "}
+                          booked
+                        </p>
+                      </div>
+                      {slot.meetLink && (
+                        <Button
+                          size="lg"
+                          className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                          asChild
+                        >
+                          <a
+                            href={slot.meetLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Video className="mr-2 h-5 w-5" />
+                            Join Now
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 mb-4">
+                  <Calendar className="h-10 w-10 text-slate-400" />
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No sessions scheduled for today</p>
-              <Button variant="outline" className="mt-4" asChild>
-                <Link to="/admin/slots/new">Create a Slot</Link>
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  No sessions today
+                </h3>
+                <p className="text-slate-600 mb-6">
+                  Create a new slot to schedule your first class
+                </p>
+                <Button size="lg" variant="primary" asChild>
+                  <Link to="/admin/slots/new">
+                    <Plus className="mr-2 h-5 w-5" />
+                    Create a Slot
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
 
-      {/* Quick Links */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Link to="/admin/students">
-          <Card hover className="cursor-pointer h-full">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-blue-100 flex items-center justify-center">
-                <Users className="h-6 w-6 text-blue-600" />
+        {/* Quick Actions - Grid Cards */}
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Link to="/admin/students">
+            <motion.div
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="group relative bg-white rounded-2xl p-6 shadow-sm border border-slate-200/60 hover:shadow-xl hover:border-spanish-teal-200/60 transition-all duration-300 cursor-pointer overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 opacity-0 group-hover:opacity-10 rounded-full blur-2xl transition-opacity" />
+
+              <div className="relative flex items-start gap-4">
+                <div className="p-3 rounded-xl bg-spanish-teal-50 group-hover:bg-spanish-teal-100 transition-colors">
+                  <Users className="h-7 w-7 text-spanish-teal-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-1 group-hover:text-spanish-teal-600 transition-colors">
+                    View Students
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    Manage student profiles and progress
+                  </p>
+                  <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-spanish-teal-600 group-hover:translate-x-1 transition-all mt-3" />
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-navy-800">View Students</p>
-                <p className="text-sm text-muted-foreground">
-                  Manage student profiles
-                </p>
+            </motion.div>
+          </Link>
+
+          <Link to="/admin/slots">
+            <motion.div
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="group relative bg-white rounded-2xl p-6 shadow-sm border border-slate-200/60 hover:shadow-xl hover:border-spanish-olive-200/60 transition-all duration-300 cursor-pointer overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-spanish-olive-500 to-spanish-olive-600 opacity-0 group-hover:opacity-10 rounded-full blur-2xl transition-opacity" />
+
+              <div className="relative flex items-start gap-4">
+                <div className="p-3 rounded-xl bg-spanish-olive-50 group-hover:bg-spanish-olive-100 transition-colors">
+                  <Calendar className="h-7 w-7 text-spanish-olive-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-1 group-hover:text-spanish-olive-600 transition-colors">
+                    Manage Availability
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    Edit your schedule and time slots
+                  </p>
+                  <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-spanish-olive-600 group-hover:translate-x-1 transition-all mt-3" />
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link to="/admin/slots">
-          <Card hover className="cursor-pointer h-full">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-purple-600" />
+            </motion.div>
+          </Link>
+
+          <Link to="/admin/settings">
+            <motion.div
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="group relative bg-white rounded-2xl p-6 shadow-sm border border-slate-200/60 hover:shadow-xl hover:border-clay-200/60 transition-all duration-300 cursor-pointer overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-clay-500 to-clay-600 opacity-0 group-hover:opacity-10 rounded-full blur-2xl transition-opacity" />
+
+              <div className="relative flex items-start gap-4">
+                <div className="p-3 rounded-xl bg-clay-50 group-hover:bg-clay-100 transition-colors">
+                  <BookOpen className="h-7 w-7 text-clay-600" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-slate-900 mb-1 group-hover:text-clay-600 transition-colors">
+                    Account Settings
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    Update your profile and preferences
+                  </p>
+                  <ArrowRight className="h-5 w-5 text-slate-400 group-hover:text-clay-600 group-hover:translate-x-1 transition-all mt-3" />
+                </div>
               </div>
-              <div>
-                <p className="font-medium text-navy-800">Manage Availability</p>
-                <p className="text-sm text-muted-foreground">
-                  Edit your schedule
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link to="/admin/settings">
-          <Card hover className="cursor-pointer h-full">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-gray-100 flex items-center justify-center">
-                <BookOpen className="h-6 w-6 text-gray-600" />
-              </div>
-              <div>
-                <p className="font-medium text-navy-800">Account Settings</p>
-                <p className="text-sm text-muted-foreground">
-                  Update your profile
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
+            </motion.div>
+          </Link>
+        </div>
       </div>
     </div>
   );

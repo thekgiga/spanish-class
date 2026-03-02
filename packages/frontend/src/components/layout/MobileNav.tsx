@@ -1,14 +1,15 @@
 /**
  * MobileNav Component
- * 
+ *
  * Slide-in mobile navigation drawer with focus trap and keyboard support
  * WCAG 2.1 AA compliant navigation for mobile devices
  */
 
-import { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export interface MobileNavProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export interface MobileNavProps {
 }
 
 export function MobileNav({ isOpen, onClose, navItems }: MobileNavProps) {
+  const { t } = useTranslation("common");
   const location = useLocation();
 
   // Close on route change
@@ -31,24 +33,24 @@ export function MobileNav({ isOpen, onClose, navItems }: MobileNavProps) {
   // Handle Escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
+      if (e.key === "Escape" && isOpen) {
         onClose();
       }
     };
-    
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
   // Prevent body scroll when open
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = "";
     };
   }, [isOpen]);
 
@@ -66,31 +68,31 @@ export function MobileNav({ isOpen, onClose, navItems }: MobileNavProps) {
       {/* Drawer */}
       <nav
         className={cn(
-          'fixed top-0 right-0 bottom-0 w-64 bg-white z-50',
-          'transform transition-transform duration-300 ease-out',
-          'shadow-2xl',
-          isOpen ? 'translate-x-0' : 'translate-x-full'
+          "fixed top-0 right-0 bottom-0 w-64 bg-white z-50",
+          "transform transition-transform duration-300 ease-out",
+          "shadow-2xl",
+          isOpen ? "translate-x-0" : "translate-x-full",
         )}
         role="dialog"
         aria-modal="true"
-        aria-label="Mobile navigation"
+        aria-label={t("aria_labels.mobile_navigation")}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-spanish-cream-200">
           <span className="text-lg font-display font-semibold text-navy-900">
-            Menu
+            {t("navigation.menu")}
           </span>
           <button
             onClick={onClose}
             className={cn(
-              'min-h-[44px] min-w-[44px] -m-2 p-2',
-              'flex items-center justify-center',
-              'rounded-lg',
-              'text-navy-600 hover:text-navy-900 hover:bg-spanish-cream-100',
-              'transition-colors duration-200',
-              'focus:outline-none focus:ring-2 focus:ring-spanish-red-500 focus:ring-offset-2'
+              "min-h-[44px] min-w-[44px] -m-2 p-2",
+              "flex items-center justify-center",
+              "rounded-lg",
+              "text-navy-600 hover:text-navy-900 hover:bg-spanish-cream-100",
+              "transition-colors duration-200",
+              "focus:outline-none focus:ring-2 focus:ring-spanish-red-500 focus:ring-offset-2",
             )}
-            aria-label="Close navigation"
+            aria-label={t("aria_labels.close_navigation")}
           >
             <X className="w-6 h-6" />
           </button>
@@ -100,19 +102,19 @@ export function MobileNav({ isOpen, onClose, navItems }: MobileNavProps) {
         <div className="py-4">
           {navItems.map((item) => {
             const isActive = location.pathname === item.href;
-            
+
             return (
               <Link
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-6 py-3 min-h-[44px]',
-                  'text-base font-medium',
-                  'transition-colors duration-200',
-                  'focus:outline-none focus:ring-2 focus:ring-spanish-red-500 focus:ring-inset',
+                  "flex items-center gap-3 px-6 py-3 min-h-[44px]",
+                  "text-base font-medium",
+                  "transition-colors duration-200",
+                  "focus:outline-none focus:ring-2 focus:ring-spanish-red-500 focus:ring-inset",
                   isActive
-                    ? 'text-spanish-red-600 bg-spanish-red-50 border-l-4 border-spanish-red-600'
-                    : 'text-navy-700 hover:bg-spanish-cream-50 hover:text-navy-900'
+                    ? "text-spanish-red-600 bg-spanish-red-50 border-l-4 border-spanish-red-600"
+                    : "text-navy-700 hover:bg-spanish-cream-50 hover:text-navy-900",
                 )}
               >
                 {item.icon && (

@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -25,9 +31,9 @@ export default function BookingConfirmationPage() {
 
   useEffect(() => {
     if (!token) {
-      setError("Invalid or missing confirmation token");
+      setError(t("confirmation.invalid_token"));
     }
-  }, [token]);
+  }, [token, t]);
 
   const handleConfirm = async () => {
     if (!token) return;
@@ -41,7 +47,7 @@ export default function BookingConfirmationPage() {
       setAction("confirm");
       setTimeout(() => navigate("/dashboard"), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to confirm booking");
+      setError(err.response?.data?.error || t("confirmation.confirm_error"));
     } finally {
       setLoading(false);
     }
@@ -59,7 +65,7 @@ export default function BookingConfirmationPage() {
       setAction("reject");
       setTimeout(() => navigate("/dashboard"), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to reject booking");
+      setError(err.response?.data?.error || t("confirmation.reject_error"));
     } finally {
       setLoading(false);
     }
@@ -72,7 +78,7 @@ export default function BookingConfirmationPage() {
           <CardContent className="p-8 text-center">
             <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">{t("common:error")}</h2>
-            <p className="text-gray-600">Invalid or missing confirmation token</p>
+            <p className="text-gray-600">{t("confirmation.invalid_token")}</p>
           </CardContent>
         </Card>
       </div>
@@ -87,17 +93,21 @@ export default function BookingConfirmationPage() {
             {action === "confirm" ? (
               <>
                 <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">{t("bookingConfirmed")}</h2>
+                <h2 className="text-2xl font-bold mb-2">
+                  {t("confirmation.confirmed_title")}
+                </h2>
                 <p className="text-gray-600">
-                  The student has been notified. Redirecting to dashboard...
+                  {t("confirmation.confirmed_message")}
                 </p>
               </>
             ) : (
               <>
                 <XCircle className="h-16 w-16 text-gray-500 mx-auto mb-4" />
-                <h2 className="text-2xl font-bold mb-2">{t("bookingRejected")}</h2>
+                <h2 className="text-2xl font-bold mb-2">
+                  {t("confirmation.rejected_title")}
+                </h2>
                 <p className="text-gray-600">
-                  The student has been notified. Redirecting to dashboard...
+                  {t("confirmation.rejected_message")}
                 </p>
               </>
             )}
@@ -111,10 +121,8 @@ export default function BookingConfirmationPage() {
     <div className="container mx-auto py-8">
       <Card className="max-w-2xl mx-auto">
         <CardHeader>
-          <CardTitle>Booking Confirmation</CardTitle>
-          <CardDescription>
-            Please confirm or reject this booking request
-          </CardDescription>
+          <CardTitle>{t("confirmation.title")}</CardTitle>
+          <CardDescription>{t("confirmation.subtitle")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
@@ -125,10 +133,10 @@ export default function BookingConfirmationPage() {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="reason">Reason for Rejection (Optional)</Label>
+              <Label htmlFor="reason">{t("confirmation.reason_label")}</Label>
               <Textarea
                 id="reason"
-                placeholder="Provide a reason if rejecting..."
+                placeholder={t("confirmation.reason_placeholder")}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
                 rows={3}
@@ -146,12 +154,12 @@ export default function BookingConfirmationPage() {
               {loading && action === "confirm" ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Confirming...
+                  {t("confirmation.confirming")}
                 </>
               ) : (
                 <>
                   <CheckCircle className="mr-2 h-4 w-4" />
-                  {t("common:confirm")} Booking
+                  {t("common:confirm")} {t("confirmation.confirm_booking")}
                 </>
               )}
             </Button>
@@ -165,12 +173,12 @@ export default function BookingConfirmationPage() {
               {loading && action === "reject" ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Rejecting...
+                  {t("confirmation.rejecting")}
                 </>
               ) : (
                 <>
                   <XCircle className="mr-2 h-4 w-4" />
-                  Reject Booking
+                  {t("confirmation.reject_booking")}
                 </>
               )}
             </Button>

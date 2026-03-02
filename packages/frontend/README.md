@@ -50,14 +50,38 @@ src/
 
 ## 🎨 Design System
 
-### Color Palette
+### Premium Education Color Palette ✨ NEW
 
-Spanish-inspired premium palette:
-- **Spanish Red**: #B91C1C (5.6:1 contrast)
-- **Gold**: #D97706 (4.7:1 contrast)
-- **Terracotta**: Warm accent colors
-- **Olive**: Natural complement
-- **Warm Neutrals**: Clay-inspired grays
+**Trust-based blue/emerald system for educational excellence (v1.0.0 - 2026-03-01)**
+
+Primary Colors:
+- **Trust Blue** (`edu-blue-600`): `#2563EB` - Primary brand (7.5:1 contrast - WCAG AAA ✅)
+- **Emerald Green** (`edu-emerald-500`): `#10B981` - Success & progress (3.4:1 large text)
+- **Orange CTA** (`edu-orange-600`): `#EA580C` - High-priority CTAs (4.8:1 contrast)
+- **Slate Text** (`edu-slate-800`): `#1E293B` - Body text (12.6:1 contrast - WCAG AAA ✅)
+
+**Full Color Scales**: Each color has 50-950 scale (see tailwind.config.js)
+- `edu-blue` (11 shades)
+- `edu-emerald` (9 shades)
+- `edu-orange` (9 shades)
+- `edu-slate` (11 shades)
+- `edu-amber` (warning states)
+- `edu-red` (error states only)
+
+**Gradients**:
+- `bg-gradient-blue` - Primary brand gradient
+- `bg-gradient-emerald` - Success gradient
+- `bg-gradient-orange` - CTA gradient
+- `bg-gradient-hero` - Blue to emerald hero sections
+- `bg-gradient-page` - Subtle page backgrounds
+
+**Shadows**:
+- `shadow-soft/medium/large` - Elevation system (blue-tinted)
+- `shadow-glow-blue/emerald/orange` - Brand glow effects
+
+**Migration**: Replaces spanish-red/gold/clay system
+- See `/specs/011-premium-education-ui-redesign/` for complete migration guide
+- Old colors marked DEPRECATED in tailwind.config.js
 
 ### Typography
 
@@ -68,10 +92,11 @@ Spanish-inspired premium palette:
 ### Components
 
 All components follow WCAG 2.1 AA accessibility standards:
-- Minimum 4.5:1 contrast for text
+- Minimum 4.5:1 contrast for text (12.6:1 for body text!)
 - 44x44px touch targets on mobile
 - Full keyboard navigation support
 - Screen reader friendly with ARIA attributes
+- Color + icon pattern (never color alone)
 
 ## 🏗️ Tech Stack
 

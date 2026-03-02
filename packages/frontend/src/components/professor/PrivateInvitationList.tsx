@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Calendar, Clock, User, Video, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ export function PrivateInvitationList({
   endDate,
   limit = 20,
 }: PrivateInvitationListProps) {
+  const { t } = useTranslation("professor");
   const [cancelInvitation, setCancelInvitation] = useState<any>(null);
   const [cancelReason, setCancelReason] = useState("");
 
@@ -58,7 +60,7 @@ export function PrivateInvitationList({
       <Card>
         <CardContent className="py-8 text-center">
           <p className="text-muted-foreground text-sm">
-            No private invitations in this period
+            {t("private_invitation.list_no_invitations")}
           </p>
         </CardContent>
       </Card>
@@ -85,7 +87,8 @@ export function PrivateInvitationList({
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-navy-800">
-                        {invitation.title || "Private Spanish Class"}
+                        {invitation.title ||
+                          t("private_invitation.default_title")}
                       </p>
                       <PrivateInvitationBadge size="sm" />
                     </div>
@@ -144,9 +147,11 @@ export function PrivateInvitationList({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel Private Invitation</DialogTitle>
+            <DialogTitle>
+              {t("private_invitation.cancel_dialog_title")}
+            </DialogTitle>
             <DialogDescription>
-              Are you sure you want to cancel this private session?
+              {t("private_invitation.cancel_dialog_description")}
             </DialogDescription>
           </DialogHeader>
 
@@ -162,7 +167,7 @@ export function PrivateInvitationList({
               {(cancelInvitation.bookings[0]?.student ||
                 cancelInvitation.allowedStudents[0]?.student) && (
                 <p className="text-sm text-muted-foreground">
-                  Student:{" "}
+                  {t("private_invitation.student_label")}:{" "}
                   {
                     (
                       cancelInvitation.bookings[0]?.student ||
@@ -181,18 +186,20 @@ export function PrivateInvitationList({
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Reason (optional)</label>
+            <label className="text-sm font-medium">
+              {t("private_invitation.cancel_reason_label")}
+            </label>
             <Textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Let the student know why you're cancelling..."
+              placeholder={t("private_invitation.cancel_reason_placeholder")}
               rows={3}
             />
           </div>
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setCancelInvitation(null)}>
-              Keep Invitation
+              {t("private_invitation.keep_invitation")}
             </Button>
             <Button
               variant="destructive"
@@ -211,7 +218,7 @@ export function PrivateInvitationList({
               }}
               isLoading={cancelMutation.isPending}
             >
-              Cancel Invitation
+              {t("private_invitation.cancel_invitation_confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

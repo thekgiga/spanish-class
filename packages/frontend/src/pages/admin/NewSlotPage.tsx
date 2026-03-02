@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -54,11 +55,15 @@ import { professorApi } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const DURATION_PRESETS = [
-  { label: "30 min", value: 30 },
-  { label: "45 min", value: 45 },
-  { label: "60 min", value: 60, recommended: true },
-  { label: "90 min", value: 90 },
-  { label: "120 min", value: 120 },
+  { labelKey: "slots.form.duration_presets.30_min", value: 30 },
+  { labelKey: "slots.form.duration_presets.45_min", value: 45 },
+  {
+    labelKey: "slots.form.duration_presets.60_min",
+    value: 60,
+    recommended: true,
+  },
+  { labelKey: "slots.form.duration_presets.90_min", value: 90 },
+  { labelKey: "slots.form.duration_presets.120_min", value: 120 },
 ];
 
 const TIME_SLOTS = Array.from({ length: 28 }, (_, i) => {
@@ -68,13 +73,13 @@ const TIME_SLOTS = Array.from({ length: 28 }, (_, i) => {
 });
 
 const DAYS_OF_WEEK = [
-  { label: "Sun", value: 0 },
-  { label: "Mon", value: 1 },
-  { label: "Tue", value: 2 },
-  { label: "Wed", value: 3 },
-  { label: "Thu", value: 4 },
-  { label: "Fri", value: 5 },
-  { label: "Sat", value: 6 },
+  { labelKey: "slots.form.weekdays.sun", value: 0 },
+  { labelKey: "slots.form.weekdays.mon", value: 1 },
+  { labelKey: "slots.form.weekdays.tue", value: 2 },
+  { labelKey: "slots.form.weekdays.wed", value: 3 },
+  { labelKey: "slots.form.weekdays.thu", value: 4 },
+  { labelKey: "slots.form.weekdays.fri", value: 5 },
+  { labelKey: "slots.form.weekdays.sat", value: 6 },
 ];
 
 type Mode = "single" | "recurring";
@@ -88,6 +93,7 @@ interface StudentOption {
 }
 
 export function NewSlotPage() {
+  const { t } = useTranslation("admin");
   const navigate = useNavigate();
   const { id: slotId } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
@@ -199,9 +205,18 @@ export function NewSlotPage() {
 
   const students = useMemo(() => {
     const list = studentsData?.data || [];
-    if (!studentSearch) return list;
+
+    // Sort alphabetically by first name, then last name
+    const sortedList = [...list].sort((a, b) => {
+      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    // Filter by search if provided
+    if (!studentSearch) return sortedList;
     const search = studentSearch.toLowerCase();
-    return list.filter(
+    return sortedList.filter(
       (s: StudentOption) =>
         s.firstName.toLowerCase().includes(search) ||
         s.lastName.toLowerCase().includes(search) ||
@@ -266,16 +281,16 @@ export function NewSlotPage() {
     onSuccess: () => {
       if (bookForStudent) {
         toast.success(
-          `Slot created and invitation sent to ${bookForStudent.firstName}!`,
+          t("slots.create_success") + ` (${bookForStudent.firstName})`,
         );
       } else {
-        toast.success("Slot created successfully!");
+        toast.success(t("slots.create_success"));
       }
       queryClient.invalidateQueries({ queryKey: ["professor-slots"] });
       navigate("/admin/slots");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Failed to create slot");
+      toast.error(error.response?.data?.error || t("slots.create_success"));
     },
   });
 
@@ -306,15 +321,13 @@ export function NewSlotPage() {
     },
     onSuccess: (data) => {
       toast.success(
-        `Created recurring pattern with ${data.slots.length} slots!`,
+        t("slots.create_success") + ` (${data.slots.length} slots)`,
       );
       queryClient.invalidateQueries({ queryKey: ["professor-slots"] });
       navigate("/admin/slots");
     },
     onError: (error: any) => {
-      toast.error(
-        error.response?.data?.error || "Failed to create recurring pattern",
-      );
+      toast.error(error.response?.data?.error || t("slots.create_success"));
     },
   });
 
@@ -485,12 +498,12 @@ export function NewSlotPage() {
         </Button>
         <div>
           <h1 className="text-2xl font-display font-bold text-navy-800">
-            {isEditMode ? "Edit Slot" : "Create Availability"}
+            {isEditMode ? t("slots.actions.edit") : t("slots.create_button")}
           </h1>
           <p className="text-muted-foreground">
             {isEditMode
-              ? "Modify your scheduled slot"
-              : "Schedule new class slots for your students"}
+              ? t("slots.form.date_time.subtitle_single")
+              : t("slots.subtitle")}
           </p>
         </div>
       </div>
@@ -508,7 +521,7 @@ export function NewSlotPage() {
             )}
           >
             <Calendar className="inline-block w-4 h-4 mr-2" />
-            Single Slot
+            {t("slots.form.mode.single")}
           </button>
           <button
             onClick={() => setMode("recurring")}
@@ -520,7 +533,7 @@ export function NewSlotPage() {
             )}
           >
             <Repeat className="inline-block w-4 h-4 mr-2" />
-            Recurring
+            {t("slots.form.mode.recurring")}
           </button>
         </div>
       )}
@@ -533,7 +546,7 @@ export function NewSlotPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-gold-500" />
-                {mode === "single" ? "Select Date" : "Start Date"}
+                {t("slots.form.date_time.select_date")}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -561,12 +574,20 @@ export function NewSlotPage() {
 
               {/* Calendar Grid */}
               <div className="grid grid-cols-7 gap-1 mb-2">
-                {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                {[
+                  "slots.form.weekdays.sun",
+                  "slots.form.weekdays.mon",
+                  "slots.form.weekdays.tue",
+                  "slots.form.weekdays.wed",
+                  "slots.form.weekdays.thu",
+                  "slots.form.weekdays.fri",
+                  "slots.form.weekdays.sat",
+                ].map((dayKey) => (
                   <div
-                    key={day}
+                    key={dayKey}
                     className="text-center text-xs font-medium text-muted-foreground py-2"
                   >
-                    {day}
+                    {t(dayKey)}
                   </div>
                 ))}
               </div>
@@ -616,14 +637,14 @@ export function NewSlotPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Clock className="h-5 w-5 text-gold-500" />
-                Time & Duration
+                {t("slots.form.date_time.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Start Time */}
               <div>
                 <Label className="text-sm text-muted-foreground">
-                  Start Time
+                  {t("slots.form.date_time.start_time")}
                 </Label>
                 <Select value={startTime} onValueChange={setStartTime}>
                   <SelectTrigger className="mt-1">
@@ -642,7 +663,7 @@ export function NewSlotPage() {
               {/* Duration Presets */}
               <div>
                 <Label className="text-sm text-muted-foreground">
-                  Duration
+                  {t("slots.form.date_time.duration")}
                 </Label>
                 <div className="flex flex-wrap gap-2 mt-2">
                   {DURATION_PRESETS.map((preset) => (
@@ -656,9 +677,9 @@ export function NewSlotPage() {
                           : "border-transparent bg-muted text-muted-foreground hover:border-gray-300",
                       )}
                     >
-                      {preset.label}
+                      {t(preset.labelKey)}
                       {preset.recommended && (
-                        <Badge variant="gold" className="ml-2 text-xs">
+                        <Badge variant="warning" className="ml-2 text-xs">
                           Recommended
                         </Badge>
                       )}
@@ -698,7 +719,7 @@ export function NewSlotPage() {
                 <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
                   <AlertTriangle className="h-4 w-4 flex-shrink-0" />
                   <p className="text-sm">
-                    This time overlaps with an existing slot
+                    {t("slots.form.date_time.overlap_warning")}
                   </p>
                 </div>
               )}
@@ -711,21 +732,22 @@ export function NewSlotPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Calendar className="h-5 w-5 text-gold-500" />
-                  Existing Slots
+                  {t("slots.form.existing_slots.title")}
                 </CardTitle>
                 <CardDescription>
-                  Already scheduled for{" "}
-                  {selectedDate.toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
+                  {t("slots.form.existing_slots.subtitle", {
+                    date: selectedDate.toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    }),
                   })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 {existingSlotsForDay.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No slots scheduled for this day
+                    {t("slots.form.existing_slots.no_slots")}
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -754,19 +776,20 @@ export function NewSlotPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-muted-foreground truncate max-w-[120px]">
-                              {slot.title || "Spanish Class"}
+                              {slot.title ||
+                                t("slots.form.existing_slots.spanish_class")}
                             </span>
                             <Badge
                               variant={
                                 slot.status === "FULLY_BOOKED"
                                   ? "warning"
-                                  : "secondary"
+                                  : "neutral"
                               }
                               className="text-xs"
                             >
                               {slot.status === "FULLY_BOOKED"
-                                ? "Booked"
-                                : "Open"}
+                                ? t("slots.form.existing_slots.booked")
+                                : t("slots.form.existing_slots.open")}
                             </Badge>
                           </div>
                         </div>
@@ -790,10 +813,10 @@ export function NewSlotPage() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Repeat className="h-5 w-5 text-gold-500" />
-                      Repeat On
+                      {t("slots.form.recurring.title")}
                     </CardTitle>
                     <CardDescription>
-                      Select which days this slot repeats
+                      {t("slots.form.recurring.subtitle")}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -809,7 +832,7 @@ export function NewSlotPage() {
                               : "bg-muted text-muted-foreground hover:bg-gray-200",
                           )}
                         >
-                          {day.label}
+                          {t(day.labelKey)}
                         </button>
                       ))}
                     </div>
@@ -817,7 +840,7 @@ export function NewSlotPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label className="text-sm text-muted-foreground">
-                          End Date (optional)
+                          {t("slots.form.recurring.end_date")}
                         </Label>
                         <Input
                           type="date"
@@ -837,7 +860,7 @@ export function NewSlotPage() {
                       </div>
                       <div>
                         <Label className="text-sm text-muted-foreground">
-                          Generate weeks ahead
+                          {t("slots.form.recurring.weeks_ahead")}
                         </Label>
                         <Select
                           value={generateWeeksAhead.toString()}
@@ -851,7 +874,9 @@ export function NewSlotPage() {
                           <SelectContent>
                             {[2, 4, 6, 8, 12].map((w) => (
                               <SelectItem key={w} value={w.toString()}>
-                                {w} weeks
+                                {t("slots.form.recurring.weeks_count", {
+                                  count: w,
+                                })}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -872,7 +897,7 @@ export function NewSlotPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Users className="h-5 w-5 text-gold-500" />
-                Session Type
+                {t("slots.form.session_type.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -890,9 +915,11 @@ export function NewSlotPage() {
                   )}
                 >
                   <User className="h-8 w-8 mb-2 text-navy-800" />
-                  <p className="font-semibold text-navy-800">Individual</p>
+                  <p className="font-semibold text-navy-800">
+                    {t("slots.form.session_type.individual")}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    1-on-1 session
+                    {t("slots.form.session_type.individual_desc")}
                   </p>
                 </button>
                 <button
@@ -908,16 +935,18 @@ export function NewSlotPage() {
                   )}
                 >
                   <Users className="h-8 w-8 mb-2 text-navy-800" />
-                  <p className="font-semibold text-navy-800">Group</p>
+                  <p className="font-semibold text-navy-800">
+                    {t("slots.form.session_type.group")}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    Multiple students
+                    {t("slots.form.session_type.group_desc")}
                   </p>
                 </button>
               </div>
 
               {slotType === "GROUP" && (
                 <div>
-                  <Label>Maximum Participants</Label>
+                  <Label>{t("slots.form.session_type.max_participants")}</Label>
                   <Input
                     type="number"
                     min={2}
@@ -937,12 +966,18 @@ export function NewSlotPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Users className="h-5 w-5 text-gold-500" />
-                  Booked Students
+                  {t("slots.form.booked_students.title")}
                 </CardTitle>
                 <CardDescription>
                   {confirmedBookingsCount === 0
-                    ? "No students have booked this slot yet"
-                    : `${confirmedBookingsCount} student${confirmedBookingsCount > 1 ? "s" : ""} booked`}
+                    ? t("slots.form.booked_students.no_bookings")
+                    : confirmedBookingsCount > 1
+                      ? t("slots.form.booked_students.count_plural", {
+                          count: confirmedBookingsCount,
+                        })
+                      : t("slots.form.booked_students.count", {
+                          count: confirmedBookingsCount,
+                        })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -981,7 +1016,7 @@ export function NewSlotPage() {
                               booking.status === "CONFIRMED"
                                 ? "success"
                                 : booking.status === "COMPLETED"
-                                  ? "secondary"
+                                  ? "neutral"
                                   : "destructive"
                             }
                           >
@@ -989,7 +1024,7 @@ export function NewSlotPage() {
                           </Badge>
                           <Button variant="ghost" size="sm" asChild>
                             <a href={`/admin/students/${booking.student?.id}`}>
-                              View
+                              {t("slots.form.booked_students.view_student")}
                             </a>
                           </Button>
                         </div>
@@ -999,9 +1034,11 @@ export function NewSlotPage() {
                 ) : (
                   <div className="text-center py-6">
                     <Users className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-                    <p className="text-muted-foreground">No bookings yet</p>
+                    <p className="text-muted-foreground">
+                      {t("slots.form.booked_students.no_bookings_yet")}
+                    </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Students can book this slot from their dashboard
+                      {t("slots.form.booked_students.can_book")}
                     </p>
                   </div>
                 )}
@@ -1021,7 +1058,7 @@ export function NewSlotPage() {
                           rel="noopener noreferrer"
                         >
                           <Video className="mr-1 h-4 w-4" />
-                          Join Meeting
+                          {t("slots.form.booked_students.join_meeting")}
                         </a>
                       </Button>
                     </div>
@@ -1034,22 +1071,24 @@ export function NewSlotPage() {
           {/* Title & Description */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Details (Optional)</CardTitle>
+              <CardTitle className="text-lg">
+                {t("slots.form.details.title")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label>Title</Label>
+                <Label>{t("slots.form.details.title_label")}</Label>
                 <Input
-                  placeholder="e.g., Conversation Practice"
+                  placeholder={t("slots.form.details.title_placeholder")}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="mt-1"
                 />
               </div>
               <div>
-                <Label>Description</Label>
+                <Label>{t("slots.form.details.description_label")}</Label>
                 <Textarea
-                  placeholder="What will this session cover?"
+                  placeholder={t("slots.form.details.description_placeholder")}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="mt-1"
@@ -1065,7 +1104,7 @@ export function NewSlotPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Lock className="h-5 w-5 text-gold-500" />
-                  Private Slot
+                  {t("slots.form.private_slot.title")}
                 </CardTitle>
                 <button
                   onClick={() => setIsPrivate(!isPrivate)}
@@ -1083,7 +1122,7 @@ export function NewSlotPage() {
                 </button>
               </div>
               <CardDescription>
-                Only visible to selected students
+                {t("slots.form.private_slot.subtitle")}
               </CardDescription>
             </CardHeader>
             <AnimatePresence>
@@ -1095,7 +1134,9 @@ export function NewSlotPage() {
                 >
                   <CardContent className="space-y-4">
                     <Input
-                      placeholder="Search students..."
+                      placeholder={t(
+                        "slots.form.private_slot.search_placeholder",
+                      )}
                       value={studentSearch}
                       onChange={(e) => setStudentSearch(e.target.value)}
                     />
@@ -1106,7 +1147,7 @@ export function NewSlotPage() {
                         {selectedStudents.map((student) => (
                           <Badge
                             key={student.id}
-                            variant="secondary"
+                            variant="neutral"
                             className="flex items-center gap-1 pr-1"
                           >
                             {student.firstName} {student.lastName}
@@ -1125,7 +1166,7 @@ export function NewSlotPage() {
                     <div className="max-h-48 overflow-y-auto space-y-1 border rounded-lg p-2">
                       {students.length === 0 ? (
                         <p className="text-sm text-muted-foreground text-center py-4">
-                          No students found
+                          {t("slots.form.private_slot.no_students")}
                         </p>
                       ) : (
                         students.map((student: StudentOption) => (
@@ -1167,11 +1208,11 @@ export function NewSlotPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Send className="h-5 w-5 text-gold-500" />
-                    Send Invitation
+                    {t("slots.form.direct_booking.title")}
                   </CardTitle>
                 </div>
                 <CardDescription>
-                  Book this slot for a student and send them an invitation
+                  {t("slots.form.direct_booking.subtitle")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1196,7 +1237,9 @@ export function NewSlotPage() {
                 ) : (
                   <>
                     <Input
-                      placeholder="Search students to invite..."
+                      placeholder={t(
+                        "slots.form.direct_booking.search_placeholder",
+                      )}
                       value={studentSearch}
                       onChange={(e) => setStudentSearch(e.target.value)}
                     />
@@ -1254,7 +1297,7 @@ export function NewSlotPage() {
                   onClick={() => setShowCancelDialog(true)}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Cancel Slot
+                  {t("slots.form.buttons.cancel_slot")}
                 </Button>
               </CardContent>
             </Card>
@@ -1269,7 +1312,7 @@ export function NewSlotPage() {
           className="flex-1"
           onClick={() => navigate(-1)}
         >
-          {isEditMode ? "Back" : "Cancel"}
+          {t("slots.form.buttons.back")}
         </Button>
         <Button
           variant="primary"
@@ -1285,22 +1328,17 @@ export function NewSlotPage() {
           {isEditMode ? (
             <>
               <Check className="mr-2 h-4 w-4" />
-              Save Changes
+              {t("slots.form.buttons.save")}
             </>
           ) : mode === "recurring" ? (
             <>
               <Repeat className="mr-2 h-4 w-4" />
-              Create Recurring Slots
-            </>
-          ) : bookForStudent ? (
-            <>
-              <Send className="mr-2 h-4 w-4" />
-              Create & Send Invitation
+              {t("slots.form.buttons.create")}
             </>
           ) : (
             <>
               <Plus className="mr-2 h-4 w-4" />
-              Create Slot
+              {t("slots.form.buttons.create")}
             </>
           )}
         </Button>
@@ -1312,12 +1350,18 @@ export function NewSlotPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Cancel Slot
+              {t("slots.form.cancel_dialog.title")}
             </DialogTitle>
             <DialogDescription>
-              {confirmedBookingsCount > 0
-                ? `This slot has ${confirmedBookingsCount} active booking(s). All students will be notified via email.`
-                : "Are you sure you want to cancel this slot? This action cannot be undone."}
+              {confirmedBookingsCount > 1
+                ? t("slots.form.cancel_dialog.message_plural", {
+                    count: confirmedBookingsCount,
+                  })
+                : confirmedBookingsCount === 1
+                  ? t("slots.form.cancel_dialog.message", {
+                      count: confirmedBookingsCount,
+                    })
+                  : t("slots.form.cancel_dialog.message", { count: 0 })}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -1325,11 +1369,11 @@ export function NewSlotPage() {
               htmlFor="cancelReason"
               className="text-sm text-muted-foreground"
             >
-              Reason for cancellation (optional)
+              {t("slots.form.cancel_dialog.reason_label")}
             </Label>
             <Textarea
               id="cancelReason"
-              placeholder="e.g., Schedule conflict, emergency..."
+              placeholder={t("slots.form.cancel_dialog.reason_placeholder")}
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               className="mt-2"
@@ -1338,7 +1382,7 @@ export function NewSlotPage() {
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShowCancelDialog(false)}>
-              Keep Slot
+              {t("slots.form.cancel_dialog.button_cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -1346,9 +1390,7 @@ export function NewSlotPage() {
               isLoading={cancelMutation.isPending}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              {confirmedBookingsCount > 0
-                ? "Cancel & Notify Students"
-                : "Cancel Slot"}
+              {t("slots.form.cancel_dialog.button_confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

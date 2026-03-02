@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "@/stores/auth";
 import { SkipLink } from "@/components/shared/SkipLink";
 import { PageSkeleton } from "@/components/shared/LoadingSkeleton";
+import { useDocumentLang } from "@/hooks/useDocumentLang";
 
 // Layouts - Keep non-lazy to avoid layout shift
 import { PublicLayout } from "@/components/layout/PublicLayout";
@@ -17,12 +18,17 @@ const HomePage = lazy(() =>
 const AboutPage = lazy(() =>
   import("@/pages/public/AboutPage").then((m) => ({ default: m.AboutPage })),
 );
-const LoginPage = lazy(() =>
-  import("@/pages/auth/LoginPage").then((m) => ({ default: m.LoginPage })),
+const ContactPage = lazy(() =>
+  import("@/pages/public/ContactPage").then((m) => ({
+    default: m.ContactPage,
+  })),
 );
-const RegisterPage = lazy(() =>
-  import("@/pages/auth/RegisterPage").then((m) => ({
-    default: m.RegisterPage,
+const AuthPage = lazy(() =>
+  import("@/pages/auth/AuthPage").then((m) => ({ default: m.AuthPage })),
+);
+const DesignShowcase = lazy(() =>
+  import("@/pages/DesignShowcase").then((m) => ({
+    default: m.DesignShowcase,
   })),
 );
 
@@ -89,12 +95,7 @@ const StudentProfilePage = lazy(() =>
   })),
 );
 
-// Lazy-loaded Shared Pages
-const SettingsPage = lazy(() =>
-  import("@/pages/shared/SettingsPage").then((m) => ({
-    default: m.SettingsPage,
-  })),
-);
+// Note: SettingsPage has been merged into StudentProfilePage
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -124,7 +125,7 @@ function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/auth" replace />;
   }
 
   if (requireAdmin && !user?.isAdmin) {
@@ -172,22 +173,19 @@ function AppRoutes() {
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/design-showcase" element={<DesignShowcase />} />
             <Route
-              path="/login"
+              path="/auth"
               element={
                 <AuthRedirect>
-                  <LoginPage />
+                  <AuthPage />
                 </AuthRedirect>
               }
             />
-            <Route
-              path="/register"
-              element={
-                <AuthRedirect>
-                  <RegisterPage />
-                </AuthRedirect>
-              }
-            />
+            {/* Legacy redirects */}
+            <Route path="/login" element={<Navigate to="/auth" replace />} />
+            <Route path="/register" element={<Navigate to="/auth" replace />} />
           </Route>
 
           {/* Admin Routes */}
@@ -212,7 +210,6 @@ function AppRoutes() {
               element={<PendingApprovalsPage />}
             />
             <Route path="email-logs" element={<EmailLogsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
           </Route>
 
           {/* Student Routes */}
@@ -228,7 +225,6 @@ function AppRoutes() {
             <Route path="book" element={<BookPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="profile" element={<StudentProfilePage />} />
-            <Route path="settings" element={<SettingsPage />} />
           </Route>
 
           {/* 404 */}
@@ -240,6 +236,9 @@ function AppRoutes() {
 }
 
 export default function App() {
+  // Update HTML lang attribute based on current language
+  useDocumentLang();
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>

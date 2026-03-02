@@ -33,7 +33,7 @@ export default function StudentPricingModal({
   existingPricing,
   onSuccess,
 }: StudentPricingModalProps) {
-  const { t } = useTranslation(["common"]);
+  const { t } = useTranslation(["professor", "common"]);
   const [priceRSD, setPriceRSD] = useState<number>(0);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,7 +64,9 @@ export default function StudentPricingModal({
       onSuccess?.();
       onClose();
     } catch (err: any) {
-      setError(err.response?.data?.error || "Failed to save pricing");
+      setError(
+        err.response?.data?.error || t("professor:student_pricing.save_error"),
+      );
     } finally {
       setLoading(false);
     }
@@ -75,10 +77,14 @@ export default function StudentPricingModal({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {existingPricing ? "Update" : "Set"} Pricing for {studentName}
+            {existingPricing
+              ? t("professor:student_pricing.modal_title_update", {
+                  studentName,
+                })
+              : t("professor:student_pricing.modal_title_set", { studentName })}
           </DialogTitle>
           <DialogDescription>
-            Set a custom price for this student. This information is only visible to you.
+            {t("professor:student_pricing.modal_description")}
           </DialogDescription>
         </DialogHeader>
 
@@ -91,41 +97,50 @@ export default function StudentPricingModal({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="price">Price (RSD)</Label>
+              <Label htmlFor="price">
+                {t("professor:student_pricing.price_field_label")}
+              </Label>
               <PriceInputField
                 value={priceRSD}
                 onChange={setPriceRSD}
-                placeholder="Enter price in Serbian Dinars"
+                placeholder={t("professor:student_pricing.price_placeholder")}
               />
               <p className="text-sm text-gray-500">
-                Recommended range: 1,000 - 5,000 RSD per class
+                {t("professor:student_pricing.price_recommendation")}
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes">
+                {t("professor:student_pricing.notes_label")}
+              </Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any notes about this pricing (e.g., discount reason, special arrangement)"
+                placeholder={t("professor:student_pricing.notes_placeholder")}
                 rows={3}
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
-              {t("cancel")}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+            >
+              {t("common:actions.cancel")}
             </Button>
             <Button type="submit" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  {t("professor:student_pricing.saving")}
                 </>
               ) : (
-                t("save")
+                t("common:actions.save")
               )}
             </Button>
           </DialogFooter>

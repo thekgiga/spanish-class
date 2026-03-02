@@ -1,0 +1,77 @@
+{
+  "hero": {
+    "title_line1": "Master Spanish",
+    "title_line2": "with Joy & Passion",
+    "subtitle": "Live 1-on-1 & group sessions with native speakers. Experience the vibrant world of Spanish language and culture!",
+    "cta_primary": "Book Your First Class",
+    "trust_students": "Happy Students",
+    "trust_rating": "Rating"
+  },
+  "hero_cards": {
+    "video_title": "Live HD Sessions",
+    "video_description": "Join interactive classes with native speakers",
+    "students_label": "Students",
+    "rating_label": "Rating",
+    "scheduling_title": "Flexible Scheduling",
+    "scheduling_description": "Book sessions that fit your busy schedule"
+  },
+  "stats": {
+    "students_value": "500+",
+    "students_label": "Active Students",
+    "countries_value": "50+",
+    "countries_label": "Countries",
+    "sessions_value": "10k+",
+    "sessions_label": "Sessions",
+    "rating_value": "4.9",
+    "rating_label": "Rating"
+  },
+  "features": {
+    "badge": "Features",
+    "title": "Everything You Need to Learn",
+    "subtitle": "Professional tools and features designed for effective language learning",
+    "video_title": "HD Video Sessions",
+    "video_description": "Crystal-clear video calls with screen sharing and live captions",
+    "calendar_title": "Smart Scheduling",
+    "calendar_description": "Book sessions that fit your schedule with instant confirmations",
+    "users_title": "Group & Private",
+    "users_description": "Choose between 1-on-1 or engaging group classes",
+    "globe_title": "Learn Anywhere",
+    "globe_description": "Access from any device, anywhere in the world"
+  },
+  "benefits": {
+    "badge": "Why Choose Us",
+    "title": "Professional Spanish Learning",
+    "subtitle": "Comprehensive approach with experienced teachers and proven methods",
+    "cta": "Get Started Today",
+    "satisfaction": "Satisfaction",
+    "image_alt": "Students learning Spanish",
+    "dele_title": "DELE Exam Prep",
+    "dele_description": "Certified preparation for all levels",
+    "university_title": "University Enrollment",
+    "university_description": "Assistance for foreign universities",
+    "conversation_title": "Conversation Focus",
+    "conversation_description": "Practical speaking approach",
+    "personalized_title": "Personalized Plans",
+    "personalized_description": "Custom learning paths for your goals"
+  },
+  "testimonials": {
+    "badge": "Testimonials",
+    "title": "Loved by Students Worldwide",
+    "subtitle": "See what our students say about their learning experience",
+    "sarah_name": "Sarah Martinez",
+    "sarah_role": "Business Professional",
+    "sarah_content": "The conversation practice sessions have been incredible. I feel confident speaking Spanish in meetings now.",
+    "james_name": "James Liu",
+    "james_role": "University Student",
+    "james_content": "Group classes are engaging and fun! Great way to practice with others at the same level.",
+    "emily_name": "Emily Rodriguez",
+    "emily_role": "Travel Enthusiast",
+    "emily_content": "Flexible scheduling is perfect. I can book sessions around my busy schedule easily."
+  },
+  "cta": {
+    "title": "Ready to Master Spanish?",
+    "subtitle": "Join our vibrant community and experience the joy of learning Spanish with passionate teachers!",
+    "button_primary": "Start Your Spanish Journey",
+    "button_secondary": "Contact Us"
+  }
+}

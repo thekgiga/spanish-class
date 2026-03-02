@@ -32,6 +32,7 @@ model User {
   bookings                 Booking[]
   notesWritten             StudentNote[]      @relation("NotesWritten")
   notesReceived            StudentNote[]      @relation("NotesReceived")
+  meetingNotesWritten      MeetingNote[]      @relation("MeetingNotesWritten")
   allowedSlots             SlotAllowedStudent[]
   recurringPatterns        RecurringPattern[]
   allowedRecurringPatterns RecurringPatternAllowedStudent[]
@@ -142,8 +143,9 @@ model Booking {
   createdAt               DateTime      @default(now()) @map("created_at")
   updatedAt               DateTime      @updatedAt @map("updated_at")
 
-  slot    AvailabilitySlot @relation(fields: [slotId], references: [id])
-  student User             @relation(fields: [studentId], references: [id])
+  slot        AvailabilitySlot @relation(fields: [slotId], references: [id])
+  student     User             @relation(fields: [studentId], references: [id])
+  meetingNote MeetingNote?
 
   @@unique([slotId, studentId])
   @@index([studentId])
@@ -165,6 +167,23 @@ model StudentNote {
 
   @@index([professorId, studentId])
   @@map("student_notes")
+}
+
+model MeetingNote {
+  id           String   @id @default(cuid())
+  bookingId    String   @unique @map("booking_id")
+  professorId  String   @map("professor_id")
+  agendaNotes  String?  @db.Text @map("agenda_notes")
+  sessionNotes String?  @db.Text @map("session_notes")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  professor User    @relation("MeetingNotesWritten", fields: [professorId], references: [id])
+
+  @@index([professorId, bookingId])
+  @@index([bookingId])
+  @@map("meeting_notes")
 }
 
 enum SlotType {

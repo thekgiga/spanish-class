@@ -97,9 +97,13 @@ export async function getReferralStats(userId: string): Promise<ReferralStats> {
   });
 
   const totalReferrals = referrals.length;
-  const completedReferrals = referrals.filter((r) => r.status === "completed").length;
-  const pendingReferrals = referrals.filter((r) => r.status === "pending").length;
-  const rewardsEarned = referrals.filter((r) => r.rewardGranted).length;
+  const completedReferrals = referrals.filter(
+    (r: any) => r.status === "completed",
+  ).length;
+  const pendingReferrals = referrals.filter(
+    (r: any) => r.status === "pending",
+  ).length;
+  const rewardsEarned = referrals.filter((r: any) => r.rewardGranted).length;
 
   return {
     totalReferrals,

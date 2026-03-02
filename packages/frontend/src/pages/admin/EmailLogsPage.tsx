@@ -1,6 +1,7 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import {
   Mail,
   Clock,
@@ -11,65 +12,69 @@ import {
   CheckCircle,
   XCircle,
   Filter,
-} from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { professorApi, type EmailLog } from '@/lib/api';
+} from "@/components/ui/select";
+import { professorApi, type EmailLog } from "@/lib/api";
 
 const EMAIL_TYPE_LABELS: Record<string, string> = {
-  booking_confirmation_simple: 'Booking Confirmation (Direct)',
-  booking_confirmation_student: 'Booking Confirmation (Student)',
-  booking_notification_professor: 'Booking Notification (Professor)',
-  cancellation_student: 'Cancellation (Student)',
-  cancellation_professor: 'Cancellation (Professor)',
+  booking_confirmation_simple: "Booking Confirmation (Direct)",
+  booking_confirmation_student: "Booking Confirmation (Student)",
+  booking_notification_professor: "Booking Notification (Professor)",
+  cancellation_student: "Cancellation (Student)",
+  cancellation_professor: "Cancellation (Professor)",
 };
 
-const EMAIL_TYPE_COLORS: Record<string, 'success' | 'warning' | 'destructive' | 'secondary'> = {
-  booking_confirmation_simple: 'success',
-  booking_confirmation_student: 'success',
-  booking_notification_professor: 'secondary',
-  cancellation_student: 'destructive',
-  cancellation_professor: 'warning',
+const EMAIL_TYPE_COLORS: Record<
+  string,
+  "success" | "warning" | "destructive" | "neutral"
+> = {
+  booking_confirmation_simple: "success",
+  booking_confirmation_student: "success",
+  booking_notification_professor: "neutral",
+  cancellation_student: "destructive",
+  cancellation_professor: "warning",
 };
 
 function formatDate(dateString: string): string {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(new Date(dateString));
 }
 
 export function EmailLogsPage() {
+  const { t } = useTranslation("admin");
   const [page, setPage] = useState(1);
-  const [emailTypeFilter, setEmailTypeFilter] = useState<string>('all');
+  const [emailTypeFilter, setEmailTypeFilter] = useState<string>("all");
   const [selectedLog, setSelectedLog] = useState<EmailLog | null>(null);
   const limit = 15;
 
   const { data, isLoading } = useQuery({
-    queryKey: ['email-logs', page, emailTypeFilter],
+    queryKey: ["email-logs", page, emailTypeFilter],
     queryFn: () =>
       professorApi.getEmailLogs({
         page,
         limit,
-        emailType: emailTypeFilter === 'all' ? undefined : emailTypeFilter,
+        emailType: emailTypeFilter === "all" ? undefined : emailTypeFilter,
       }),
   });
 
@@ -81,17 +86,19 @@ export function EmailLogsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">Email Logs</h1>
-          <p className="text-muted-foreground">View all emails sent from the platform</p>
+          <h1 className="text-2xl font-display font-bold text-navy-800">
+            {t("email_logs.title")}
+          </h1>
+          <p className="text-muted-foreground">{t("email_logs.subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
           <Select value={emailTypeFilter} onValueChange={setEmailTypeFilter}>
             <SelectTrigger className="w-[220px]">
-              <SelectValue placeholder="Filter by type" />
+              <SelectValue placeholder={t("email_logs.table.status")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="all">{t("slots.filters.all")}</SelectItem>
               {Object.entries(EMAIL_TYPE_LABELS).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
@@ -126,11 +133,18 @@ export function EmailLogsPage() {
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant={EMAIL_TYPE_COLORS[log.emailType] || 'secondary'}>
+                          <Badge
+                            variant={
+                              EMAIL_TYPE_COLORS[log.emailType] || "neutral"
+                            }
+                          >
                             {EMAIL_TYPE_LABELS[log.emailType] || log.emailType}
                           </Badge>
-                          {log.status === 'sent' ? (
-                            <Badge variant="outline" className="text-green-600 border-green-200">
+                          {log.status === "sent" ? (
+                            <Badge
+                              variant="outline"
+                              className="text-green-600 border-green-200"
+                            >
                               <CheckCircle className="h-3 w-3 mr-1" />
                               Sent
                             </Badge>
@@ -162,7 +176,7 @@ export function EmailLogsPage() {
                       onClick={() => setSelectedLog(log)}
                     >
                       <Eye className="h-4 w-4 mr-1" />
-                      View
+                      {t("email_logs.view")}
                     </Button>
                   </div>
                 </CardContent>
@@ -174,7 +188,7 @@ export function EmailLogsPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <Mail className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">No email logs found</p>
+            <p className="text-muted-foreground">{t("email_logs.no_logs")}</p>
           </CardContent>
         </Card>
       )}
@@ -183,8 +197,11 @@ export function EmailLogsPage() {
       {pagination && pagination.totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, pagination.total)} of{' '}
-            {pagination.total} emails
+            {t("email_logs.pagination.showing", {
+              start: (page - 1) * limit + 1,
+              end: Math.min(page * limit, pagination.total),
+              total: pagination.total,
+            })}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -196,12 +213,17 @@ export function EmailLogsPage() {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm">
-              Page {page} of {pagination.totalPages}
+              {t("email_logs.pagination.page", {
+                current: page,
+                total: pagination.totalPages,
+              })}
             </span>
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
+              onClick={() =>
+                setPage((p) => Math.min(pagination.totalPages, p + 1))
+              }
               disabled={page === pagination.totalPages}
             >
               <ChevronRight className="h-4 w-4" />
@@ -216,7 +238,7 @@ export function EmailLogsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
-              Email Details
+              {t("email_logs.detail.title")}
             </DialogTitle>
           </DialogHeader>
           {selectedLog && (
@@ -224,57 +246,85 @@ export function EmailLogsPage() {
               {/* Metadata */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-muted-foreground">From</p>
+                  <p className="text-muted-foreground">
+                    {t("email_logs.detail.from")}
+                  </p>
                   <p className="font-medium">{selectedLog.fromAddress}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">To</p>
+                  <p className="text-muted-foreground">
+                    {t("email_logs.detail.to")}
+                  </p>
                   <p className="font-medium">{selectedLog.toAddress}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Type</p>
-                  <Badge variant={EMAIL_TYPE_COLORS[selectedLog.emailType] || 'secondary'}>
-                    {EMAIL_TYPE_LABELS[selectedLog.emailType] || selectedLog.emailType}
+                  <p className="text-muted-foreground">
+                    {t("email_logs.detail.type")}
+                  </p>
+                  <Badge
+                    variant={
+                      EMAIL_TYPE_COLORS[selectedLog.emailType] || "neutral"
+                    }
+                  >
+                    {EMAIL_TYPE_LABELS[selectedLog.emailType] ||
+                      selectedLog.emailType}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Status</p>
-                  {selectedLog.status === 'sent' ? (
-                    <Badge variant="outline" className="text-green-600 border-green-200">
+                  <p className="text-muted-foreground">
+                    {t("email_logs.detail.status")}
+                  </p>
+                  {selectedLog.status === "sent" ? (
+                    <Badge
+                      variant="outline"
+                      className="text-green-600 border-green-200"
+                    >
                       <CheckCircle className="h-3 w-3 mr-1" />
-                      Sent
+                      {t("email_logs.status.sent")}
                     </Badge>
                   ) : (
                     <Badge variant="destructive">
                       <XCircle className="h-3 w-3 mr-1" />
-                      Failed
+                      {t("email_logs.status.failed")}
                     </Badge>
                   )}
                 </div>
                 <div className="col-span-2">
-                  <p className="text-muted-foreground">Subject</p>
+                  <p className="text-muted-foreground">
+                    {t("email_logs.detail.subject")}
+                  </p>
                   <p className="font-medium">{selectedLog.subject}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-muted-foreground">Sent At</p>
-                  <p className="font-medium">{formatDate(selectedLog.createdAt)}</p>
+                  <p className="text-muted-foreground">
+                    {t("email_logs.detail.sent_at")}
+                  </p>
+                  <p className="font-medium">
+                    {formatDate(selectedLog.createdAt)}
+                  </p>
                 </div>
                 {selectedLog.error && (
                   <div className="col-span-2">
-                    <p className="text-muted-foreground">Error</p>
-                    <p className="font-medium text-destructive">{selectedLog.error}</p>
+                    <p className="text-muted-foreground">
+                      {t("email_logs.detail.error")}
+                    </p>
+                    <p className="font-medium text-destructive">
+                      {selectedLog.error}
+                    </p>
                   </div>
                 )}
               </div>
 
               {/* Email Content Preview */}
               <div>
-                <p className="text-muted-foreground text-sm mb-2">Email Content</p>
+                <p className="text-muted-foreground text-sm mb-2">
+                  {t("email_logs.detail.email_content")}
+                </p>
                 <div className="border rounded-lg overflow-hidden bg-white">
                   <iframe
                     srcDoc={selectedLog.htmlContent}
                     className="w-full h-[400px] border-0"
-                    title="Email Preview"
+                    title={t("common:aria_labels.email_preview")}
                     sandbox="allow-same-origin"
                   />
                 </div>

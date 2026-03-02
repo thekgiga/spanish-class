@@ -6,6 +6,7 @@ export interface User {
   lastName: string;
   isAdmin: boolean;
   timezone: string;
+  languagePreference?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }

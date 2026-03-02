@@ -1,0 +1,77 @@
+{
+  "hero": {
+    "title_line1": "Domina el español",
+    "title_line2": "con alegría y pasión",
+    "subtitle": "Sesiones en vivo 1-a-1 y grupales con hablantes nativos. ¡Experimenta el vibrante mundo del idioma y cultura española!",
+    "cta_primary": "Reserva tu primera clase",
+    "trust_students": "Estudiantes felices",
+    "trust_rating": "Calificación"
+  },
+  "hero_cards": {
+    "video_title": "Sesiones HD en vivo",
+    "video_description": "Únete a clases interactivas con hablantes nativos",
+    "students_label": "Estudiantes",
+    "rating_label": "Calificación",
+    "scheduling_title": "Programación flexible",
+    "scheduling_description": "Reserva sesiones que se ajusten a tu agenda ocupada"
+  },
+  "stats": {
+    "students_value": "500+",
+    "students_label": "Estudiantes activos",
+    "countries_value": "50+",
+    "countries_label": "Países",
+    "sessions_value": "10k+",
+    "sessions_label": "Sesiones",
+    "rating_value": "4.9",
+    "rating_label": "Calificación"
+  },
+  "features": {
+    "badge": "Funciones",
+    "title": "Todo lo que necesitas para aprender",
+    "subtitle": "Herramientas y funciones profesionales diseñadas para un aprendizaje efectivo de idiomas",
+    "video_title": "Sesiones de video HD",
+    "video_description": "Llamadas de video de cristal claro con pantalla compartida y subtítulos en vivo",
+    "calendar_title": "Programación inteligente",
+    "calendar_description": "Reserva sesiones que se ajusten a tu horario con confirmaciones instantáneas",
+    "users_title": "Grupal y privado",
+    "users_description": "Elige entre clases 1-a-1 o grupales atractivas",
+    "globe_title": "Aprende en cualquier lugar",
+    "globe_description": "Accede desde cualquier dispositivo, en cualquier parte del mundo"
+  },
+  "benefits": {
+    "badge": "Por qué elegirnos",
+    "title": "Aprendizaje profesional de español",
+    "subtitle": "Enfoque integral con profesores experimentados y métodos probados",
+    "cta": "Comienza hoy",
+    "satisfaction": "Satisfacción",
+    "image_alt": "Estudiantes aprendiendo español",
+    "dele_title": "Preparación para examen DELE",
+    "dele_description": "Preparación certificada para todos los niveles",
+    "university_title": "Inscripción universitaria",
+    "university_description": "Asistencia para universidades extranjeras",
+    "conversation_title": "Enfoque en conversación",
+    "conversation_description": "Enfoque práctico de habla",
+    "personalized_title": "Planes personalizados",
+    "personalized_description": "Rutas de aprendizaje personalizadas para tus objetivos"
+  },
+  "testimonials": {
+    "badge": "Testimonios",
+    "title": "Amado por estudiantes en todo el mundo",
+    "subtitle": "Mira lo que dicen nuestros estudiantes sobre su experiencia de aprendizaje",
+    "sarah_name": "Sara Martínez",
+    "sarah_role": "Profesional de negocios",
+    "sarah_content": "Las sesiones de práctica de conversación han sido increíbles. Ahora me siento segura hablando español en las reuniones.",
+    "james_name": "James Liu",
+    "james_role": "Estudiante universitario",
+    "james_content": "¡Las clases grupales son atractivas y divertidas! Gran manera de practicar con otros al mismo nivel.",
+    "emily_name": "Emily Rodríguez",
+    "emily_role": "Entusiasta de viajes",
+    "emily_content": "La programación flexible es perfecta. Puedo reservar sesiones fácilmente alrededor de mi agenda ocupada."
+  },
+  "cta": {
+    "title": "¿Listo para dominar el español?",
+    "subtitle": "¡Únete a nuestra vibrante comunidad y experimenta la alegría de aprender español con profesores apasionados!",
+    "button_primary": "Comienza tu viaje en español",
+    "button_secondary": "Contáctanos"
+  }
+}

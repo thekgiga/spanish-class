@@ -1,67 +1,83 @@
 import { motion } from "framer-motion";
-import { Award, Globe, Heart, Target, Users, BookOpen } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from "react-router-dom";
+import {
+  Award,
+  Globe,
+  Heart,
+  Target,
+  Users,
+  BookOpen,
+  Sparkles,
+  ArrowRight,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { SEOMeta } from "@/components/shared/SEOMeta";
+import { PrimaryButton } from "@/components/ui/premium";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
-const values = [
+const valuesConfig = [
   {
     icon: Heart,
-    title: "Passion for Teaching",
-    description:
-      "We love helping students discover the beauty of the Spanish language and Hispanic culture.",
+    titleKey: "values.passion_title",
+    descriptionKey: "values.passion_description",
+    color: "from-spanish-coral-500 to-spanish-coral-600",
   },
   {
     icon: Target,
-    title: "Personalized Learning",
-    description:
-      "Every student has unique goals. We create customized learning plans tailored to your needs.",
+    titleKey: "values.personalized_title",
+    descriptionKey: "values.personalized_description",
+    color: "from-spanish-teal-500 to-spanish-teal-600",
   },
   {
     icon: Users,
-    title: "Community Focus",
-    description:
-      "Learning is better together. Join a supportive community of Spanish language enthusiasts.",
+    titleKey: "values.community_title",
+    descriptionKey: "values.community_description",
+    color: "from-spanish-sunshine-500 to-spanish-sunshine-600",
   },
   {
     icon: Globe,
-    title: "Cultural Immersion",
-    description:
-      "Experience authentic Spanish culture through language, not just grammar and vocabulary.",
+    titleKey: "values.cultural_title",
+    descriptionKey: "values.cultural_description",
+    color: "from-spanish-orange-500 to-spanish-orange-600",
   },
 ];
 
-const milestones = [
+const milestonesConfig = [
   {
     year: "2020",
-    title: "Founded",
-    description:
-      "Started with a vision to make Spanish learning accessible and engaging online.",
+    titleKey: "timeline.2020_title",
+    descriptionKey: "timeline.2020_description",
+    color: "from-spanish-teal-500 to-spanish-teal-600",
   },
   {
     year: "2021",
-    title: "100 Students",
-    description:
-      "Reached our first major milestone with students from 15 different countries.",
+    titleKey: "timeline.2021_title",
+    descriptionKey: "timeline.2021_description",
+    color: "from-spanish-coral-500 to-spanish-coral-600",
   },
   {
     year: "2023",
-    title: "DELE Certified",
-    description: "Became an authorized DELE exam preparation center.",
+    titleKey: "timeline.2023_title",
+    descriptionKey: "timeline.2023_description",
+    color: "from-spanish-sunshine-500 to-spanish-sunshine-600",
   },
   {
     year: "2026",
-    title: "Premium Platform",
-    description:
-      "Launched our modern booking platform for seamless class scheduling.",
+    titleKey: "timeline.2026_title",
+    descriptionKey: "timeline.2026_description",
+    color: "from-spanish-orange-500 to-spanish-orange-600",
   },
 ];
 
 export function AboutPage() {
+  const { t } = useTranslation("about");
+
   return (
     <>
       <SEOMeta
-        title="About Us - Premium Spanish Learning Platform"
-        description="Learn about Spanish Class, our mission to make Spanish language learning accessible, engaging, and culturally immersive. Certified teachers, personalized learning plans, and a supportive community of language enthusiasts."
+        title={t("page.seo_title")}
+        description={t("page.seo_description")}
         canonical="/about"
         keywords={[
           "about spanish class",
@@ -76,28 +92,30 @@ export function AboutPage() {
         type="website"
       />
 
-      <div className="overflow-hidden">
+      <div className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-spanish-red-50 via-white to-gold-50 py-20 sm:py-28">
-          <div className="absolute inset-0 bg-[url('/src/assets/patterns/moorish-hexagon.svg')] opacity-[0.03]" />
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative">
+        <section className="relative py-20 sm:py-28 overflow-hidden bg-gradient-to-br from-spanish-teal-50 via-white to-spanish-coral-50">
+          {/* Decorative colorful blobs */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-spanish-teal-400 to-spanish-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-float" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-spanish-coral-400 to-spanish-coral-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-float animation-delay-2000" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-br from-spanish-sunshine-300 to-spanish-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float animation-delay-4000" />
+
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.div
               className="text-center max-w-3xl mx-auto"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-clay-900 mb-6">
-                Our{" "}
-                <span className="bg-gradient-to-r from-spanish-red-600 to-gold-600 bg-clip-text text-transparent">
-                  Story
-                </span>
+              <Badge className="mb-6 bg-spanish-teal-100 text-spanish-teal-700 border-spanish-teal-200 px-6 py-2 text-sm font-semibold">
+                <Heart className="h-4 w-4 mr-2" />
+                {t("page.badge")}
+              </Badge>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
+                {t("page.title")}
               </h1>
-              <p className="text-xl text-clay-600 leading-relaxed">
-                We believe that learning Spanish should be more than memorizing
-                grammar rules. It's about discovering a new culture, connecting
-                with millions of speakers worldwide, and opening doors to
-                incredible opportunities.
+              <p className="text-xl text-slate-700 leading-relaxed">
+                {t("page.subtitle")}
               </p>
             </motion.div>
           </div>
@@ -114,22 +132,18 @@ export function AboutPage() {
                 transition={{ duration: 0.6 }}
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <BookOpen className="w-8 h-8 text-spanish-red-600" />
-                  <h2 className="text-3xl sm:text-4xl font-serif font-bold text-clay-900">
-                    Our Mission
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 flex items-center justify-center shadow-lg">
+                    <BookOpen className="h-6 w-6 text-white" />
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl font-bold text-slate-900">
+                    {t("mission.title")}
                   </h2>
                 </div>
-                <p className="text-lg text-clay-600 leading-relaxed mb-6">
-                  At Spanish Class, our mission is to make Spanish language
-                  learning accessible, engaging, and culturally immersive for
-                  students worldwide. We combine expert teaching with modern
-                  technology to create a premium learning experience that fits
-                  your lifestyle.
+                <p className="text-lg text-slate-700 leading-relaxed mb-6">
+                  {t("mission.paragraph1")}
                 </p>
-                <p className="text-lg text-clay-600 leading-relaxed">
-                  Whether you're preparing for DELE exams, planning to study
-                  abroad, or simply passionate about Hispanic culture, we're
-                  here to guide you every step of the way.
+                <p className="text-lg text-slate-700 leading-relaxed">
+                  {t("mission.paragraph2")}
                 </p>
               </motion.div>
 
@@ -138,58 +152,35 @@ export function AboutPage() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
-                className="relative"
+                className="bg-white rounded-2xl p-8 shadow-2xl border-2 border-spanish-teal-200 hover:border-spanish-teal-400 transition-all duration-300"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-spanish-red-200 to-gold-200 rounded-2xl blur-3xl opacity-20" />
-                <Card className="relative bg-white/80 backdrop-blur-sm border-2 border-spanish-red-100">
-                  <CardHeader>
-                    <Award className="w-12 h-12 text-gold-600 mb-4" />
-                    <CardTitle className="text-2xl font-serif">
-                      Why Choose Us
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-4">
-                      <li className="flex gap-3">
-                        <div className="w-2 h-2 bg-spanish-red-600 rounded-full mt-2 shrink-0" />
-                        <p className="text-clay-600">
-                          Certified teachers with years of experience
-                        </p>
-                      </li>
-                      <li className="flex gap-3">
-                        <div className="w-2 h-2 bg-spanish-red-600 rounded-full mt-2 shrink-0" />
-                        <p className="text-clay-600">
-                          Personalized learning plans for every student
-                        </p>
-                      </li>
-                      <li className="flex gap-3">
-                        <div className="w-2 h-2 bg-spanish-red-600 rounded-full mt-2 shrink-0" />
-                        <p className="text-clay-600">
-                          Flexible scheduling that fits your lifestyle
-                        </p>
-                      </li>
-                      <li className="flex gap-3">
-                        <div className="w-2 h-2 bg-spanish-red-600 rounded-full mt-2 shrink-0" />
-                        <p className="text-clay-600">
-                          Cultural immersion beyond language learning
-                        </p>
-                      </li>
-                      <li className="flex gap-3">
-                        <div className="w-2 h-2 bg-spanish-red-600 rounded-full mt-2 shrink-0" />
-                        <p className="text-clay-600">
-                          Modern platform for seamless booking experience
-                        </p>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-spanish-coral-500 to-spanish-coral-600 mb-6 shadow-lg">
+                  <Award className="h-7 w-7 text-white" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-6">
+                  {t("mission.why_choose_title")}
+                </h3>
+                <ul className="space-y-4">
+                  {[
+                    t("mission.reason_1"),
+                    t("mission.reason_2"),
+                    t("mission.reason_3"),
+                    t("mission.reason_4"),
+                    t("mission.reason_5"),
+                  ].map((item, index) => (
+                    <li key={index} className="flex gap-3">
+                      <div className="w-2 h-2 bg-spanish-teal-500 rounded-full mt-2 shrink-0" />
+                      <p className="text-slate-600">{item}</p>
+                    </li>
+                  ))}
+                </ul>
               </motion.div>
             </div>
           </div>
         </section>
 
         {/* Values Section */}
-        <section className="py-20 sm:py-28 bg-clay-50">
+        <section className="py-20 sm:py-28 bg-gradient-to-br from-spanish-coral-50/50 to-white">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <motion.div
               className="text-center max-w-3xl mx-auto mb-16"
@@ -198,36 +189,41 @@ export function AboutPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl sm:text-4xl font-serif font-bold text-clay-900 mb-4">
-                Our Core Values
+              <Badge className="mb-4 bg-spanish-teal-100 text-spanish-teal-700 border-spanish-teal-200 px-6 py-2 text-base font-semibold">
+                {t("values.badge")}
+              </Badge>
+              <h2 className="text-4xl font-bold text-slate-900 mb-4">
+                {t("values.title")}
               </h2>
-              <p className="text-lg text-clay-600">
-                These principles guide everything we do at Spanish Class
-              </p>
+              <p className="text-lg text-slate-600">{t("values.subtitle")}</p>
             </motion.div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {values.map((value, index) => {
+              {valuesConfig.map((value, index) => {
                 const Icon = value.icon;
                 return (
                   <motion.div
-                    key={value.title}
+                    key={value.titleKey}
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
+                    className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border-2 border-spanish-teal-100 hover:border-spanish-teal-300"
                   >
-                    <Card className="h-full hover:shadow-lg transition-shadow duration-300">
-                      <CardContent className="pt-6">
-                        <Icon className="w-12 h-12 text-spanish-red-600 mb-4" />
-                        <h3 className="text-xl font-semibold text-clay-900 mb-3">
-                          {value.title}
-                        </h3>
-                        <p className="text-clay-600 leading-relaxed">
-                          {value.description}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <div
+                      className={cn(
+                        "w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg mb-4",
+                        value.color,
+                      )}
+                    >
+                      <Icon className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-900 mb-3">
+                      {t(value.titleKey)}
+                    </h3>
+                    <p className="text-slate-600 leading-relaxed">
+                      {t(value.descriptionKey)}
+                    </p>
                   </motion.div>
                 );
               })}
@@ -245,16 +241,17 @@ export function AboutPage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl sm:text-4xl font-serif font-bold text-clay-900 mb-4">
-                Our Journey
+              <Badge className="mb-4 bg-spanish-teal-100 text-spanish-teal-700 border-spanish-teal-200 px-6 py-2 text-base font-semibold">
+                {t("timeline.badge")}
+              </Badge>
+              <h2 className="text-4xl font-bold text-slate-900 mb-4">
+                {t("timeline.title")}
               </h2>
-              <p className="text-lg text-clay-600">
-                Growing and evolving to serve you better
-              </p>
+              <p className="text-lg text-slate-600">{t("timeline.subtitle")}</p>
             </motion.div>
 
             <div className="space-y-12">
-              {milestones.map((milestone, index) => (
+              {milestonesConfig.map((milestone, index) => (
                 <motion.div
                   key={milestone.year}
                   className="flex gap-8 items-start"
@@ -264,16 +261,21 @@ export function AboutPage() {
                   transition={{ duration: 0.6, delay: index * 0.1 }}
                 >
                   <div className="shrink-0">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-spanish-red-500 to-gold-500 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    <div
+                      className={cn(
+                        "w-24 h-24 rounded-full bg-gradient-to-br flex items-center justify-center text-white font-bold text-xl shadow-2xl",
+                        milestone.color,
+                      )}
+                    >
                       {milestone.year}
                     </div>
                   </div>
                   <div className="flex-1 pt-2">
-                    <h3 className="text-2xl font-serif font-bold text-clay-900 mb-2">
-                      {milestone.title}
+                    <h3 className="text-2xl font-bold text-slate-900 mb-2">
+                      {t(milestone.titleKey)}
                     </h3>
-                    <p className="text-lg text-clay-600 leading-relaxed">
-                      {milestone.description}
+                    <p className="text-lg text-slate-600 leading-relaxed">
+                      {t(milestone.descriptionKey)}
                     </p>
                   </div>
                 </motion.div>
@@ -283,37 +285,33 @@ export function AboutPage() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-20 sm:py-28 bg-gradient-to-br from-spanish-red-600 to-gold-600 text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('/src/assets/patterns/moorish-hexagon.svg')] opacity-[0.1]" />
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative">
+        <section className="py-24 bg-gradient-to-r from-spanish-teal-500 via-spanish-coral-500 to-spanish-orange-500 text-white relative overflow-hidden">
+          <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <h2 className="text-3xl sm:text-4xl font-serif font-bold mb-6">
-                Ready to Start Your Spanish Journey?
+              <h2 className="text-4xl font-bold mb-6 sm:text-5xl">
+                {t("cta.title")}
               </h2>
-              <p className="text-xl mb-8 opacity-90">
-                Join our community of passionate learners and experience the
-                difference of personalized, culturally-immersive Spanish
-                education.
+              <p className="text-xl mb-10 max-w-2xl mx-auto leading-relaxed opacity-90">
+                {t("cta.subtitle")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a
-                  href="/register"
-                  className="inline-flex items-center justify-center px-8 py-4 bg-white text-spanish-red-600 rounded-lg font-semibold hover:bg-clay-50 transition-colors duration-200"
-                >
-                  Get Started Today
-                </a>
-                <a
-                  href="/pricing"
-                  className="inline-flex items-center justify-center px-8 py-4 bg-spanish-red-700/50 backdrop-blur-sm border-2 border-white/20 text-white rounded-lg font-semibold hover:bg-spanish-red-700/70 transition-colors duration-200"
-                >
-                  View Pricing
-                </a>
+                <PrimaryButton size="lg" className="text-lg px-10" asChild>
+                  <Link to="/auth">
+                    <Sparkles className="h-5 w-5" />
+                    {t("cta.button_primary")}
+                    <ArrowRight className="h-5 w-5" />
+                  </Link>
+                </PrimaryButton>
+                <button className="px-10 py-4 text-lg font-semibold text-white bg-white/20 backdrop-blur-sm border-2 border-white rounded-xl hover:bg-white/30 transition-all duration-200 shadow-xl">
+                  {t("cta.button_secondary")}
+                </button>
               </div>
+              <p className="mt-8 text-sm opacity-75">{t("cta.features")}</p>
             </motion.div>
           </div>
         </section>

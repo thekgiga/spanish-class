@@ -311,11 +311,11 @@ router.post("/slots", validate(createSlotSchema), async (req, res, next) => {
     const meeting = createMeetingRoom(slot.id);
     await prisma.availabilitySlot.update({
       where: { id: slot.id },
-      data: { meetLink: meeting.roomName },
+      data: { meetLink: meeting.joinUrl },
     });
 
     // Update slot object with meeting room name for response
-    slot.meetLink = meeting.roomName;
+    slot.meetLink = meeting.joinUrl;
 
     // If direct booking, create the booking
     let booking = null;
@@ -462,10 +462,10 @@ router.post(
           const meeting = createMeetingRoom(slot.id);
           await prisma.availabilitySlot.update({
             where: { id: slot.id },
-            data: { meetLink: meeting.roomName },
+            data: { meetLink: meeting.joinUrl },
           });
 
-          return { ...slot, meetLink: meeting.roomName };
+          return { ...slot, meetLink: meeting.joinUrl };
         }),
       );
 
@@ -599,10 +599,10 @@ router.post(
           const meeting = createMeetingRoom(slot.id);
           await prisma.availabilitySlot.update({
             where: { id: slot.id },
-            data: { meetLink: meeting.roomName },
+            data: { meetLink: meeting.joinUrl },
           });
 
-          return { ...slot, meetLink: meeting.roomName };
+          return { ...slot, meetLink: meeting.joinUrl };
         }),
       );
 

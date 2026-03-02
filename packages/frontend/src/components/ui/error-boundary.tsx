@@ -1,4 +1,5 @@
 import { Component, ErrorInfo, ReactNode } from "react";
+import { withTranslation, WithTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "./card";
 import { Button } from "./button";
 import { AlertTriangle } from "lucide-react";
@@ -17,7 +18,7 @@ interface State {
  * Error Boundary Component (T130)
  * Catches JavaScript errors anywhere in the child component tree
  */
-export class ErrorBoundary extends Component<Props, State> {
+class ErrorBoundaryComponent extends Component<Props & WithTranslation, State> {
   public state: State = {
     hasError: false,
   };
@@ -40,24 +41,24 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
+      const { t } = this.props;
       return (
         <div className="min-h-screen flex items-center justify-center p-4">
           <Card className="max-w-lg w-full">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-red-600">
                 <AlertTriangle className="h-5 w-5" />
-                Something went wrong
+                {t("common:error_boundary.title")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600">
-                We're sorry, but something unexpected happened. Please try
-                refreshing the page.
+                {t("common:error_boundary.message")}
               </p>
               {this.state.error && (
                 <details className="text-sm">
                   <summary className="cursor-pointer text-gray-500">
-                    Error details
+                    {t("common:error_boundary.error_details")}
                   </summary>
                   <pre className="mt-2 p-2 bg-gray-100 rounded overflow-auto text-xs">
                     {this.state.error.message}
@@ -65,12 +66,14 @@ export class ErrorBoundary extends Component<Props, State> {
                 </details>
               )}
               <div className="flex gap-2">
-                <Button onClick={this.handleReset}>Try Again</Button>
+                <Button onClick={this.handleReset}>
+                  {t("common:error_boundary.try_again")}
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => window.location.reload()}
                 >
-                  Refresh Page
+                  {t("common:error_boundary.refresh_page")}
                 </Button>
               </div>
             </CardContent>
@@ -82,3 +85,5 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
+export const ErrorBoundary = withTranslation()(ErrorBoundaryComponent);

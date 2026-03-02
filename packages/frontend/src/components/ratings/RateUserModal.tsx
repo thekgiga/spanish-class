@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -31,6 +32,7 @@ export default function RateUserModal({
   bookingId,
   onSuccess,
 }: RateUserModalProps) {
+  const { t } = useTranslation("common");
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -66,15 +68,13 @@ export default function RateUserModal({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Rate {rateeName}</DialogTitle>
-          <DialogDescription>
-            How was your experience? Your feedback helps improve the platform.
-          </DialogDescription>
+          <DialogTitle>{t("rating.title", { name: rateeName })}</DialogTitle>
+          <DialogDescription>{t("rating.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label>Rating</Label>
+            <Label>{t("rating.rating_label")}</Label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -98,12 +98,12 @@ export default function RateUserModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="comment">Comment (Optional)</Label>
+            <Label htmlFor="comment">{t("rating.comment_label")}</Label>
             <Textarea
               id="comment"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your thoughts..."
+              placeholder={t("rating.comment_placeholder")}
               rows={3}
             />
           </div>
@@ -115,17 +115,17 @@ export default function RateUserModal({
               onCheckedChange={(checked: boolean) => setIsAnonymous(checked)}
             />
             <label htmlFor="anonymous" className="text-sm text-gray-600">
-              Submit anonymously
+              {t("rating.anonymous")}
             </label>
           </div>
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={loading}>
-            Cancel
+            {t("actions.cancel")}
           </Button>
           <Button onClick={handleSubmit} disabled={rating === 0 || loading}>
-            Submit Rating
+            {t("rating.submit")}
           </Button>
         </DialogFooter>
       </DialogContent>
