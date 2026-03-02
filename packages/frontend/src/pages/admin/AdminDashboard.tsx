@@ -93,7 +93,7 @@ export function AdminDashboard() {
               {t("dashboard.quick_actions.view_analytics")}
             </Button>
             <Button size="lg" variant="primary" asChild>
-              <Link to="/admin/slots/new">
+              <Link to="/admin/calendar">
                 <Plus className="mr-2 h-5 w-5" />
                 {t("dashboard.quick_actions.create_slot")}
               </Link>
@@ -310,7 +310,7 @@ export function AdminDashboard() {
                   Create a new slot to schedule your first class
                 </p>
                 <Button size="lg" variant="primary" asChild>
-                  <Link to="/admin/slots/new">
+                  <Link to="/admin/calendar">
                     <Plus className="mr-2 h-5 w-5" />
                     Create a Slot
                   </Link>
@@ -346,7 +346,7 @@ export function AdminDashboard() {
             </motion.div>
           </Link>
 
-          <Link to="/admin/slots">
+          <Link to="/admin/calendar">
             <motion.div
               whileHover={{ scale: 1.02, y: -4 }}
               className="group relative bg-white rounded-2xl p-6 shadow-sm border border-slate-200/60 hover:shadow-xl hover:border-spanish-olive-200/60 transition-all duration-300 cursor-pointer overflow-hidden"

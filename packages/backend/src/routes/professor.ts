@@ -266,6 +266,21 @@ router.post("/slots", validate(createSlotSchema), async (req, res, next) => {
       }
     }
 
+    // Determine slot status
+    const slotStatus =
+      bookForStudentId && slotType === "INDIVIDUAL"
+        ? "FULLY_BOOKED"
+        : "AVAILABLE";
+
+    // Debug logging
+    console.log("[DEBUG] Creating slot:", {
+      slotType,
+      bookForStudentId,
+      isPrivate,
+      allowedStudentIds: allowedStudentIds?.length || 0,
+      calculatedStatus: slotStatus,
+    });
+
     // Create slot with allowed students
     const slot = await prisma.availabilitySlot.create({
       data: {
@@ -275,10 +290,7 @@ router.post("/slots", validate(createSlotSchema), async (req, res, next) => {
         slotType,
         maxParticipants: maxParticipants || 1,
         currentParticipants: bookForStudentId ? 1 : 0,
-        status:
-          bookForStudentId && slotType === "INDIVIDUAL"
-            ? "FULLY_BOOKED"
-            : "AVAILABLE",
+        status: slotStatus,
         title,
         description,
         isPrivate: isPrivate || false,

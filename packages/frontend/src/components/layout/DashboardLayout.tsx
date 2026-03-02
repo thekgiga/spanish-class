@@ -30,7 +30,6 @@ interface NavItem {
 const adminNavItems: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/calendar", label: "Calendar", icon: Calendar },
-  { href: "/admin/slots", label: "Availability", icon: BookOpen },
   { href: "/admin/students", label: "Students", icon: Users },
   { href: "/admin/email-logs", label: "Email Logs", icon: Mail },
 ];

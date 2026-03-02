@@ -1,0 +1,197 @@
+/* Custom styles for react-big-calendar */
+.calendar-wrapper {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Toolbar styling */
+.rbc-toolbar {
+  display: none !important; /* Hide default toolbar, we use custom */
+}
+
+/* Month view cells */
+.rbc-month-view {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.rbc-month-row {
+  border-color: #e2e8f0;
+}
+
+.rbc-day-bg {
+  border-color: #e2e8f0;
+}
+
+.rbc-off-range-bg {
+  background-color: #f8fafc;
+}
+
+.rbc-today {
+  background-color: #f0fdfa;
+}
+
+.rbc-header {
+  padding: 0.75rem 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+/* Week/Day view time slots */
+.rbc-time-view {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.rbc-time-header {
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.rbc-time-header-content {
+  border-left: 1px solid #e2e8f0;
+}
+
+.rbc-time-content {
+  border-top: none;
+}
+
+.rbc-time-slot {
+  border-top: 1px solid #f1f5f9;
+}
+
+.rbc-current-time-indicator {
+  background-color: #14B8A6;
+  height: 2px;
+}
+
+/* Time gutter (left sidebar with hours) */
+.rbc-time-gutter {
+  background-color: #f8fafc;
+}
+
+.rbc-label {
+  font-size: 0.75rem;
+  color: #64748b;
+  padding: 0 0.5rem;
+}
+
+/* Events */
+.rbc-event {
+  background-color: #14B8A6;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.875rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+.rbc-event:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.rbc-event:focus {
+  outline: 2px solid #14B8A6;
+  outline-offset: 2px;
+}
+
+.rbc-event-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.rbc-event-content {
+  font-weight: 500;
+}
+
+/* Selected event */
+.rbc-selected {
+  background-color: #0D9488 !important;
+}
+
+/* Slot selection (dragging to create new slot) */
+.rbc-slot-selection {
+  background-color: rgba(20, 184, 166, 0.2);
+  border: 2px dashed #14B8A6;
+  border-radius: 4px;
+}
+
+/* Agenda view */
+.rbc-agenda-view {
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.rbc-agenda-table {
+  border-spacing: 0;
+}
+
+.rbc-agenda-date-cell,
+.rbc-agenda-time-cell {
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  color: #475569;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.rbc-agenda-event-cell {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* Show more link in month view */
+.rbc-show-more {
+  color: #14B8A6;
+  font-weight: 500;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #f0fdfa;
+  border-radius: 4px;
+  margin-top: 2px;
+  cursor: pointer;
+}
+
+.rbc-show-more:hover {
+  background-color: #ccfbf1;
+}
+
+/* Day slot (for clicking to create) */
+.rbc-day-slot {
+  cursor: pointer;
+}
+
+.rbc-day-slot:hover {
+  background-color: rgba(20, 184, 166, 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .calendar-wrapper {
+    padding: 1rem;
+  }
+
+  .rbc-header {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.25rem;
+  }
+
+  .rbc-event {
+    font-size: 0.75rem;
+    padding: 2px 4px;
+  }
+
+  .rbc-label {
+    font-size: 0.625rem;
+  }
+}

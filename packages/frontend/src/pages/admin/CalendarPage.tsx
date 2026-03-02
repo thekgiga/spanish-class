@@ -1,73 +1,136 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { View } from "react-big-calendar";
 import {
-  format,
+  addMonths,
+  subMonths,
   startOfMonth,
   endOfMonth,
   startOfWeek,
   endOfWeek,
-  addMonths,
-  subMonths,
-  eachDayOfInterval,
-  isSameMonth,
-  isSameDay,
-  isToday,
+  format,
 } from "date-fns";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Clock,
-  Users,
-  User,
-  Video,
-  UserPlus,
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { cn, formatTime } from "@/lib/utils";
 import { professorApi } from "@/lib/api";
-import type { AvailabilitySlot } from "@spanish-class/shared";
+import { SlotCalendar } from "@/components/admin/SlotCalendar";
+import { SlotModal } from "@/components/admin/SlotModal";
+import { CalendarToolbar } from "@/components/admin/CalendarToolbar";
 import { PrivateInvitationModal } from "@/components/professor/PrivateInvitationModal";
-import { PrivateInvitationBadge } from "@/components/professor/PrivateInvitationBadge";
 
 export function CalendarPage() {
   const { t } = useTranslation("admin");
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
+  // Calendar state
+  const [view, setView] = useState<View>("week");
+  const [date, setDate] = useState(new Date());
+
+  // Modal state
+  const [isSlotModalOpen, setIsSlotModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTime, setSelectedTime] = useState<string | undefined>(
+    undefined,
+  );
+  const [selectedEndTime, setSelectedEndTime] = useState<string | undefined>(
+    undefined,
+  );
   const [showPrivateInvitationModal, setShowPrivateInvitationModal] =
     useState(false);
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
+  // Fetch slots data
+  const monthStart = startOfMonth(date);
+  const monthEnd = endOfMonth(date);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
-  const { data } = useQuery({
-    queryKey: ["professor-slots", format(currentMonth, "yyyy-MM")],
+  const { data, isLoading } = useQuery({
+    queryKey: ["professor-slots", format(date, "yyyy-MM")],
     queryFn: () =>
       professorApi.getSlots({
         startDate: calendarStart.toISOString(),
         endDate: calendarEnd.toISOString(),
-        limit: 100,
+        limit: 200,
       }),
   });
 
-  const days = useMemo(() => {
-    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  }, [calendarStart, calendarEnd]);
+  const slots = data?.data || [];
 
-  const getSlotsByDate = (date: Date): AvailabilitySlot[] => {
-    return (
-      data?.data?.filter((slot) => isSameDay(new Date(slot.startTime), date)) ||
-      []
-    );
+  // Find selected slot for edit mode
+  const selectedSlot = selectedSlotId
+    ? slots.find((slot) => slot.id === selectedSlotId) || null
+    : null;
+
+  // Navigation handlers
+  const handleNavigate = (action: "PREV" | "NEXT" | "TODAY") => {
+    if (action === "TODAY") {
+      setDate(new Date());
+    } else if (action === "PREV") {
+      if (view === "month") {
+        setDate(subMonths(date, 1));
+      } else if (view === "week") {
+        setDate(new Date(date.getTime() - 7 * 24 * 60 * 60 * 1000));
+      } else if (view === "day") {
+        setDate(new Date(date.getTime() - 24 * 60 * 60 * 1000));
+      }
+    } else if (action === "NEXT") {
+      if (view === "month") {
+        setDate(addMonths(date, 1));
+      } else if (view === "week") {
+        setDate(new Date(date.getTime() + 7 * 24 * 60 * 60 * 1000));
+      } else if (view === "day") {
+        setDate(new Date(date.getTime() + 24 * 60 * 60 * 1000));
+      }
+    }
   };
 
-  const selectedDateSlots = selectedDate ? getSlotsByDate(selectedDate) : [];
+  // Calendar interaction handlers
+  const handleSelectSlot = (slotInfo: { start: Date; end: Date }) => {
+    // User clicked on empty calendar slot to create new slot
+    setModalMode("create");
+    setSelectedDate(slotInfo.start);
+    setSelectedTime(format(slotInfo.start, "HH:mm"));
+    setSelectedEndTime(format(slotInfo.end, "HH:mm"));
+    setSelectedSlotId(null);
+    setIsSlotModalOpen(true);
+  };
+
+  const handleSelectEvent = (event: any) => {
+    // User clicked on existing slot to edit
+    setModalMode("edit");
+    setSelectedSlotId(event.id);
+    setSelectedDate(event.start);
+    setSelectedTime(undefined);
+    setSelectedEndTime(undefined);
+    setIsSlotModalOpen(true);
+  };
+
+  const handleCreateSlot = () => {
+    // User clicked "Create Slot" button in toolbar
+    setModalMode("create");
+    setSelectedDate(new Date());
+    setSelectedTime(undefined);
+    setSelectedEndTime(undefined);
+    setSelectedSlotId(null);
+    setIsSlotModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsSlotModalOpen(false);
+    setSelectedSlotId(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <p className="text-muted-foreground">
+          {t("messages.loading", { ns: "common" })}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -85,206 +148,47 @@ export function CalendarPage() {
             onClick={() => setShowPrivateInvitationModal(true)}
           >
             <UserPlus className="mr-2 h-4 w-4" />
-            {t("calendar.subtitle")}
-          </Button>
-          <Button variant="primary" asChild>
-            <Link to="/admin/slots/new">
-              <Plus className="mr-2 h-4 w-4" />
-              {t("slots.create_button")}
-            </Link>
+            {t("calendar.private_invitation")}
           </Button>
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Calendar */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>{format(currentMonth, "MMMM yyyy")}</CardTitle>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentMonth(new Date())}
-              >
-                {t("calendar.today")}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Weekday headers */}
-            <div className="grid grid-cols-7 mb-2">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                <div
-                  key={day}
-                  className="text-center text-sm font-medium text-muted-foreground py-2"
-                >
-                  {t(`calendar.views.${day.toLowerCase()}`)}
-                </div>
-              ))}
-            </div>
+      {/* Calendar Toolbar */}
+      <CalendarToolbar
+        view={view}
+        onViewChange={setView}
+        date={date}
+        onNavigate={handleNavigate}
+        onCreateSlot={handleCreateSlot}
+      />
 
-            {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-1">
-              {days.map((day) => {
-                const daySlots = getSlotsByDate(day);
-                const isSelected = selectedDate && isSameDay(day, selectedDate);
-                const hasSlots = daySlots.length > 0;
+      {/* Calendar */}
+      <SlotCalendar
+        slots={slots}
+        view={view}
+        date={date}
+        onNavigate={setDate}
+        onViewChange={setView}
+        onSelectSlot={handleSelectSlot}
+        onSelectEvent={handleSelectEvent}
+      />
 
-                return (
-                  <button
-                    key={day.toISOString()}
-                    onClick={() => setSelectedDate(day)}
-                    className={cn(
-                      "aspect-square p-1 rounded-lg text-sm transition-colors relative",
-                      !isSameMonth(day, currentMonth) &&
-                        "text-muted-foreground/50",
-                      isToday(day) && "font-bold",
-                      isSelected
-                        ? "bg-navy-800 text-white"
-                        : "hover:bg-gray-100",
-                      hasSlots && !isSelected && "bg-gold-50",
-                    )}
-                  >
-                    <span className="block">{format(day, "d")}</span>
-                    {hasSlots && (
-                      <span
-                        className={cn(
-                          "absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full",
-                          isSelected ? "bg-gold-400" : "bg-gold-500",
-                        )}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+      {/* Slot Modal */}
+      <SlotModal
+        isOpen={isSlotModalOpen}
+        onClose={handleCloseModal}
+        selectedDate={selectedDate}
+        selectedTime={selectedTime}
+        selectedEndTime={selectedEndTime}
+        existingSlot={selectedSlot}
+        mode={modalMode}
+      />
 
-        {/* Selected day slots */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {selectedDate
-                ? format(selectedDate, "EEEE, MMM d")
-                : t("calendar.selected_date")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {selectedDate ? (
-              selectedDateSlots.length > 0 ? (
-                <div className="space-y-3">
-                  {selectedDateSlots.map((slot) => (
-                    <div
-                      key={slot.id}
-                      className="p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {formatTime(slot.startTime)} -{" "}
-                            {formatTime(slot.endTime)}
-                          </span>
-                        </div>
-                        <Badge
-                          variant={
-                            slot.status === "AVAILABLE"
-                              ? "success"
-                              : slot.status === "FULLY_BOOKED"
-                                ? "warning"
-                                : "neutral"
-                          }
-                          className="text-xs"
-                        >
-                          {slot.status === "FULLY_BOOKED"
-                            ? t("calendar.slot_card.full")
-                            : slot.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Link to={`/admin/slots/${slot.id}`}>
-                          <p className="text-sm text-navy-800 hover:underline">
-                            {slot.title ||
-                              t("calendar.slot_card.spanish_class")}
-                          </p>
-                        </Link>
-                        {slot.isPrivate && <PrivateInvitationBadge size="sm" />}
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {slot.slotType === "GROUP" ? (
-                            <Users className="h-3 w-3" />
-                          ) : (
-                            <User className="h-3 w-3" />
-                          )}
-                          {slot.currentParticipants}/{slot.maxParticipants}{" "}
-                          {t("calendar.slot_card.booked")}
-                        </div>
-                        {slot.meetLink &&
-                          new Date(slot.startTime) > new Date() &&
-                          slot.status !== "CANCELLED" && (
-                            <Button
-                              size="sm"
-                              variant="primary"
-                              className="h-7 text-xs"
-                              asChild
-                            >
-                              <a
-                                href={slot.meetLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <Video className="mr-1 h-3 w-3" />
-                                {t("calendar.slot_card.join")}
-                              </a>
-                            </Button>
-                          )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    {t("calendar.no_slots")}
-                  </p>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/admin/slots/new">
-                      {t("calendar.create_slot")}
-                    </Link>
-                  </Button>
-                </div>
-              )
-            ) : (
-              <p className="text-muted-foreground text-center py-8">
-                {t("calendar.click_to_see")}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* T019: Private Invitation Modal */}
+      {/* Private Invitation Modal */}
       <PrivateInvitationModal
         isOpen={showPrivateInvitationModal}
         onClose={() => setShowPrivateInvitationModal(false)}
-        defaultDate={selectedDate || undefined}
+        defaultDate={selectedDate}
       />
     </div>
   );

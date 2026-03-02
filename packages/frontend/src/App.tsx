@@ -38,12 +38,13 @@ const AdminDashboard = lazy(() =>
     default: m.AdminDashboard,
   })),
 );
-const SlotsPage = lazy(() =>
-  import("@/pages/admin/SlotsPage").then((m) => ({ default: m.SlotsPage })),
-);
-const NewSlotPage = lazy(() =>
-  import("@/pages/admin/NewSlotPage").then((m) => ({ default: m.NewSlotPage })),
-);
+// Removed: Slot management consolidated into CalendarPage
+// const SlotsPage = lazy(() =>
+//   import("@/pages/admin/SlotsPage").then((m) => ({ default: m.SlotsPage })),
+// );
+// const NewSlotPage = lazy(() =>
+//   import("@/pages/admin/NewSlotPage").then((m) => ({ default: m.NewSlotPage })),
+// );
 const StudentsPage = lazy(() =>
   import("@/pages/admin/StudentsPage").then((m) => ({
     default: m.StudentsPage,
@@ -59,11 +60,12 @@ const CalendarPage = lazy(() =>
     default: m.CalendarPage,
   })),
 );
-const BulkSlotPage = lazy(() =>
-  import("@/pages/admin/BulkSlotPage").then((m) => ({
-    default: m.BulkSlotPage,
-  })),
-);
+// Removed: Bulk slot creation now handled via recurring pattern in SlotModal
+// const BulkSlotPage = lazy(() =>
+//   import("@/pages/admin/BulkSlotPage").then((m) => ({
+//     default: m.BulkSlotPage,
+//   })),
+// );
 const EmailLogsPage = lazy(() =>
   import("@/pages/admin/EmailLogsPage").then((m) => ({
     default: m.EmailLogsPage,
@@ -199,10 +201,23 @@ function AppRoutes() {
           >
             <Route index element={<AdminDashboard />} />
             <Route path="calendar" element={<CalendarPage />} />
-            <Route path="slots" element={<SlotsPage />} />
-            <Route path="slots/new" element={<NewSlotPage />} />
-            <Route path="slots/bulk" element={<BulkSlotPage />} />
-            <Route path="slots/:id" element={<NewSlotPage />} />
+            {/* Redirect old slot management routes to unified calendar */}
+            <Route
+              path="slots"
+              element={<Navigate to="/admin/calendar" replace />}
+            />
+            <Route
+              path="slots/new"
+              element={<Navigate to="/admin/calendar" replace />}
+            />
+            <Route
+              path="slots/bulk"
+              element={<Navigate to="/admin/calendar" replace />}
+            />
+            <Route
+              path="slots/:id"
+              element={<Navigate to="/admin/calendar" replace />}
+            />
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:id" element={<StudentDetailPage />} />
             <Route
