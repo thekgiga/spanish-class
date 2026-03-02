@@ -57,13 +57,18 @@ router.get("/:slotId/participants", authenticate, async (req, res, next) => {
     // Check authorization - only professor or participants can view
     const userId = req.user!.id;
     const isProfessor = slot.professorId === userId;
-    const isParticipant = slot.bookings.some((b) => b.studentId === userId);
+    const isParticipant = slot.bookings.some(
+      (b: { studentId: string }) => b.studentId === userId,
+    );
 
     if (!isProfessor && !isParticipant && !req.user!.isAdmin) {
-      throw new AppError(403, "You are not authorized to view this slot's participants");
+      throw new AppError(
+        403,
+        "You are not authorized to view this slot's participants",
+      );
     }
 
-    const participants = slot.bookings.map((booking) => ({
+    const participants = slot.bookings.map((booking: any) => ({
       bookingId: booking.id,
       status: booking.status,
       student: booking.student,

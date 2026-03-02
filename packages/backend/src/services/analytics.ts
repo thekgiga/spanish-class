@@ -43,11 +43,19 @@ export async function getProfessorAnalytics(
   });
 
   // Calculate summary
-  const totalEarnings = dailyStats.reduce((sum, s) => sum + s.totalEarningsRSD, 0);
-  const totalClasses = dailyStats.reduce((sum, s) => sum + s.classesCompleted, 0);
+  const totalEarnings = dailyStats.reduce(
+    (sum: number, s: any) => sum + s.totalEarningsRSD,
+    0,
+  );
+  const totalClasses = dailyStats.reduce(
+    (sum: number, s: any) => sum + s.classesCompleted,
+    0,
+  );
   const avgRating =
-    dailyStats.filter((s) => s.averageRating !== null).reduce((sum, s) => sum + (s.averageRating || 0), 0) /
-    dailyStats.filter((s) => s.averageRating !== null).length || 0;
+    dailyStats
+      .filter((s: any) => s.averageRating !== null)
+      .reduce((sum: number, s: any) => sum + (s.averageRating || 0), 0) /
+      dailyStats.filter((s: any) => s.averageRating !== null).length || 0;
 
   // Get unique students
   const uniqueStudentsCount = await prisma.booking.findMany({
@@ -109,15 +117,27 @@ export async function getPlatformAnalytics(
     orderBy: { date: "asc" },
   });
 
-  const totalRevenue = dailyStats.reduce((sum, s) => sum + s.totalRevenueRSD, 0);
-  const totalBookings = dailyStats.reduce((sum, s) => sum + s.totalBookings, 0);
+  const totalRevenue = dailyStats.reduce(
+    (sum: number, s: any) => sum + s.totalRevenueRSD,
+    0,
+  );
+  const totalBookings = dailyStats.reduce(
+    (sum: number, s: any) => sum + s.totalBookings,
+    0,
+  );
   const activeUsers = dailyStats[dailyStats.length - 1]?.activeStudents || 0;
 
   // Calculate growth rate (last 7 days vs previous 7 days)
   const last7Days = dailyStats.slice(-7);
   const prev7Days = dailyStats.slice(-14, -7);
-  const last7DaysBookings = last7Days.reduce((sum, s) => sum + s.totalBookings, 0);
-  const prev7DaysBookings = prev7Days.reduce((sum, s) => sum + s.totalBookings, 0);
+  const last7DaysBookings = last7Days.reduce(
+    (sum: number, s: any) => sum + s.totalBookings,
+    0,
+  );
+  const prev7DaysBookings = prev7Days.reduce(
+    (sum: number, s: any) => sum + s.totalBookings,
+    0,
+  );
   const growthRate =
     prev7DaysBookings > 0
       ? ((last7DaysBookings - prev7DaysBookings) / prev7DaysBookings) * 100

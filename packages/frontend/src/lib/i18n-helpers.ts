@@ -13,7 +13,7 @@ import { TFunction } from "i18next";
 export function translateArray(
   t: TFunction,
   baseKey: string,
-  count: number
+  count: number,
 ): string[] {
   return Array.from({ length: count }, (_, i) => t(`${baseKey}.${i}`));
 }
@@ -27,12 +27,15 @@ export function translateArray(
 export function translateObject<T extends string>(
   t: TFunction,
   baseKey: string,
-  keys: T[]
+  keys: T[],
 ): Record<T, string> {
-  return keys.reduce((acc, key) => {
-    acc[key] = t(`${baseKey}.${key}`);
-    return acc;
-  }, {} as Record<T, string>);
+  return keys.reduce(
+    (acc, key) => {
+      acc[key] = t(`${baseKey}.${key}`);
+      return acc;
+    },
+    {} as Record<T, string>,
+  );
 }
 
 /**
@@ -45,7 +48,7 @@ export function translateObject<T extends string>(
 export function formatDate(
   date: Date,
   locale: string,
-  options?: Intl.DateTimeFormatOptions
+  options?: Intl.DateTimeFormatOptions,
 ): string {
   const defaultOptions: Intl.DateTimeFormatOptions = {
     year: "numeric",
@@ -65,7 +68,7 @@ export function formatDate(
 export function formatTime(
   date: Date,
   locale: string,
-  options?: Intl.DateTimeFormatOptions
+  options?: Intl.DateTimeFormatOptions,
 ): string {
   const defaultOptions: Intl.DateTimeFormatOptions = {
     hour: "2-digit",
@@ -85,7 +88,7 @@ export function formatTime(
 export function formatNumber(
   value: number,
   locale: string,
-  options?: Intl.NumberFormatOptions
+  options?: Intl.NumberFormatOptions,
 ): string {
   return new Intl.NumberFormat(locale, options).format(value);
 }
@@ -99,7 +102,7 @@ export function formatNumber(
 export function formatCurrency(
   value: number,
   locale: string,
-  currency: string = "EUR"
+  currency: string = "EUR",
 ): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
@@ -118,7 +121,7 @@ export function pluralize(
   t: TFunction,
   key: string,
   count: number,
-  options?: Record<string, unknown>
+  options?: Record<string, unknown>,
 ): string {
   return t(key, { count, ...options });
 }
@@ -130,16 +133,24 @@ export function pluralize(
  * // 'apples, oranges, and bananas'
  */
 export function translateList(
-  t: TFunction,
+  _t: TFunction,
   items: string[],
-  locale: string,
-  conjunction: Intl.ListFormatType = "conjunction"
+  _locale: string,
+  conjunction: "conjunction" | "disjunction" = "conjunction",
 ): string {
-  const formatter = new Intl.ListFormat(locale, {
-    style: "long",
-    type: conjunction,
-  });
-  return formatter.format(items);
+  // TODO: Use Intl.ListFormat when TypeScript target supports it
+  // For now, use simple join logic
+  if (items.length === 0) return "";
+  if (items.length === 1) return items[0];
+  if (items.length === 2) {
+    return conjunction === "conjunction"
+      ? `${items[0]} and ${items[1]}`
+      : `${items[0]} or ${items[1]}`;
+  }
+  const last = items[items.length - 1];
+  const rest = items.slice(0, -1);
+  const separator = conjunction === "conjunction" ? " and " : " or ";
+  return rest.join(", ") + "," + separator + last;
 }
 
 /**
@@ -172,7 +183,7 @@ export function getTextDirection(locale: string): "ltr" | "rtl" {
 export function formatRelativeTime(
   value: number,
   unit: Intl.RelativeTimeFormatUnit,
-  locale: string
+  locale: string,
 ): string {
   const formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
   return formatter.format(value, unit);
@@ -187,7 +198,7 @@ export function formatRelativeTime(
  */
 export function getLanguageName(
   languageCode: string,
-  displayLocale: string
+  displayLocale: string,
 ): string {
   const displayNames = new Intl.DisplayNames([displayLocale], {
     type: "language",

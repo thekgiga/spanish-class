@@ -73,7 +73,9 @@ export async function createRating(
 /**
  * Get ratings for a user (T114)
  */
-export async function getUserRatings(userId: string): Promise<UserRatingsSummary> {
+export async function getUserRatings(
+  userId: string,
+): Promise<UserRatingsSummary> {
   const ratings = await prisma.rating.findMany({
     where: { rateeId: userId },
     include: {
@@ -95,13 +97,14 @@ export async function getUserRatings(userId: string): Promise<UserRatingsSummary
 
   const averageRating =
     ratings.length > 0
-      ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+      ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) /
+        ratings.length
       : 0;
 
   return {
     averageRating: Math.round(averageRating * 10) / 10,
     totalRatings: ratings.length,
-    ratings: ratings.map((r) => ({
+    ratings: ratings.map((r: any) => ({
       ...r,
       rater: r.isAnonymous
         ? {
@@ -122,10 +125,7 @@ export async function getPendingRatings(userId: string): Promise<any[]> {
   // Get completed bookings where user hasn't rated yet
   const completedBookings = await prisma.booking.findMany({
     where: {
-      OR: [
-        { studentId: userId },
-        { slot: { professorId: userId } },
-      ],
+      OR: [{ studentId: userId }, { slot: { professorId: userId } }],
       status: "COMPLETED",
     },
     include: {

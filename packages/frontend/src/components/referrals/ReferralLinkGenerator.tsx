@@ -7,6 +7,7 @@ import { Copy, Check } from "lucide-react";
 import { getMyReferralCode } from "@/lib/api";
 
 export default function ReferralLinkGenerator() {
+  const { t } = useTranslation("common");
   const [referralCode, setReferralCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);

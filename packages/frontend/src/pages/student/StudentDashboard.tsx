@@ -108,7 +108,7 @@ export function StudentDashboard() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
             <motion.div
-              key={stat.label}
+              key={stat.labelKey}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
@@ -140,7 +140,7 @@ export function StudentDashboard() {
 
               <div>
                 <p className="text-sm font-medium text-slate-600 mb-1">
-                  {stat.label}
+                  {t(stat.labelKey)}
                 </p>
                 {isLoading ? (
                   <Skeleton className="h-9 w-20" />

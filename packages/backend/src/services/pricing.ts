@@ -128,7 +128,7 @@ export async function getProfessorStudents(
     },
   });
 
-  const studentIds = bookings.map((b) => b.studentId);
+  const studentIds = bookings.map((b: any) => b.studentId);
 
   // Get pricing for all these students
   const pricings = await prisma.studentPricing.findMany({
@@ -140,10 +140,10 @@ export async function getProfessorStudents(
 
   // Map pricing to students
   const pricingMap = new Map(
-    pricings.map((p) => [p.studentId, p as unknown as StudentPricing]),
+    pricings.map((p: any) => [p.studentId, p as unknown as StudentPricing]),
   );
 
-  return bookings.map((b) => ({
+  return bookings.map((b: any) => ({
     ...b.student,
     pricing: pricingMap.get(b.studentId) || null,
   }));

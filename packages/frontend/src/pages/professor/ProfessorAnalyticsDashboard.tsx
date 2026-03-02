@@ -6,6 +6,7 @@ import { getProfessorAnalytics } from "@/lib/api";
 import { formatRSD } from "@/lib/utils";
 
 export default function ProfessorAnalyticsDashboard() {
+  const { t } = useTranslation("professor");
   const [analytics, setAnalytics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
