@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
   format,
@@ -34,6 +35,7 @@ import { PrivateInvitationModal } from "@/components/professor/PrivateInvitation
 import { PrivateInvitationBadge } from "@/components/professor/PrivateInvitationBadge";
 
 export function CalendarPage() {
+  const { t } = useTranslation("admin");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [showPrivateInvitationModal, setShowPrivateInvitationModal] =
@@ -73,9 +75,9 @@ export function CalendarPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold text-navy-800">
-            Calendar
+            {t("calendar.title")}
           </h1>
-          <p className="text-muted-foreground">View and manage your schedule</p>
+          <p className="text-muted-foreground">{t("calendar.subtitle")}</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -83,12 +85,12 @@ export function CalendarPage() {
             onClick={() => setShowPrivateInvitationModal(true)}
           >
             <UserPlus className="mr-2 h-4 w-4" />
-            Private Invitation
+            {t("calendar.subtitle")}
           </Button>
           <Button variant="primary" asChild>
             <Link to="/admin/slots/new">
               <Plus className="mr-2 h-4 w-4" />
-              New Slot
+              {t("slots.create_button")}
             </Link>
           </Button>
         </div>
@@ -112,7 +114,7 @@ export function CalendarPage() {
                 size="sm"
                 onClick={() => setCurrentMonth(new Date())}
               >
-                Today
+                {t("calendar.today")}
               </Button>
               <Button
                 variant="ghost"
@@ -131,7 +133,7 @@ export function CalendarPage() {
                   key={day}
                   className="text-center text-sm font-medium text-muted-foreground py-2"
                 >
-                  {day}
+                  {t(`calendar.views.${day.toLowerCase()}`)}
                 </div>
               ))}
             </div>
@@ -180,7 +182,7 @@ export function CalendarPage() {
             <CardTitle>
               {selectedDate
                 ? format(selectedDate, "EEEE, MMM d")
-                : "Select a date"}
+                : t("calendar.selected_date")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -206,19 +208,20 @@ export function CalendarPage() {
                               ? "success"
                               : slot.status === "FULLY_BOOKED"
                                 ? "warning"
-                                : "secondary"
+                                : "neutral"
                           }
                           className="text-xs"
                         >
                           {slot.status === "FULLY_BOOKED"
-                            ? "Full"
+                            ? t("calendar.slot_card.full")
                             : slot.status}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <Link to={`/admin/slots/${slot.id}`}>
                           <p className="text-sm text-navy-800 hover:underline">
-                            {slot.title || "Spanish Class"}
+                            {slot.title ||
+                              t("calendar.slot_card.spanish_class")}
                           </p>
                         </Link>
                         {slot.isPrivate && <PrivateInvitationBadge size="sm" />}
@@ -231,7 +234,7 @@ export function CalendarPage() {
                             <User className="h-3 w-3" />
                           )}
                           {slot.currentParticipants}/{slot.maxParticipants}{" "}
-                          booked
+                          {t("calendar.slot_card.booked")}
                         </div>
                         {slot.meetLink &&
                           new Date(slot.startTime) > new Date() &&
@@ -248,7 +251,7 @@ export function CalendarPage() {
                                 rel="noopener noreferrer"
                               >
                                 <Video className="mr-1 h-3 w-3" />
-                                Join
+                                {t("calendar.slot_card.join")}
                               </a>
                             </Button>
                           )}
@@ -259,16 +262,18 @@ export function CalendarPage() {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">
-                    No slots on this day
+                    {t("calendar.no_slots")}
                   </p>
                   <Button variant="outline" size="sm" asChild>
-                    <Link to="/admin/slots/new">Create Slot</Link>
+                    <Link to="/admin/slots/new">
+                      {t("calendar.create_slot")}
+                    </Link>
                   </Button>
                 </div>
               )
             ) : (
               <p className="text-muted-foreground text-center py-8">
-                Click on a date to see slots
+                {t("calendar.click_to_see")}
               </p>
             )}
           </CardContent>

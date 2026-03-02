@@ -1,0 +1,347 @@
+{
+  "dashboard": {
+    "title": "Panel de administración",
+    "subtitle": "Administra tu plataforma Spanish Class",
+    "welcome": "¡Bienvenido de nuevo, {{name}}!",
+    "stats": {
+      "total_students": "Total de estudiantes",
+      "active_bookings": "Reservas activas",
+      "pending_approvals": "Aprobaciones pendientes",
+      "revenue_month": "Ingresos de este mes"
+    },
+    "quick_actions": {
+      "create_slot": "Crear nuevo espacio",
+      "view_calendar": "Ver calendario",
+      "manage_students": "Administrar estudiantes",
+      "view_analytics": "Ver analíticas"
+    }
+  },
+  "slots": {
+    "title": "Espacios de clase",
+    "subtitle": "Administra los horarios de clase disponibles",
+    "create_button": "Crear nuevo espacio",
+    "bulk_create": "Creación masiva",
+    "bulk_page": {
+      "title": "Crear espacios recurrentes",
+      "subtitle": "Configura múltiples espacios a la vez para un rango de fechas",
+      "card_title": "Horario recurrente",
+      "card_description": "Crea el mismo espacio horario en múltiples días",
+      "start_date": "Fecha de inicio",
+      "end_date": "Fecha de finalización",
+      "days_of_week": "Días de la semana",
+      "time": "Hora",
+      "start_time": "Hora de inicio",
+      "duration": "Duración (minutos)",
+      "slot_type": "Tipo de espacio",
+      "individual": "Individual (1 a 1)",
+      "group": "Sesión grupal",
+      "max_participants": "Máximo de participantes",
+      "title_optional": "Título (opcional)",
+      "title_placeholder": "ej., Clase de español matutina",
+      "description_optional": "Descripción (opcional)",
+      "description_placeholder": "¿Qué cubrirán estas sesiones?",
+      "create_button": "Crear espacios",
+      "creating": "Creando...",
+      "success": "¡Se crearon {{count}} espacios con éxito!",
+      "error": "Error al crear espacios"
+    },
+    "filters": {
+      "all": "Todos los espacios",
+      "upcoming": "Próximos",
+      "past": "Pasados",
+      "cancelled": "Cancelados"
+    },
+    "table": {
+      "title": "Título",
+      "date": "Fecha",
+      "time": "Hora",
+      "duration": "Duración",
+      "type": "Tipo",
+      "capacity": "Capacidad",
+      "booked": "Reservado",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "edit": "Editar espacio",
+      "delete": "Eliminar",
+      "cancel": "Cancelar",
+      "view": "Ver detalles"
+    },
+    "no_slots": "No se encontraron espacios",
+    "create_success": "Espacio creado con éxito",
+    "update_success": "Espacio actualizado con éxito",
+    "delete_success": "Espacio eliminado con éxito",
+    "recurring_success": "{{count}} espacios recurrentes creados",
+    "form": {
+      "mode": {
+        "single": "Individual",
+        "recurring": "Recurrente"
+      },
+      "date_time": {
+        "title": "Fecha y hora",
+        "subtitle_single": "Selecciona cuándo tiene lugar esta sesión",
+        "subtitle_recurring": "Primera ocurrencia y patrón de repetición",
+        "select_date": "Seleccionar fecha",
+        "start_time": "Hora de inicio",
+        "duration": "Duración",
+        "overlap_warning": "Este horario se superpone con un espacio existente"
+      },
+      "duration_presets": {
+        "30_min": "30 min",
+        "45_min": "45 min",
+        "60_min": "60 min",
+        "90_min": "90 min",
+        "120_min": "120 min"
+      },
+      "weekdays": {
+        "sun": "Dom",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb"
+      },
+      "existing_slots": {
+        "title": "Espacios existentes",
+        "subtitle": "Ya programados para {{date}}",
+        "no_slots": "No hay espacios programados para este día",
+        "spanish_class": "Clase de español",
+        "booked": "Reservado",
+        "open": "Abierto"
+      },
+      "recurring": {
+        "title": "Repetir en",
+        "subtitle": "Selecciona en qué días se repite este espacio",
+        "end_date": "Fecha de finalización (opcional)",
+        "weeks_ahead": "Generar semanas adelante",
+        "weeks_count": "{{count}} semanas"
+      },
+      "session_type": {
+        "title": "Tipo de sesión",
+        "individual": "Individual",
+        "individual_desc": "Sesión 1 a 1",
+        "group": "Grupal",
+        "group_desc": "Múltiples estudiantes",
+        "max_participants": "Máximo de participantes"
+      },
+      "booked_students": {
+        "title": "Estudiantes reservados",
+        "no_bookings": "Ningún estudiante ha reservado este espacio todavía",
+        "count": "{{count}} estudiante reservado",
+        "count_plural": "{{count}} estudiantes reservados",
+        "no_bookings_yet": "Aún no hay reservas",
+        "can_book": "Los estudiantes pueden reservar este espacio desde su panel",
+        "view_student": "Ver",
+        "join_meeting": "Unirse a la reunión"
+      },
+      "details": {
+        "title": "Detalles (Opcional)",
+        "title_label": "Título",
+        "title_placeholder": "ej., Práctica de conversación",
+        "description_label": "Descripción",
+        "description_placeholder": "¿Qué cubrirá esta sesión?"
+      },
+      "private_slot": {
+        "title": "Espacio privado",
+        "subtitle": "Solo visible para estudiantes seleccionados",
+        "search_placeholder": "Buscar estudiantes...",
+        "no_students": "No se encontraron estudiantes",
+        "selected": "{{count}} seleccionados",
+        "remove": "Eliminar"
+      },
+      "direct_booking": {
+        "title": "Enviar invitación",
+        "subtitle": "Reserva este espacio para un estudiante y envíale una invitación",
+        "search_placeholder": "Buscar estudiantes para invitar...",
+        "no_students": "No se encontraron estudiantes",
+        "clear": "Limpiar"
+      },
+      "buttons": {
+        "back": "Atrás",
+        "save": "Guardar cambios",
+        "create": "Crear espacio",
+        "creating": "Creando...",
+        "cancel_slot": "Cancelar espacio"
+      },
+      "cancel_dialog": {
+        "title": "Cancelar espacio",
+        "message": "¿Estás seguro de que quieres cancelar este espacio? Esto notificará a {{count}} estudiante reservado.",
+        "message_plural": "¿Estás seguro de que quieres cancelar este espacio? Esto notificará a todos los {{count}} estudiantes reservados.",
+        "reason_label": "Motivo de cancelación (opcional)",
+        "reason_placeholder": "Hazle saber a los estudiantes por qué se cancela esta sesión...",
+        "button_cancel": "No, volver",
+        "button_confirm": "Sí, cancelar espacio",
+        "deleting": "Eliminando..."
+      }
+    }
+  },
+  "students": {
+    "title": "Estudiantes",
+    "subtitle": "Administrar cuentas de estudiantes",
+    "search_placeholder": "Buscar por nombre o correo electrónico...",
+    "table": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "joined": "Se unió",
+      "bookings": "Reservas",
+      "status": "Estado",
+      "actions": "Acciones"
+    },
+    "status": {
+      "active": "Activo",
+      "inactive": "Inactivo"
+    },
+    "no_students": "No se encontraron estudiantes",
+    "page": {
+      "registered_count": "{{count}} estudiantes registrados",
+      "search_placeholder": "Buscar estudiantes...",
+      "bookings_count": "{{count}} reservas",
+      "joined": "Se unió",
+      "view": "Ver",
+      "no_search_results": "No se encontraron estudiantes que coincidan con tu búsqueda",
+      "no_students_yet": "Aún no hay estudiantes registrados"
+    },
+    "detail": {
+      "title": "Perfil del estudiante",
+      "joined": "Se unió",
+      "upcoming": "Próximos",
+      "completed": "Completados",
+      "tabs": {
+        "profile": "Perfil",
+        "bookings": "Reservas",
+        "notes": "Notas"
+      },
+      "personal_details": {
+        "title": "Detalles personales",
+        "dob": "Fecha de nac.:",
+        "about": "Acerca de",
+        "no_details": "Aún no se proporcionaron detalles personales"
+      },
+      "learning_preferences": {
+        "title": "Preferencias de aprendizaje",
+        "spanish_level": "Nivel de español",
+        "preferred_class_types": "Tipos de clase preferidos",
+        "no_preferences": "Aún no se configuraron preferencias de aprendizaje"
+      },
+      "learning_goals": {
+        "title": "Objetivos de aprendizaje"
+      },
+      "availability_notes": {
+        "title": "Notas de disponibilidad"
+      },
+      "bookings_tab": {
+        "spanish_class": "Clase de español",
+        "no_bookings": "Aún no hay reservas"
+      },
+      "notes_tab": {
+        "add_note": "Agregar nota",
+        "no_notes": "Aún no hay notas. Agrega una nota para rastrear el progreso de este estudiante.",
+        "edit_note": "Editar nota",
+        "save": "Guardar",
+        "update": "Actualizar",
+        "cancel": "Cancelar",
+        "note_placeholder": "Escribe tu nota aquí..."
+      }
+    }
+  },
+  "calendar": {
+    "title": "Calendario",
+    "subtitle": "Ver todas las clases programadas",
+    "views": {
+      "month": "Mes",
+      "week": "Semana",
+      "day": "Día",
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb",
+      "sun": "Dom"
+    },
+    "today": "Hoy",
+    "prev": "Anterior",
+    "next": "Siguiente",
+    "selected_date": "Seleccionar una fecha",
+    "slot_card": {
+      "full": "Completo",
+      "spanish_class": "Clase de español",
+      "booked": "reservado",
+      "join": "Unirse"
+    },
+    "no_slots": "No hay espacios en este día",
+    "create_slot": "Crear espacio",
+    "click_to_see": "Haz clic en una fecha para ver los espacios"
+  },
+  "approvals": {
+    "title": "Aprobaciones pendientes",
+    "subtitle": "Revisar y aprobar o rechazar solicitudes de reserva",
+    "approve_button": "Aprobar",
+    "reject_button": "Rechazar",
+    "no_pending": "No hay aprobaciones pendientes",
+    "approve_success": "Reserva aprobada con éxito",
+    "reject_success": "Reserva rechazada",
+    "approve_error": "Error al aprobar la reserva",
+    "reject_error": "Error al rechazar la reserva",
+    "card": {
+      "class_time": "Hora de la clase:",
+      "expires": "Expira:",
+      "at": "a las"
+    },
+    "all_caught_up": {
+      "title": "¡Todo al día!",
+      "message": "No hay aprobaciones de reserva pendientes en este momento"
+    },
+    "reject_dialog": {
+      "title": "Rechazar reserva",
+      "description": "Por favor, proporciona un motivo para rechazar esta reserva. El estudiante será notificado.",
+      "reason_label": "Motivo del rechazo *",
+      "reason_placeholder": "Ingresa el motivo del rechazo...",
+      "reason_required": "Por favor, proporciona un motivo para el rechazo",
+      "cancel": "Cancelar",
+      "confirm": "Rechazar reserva"
+    }
+  },
+  "email_logs": {
+    "title": "Registros de correo",
+    "subtitle": "Ver historial de correos enviados",
+    "table": {
+      "recipient": "Destinatario",
+      "subject": "Asunto",
+      "sent_at": "Enviado el",
+      "status": "Estado"
+    },
+    "status": {
+      "sent": "Enviado",
+      "failed": "Fallido",
+      "pending": "Pendiente"
+    },
+    "view": "Ver",
+    "no_logs": "No se encontraron registros de correo",
+    "pagination": {
+      "showing": "Mostrando {{start}} a {{end}} de {{total}} correos",
+      "page": "Página {{current}} de {{total}}"
+    },
+    "detail": {
+      "title": "Detalles del correo",
+      "from": "De",
+      "to": "Para",
+      "type": "Tipo",
+      "status": "Estado",
+      "subject": "Asunto",
+      "sent_at": "Enviado el",
+      "error": "Error",
+      "email_content": "Contenido del correo"
+    }
+  },
+  "analytics": {
+    "title": "Analíticas",
+    "subtitle": "Estadísticas e información de la plataforma",
+    "revenue": "Ingresos",
+    "bookings": "Reservas",
+    "students": "Estudiantes",
+    "sessions": "Sesiones"
+  }
+}

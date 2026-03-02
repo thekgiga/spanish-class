@@ -1,0 +1,77 @@
+{
+  "page": {
+    "seo_title": "O nama - Premium platforma za učenje španskog",
+    "seo_description": "Saznajte o Časovima Španskog, našoj misiji da učinimo učenje španskog jezika dostupnim, zanimljivim i kulturno uranjajućim. Sertifikovani nastavnici, personalizovani planovi učenja i podrška zajednice ljubitelja jezika.",
+    "badge": "O nama",
+    "title": "Naša priča",
+    "subtitle": "Verujemo da učenje španskog treba da bude više od pamćenja gramatičkih pravila. Radi se o otkrivanju nove kulture, povezivanju sa milionima govornika širom sveta i otvaranju vrata neverovatnim prilikama."
+  },
+  "mission": {
+    "title": "Naša misija",
+    "paragraph1": "U Časovima Španskog, naša misija je da učinimo učenje španskog jezika dostupnim, zanimljivim i kulturno uranjajućim za studente širom sveta. Kombinujemo stručno podučavanje sa modernom tehnologijom kako bismo kreirali premium iskustvo učenja koje odgovara vašem životnom stilu.",
+    "paragraph2": "Bilo da se pripremate za DELE ispite, planirate da studirate u inostranstvu ili ste jednostavno strastveni o hispano kulturi, tu smo da vas vodimo na svakom koraku.",
+    "why_choose_title": "Zašto nas izabrati",
+    "reason_1": "Sertifikovani nastavnici sa godinama iskustva",
+    "reason_2": "Personalizovani planovi učenja za svakog studenta",
+    "reason_3": "Fleksibilno raspoređivanje koje odgovara vašem životnom stilu",
+    "reason_4": "Kulturno uranjanje izvan učenja jezika",
+    "reason_5": "Moderna platforma za besprekorno iskustvo zakazivanja"
+  },
+  "values": {
+    "badge": "Naše vrednosti",
+    "title": "Naše osnovne vrednosti",
+    "subtitle": "Ovi principi vode sve što radimo u Časovima Španskog",
+    "passion_title": "Strast za podučavanjem",
+    "passion_description": "Volimo da pomažemo studentima da otkriju lepotu španskog jezika i hispano kulture.",
+    "personalized_title": "Personalizovano učenje",
+    "personalized_description": "Svaki student ima jedinstvene ciljeve. Kreiramo prilagođene planove učenja po vašoj meri.",
+    "community_title": "Fokus na zajednicu",
+    "community_description": "Učenje je bolje zajedno. Pridružite se podržavajućoj zajednici ljubitelja španskog jezika.",
+    "cultural_title": "Kulturno uranjanje",
+    "cultural_description": "Doživite autentičnu špansku kulturu kroz jezik, ne samo gramatiku i vokabular."
+  },
+  "timeline": {
+    "badge": "Naše putovanje",
+    "title": "Rast i razvoj",
+    "subtitle": "Naši mejlstoni na putu ka boljoj usluzi",
+    "2020_title": "Osnivanje",
+    "2020_description": "Započeli sa vizijom da učinimo učenje španskog dostupnim i zanimljivim online.",
+    "2021_title": "100 studenata",
+    "2021_description": "Dostigli naš prvi veliki mejlston sa studentima iz 15 različitih zemalja.",
+    "2023_title": "DELE sertifikat",
+    "2023_description": "Postali ovlašćeni centar za pripremu DELE ispita.",
+    "2026_title": "Premium platforma",
+    "2026_description": "Lansirali našu modernu platformu za besprekorno zakazivanje časova."
+  },
+  "cta": {
+    "title": "Spremni da započnete svoje špansko putovanje?",
+    "subtitle": "Pridružite se našoj zajednici strastvenih učenika i doživite razliku personalizovanog, kulturno uranjajućeg španskog obrazovanja.",
+    "button_primary": "Počnite danas",
+    "button_secondary": "Kontaktirajte nas",
+    "features": "Profesionalni nastavnici • Fleksibilno raspoređivanje • Personalizovano učenje"
+  },
+  "contact": {
+    "seo_title": "Kontaktirajte nas - Časovi Španskog",
+    "seo_description": "Stupite u kontakt sa Časovima Španskog. Pošaljite nam poruku i odgovorićemo što je brže moguće. Tu smo da odgovorimo na vaša pitanja o našoj platformi za učenje španskog.",
+    "badge": "Kontaktirajte nas",
+    "title": "Stupite u kontakt",
+    "subtitle": "Imate pitanja o našim časovima španskog? Tu smo da pomognemo. Pošaljite nam poruku i javićemo vam se što je brže moguće.",
+    "form_name_label": "Vaše ime",
+    "form_name_placeholder": "Marko Marković",
+    "form_email_label": "Email adresa",
+    "form_email_placeholder": "vi@primer.com",
+    "form_subject_label": "Naslov",
+    "form_subject_placeholder": "Kako možemo da pomognemo?",
+    "form_message_label": "Poruka",
+    "form_message_placeholder": "Recite nam više o vašem upitu...",
+    "form_submit": "Pošalji poruku",
+    "form_submitting": "Slanje...",
+    "form_success_title": "Poruka poslata!",
+    "form_success_message": "Hvala što ste nas kontaktirali. Odgovorićemo u roku od 24 sata.",
+    "info_title": "Kontakt informacije",
+    "info_email_label": "Email",
+    "info_location_label": "Lokacija",
+    "info_location_value": "Beograd, Srbija",
+    "info_instagram_label": "Instagram"
+  }
+}

@@ -1,52 +1,66 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { Clock, CheckCircle, XCircle, Calendar, User } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import toast from 'react-hot-toast';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { professorApi } from '@/lib/api';
-import { formatTime } from '@/lib/utils';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
+import { Clock, CheckCircle, XCircle, Calendar, User } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import toast from "react-hot-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { professorApi } from "@/lib/api";
+import { formatTime } from "@/lib/utils";
 
 export function PendingApprovalsPage() {
+  const { t } = useTranslation("admin");
   const queryClient = useQueryClient();
   const [rejectingBooking, setRejectingBooking] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
 
   const { data, isLoading } = useQuery({
-    queryKey: ['pending-bookings'],
+    queryKey: ["pending-bookings"],
     queryFn: () => professorApi.getPendingBookings({ limit: 50 }),
   });
 
   const approveMutation = useMutation({
     mutationFn: (bookingId: string) => professorApi.confirmBooking(bookingId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['professor-dashboard'] });
-      toast.success('Booking approved successfully');
+      queryClient.invalidateQueries({ queryKey: ["pending-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["professor-dashboard"] });
+      toast.success(t("approvals.approve_success"));
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to approve booking');
+      toast.error(error.response?.data?.error || t("approvals.approve_error"));
     },
   });
 
   const rejectMutation = useMutation({
-    mutationFn: ({ bookingId, reason }: { bookingId: string; reason: string }) =>
-      professorApi.rejectBooking(bookingId, reason),
+    mutationFn: ({
+      bookingId,
+      reason,
+    }: {
+      bookingId: string;
+      reason: string;
+    }) => professorApi.rejectBooking(bookingId, reason),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['professor-dashboard'] });
-      toast.success('Booking rejected');
+      queryClient.invalidateQueries({ queryKey: ["pending-bookings"] });
+      queryClient.invalidateQueries({ queryKey: ["professor-dashboard"] });
+      toast.success(t("approvals.reject_success"));
       setRejectingBooking(null);
-      setRejectionReason('');
+      setRejectionReason("");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || 'Failed to reject booking');
+      toast.error(error.response?.data?.error || t("approvals.reject_error"));
     },
   });
 
@@ -57,18 +71,23 @@ export function PendingApprovalsPage() {
   const handleReject = () => {
     if (!rejectingBooking) return;
     if (!rejectionReason.trim()) {
-      toast.error('Please provide a reason for rejection');
+      toast.error(t("approvals.reject_dialog.reason_required"));
       return;
     }
-    rejectMutation.mutate({ bookingId: rejectingBooking, reason: rejectionReason });
+    rejectMutation.mutate({
+      bookingId: rejectingBooking,
+      reason: rejectionReason,
+    });
   };
 
   return (
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-display font-bold text-navy-800">Pending Approvals</h1>
-        <p className="text-muted-foreground">Review and approve or reject booking requests</p>
+        <h1 className="text-2xl font-display font-bold text-navy-800">
+          {t("approvals.title")}
+        </h1>
+        <p className="text-muted-foreground">{t("approvals.subtitle")}</p>
       </div>
 
       {/* Pending Bookings List */}
@@ -97,26 +116,39 @@ export function PendingApprovalsPage() {
                         </div>
                         <div>
                           <h3 className="font-semibold text-navy-800">
-                            {booking.student?.firstName} {booking.student?.lastName}
+                            {booking.student?.firstName}{" "}
+                            {booking.student?.lastName}
                           </h3>
-                          <p className="text-sm text-muted-foreground">{booking.student?.email}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {booking.student?.email}
+                          </p>
                         </div>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">Class Time:</span>
+                          <span className="text-muted-foreground">
+                            {t("approvals.card.class_time")}
+                          </span>
                           <span className="font-medium">
-                            {new Date(booking.slot.startTime).toLocaleDateString()} at{' '}
+                            {new Date(
+                              booking.slot.startTime,
+                            ).toLocaleDateString()}{" "}
+                            {t("approvals.card.at")}{" "}
                             {formatTime(booking.slot.startTime)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-amber-600" />
-                          <span className="text-muted-foreground">Expires:</span>
+                          <span className="text-muted-foreground">
+                            {t("approvals.card.expires")}
+                          </span>
                           <span className="font-medium text-amber-600">
-                            {formatDistanceToNow(new Date(booking.confirmationExpiresAt), { addSuffix: true })}
+                            {formatDistanceToNow(
+                              new Date(booking.confirmationExpiresAt),
+                              { addSuffix: true },
+                            )}
                           </span>
                         </div>
                       </div>
@@ -128,19 +160,23 @@ export function PendingApprovalsPage() {
                         variant="default"
                         className="bg-green-600 hover:bg-green-700"
                         onClick={() => handleApprove(booking.id)}
-                        disabled={approveMutation.isPending || rejectMutation.isPending}
+                        disabled={
+                          approveMutation.isPending || rejectMutation.isPending
+                        }
                       >
                         <CheckCircle className="mr-1 h-4 w-4" />
-                        Approve
+                        {t("approvals.approve_button")}
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => setRejectingBooking(booking.id)}
-                        disabled={approveMutation.isPending || rejectMutation.isPending}
+                        disabled={
+                          approveMutation.isPending || rejectMutation.isPending
+                        }
                       >
                         <XCircle className="mr-1 h-4 w-4" />
-                        Reject
+                        {t("approvals.reject_button")}
                       </Button>
                     </div>
                   </div>
@@ -153,27 +189,36 @@ export function PendingApprovalsPage() {
         <Card>
           <CardContent className="p-12 text-center">
             <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500 opacity-50" />
-            <h3 className="text-lg font-semibold text-navy-800 mb-2">All Caught Up!</h3>
-            <p className="text-muted-foreground">No pending booking approvals at the moment</p>
+            <h3 className="text-lg font-semibold text-navy-800 mb-2">
+              {t("approvals.all_caught_up.title")}
+            </h3>
+            <p className="text-muted-foreground">
+              {t("approvals.all_caught_up.message")}
+            </p>
           </CardContent>
         </Card>
       )}
 
       {/* Reject Dialog */}
-      <Dialog open={!!rejectingBooking} onOpenChange={() => setRejectingBooking(null)}>
+      <Dialog
+        open={!!rejectingBooking}
+        onOpenChange={() => setRejectingBooking(null)}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Reject Booking</DialogTitle>
+            <DialogTitle>{t("approvals.reject_dialog.title")}</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting this booking. The student will be notified.
+              {t("approvals.reject_dialog.description")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="reason">Reason for Rejection *</Label>
+              <Label htmlFor="reason">
+                {t("approvals.reject_dialog.reason_label")}
+              </Label>
               <Textarea
                 id="reason"
-                placeholder="Enter reason for rejection..."
+                placeholder={t("approvals.reject_dialog.reason_placeholder")}
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 rows={4}
@@ -186,18 +231,18 @@ export function PendingApprovalsPage() {
               variant="outline"
               onClick={() => {
                 setRejectingBooking(null);
-                setRejectionReason('');
+                setRejectionReason("");
               }}
               disabled={rejectMutation.isPending}
             >
-              Cancel
+              {t("approvals.reject_dialog.cancel")}
             </Button>
             <Button
               variant="destructive"
               onClick={handleReject}
               disabled={rejectMutation.isPending || !rejectionReason.trim()}
             >
-              {rejectMutation.isPending ? 'Rejecting...' : 'Reject Booking'}
+              {t("approvals.reject_dialog.confirm")}
             </Button>
           </DialogFooter>
         </DialogContent>

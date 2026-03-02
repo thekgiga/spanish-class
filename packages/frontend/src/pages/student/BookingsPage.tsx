@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
@@ -31,6 +32,7 @@ import { formatDate, formatTime, getRelativeTime } from "@/lib/utils";
 import type { BookingWithSlot } from "@spanish-class/shared";
 
 export function BookingsPage() {
+  const { t } = useTranslation("booking");
   const [cancelBooking, setCancelBooking] = useState<BookingWithSlot | null>(
     null,
   );
@@ -51,7 +53,7 @@ export function BookingsPage() {
     mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
       studentApi.cancelBooking(id, reason),
     onSuccess: () => {
-      toast.success("Booking cancelled successfully");
+      toast.success(t("cancel.success"));
       queryClient.invalidateQueries({ queryKey: ["student-bookings"] });
       queryClient.invalidateQueries({ queryKey: ["student-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["available-slots"] });
@@ -59,7 +61,7 @@ export function BookingsPage() {
       setCancelReason("");
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Failed to cancel booking");
+      toast.error(error.response?.data?.error || t("cancel.error"));
     },
   });
 
@@ -82,16 +84,16 @@ export function BookingsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <Card>
+        <Card className="border-2 border-spanish-teal-200">
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-lg bg-navy-100 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="h-5 w-5 text-navy-600" />
+                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-spanish-teal-100 to-spanish-coral-100 flex items-center justify-center flex-shrink-0">
+                  <Calendar className="h-5 w-5 text-spanish-teal-600" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-navy-800">
+                    <p className="font-semibold text-slate-900">
                       {booking.slot.title || "Spanish Class"}
                     </p>
                     <Badge
@@ -99,28 +101,28 @@ export function BookingsPage() {
                         booking.status === "CONFIRMED"
                           ? "success"
                           : booking.status === "COMPLETED"
-                            ? "secondary"
+                            ? "neutral"
                             : "destructive"
                       }
                     >
                       {booking.status.replace(/_/g, " ")}
                     </Badge>
                     {isUpcoming && (
-                      <Badge variant="gold">
+                      <Badge className="bg-gradient-to-r from-spanish-sunshine-500 to-spanish-orange-500 text-white border-0">
                         {getRelativeTime(booking.slot.startTime)}
                       </Badge>
                     )}
                     {booking.slot.isPrivate && (
-                      <Badge variant="secondary" className="gap-1">
+                      <Badge variant="neutral" className="gap-1">
                         <Lock className="h-3 w-3" />
                         Private Invitation
                       </Badge>
                     )}
                   </div>
-                  <p className="text-muted-foreground mt-1">
+                  <p className="text-slate-600 mt-1">
                     {formatDate(booking.slot.startTime)}
                   </p>
-                  <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-600">
                     <span className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
                       {formatTime(booking.slot.startTime)} -{" "}
@@ -144,16 +146,15 @@ export function BookingsPage() {
                 {booking.slot.meetLink &&
                   booking.status === "CONFIRMED" &&
                   isUpcoming && (
-                    <Button variant="primary" size="sm" asChild>
-                      <a
-                        href={booking.slot.meetLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <Video className="mr-1 h-4 w-4" />
-                        Join
-                      </a>
-                    </Button>
+                    <a
+                      href={booking.slot.meetLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-spanish-teal-500 to-spanish-teal-600 text-white hover:from-spanish-teal-600 hover:to-spanish-teal-700 shadow-lg h-9 px-4"
+                    >
+                      <Video className="mr-1 h-4 w-4" />
+                      Join
+                    </a>
                   )}
                 {showCancel && canCancel && (
                   <Button
@@ -169,7 +170,7 @@ export function BookingsPage() {
                   !canCancel &&
                   booking.status === "CONFIRMED" &&
                   isUpcoming && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-slate-600">
                       Can't cancel within 24 hours
                     </p>
                   )}
@@ -186,15 +187,13 @@ export function BookingsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">
-            My Bookings
+          <h1 className="text-2xl font-display font-bold text-slate-900">
+            {t("page.bookings_title")}
           </h1>
-          <p className="text-muted-foreground">
-            Manage your upcoming and past sessions
-          </p>
+          <p className="text-slate-600">{t("page.bookings_subtitle")}</p>
         </div>
         <Button variant="primary" asChild>
-          <Link to="/dashboard/book">Book New Class</Link>
+          <Link to="/dashboard/book">{t("bookings.book_class")}</Link>
         </Button>
       </div>
 
@@ -202,7 +201,7 @@ export function BookingsPage() {
       <Tabs defaultValue="upcoming">
         <TabsList>
           <TabsTrigger value="upcoming">
-            Upcoming ({upcomingData?.data?.length || 0})
+            {t("tabs.upcoming")} ({upcomingData?.data?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="history">
             History ({pastBookings?.length || 0})
@@ -219,14 +218,14 @@ export function BookingsPage() {
           ) : upcomingData?.data && upcomingData.data.length > 0 ? (
             upcomingData.data.map((booking) => renderBookingCard(booking, true))
           ) : (
-            <Card>
+            <Card className="border-2 border-spanish-teal-200">
               <CardContent className="py-12 text-center">
-                <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground mb-4">
-                  No upcoming sessions
+                <Calendar className="h-12 w-12 mx-auto mb-4 text-spanish-teal-500 opacity-50" />
+                <p className="text-slate-600 mb-4">
+                  {t("bookings.no_upcoming")}
                 </p>
                 <Button variant="primary" asChild>
-                  <Link to="/dashboard/book">Book a Class</Link>
+                  <Link to="/dashboard/book">{t("bookings.book_class")}</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -245,7 +244,7 @@ export function BookingsPage() {
           ) : (
             <Card>
               <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">No past sessions</p>
+                <p className="text-muted-foreground">{t("bookings.no_past")}</p>
               </CardContent>
             </Card>
           )}
@@ -259,16 +258,14 @@ export function BookingsPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cancel Booking</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to cancel this session?
-            </DialogDescription>
+            <DialogTitle>{t("cancel.title")}</DialogTitle>
+            <DialogDescription>{t("cancel.description")}</DialogDescription>
           </DialogHeader>
 
           {cancelBooking && (
             <div className="p-4 rounded-lg bg-gray-50 space-y-2">
               <p className="font-semibold">
-                {cancelBooking.slot.title || "Spanish Class"}
+                {cancelBooking.slot.title || t("booking_modal.class_title")}
               </p>
               <p className="text-sm text-muted-foreground">
                 {formatDate(cancelBooking.slot.startTime)} at{" "}
@@ -278,26 +275,25 @@ export function BookingsPage() {
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Reason (optional)</label>
+            <label className="text-sm font-medium">
+              {t("cancel.reason_label")}
+            </label>
             <Textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Let us know why you're cancelling..."
+              placeholder={t("cancel.reason_placeholder")}
               rows={3}
             />
           </div>
 
           <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 text-amber-800 text-sm">
             <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-            <p>
-              Please note that cancellations must be made at least 24 hours
-              before the session.
-            </p>
+            <p>{t("cancel.warning")}</p>
           </div>
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setCancelBooking(null)}>
-              Keep Booking
+              {t("cancel.keep")}
             </Button>
             <Button
               variant="destructive"
@@ -310,7 +306,7 @@ export function BookingsPage() {
               }
               isLoading={cancelMutation.isPending}
             >
-              Cancel Booking
+              {t("cancel.button")}
             </Button>
           </DialogFooter>
         </DialogContent>

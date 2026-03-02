@@ -16,14 +16,16 @@ interface PendingBookingsListProps {
   bookings: PendingBooking[];
 }
 
-export default function PendingBookingsList({ bookings }: PendingBookingsListProps) {
+export default function PendingBookingsList({
+  bookings,
+}: PendingBookingsListProps) {
   const { t } = useTranslation(["booking", "common"]);
 
   if (bookings.length === 0) {
     return (
       <Card>
         <CardContent className="p-8 text-center text-gray-500">
-          No pending booking confirmations
+          {t("pending_list.no_pending")}
         </CardContent>
       </Card>
     );
@@ -43,24 +45,31 @@ export default function PendingBookingsList({ bookings }: PendingBookingsListPro
               </div>
               <Badge variant="outline" className="bg-yellow-50">
                 <Clock className="h-3 w-3 mr-1" />
-                {t("bookingPending")}
+                {t("pending_list.booking_pending")}
               </Badge>
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">{t("classTime")}:</span>
+                <span className="text-gray-600">
+                  {t("pending_list.class_time")}:
+                </span>
                 <span className="font-medium">
                   {new Date(booking.classTime).toLocaleString()}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">{t("confirmationExpiry")}:</span>
+                <span className="text-gray-600">
+                  {t("pending_list.confirmation_expiry")}:
+                </span>
                 <span className="font-medium text-orange-600">
-                  {formatDistanceToNow(new Date(booking.confirmationExpiresAt), {
-                    addSuffix: true,
-                  })}
+                  {formatDistanceToNow(
+                    new Date(booking.confirmationExpiresAt),
+                    {
+                      addSuffix: true,
+                    },
+                  )}
                 </span>
               </div>
             </div>

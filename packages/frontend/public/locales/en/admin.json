@@ -1,0 +1,347 @@
+{
+  "dashboard": {
+    "title": "Admin Dashboard",
+    "subtitle": "Manage your Spanish Class platform",
+    "welcome": "Welcome back, {{name}}!",
+    "stats": {
+      "total_students": "Total Students",
+      "active_bookings": "Active Bookings",
+      "pending_approvals": "Pending Approvals",
+      "revenue_month": "Revenue This Month"
+    },
+    "quick_actions": {
+      "create_slot": "Create New Slot",
+      "view_calendar": "View Calendar",
+      "manage_students": "Manage Students",
+      "view_analytics": "View Analytics"
+    }
+  },
+  "slots": {
+    "title": "Class Slots",
+    "subtitle": "Manage available class times",
+    "create_button": "Create New Slot",
+    "bulk_create": "Bulk Create",
+    "bulk_page": {
+      "title": "Create Recurring Slots",
+      "subtitle": "Set up multiple slots at once for a date range",
+      "card_title": "Recurring Schedule",
+      "card_description": "Create the same time slot across multiple days",
+      "start_date": "Start Date",
+      "end_date": "End Date",
+      "days_of_week": "Days of Week",
+      "time": "Time",
+      "start_time": "Start Time",
+      "duration": "Duration (minutes)",
+      "slot_type": "Slot Type",
+      "individual": "Individual (1-on-1)",
+      "group": "Group Session",
+      "max_participants": "Max Participants",
+      "title_optional": "Title (optional)",
+      "title_placeholder": "e.g., Morning Spanish Class",
+      "description_optional": "Description (optional)",
+      "description_placeholder": "What will these sessions cover?",
+      "create_button": "Create Slots",
+      "creating": "Creating...",
+      "success": "Created {{count}} slots successfully!",
+      "error": "Failed to create slots"
+    },
+    "filters": {
+      "all": "All Slots",
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "cancelled": "Cancelled"
+    },
+    "table": {
+      "title": "Title",
+      "date": "Date",
+      "time": "Time",
+      "duration": "Duration",
+      "type": "Type",
+      "capacity": "Capacity",
+      "booked": "Booked",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit Slot",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "view": "View Details"
+    },
+    "no_slots": "No slots found",
+    "create_success": "Slot created successfully",
+    "update_success": "Slot updated successfully",
+    "delete_success": "Slot deleted successfully",
+    "recurring_success": "{{count}} recurring slots created",
+    "form": {
+      "mode": {
+        "single": "Single",
+        "recurring": "Recurring"
+      },
+      "date_time": {
+        "title": "Date & Time",
+        "subtitle_single": "Select when this session takes place",
+        "subtitle_recurring": "First occurrence and repeating pattern",
+        "select_date": "Select Date",
+        "start_time": "Start Time",
+        "duration": "Duration",
+        "overlap_warning": "This time overlaps with an existing slot"
+      },
+      "duration_presets": {
+        "30_min": "30 min",
+        "45_min": "45 min",
+        "60_min": "60 min",
+        "90_min": "90 min",
+        "120_min": "120 min"
+      },
+      "weekdays": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "existing_slots": {
+        "title": "Existing Slots",
+        "subtitle": "Already scheduled for {{date}}",
+        "no_slots": "No slots scheduled for this day",
+        "spanish_class": "Spanish Class",
+        "booked": "Booked",
+        "open": "Open"
+      },
+      "recurring": {
+        "title": "Repeat On",
+        "subtitle": "Select which days this slot repeats",
+        "end_date": "End Date (optional)",
+        "weeks_ahead": "Generate weeks ahead",
+        "weeks_count": "{{count}} weeks"
+      },
+      "session_type": {
+        "title": "Session Type",
+        "individual": "Individual",
+        "individual_desc": "1-on-1 session",
+        "group": "Group",
+        "group_desc": "Multiple students",
+        "max_participants": "Maximum Participants"
+      },
+      "booked_students": {
+        "title": "Booked Students",
+        "no_bookings": "No students have booked this slot yet",
+        "count": "{{count}} student booked",
+        "count_plural": "{{count}} students booked",
+        "no_bookings_yet": "No bookings yet",
+        "can_book": "Students can book this slot from their dashboard",
+        "view_student": "View",
+        "join_meeting": "Join Meeting"
+      },
+      "details": {
+        "title": "Details (Optional)",
+        "title_label": "Title",
+        "title_placeholder": "e.g., Conversation Practice",
+        "description_label": "Description",
+        "description_placeholder": "What will this session cover?"
+      },
+      "private_slot": {
+        "title": "Private Slot",
+        "subtitle": "Only visible to selected students",
+        "search_placeholder": "Search students...",
+        "no_students": "No students found",
+        "selected": "{{count}} selected",
+        "remove": "Remove"
+      },
+      "direct_booking": {
+        "title": "Send Invitation",
+        "subtitle": "Book this slot for a student and send them an invitation",
+        "search_placeholder": "Search students to invite...",
+        "no_students": "No students found",
+        "clear": "Clear"
+      },
+      "buttons": {
+        "back": "Back",
+        "save": "Save Changes",
+        "create": "Create Slot",
+        "creating": "Creating...",
+        "cancel_slot": "Cancel Slot"
+      },
+      "cancel_dialog": {
+        "title": "Cancel Slot",
+        "message": "Are you sure you want to cancel this slot? This will notify all {{count}} booked student.",
+        "message_plural": "Are you sure you want to cancel this slot? This will notify all {{count}} booked students.",
+        "reason_label": "Cancellation reason (optional)",
+        "reason_placeholder": "Let students know why this session is cancelled...",
+        "button_cancel": "No, Go Back",
+        "button_confirm": "Yes, Cancel Slot",
+        "deleting": "Deleting..."
+      }
+    }
+  },
+  "students": {
+    "title": "Students",
+    "subtitle": "Manage student accounts",
+    "search_placeholder": "Search by name or email...",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "joined": "Joined",
+      "bookings": "Bookings",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "no_students": "No students found",
+    "page": {
+      "registered_count": "{{count}} registered students",
+      "search_placeholder": "Search students...",
+      "bookings_count": "{{count}} bookings",
+      "joined": "Joined",
+      "view": "View",
+      "no_search_results": "No students found matching your search",
+      "no_students_yet": "No students registered yet"
+    },
+    "detail": {
+      "title": "Student Profile",
+      "joined": "Joined",
+      "upcoming": "Upcoming",
+      "completed": "Completed",
+      "tabs": {
+        "profile": "Profile",
+        "bookings": "Bookings",
+        "notes": "Notes"
+      },
+      "personal_details": {
+        "title": "Personal Details",
+        "dob": "DOB:",
+        "about": "About",
+        "no_details": "No personal details provided yet"
+      },
+      "learning_preferences": {
+        "title": "Learning Preferences",
+        "spanish_level": "Spanish Level",
+        "preferred_class_types": "Preferred Class Types",
+        "no_preferences": "No learning preferences set yet"
+      },
+      "learning_goals": {
+        "title": "Learning Goals"
+      },
+      "availability_notes": {
+        "title": "Availability Notes"
+      },
+      "bookings_tab": {
+        "spanish_class": "Spanish Class",
+        "no_bookings": "No bookings yet"
+      },
+      "notes_tab": {
+        "add_note": "Add Note",
+        "no_notes": "No notes yet. Add a note to track this student's progress.",
+        "edit_note": "Edit Note",
+        "save": "Save",
+        "update": "Update",
+        "cancel": "Cancel",
+        "note_placeholder": "Write your note here..."
+      }
+    }
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "View all scheduled classes",
+    "views": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "today": "Today",
+    "prev": "Previous",
+    "next": "Next",
+    "selected_date": "Select a date",
+    "slot_card": {
+      "full": "Full",
+      "spanish_class": "Spanish Class",
+      "booked": "booked",
+      "join": "Join"
+    },
+    "no_slots": "No slots on this day",
+    "create_slot": "Create Slot",
+    "click_to_see": "Click on a date to see slots"
+  },
+  "approvals": {
+    "title": "Pending Approvals",
+    "subtitle": "Review and approve or reject booking requests",
+    "approve_button": "Approve",
+    "reject_button": "Reject",
+    "no_pending": "No pending approvals",
+    "approve_success": "Booking approved successfully",
+    "reject_success": "Booking rejected",
+    "approve_error": "Failed to approve booking",
+    "reject_error": "Failed to reject booking",
+    "card": {
+      "class_time": "Class Time:",
+      "expires": "Expires:",
+      "at": "at"
+    },
+    "all_caught_up": {
+      "title": "All Caught Up!",
+      "message": "No pending booking approvals at the moment"
+    },
+    "reject_dialog": {
+      "title": "Reject Booking",
+      "description": "Please provide a reason for rejecting this booking. The student will be notified.",
+      "reason_label": "Reason for Rejection *",
+      "reason_placeholder": "Enter reason for rejection...",
+      "reason_required": "Please provide a reason for rejection",
+      "cancel": "Cancel",
+      "confirm": "Reject Booking"
+    }
+  },
+  "email_logs": {
+    "title": "Email Logs",
+    "subtitle": "View sent email history",
+    "table": {
+      "recipient": "Recipient",
+      "subject": "Subject",
+      "sent_at": "Sent At",
+      "status": "Status"
+    },
+    "status": {
+      "sent": "Sent",
+      "failed": "Failed",
+      "pending": "Pending"
+    },
+    "view": "View",
+    "no_logs": "No email logs found",
+    "pagination": {
+      "showing": "Showing {{start}} to {{end}} of {{total}} emails",
+      "page": "Page {{current}} of {{total}}"
+    },
+    "detail": {
+      "title": "Email Details",
+      "from": "From",
+      "to": "To",
+      "type": "Type",
+      "status": "Status",
+      "subject": "Subject",
+      "sent_at": "Sent At",
+      "error": "Error",
+      "email_content": "Email Content"
+    }
+  },
+  "analytics": {
+    "title": "Analytics",
+    "subtitle": "Platform statistics and insights",
+    "revenue": "Revenue",
+    "bookings": "Bookings",
+    "students": "Students",
+    "sessions": "Sessions"
+  }
+}

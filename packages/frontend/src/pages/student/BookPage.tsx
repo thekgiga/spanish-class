@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import {
@@ -58,6 +59,7 @@ type ViewMode = "list" | "calendar";
 type SlotWithBookedFlag = AvailabilitySlot & { isBookedByMe: boolean };
 
 export function BookPage() {
+  const { t } = useTranslation("booking");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [filter, setFilter] = useState<string>("all");
   const [forMeOnly, setForMeOnly] = useState(false);
@@ -119,7 +121,9 @@ export function BookPage() {
       setBookingSuccess(true);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.error || "Failed to book slot");
+      toast.error(
+        error.response?.data?.error || t("booking_modal.error_message"),
+      );
       setSelectedSlot(null);
     },
   });
@@ -167,8 +171,8 @@ export function BookPage() {
   return (
     <>
       <SEOMeta
-        title="Book a Spanish Lesson"
-        description="Browse and book available Spanish lessons with native teachers. Flexible scheduling for individual and group classes starting at 2000 RSD."
+        title={t("page.seo_title")}
+        description={t("page.seo_description")}
         canonical="/book"
         noindex={true}
       />
@@ -176,25 +180,25 @@ export function BookPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-display font-bold text-navy-800">
-              Book a Class
+            <h1 className="text-2xl font-display font-bold text-slate-900">
+              {t("page.book_title")}
             </h1>
-            <p className="text-muted-foreground">
-              Browse and book available sessions
-            </p>
+            <p className="text-slate-600">{t("page.book_subtitle")}</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {/* Slot Type Filter */}
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Filter className="h-4 w-4 text-slate-600" />
               <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="All types" />
+                <SelectTrigger className="w-32 border-spanish-teal-200 focus:border-spanish-teal-500">
+                  <SelectValue placeholder={t("filters.all")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="INDIVIDUAL">Individual</SelectItem>
-                  <SelectItem value="GROUP">Group</SelectItem>
+                  <SelectItem value="all">{t("filters.all")}</SelectItem>
+                  <SelectItem value="INDIVIDUAL">
+                    {t("filters.private")}
+                  </SelectItem>
+                  <SelectItem value="GROUP">{t("filters.group")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -207,28 +211,36 @@ export function BookPage() {
               className="gap-1"
             >
               <Star className={cn("h-4 w-4", forMeOnly && "fill-current")} />
-              For Me Only
+              {t("filters.for_me_only")}
             </Button>
 
             {/* View Toggle */}
-            <div className="flex rounded-lg border bg-muted p-1">
+            <div className="flex rounded-lg border-2 border-spanish-teal-200 bg-white p-1">
               <Button
                 variant={viewMode === "list" ? "secondary" : "ghost"}
+                className={cn(
+                  "gap-1",
+                  viewMode === "list" &&
+                    "bg-spanish-teal-500 text-white hover:bg-spanish-teal-600",
+                )}
                 size="sm"
                 onClick={() => setViewMode("list")}
-                className="gap-1"
               >
                 <List className="h-4 w-4" />
-                <span className="hidden sm:inline">List</span>
+                <span className="hidden sm:inline">{t("views.list")}</span>
               </Button>
               <Button
                 variant={viewMode === "calendar" ? "secondary" : "ghost"}
+                className={cn(
+                  "gap-1",
+                  viewMode === "calendar" &&
+                    "bg-spanish-teal-500 text-white hover:bg-spanish-teal-600",
+                )}
                 size="sm"
                 onClick={() => setViewMode("calendar")}
-                className="gap-1"
               >
                 <CalendarDays className="h-4 w-4" />
-                <span className="hidden sm:inline">Calendar</span>
+                <span className="hidden sm:inline">{t("views.calendar")}</span>
               </Button>
             </div>
           </div>
@@ -267,34 +279,34 @@ export function BookPage() {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Confirm Booking</DialogTitle>
+              <DialogTitle>{t("booking_modal.title")}</DialogTitle>
               <DialogDescription>
-                You're about to book the following session:
+                {t("booking_modal.description")}
               </DialogDescription>
             </DialogHeader>
             {selectedSlot && (
-              <div className="p-4 rounded-lg bg-gray-50 space-y-2">
-                <p className="font-semibold">
-                  {selectedSlot.title || "Spanish Class"}
+              <div className="p-4 rounded-lg bg-gradient-to-r from-spanish-teal-50 to-spanish-coral-50 border-2 border-spanish-teal-200 space-y-2">
+                <p className="font-semibold text-slate-900">
+                  {selectedSlot.title || t("booking_modal.class_title")}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-600">
                   {formatDate(selectedSlot.startTime)}
                 </p>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-slate-600">
                   {formatTime(selectedSlot.startTime)} -{" "}
                   {formatTime(selectedSlot.endTime)} (
                   {getDuration(selectedSlot.startTime, selectedSlot.endTime)})
                 </p>
                 <div className="flex gap-2 mt-2">
-                  <Badge variant="secondary">
+                  <Badge variant="neutral">
                     {selectedSlot.slotType === "GROUP"
-                      ? "Group Session"
-                      : "Individual Session"}
+                      ? t("booking_modal.type_group")
+                      : t("booking_modal.type_individual")}
                   </Badge>
                   {selectedSlot.isPrivate && (
                     <Badge variant="default">
                       <Star className="mr-1 h-3 w-3 fill-current" />
-                      Reserved for you
+                      {t("booking_modal.reserved_for_you")}
                     </Badge>
                   )}
                 </div>
@@ -302,14 +314,14 @@ export function BookPage() {
             )}
             <DialogFooter>
               <Button variant="ghost" onClick={() => setSelectedSlot(null)}>
-                Cancel
+                {t("booking_modal.cancel_button")}
               </Button>
               <Button
                 variant="primary"
                 onClick={handleBook}
                 isLoading={bookMutation.isPending}
               >
-                Confirm Booking
+                {t("booking_modal.confirm_button")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -323,16 +335,15 @@ export function BookPage() {
                 <Clock className="h-8 w-8 text-amber-600" />
               </div>
               <DialogTitle className="text-xl mb-2">
-                Booking Request Sent!
+                {t("booking_modal.success_title")}
               </DialogTitle>
               <DialogDescription className="text-base">
-                Your booking request is pending professor approval. You'll
-                receive an email once the professor approves your request.
+                {t("booking_modal.success_description")}
               </DialogDescription>
             </div>
             <DialogFooter className="sm:justify-center">
               <Button variant="primary" onClick={closeDialog}>
-                Done
+                {t("booking_modal.success_button")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -361,6 +372,7 @@ function ListView({
   forMeOnly: boolean;
   professor: ProfessorInfo;
 }) {
+  const { t } = useTranslation("booking");
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -386,12 +398,10 @@ function ListView({
             <>
               <Star className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
               <p className="text-lg font-medium text-navy-800 mb-2">
-                No Private Sessions Available
+                {t("empty_states.no_private_sessions")}
               </p>
               <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                There are currently no private sessions scheduled for you.
-                Please contact your professor to arrange a dedicated session at
-                your earliest convenience.
+                {t("empty_states.no_private_sessions_description")}
               </p>
               {professor && (
                 <div className="inline-flex items-center gap-3 px-4 py-3 bg-navy-50 rounded-lg">
@@ -417,9 +427,7 @@ function ListView({
           ) : (
             <>
               <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-              <p className="text-muted-foreground">
-                No available slots at the moment. Check back later!
-              </p>
+              <p className="text-slate-600">{t("empty_states.no_slots")}</p>
             </>
           )}
         </CardContent>
@@ -481,6 +489,7 @@ function CalendarView({
   totalSlots: number;
   professor: ProfessorInfo;
 }) {
+  const { t } = useTranslation("booking");
   // Show empty state for forMeOnly when no slots at all
   if (!isLoading && forMeOnly && totalSlots === 0) {
     return (
@@ -488,12 +497,10 @@ function CalendarView({
         <CardContent className="py-12 text-center">
           <Star className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
           <p className="text-lg font-medium text-navy-800 mb-2">
-            No Private Sessions Available
+            {t("empty_states.no_private_sessions")}
           </p>
           <p className="text-muted-foreground max-w-md mx-auto mb-4">
-            There are currently no private sessions scheduled for you. Please
-            contact your professor to arrange a dedicated session at your
-            earliest convenience.
+            {t("empty_states.no_private_sessions_description")}
           </p>
           {professor && (
             <div className="inline-flex items-center gap-3 px-4 py-3 bg-navy-50 rounded-lg">
@@ -542,7 +549,7 @@ function CalendarView({
                 setSelectedDate(new Date());
               }}
             >
-              Today
+              {t("calendar.today")}
             </Button>
             <Button
               variant="ghost"
@@ -556,12 +563,20 @@ function CalendarView({
         <CardContent>
           {/* Weekday headers */}
           <div className="grid grid-cols-7 mb-2">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+            {[
+              "weekday_mon",
+              "weekday_tue",
+              "weekday_wed",
+              "weekday_thu",
+              "weekday_fri",
+              "weekday_sat",
+              "weekday_sun",
+            ].map((dayKey) => (
               <div
-                key={day}
+                key={dayKey}
                 className="text-center text-sm font-medium text-muted-foreground py-2"
               >
-                {day}
+                {t(`calendar.${dayKey}`)}
               </div>
             ))}
           </div>
@@ -631,18 +646,18 @@ function CalendarView({
           )}
 
           {/* Legend */}
-          <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-4 mt-4 text-xs text-slate-600">
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-gold-500" />
-              Available
+              {t("calendar.legend_available")}
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-blue-500" />
-              For You
+              {t("calendar.legend_for_you")}
             </div>
             <div className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-green-500" />
-              Booked
+              {t("calendar.legend_booked")}
             </div>
           </div>
         </CardContent>
@@ -654,7 +669,7 @@ function CalendarView({
           <CardTitle>
             {selectedDate
               ? format(selectedDate, "EEEE, MMM d")
-              : "Select a date"}
+              : t("calendar.select_date")}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -674,7 +689,7 @@ function CalendarView({
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <Clock className="h-4 w-4 text-slate-600" />
                         <span className="font-medium">
                           {formatTime(slot.startTime)} -{" "}
                           {formatTime(slot.endTime)}
@@ -683,26 +698,29 @@ function CalendarView({
                       {slot.isBookedByMe ? (
                         <Badge variant="success" className="text-xs">
                           <CheckCircle2 className="mr-1 h-3 w-3" />
-                          Booked
+                          {t("slot.booked")}
                         </Badge>
                       ) : slot.isPrivate ? (
                         <Badge variant="default" className="text-xs">
                           <Star className="mr-1 h-3 w-3 fill-current" />
-                          For You
+                          {t("calendar.legend_for_you")}
                         </Badge>
                       ) : null}
                     </div>
                     <p className="text-sm text-navy-800 mt-1">
-                      {slot.title || "Spanish Class"}
+                      {slot.title || t("booking_modal.class_title")}
                     </p>
                     <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2 text-xs text-slate-600">
                         {slot.slotType === "GROUP" ? (
                           <Users className="h-3 w-3" />
                         ) : (
                           <User className="h-3 w-3" />
                         )}
-                        {slot.currentParticipants}/{slot.maxParticipants} spots
+                        {t("slot.spots_filled", {
+                          current: slot.currentParticipants,
+                          max: slot.maxParticipants,
+                        })}
                       </div>
                       {!slot.isBookedByMe && (
                         <Button
@@ -713,7 +731,7 @@ function CalendarView({
                             onSelectSlot(slot);
                           }}
                         >
-                          Book
+                          {t("slot.book_now")}
                         </Button>
                       )}
                     </div>
@@ -723,14 +741,14 @@ function CalendarView({
             ) : (
               <div className="text-center py-8">
                 <Calendar className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground">
-                  No available slots on this day
+                <p className="text-slate-600">
+                  {t("empty_states.no_slots_on_date")}
                 </p>
               </div>
             )
           ) : (
             <p className="text-muted-foreground text-center py-8">
-              Click on a date to see available slots
+              {t("empty_states.select_date")}
             </p>
           )}
         </CardContent>
@@ -749,6 +767,7 @@ function SlotCard({
   delay: number;
   onSelect: () => void;
 }) {
+  const { t } = useTranslation("booking");
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
@@ -758,34 +777,34 @@ function SlotCard({
       <Card hover className={slot.isBookedByMe ? "border-green-500" : ""}>
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
-            <Badge
-              variant={slot.slotType === "GROUP" ? "secondary" : "default"}
-            >
+            <Badge variant={slot.slotType === "GROUP" ? "neutral" : "default"}>
               {slot.slotType === "GROUP" ? (
                 <Users className="mr-1 h-3 w-3" />
               ) : (
                 <User className="mr-1 h-3 w-3" />
               )}
-              {slot.slotType === "GROUP" ? "Group" : "Individual"}
+              {slot.slotType === "GROUP"
+                ? t("filters.group")
+                : t("filters.private")}
             </Badge>
             <div className="flex gap-1">
               {slot.isPrivate && !slot.isBookedByMe && (
                 <Badge variant="default">
                   <Star className="mr-1 h-3 w-3 fill-current" />
-                  For You
+                  {t("calendar.legend_for_you")}
                 </Badge>
               )}
               {slot.isBookedByMe && (
                 <Badge variant="success">
                   <CheckCircle2 className="mr-1 h-3 w-3" />
-                  Booked
+                  {t("slot.booked")}
                 </Badge>
               )}
             </div>
           </div>
 
           <p className="font-semibold text-navy-800 mb-1">
-            {slot.title || "Spanish Class"}
+            {slot.title || t("booking_modal.class_title")}
           </p>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
@@ -803,8 +822,11 @@ function SlotCard({
           )}
 
           <div className="flex items-center justify-between mt-auto pt-3 border-t">
-            <span className="text-sm text-muted-foreground">
-              {slot.currentParticipants}/{slot.maxParticipants} spots filled
+            <span className="text-sm text-slate-600">
+              {t("slot.spots_filled", {
+                current: slot.currentParticipants,
+                max: slot.maxParticipants,
+              })}
             </span>
             <Button
               size="sm"
@@ -812,7 +834,9 @@ function SlotCard({
               disabled={slot.isBookedByMe}
               onClick={onSelect}
             >
-              {slot.isBookedByMe ? "Already Booked" : "Book Now"}
+              {slot.isBookedByMe
+                ? t("slot.already_booked")
+                : t("slot.book_now")}
             </Button>
           </div>
         </CardContent>

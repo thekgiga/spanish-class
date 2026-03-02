@@ -1,8 +1,9 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 interface Student {
   id: string;
@@ -18,11 +19,16 @@ interface StudentSelectorProps {
 }
 
 // T017: StudentSelector component
-export function StudentSelector({ value, onChange, disabled }: StudentSelectorProps) {
-  const [search, setSearch] = useState('');
+export function StudentSelector({
+  value,
+  onChange,
+  disabled,
+}: StudentSelectorProps) {
+  const { t } = useTranslation("professor");
+  const [search, setSearch] = useState("");
 
   const { data, isLoading } = useQuery({
-    queryKey: ['students'],
+    queryKey: ["students"],
     queryFn: async () => {
       const response = await axios.get(`${API_URL}/professor/students`, {
         params: { page: 1, limit: 100 },
@@ -44,11 +50,11 @@ export function StudentSelector({ value, onChange, disabled }: StudentSelectorPr
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700">
-        Select Student
+        {t("student_selector.label")}
       </label>
       <input
         type="text"
-        placeholder="Search by name or email..."
+        placeholder={t("student_selector.search_placeholder")}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         disabled={disabled}
@@ -56,7 +62,9 @@ export function StudentSelector({ value, onChange, disabled }: StudentSelectorPr
       />
       <div className="max-h-48 overflow-y-auto border border-gray-300 rounded-md">
         {isLoading ? (
-          <div className="p-4 text-center text-gray-500">Loading students...</div>
+          <div className="p-4 text-center text-gray-500">
+            {t("student_selector.loading")}
+          </div>
         ) : filteredStudents && filteredStudents.length > 0 ? (
           <div className="divide-y divide-gray-200">
             {filteredStudents.map((student) => (
@@ -66,7 +74,9 @@ export function StudentSelector({ value, onChange, disabled }: StudentSelectorPr
                 onClick={() => onChange(student.id)}
                 disabled={disabled}
                 className={`w-full px-4 py-3 text-left hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                  value === student.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                  value === student.id
+                    ? "bg-blue-50 border-l-4 border-blue-500"
+                    : ""
                 }`}
               >
                 <div className="font-medium text-gray-900">
@@ -78,14 +88,18 @@ export function StudentSelector({ value, onChange, disabled }: StudentSelectorPr
           </div>
         ) : (
           <div className="p-4 text-center text-gray-500">
-            {search ? 'No students found' : 'No students available'}
+            {search
+              ? t("student_selector.no_students_search")
+              : t("student_selector.no_students_available")}
           </div>
         )}
       </div>
       {value && (
         <p className="text-sm text-gray-600">
-          Selected: {data?.find((s) => s.id === value)?.firstName}{' '}
-          {data?.find((s) => s.id === value)?.lastName}
+          {t("student_selector.selected", {
+            firstName: data?.find((s) => s.id === value)?.firstName,
+            lastName: data?.find((s) => s.id === value)?.lastName,
+          })}
         </p>
       )}
     </div>

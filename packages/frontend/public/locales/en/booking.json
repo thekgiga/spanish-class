@@ -1,21 +1,148 @@
 {
-  "bookSlot": "Book Slot",
-  "cancelBooking": "Cancel Booking",
-  "bookingConfirmed": "Booking Confirmed",
-  "bookingPending": "Booking Pending",
-  "bookingRejected": "Booking Rejected",
-  "bookingExpired": "Booking Expired",
-  "myBookings": "My Bookings",
-  "upcomingClasses": "Upcoming Classes",
-  "pastClasses": "Past Classes",
-  "noBookings": "No bookings found",
-  "professorName": "Professor",
-  "studentName": "Student",
-  "classTime": "Class Time",
-  "duration": "Duration",
-  "status": "Status",
-  "joinClass": "Join Class",
-  "waitingConfirmation": "Waiting for professor confirmation",
-  "confirmationExpiry": "Request expires in",
-  "hours": "hours"
+  "page": {
+    "book_title": "Book a Class",
+    "book_subtitle": "Browse and book available sessions",
+    "bookings_title": "My Bookings",
+    "bookings_subtitle": "Manage your upcoming and past sessions",
+    "no_slots": "No available classes at the moment. Please check back later.",
+    "loading": "Loading available classes...",
+    "seo_title": "Book a Spanish Lesson",
+    "seo_description": "Browse and book available Spanish lessons with native teachers. Flexible scheduling for individual and group classes starting at 2000 RSD."
+  },
+  "tabs": {
+    "upcoming": "Upcoming",
+    "past": "Past"
+  },
+  "filters": {
+    "all": "All Types",
+    "group": "Group",
+    "private": "Individual",
+    "search_placeholder": "Search by title or description...",
+    "for_me_only": "For Me Only"
+  },
+  "views": {
+    "list": "List",
+    "calendar": "Calendar"
+  },
+  "slot_card": {
+    "spots_left": "{{count}} spot left",
+    "spots_left_plural": "{{count}} spots left",
+    "full": "Full",
+    "duration": "{{duration}} min",
+    "book_now": "Book Now",
+    "view_details": "View Details"
+  },
+  "booking_modal": {
+    "title": "Confirm Booking",
+    "description": "You're about to book the following session:",
+    "class_details": "Class Details",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "professor": "Professor",
+    "type": "Type",
+    "type_individual": "Individual Session",
+    "type_group": "Group Session",
+    "private": "Private",
+    "group": "Group ({{current}}/{{max}} students)",
+    "price": "Price",
+    "free": "Free",
+    "notes_label": "Notes (optional)",
+    "notes_placeholder": "Any special requests or questions?",
+    "confirm_button": "Confirm Booking",
+    "cancel_button": "Cancel",
+    "success_title": "Booking Request Sent!",
+    "success_description": "Your booking request is pending professor approval. You'll receive an email once the professor approves your request.",
+    "success_button": "Done",
+    "reserved_for_you": "Reserved for you",
+    "class_title": "Spanish Class",
+    "success_message": "Class booked successfully!",
+    "error_message": "Failed to book slot"
+  },
+  "bookings": {
+    "no_upcoming": "No upcoming sessions",
+    "no_past": "No past sessions",
+    "book_class": "Book a Class",
+    "book_new_class": "Book New Class",
+    "join": "Join",
+    "cancel": "Cancel",
+    "cant_cancel": "Can't cancel within 24 hours",
+    "relative_time_in": "in",
+    "private_class": "Private Class"
+  },
+  "cancel": {
+    "button": "Cancel Booking",
+    "title": "Cancel Booking",
+    "confirm": "Are you sure you want to cancel this booking?",
+    "description": "Are you sure you want to cancel this session?",
+    "reason_label": "Reason (optional)",
+    "reason_placeholder": "Let us know why you're cancelling...",
+    "warning": "Please note that cancellations must be made at least 24 hours before the session.",
+    "submit": "Confirm Cancellation",
+    "keep": "Keep Booking",
+    "success": "Booking cancelled successfully",
+    "error": "Failed to cancel booking"
+  },
+  "status": {
+    "confirmed": "Confirmed",
+    "pending": "Pending Approval",
+    "cancelled": "Cancelled",
+    "completed": "Completed"
+  },
+  "actions": {
+    "join_class": "Join Class",
+    "view_recording": "View Recording",
+    "waiting_confirmation": "Waiting for confirmation"
+  },
+  "empty_states": {
+    "no_slots": "No available slots at the moment. Check back later!",
+    "no_private_sessions": "No Private Sessions Available",
+    "no_private_sessions_description": "There are currently no private sessions scheduled for you. Please contact your professor to arrange a dedicated session at your earliest convenience.",
+    "no_slots_on_date": "No available slots on this day",
+    "select_date": "Click on a date to see available slots"
+  },
+  "calendar": {
+    "today": "Today",
+    "select_date": "Select a date",
+    "legend_available": "Available",
+    "legend_for_you": "For You",
+    "legend_booked": "Booked",
+    "weekday_mon": "Mon",
+    "weekday_tue": "Tue",
+    "weekday_wed": "Wed",
+    "weekday_thu": "Thu",
+    "weekday_fri": "Fri",
+    "weekday_sat": "Sat",
+    "weekday_sun": "Sun"
+  },
+  "slot": {
+    "spots_filled": "{{current}}/{{max}} spots filled",
+    "already_booked": "Already Booked",
+    "book_now": "Book Now",
+    "booked": "Booked",
+    "private_invitation": "Private Invitation"
+  },
+  "confirmation": {
+    "title": "Booking Confirmation",
+    "subtitle": "Please confirm or reject this booking request",
+    "invalid_token": "Invalid or missing confirmation token",
+    "confirmed_title": "Booking Confirmed!",
+    "confirmed_message": "The student has been notified. Redirecting to dashboard...",
+    "rejected_title": "Booking Rejected",
+    "rejected_message": "The student has been notified. Redirecting to dashboard...",
+    "reason_label": "Reason for Rejection (Optional)",
+    "reason_placeholder": "Provide a reason if rejecting...",
+    "confirm_booking": "Booking",
+    "confirming": "Confirming...",
+    "reject_booking": "Reject Booking",
+    "rejecting": "Rejecting...",
+    "confirm_error": "Failed to confirm booking",
+    "reject_error": "Failed to reject booking"
+  },
+  "pending_list": {
+    "no_pending": "No pending booking confirmations",
+    "class_time": "Class Time",
+    "confirmation_expiry": "Confirmation Expiry",
+    "booking_pending": "Pending"
+  }
 }

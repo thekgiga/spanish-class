@@ -41,6 +41,46 @@ async function logEmail(params: {
   }
 }
 
+/**
+ * Helper function to get email locale from user's language preference
+ * Maps user.languagePreference to supported email locales (en, sr, es)
+ * Falls back to 'en' if preference is invalid or missing
+ *
+ * Usage in email functions:
+ * ```ts
+ * const locale = getEmailLocale(student.languagePreference);
+ * // Use locale with React Email templates:
+ * // const html = await render(BookingConfirmation({ ...props, locale }));
+ * ```
+ *
+ * @example
+ * // For student emails
+ * const studentLocale = getEmailLocale(student.languagePreference);
+ *
+ * @example
+ * // For professor emails
+ * const professorLocale = getEmailLocale(professor.languagePreference);
+ *
+ * NOTE: Current email functions use inline HTML templates without i18n support.
+ * TODO: Migrate to React Email templates in /emails/templates/ which support
+ * multi-language via the locale prop. React Email templates already exist with
+ * full i18n support for en/sr/es.
+ */
+export function getEmailLocale(
+  languagePreference?: string | null,
+): "en" | "sr" | "es" {
+  if (!languagePreference) {
+    return "en";
+  }
+
+  const locale = languagePreference.toLowerCase();
+  if (locale === "sr" || locale === "es") {
+    return locale;
+  }
+
+  return "en";
+}
+
 // Simple booking confirmation for professor direct booking
 interface SimpleBookingConfirmationData {
   studentEmail: string;
@@ -1052,7 +1092,8 @@ export async function sendConfirmationRequestToProfessor(
   }
 
   const duration = Math.round(
-    (new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) / 60000,
+    (new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) /
+      60000,
   );
   const dateStr = formatDateTime(slot.startTime, professor.timezone);
 
@@ -1259,13 +1300,17 @@ export async function sendBookingConfirmedToStudent(
   const { slot, professor, student, price } = data;
 
   const duration = Math.round(
-    (new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) / 60000,
+    (new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) /
+      60000,
   );
   const dateStr = formatDateTime(slot.startTime, student.timezone);
 
   const provider = getMeetingProvider();
   const meetLink = slot.meetLink
-    ? provider.getJoinUrl(slot.meetLink, `${student.firstName} ${student.lastName}`)
+    ? provider.getJoinUrl(
+        slot.meetLink,
+        `${student.firstName} ${student.lastName}`,
+      )
     : null;
 
   const html = `
@@ -1301,11 +1346,15 @@ export async function sendBookingConfirmedToStudent(
             ${price ? `<p><strong>Price:</strong> ${price} RSD</p>` : ""}
           </div>
 
-          ${meetLink ? `
+          ${
+            meetLink
+              ? `
             <div style="text-align: center; margin: 30px 0;">
               <a href="${meetLink}" class="button">Join Video Class</a>
             </div>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
         <div class="footer">
           <p>Spanish Class Platform</p>

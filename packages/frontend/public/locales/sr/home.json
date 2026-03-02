@@ -1,0 +1,77 @@
+{
+  "hero": {
+    "title_line1": "Savladajte španski",
+    "title_line2": "sa radošću i strašću",
+    "subtitle": "Uživo 1-na-1 i grupne sesije sa izvornim govornicima. Doživite živopisni svet španskog jezika i kulture!",
+    "cta_primary": "Zakažite svoj prvi čas",
+    "trust_students": "Zadovoljni studenti",
+    "trust_rating": "Ocena"
+  },
+  "hero_cards": {
+    "video_title": "Uživo HD sesije",
+    "video_description": "Pridružite se interaktivnim časovima sa izvornim govornicima",
+    "students_label": "Studenti",
+    "rating_label": "Ocena",
+    "scheduling_title": "Fleksibilno raspoređivanje",
+    "scheduling_description": "Zakažite sesije koje odgovaraju vašem rasporedu"
+  },
+  "stats": {
+    "students_value": "500+",
+    "students_label": "Aktivnih studenata",
+    "countries_value": "50+",
+    "countries_label": "Zemalja",
+    "sessions_value": "10k+",
+    "sessions_label": "Sesija",
+    "rating_value": "4.9",
+    "rating_label": "Ocena"
+  },
+  "features": {
+    "badge": "Funkcije",
+    "title": "Sve što vam je potrebno za učenje",
+    "subtitle": "Profesionalni alati i funkcije dizajnirani za efikasno učenje jezika",
+    "video_title": "HD video sesije",
+    "video_description": "Kristalno jasni video pozivi sa deljenjem ekrana i uživo titlovima",
+    "calendar_title": "Pametno zakazivanje",
+    "calendar_description": "Zakažite sesije koje odgovaraju vašem rasporedu sa trenutnim potvrđivanjem",
+    "users_title": "Grupni i privatni",
+    "users_description": "Birajte između 1-na-1 ili zanimljivih grupnih časova",
+    "globe_title": "Učite bilo gde",
+    "globe_description": "Pristupite sa bilo kog uređaja, bilo gde u svetu"
+  },
+  "benefits": {
+    "badge": "Zašto nas izabrati",
+    "title": "Profesionalno učenje španskog",
+    "subtitle": "Sveobuhvatan pristup sa iskusnim nastavnicima i dokazanim metodama",
+    "cta": "Počnite danas",
+    "satisfaction": "Zadovoljstvo",
+    "image_alt": "Studenti koji uče španski",
+    "dele_title": "Priprema za DELE ispit",
+    "dele_description": "Sertifikovana priprema za sve nivoe",
+    "university_title": "Upis na univerzitet",
+    "university_description": "Pomoć za strane univerzitete",
+    "conversation_title": "Fokus na konverzaciju",
+    "conversation_description": "Praktičan pristup govoru",
+    "personalized_title": "Personalizovani planovi",
+    "personalized_description": "Prilagođene putanje učenja za vaše ciljeve"
+  },
+  "testimonials": {
+    "badge": "Utisci",
+    "title": "Voljeni od strane studenata širom sveta",
+    "subtitle": "Pogledajte šta naši studenti kažu o svom iskustvu učenja",
+    "sarah_name": "Sara Martinović",
+    "sarah_role": "Poslovni profesionalac",
+    "sarah_content": "Sesije konverzacijske prakse su bile neverovatne. Sada se osećam samopouzdano kada govorim španski na sastancima.",
+    "james_name": "Jakov Liu",
+    "james_role": "Univerzitetski student",
+    "james_content": "Grupni časovi su zanimljivi i zabavni! Odličan način da vežbate sa drugima na istom nivou.",
+    "emily_name": "Emilija Rodriguez",
+    "emily_role": "Entuzijasta putovanja",
+    "emily_content": "Fleksibilno raspoređivanje je savršeno. Mogu lako da zakažem sesije oko mog zauzetog rasporeda."
+  },
+  "cta": {
+    "title": "Spremni da savladate španski?",
+    "subtitle": "Pridružite se našoj živopisnoj zajednici i doživite radost učenja španskog sa strastvenim nastavnicima!",
+    "button_primary": "Započnite svoje špansko putovanje",
+    "button_secondary": "Kontaktirajte nas"
+  }
+}

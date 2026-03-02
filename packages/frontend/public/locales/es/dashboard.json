@@ -1,17 +1,22 @@
 {
-  "dashboard": "Panel de Control",
-  "overview": "Resumen",
-  "statistics": "Estadísticas",
-  "totalStudents": "Total de Estudiantes",
-  "totalBookings": "Total de Reservas",
-  "upcomingSlots": "Horarios Próximos",
-  "todaySessions": "Sesiones de Hoy",
-  "completedThisMonth": "Completadas Este Mes",
-  "upcomingBookings": "Reservas Próximas",
-  "completedSessions": "Sesiones Completadas",
-  "nextSession": "Próxima Sesión",
-  "noUpcomingSessions": "No hay sesiones próximas",
-  "availableSlots": "Horarios Disponibles",
-  "createSlot": "Crear Horario",
-  "pendingApprovals": "Aprobaciones Pendientes"
+  "sidebar": {
+    "dashboard": "Panel",
+    "book": "Reservar clase",
+    "bookings": "Mis reservas",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "calendar": "Calendario",
+    "students": "Estudiantes",
+    "slots": "Espacios de clase",
+    "analytics": "Analíticas",
+    "approvals": "Aprobaciones",
+    "email_logs": "Registros de correo"
+  },
+  "common": {
+    "welcome": "Bienvenido",
+    "logout": "Cerrar sesión",
+    "help": "Ayuda",
+    "notifications": "Notificaciones",
+    "no_notifications": "No hay nuevas notificaciones"
+  }
 }

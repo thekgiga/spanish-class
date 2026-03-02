@@ -1,0 +1,77 @@
+{
+  "page": {
+    "seo_title": "Acerca de nosotros - Plataforma premium de aprendizaje de español",
+    "seo_description": "Conoce Spanish Class, nuestra misión de hacer que el aprendizaje del español sea accesible, atractivo y culturalmente inmersivo. Profesores certificados, planes de aprendizaje personalizados y una comunidad de apoyo de entusiastas del idioma.",
+    "badge": "Acerca de nosotros",
+    "title": "Nuestra historia",
+    "subtitle": "Creemos que aprender español debe ser más que memorizar reglas gramaticales. Se trata de descubrir una nueva cultura, conectar con millones de hablantes en todo el mundo y abrir puertas a oportunidades increíbles."
+  },
+  "mission": {
+    "title": "Nuestra misión",
+    "paragraph1": "En Spanish Class, nuestra misión es hacer que el aprendizaje del español sea accesible, atractivo y culturalmente inmersivo para estudiantes de todo el mundo. Combinamos la enseñanza experta con tecnología moderna para crear una experiencia de aprendizaje premium que se adapta a tu estilo de vida.",
+    "paragraph2": "Ya sea que te estés preparando para los exámenes DELE, planees estudiar en el extranjero o simplemente seas apasionado de la cultura hispana, estamos aquí para guiarte en cada paso del camino.",
+    "why_choose_title": "Por qué elegirnos",
+    "reason_1": "Profesores certificados con años de experiencia",
+    "reason_2": "Planes de aprendizaje personalizados para cada estudiante",
+    "reason_3": "Programación flexible que se adapta a tu estilo de vida",
+    "reason_4": "Inmersión cultural más allá del aprendizaje del idioma",
+    "reason_5": "Plataforma moderna para una experiencia de reserva sin problemas"
+  },
+  "values": {
+    "badge": "Nuestros valores",
+    "title": "Nuestros valores fundamentales",
+    "subtitle": "Estos principios guían todo lo que hacemos en Spanish Class",
+    "passion_title": "Pasión por la enseñanza",
+    "passion_description": "Nos encanta ayudar a los estudiantes a descubrir la belleza del idioma español y la cultura hispana.",
+    "personalized_title": "Aprendizaje personalizado",
+    "personalized_description": "Cada estudiante tiene objetivos únicos. Creamos planes de aprendizaje personalizados adaptados a tus necesidades.",
+    "community_title": "Enfoque comunitario",
+    "community_description": "Aprender es mejor juntos. Únete a una comunidad de apoyo de entusiastas del idioma español.",
+    "cultural_title": "Inmersión cultural",
+    "cultural_description": "Experimenta la auténtica cultura española a través del idioma, no solo gramática y vocabulario."
+  },
+  "timeline": {
+    "badge": "Nuestro viaje",
+    "title": "Creciendo y evolucionando",
+    "subtitle": "Nuestros hitos en el camino para servirte mejor",
+    "2020_title": "Fundación",
+    "2020_description": "Comenzamos con la visión de hacer que el aprendizaje del español sea accesible y atractivo en línea.",
+    "2021_title": "100 estudiantes",
+    "2021_description": "Alcanzamos nuestro primer gran hito con estudiantes de 15 países diferentes.",
+    "2023_title": "Certificación DELE",
+    "2023_description": "Nos convertimos en un centro autorizado de preparación para exámenes DELE.",
+    "2026_title": "Plataforma premium",
+    "2026_description": "Lanzamos nuestra moderna plataforma de reservas para una programación de clases sin problemas."
+  },
+  "cta": {
+    "title": "¿Listo para comenzar tu viaje en español?",
+    "subtitle": "Únete a nuestra comunidad de estudiantes apasionados y experimenta la diferencia de una educación en español personalizada y culturalmente inmersiva.",
+    "button_primary": "Comienza hoy",
+    "button_secondary": "Contáctanos",
+    "features": "Profesores profesionales • Programación flexible • Aprendizaje personalizado"
+  },
+  "contact": {
+    "seo_title": "Contáctanos - Spanish Class",
+    "seo_description": "Ponte en contacto con Spanish Class. Envíanos un mensaje y te responderemos lo antes posible. Estamos aquí para responder tus preguntas sobre nuestra plataforma de aprendizaje de español.",
+    "badge": "Contáctanos",
+    "title": "Ponte en contacto",
+    "subtitle": "¿Tienes preguntas sobre nuestras clases de español? Estamos aquí para ayudar. Envíanos un mensaje y te responderemos lo antes posible.",
+    "form_name_label": "Tu nombre",
+    "form_name_placeholder": "Juan Pérez",
+    "form_email_label": "Correo electrónico",
+    "form_email_placeholder": "tu@ejemplo.com",
+    "form_subject_label": "Asunto",
+    "form_subject_placeholder": "¿Cómo podemos ayudarte?",
+    "form_message_label": "Mensaje",
+    "form_message_placeholder": "Cuéntanos más sobre tu consulta...",
+    "form_submit": "Enviar mensaje",
+    "form_submitting": "Enviando...",
+    "form_success_title": "¡Mensaje enviado!",
+    "form_success_message": "Gracias por contactarnos. Responderemos dentro de 24 horas.",
+    "info_title": "Información de contacto",
+    "info_email_label": "Correo electrónico",
+    "info_location_label": "Ubicación",
+    "info_location_value": "Belgrado, Serbia",
+    "info_instagram_label": "Instagram"
+  }
+}

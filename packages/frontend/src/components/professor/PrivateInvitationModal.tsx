@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import type { CreatePrivateInvitationInput } from "@spanish-class/shared";
 import { useCreatePrivateInvitation } from "../../hooks/usePrivateInvitations";
@@ -19,6 +20,7 @@ export function PrivateInvitationModal({
   // @ts-expect-error - defaultDate used for future feature
   defaultDate,
 }: PrivateInvitationModalProps) {
+  const { t } = useTranslation("professor");
   const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const createMutation = useCreatePrivateInvitation();
 
@@ -37,7 +39,7 @@ export function PrivateInvitationModal({
       }),
     ),
     defaultValues: {
-      title: "Private Spanish Class",
+      title: t("private_invitation.default_title"),
       description: "",
     },
   });
@@ -46,7 +48,7 @@ export function PrivateInvitationModal({
     data: Omit<CreatePrivateInvitationInput, "studentId">,
   ) => {
     if (!selectedStudentId) {
-      alert("Please select a student");
+      alert(t("private_invitation.select_student_error"));
       return;
     }
 
@@ -88,11 +90,10 @@ export function PrivateInvitationModal({
           {/* Header */}
           <div className="border-b border-gray-200 px-6 py-4">
             <h2 className="text-2xl font-semibold text-gray-900">
-              Create Private Invitation
+              {t("private_invitation.modal_title")}
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              Create a confirmed booking for a specific student based on your
-              offline agreement
+              {t("private_invitation.modal_description")}
             </p>
           </div>
 
@@ -110,7 +111,7 @@ export function PrivateInvitationModal({
               />
               {!selectedStudentId && (
                 <p className="mt-1 text-sm text-red-600">
-                  Student selection is required
+                  {t("private_invitation.student_required")}
                 </p>
               )}
             </div>
@@ -119,7 +120,7 @@ export function PrivateInvitationModal({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Start Time *
+                  {t("private_invitation.start_time_label")}
                 </label>
                 <input
                   type="datetime-local"
@@ -136,7 +137,7 @@ export function PrivateInvitationModal({
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  End Time *
+                  {t("private_invitation.end_time_label")}
                 </label>
                 <input
                   type="datetime-local"
@@ -155,13 +156,13 @@ export function PrivateInvitationModal({
             {/* Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Class Title
+                {t("private_invitation.class_title_label")}
               </label>
               <input
                 type="text"
                 {...register("title")}
                 disabled={createMutation.isPending}
-                placeholder="Private Spanish Class"
+                placeholder={t("private_invitation.class_title_placeholder")}
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               />
               {errors.title && (
@@ -174,13 +175,13 @@ export function PrivateInvitationModal({
             {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700">
-                Description (Optional)
+                {t("private_invitation.description_label")}
               </label>
               <textarea
                 {...register("description")}
                 disabled={createMutation.isPending}
                 rows={3}
-                placeholder="Any specific topics or notes for this session..."
+                placeholder={t("private_invitation.description_placeholder")}
                 className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               />
               {errors.description && (
@@ -208,20 +209,14 @@ export function PrivateInvitationModal({
                 </div>
                 <div className="ml-3">
                   <h3 className="text-sm font-medium text-blue-800">
-                    Private Invitation Details
+                    {t("private_invitation.info_title")}
                   </h3>
                   <div className="mt-2 text-sm text-blue-700">
                     <ul className="list-disc list-inside space-y-1">
-                      <li>
-                        This creates an auto-confirmed booking for the selected
-                        student
-                      </li>
-                      <li>
-                        The student will receive an email notification
-                        immediately
-                      </li>
-                      <li>The slot will not be visible to other students</li>
-                      <li>No acceptance required - already agreed offline</li>
+                      <li>{t("private_invitation.info_1")}</li>
+                      <li>{t("private_invitation.info_2")}</li>
+                      <li>{t("private_invitation.info_3")}</li>
+                      <li>{t("private_invitation.info_4")}</li>
                     </ul>
                   </div>
                 </div>
@@ -236,14 +231,16 @@ export function PrivateInvitationModal({
                 disabled={createMutation.isPending}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
               >
-                Cancel
+                {t("common:actions.cancel")}
               </button>
               <button
                 type="submit"
                 disabled={createMutation.isPending || !selectedStudentId}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {createMutation.isPending ? "Creating..." : "Create Invitation"}
+                {createMutation.isPending
+                  ? t("private_invitation.creating")
+                  : t("private_invitation.create_button")}
               </button>
             </div>
           </form>

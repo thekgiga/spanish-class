@@ -1,25 +1,140 @@
 {
-  "appName": "Platforma za Španski",
-  "welcome": "Dobrodošli",
-  "loading": "Učitavanje...",
-  "error": "Greška",
-  "success": "Uspešno",
-  "cancel": "Otkaži",
-  "confirm": "Potvrdi",
-  "save": "Sačuvaj",
-  "delete": "Obriši",
-  "edit": "Izmeni",
-  "close": "Zatvori",
-  "back": "Nazad",
-  "next": "Sledeće",
-  "submit": "Pošalji",
-  "search": "Pretraži",
-  "filter": "Filter",
-  "clear": "Obriši",
-  "selectLanguage": "Izaberi Jezik",
-  "languages": {
-    "en": "English",
-    "sr": "Српски (Serbian)",
-    "es": "Español (Spanish)"
+  "actions": {
+    "save": "Sačuvaj",
+    "cancel": "Otkaži",
+    "delete": "Obriši",
+    "edit": "Izmeni",
+    "submit": "Pošalji",
+    "back": "Nazad",
+    "next": "Sledeće",
+    "close": "Zatvori",
+    "confirm": "Potvrdi",
+    "view": "Pogledaj",
+    "download": "Preuzmi",
+    "upload": "Otpremi",
+    "search": "Pretraži",
+    "filter": "Filter",
+    "refresh": "Osveži",
+    "loading": "Učitavanje...",
+    "view_all": "Prikaži sve",
+    "show_more": "Prikaži više",
+    "show_less": "Prikaži manje"
+  },
+  "navigation": {
+    "home": "Početna",
+    "about": "O nama",
+    "contact": "Kontakt",
+    "dashboard": "Kontrolna tabla",
+    "profile": "Profil",
+    "settings": "Podešavanja",
+    "logout": "Odjava",
+    "login": "Prijava",
+    "register": "Registracija",
+    "menu": "Meni"
+  },
+  "time": {
+    "today": "Danas",
+    "yesterday": "Juče",
+    "tomorrow": "Sutra",
+    "this_week": "Ove nedelje",
+    "this_month": "Ovog meseca",
+    "minutes": "minuta",
+    "hours": "sati",
+    "days": "dana",
+    "weeks": "nedelja",
+    "months": "meseci",
+    "years": "godina",
+    "ago": "pre",
+    "from_now": "od sada"
+  },
+  "status": {
+    "active": "Aktivan",
+    "inactive": "Neaktivan",
+    "pending": "Na čekanju",
+    "completed": "Završeno",
+    "cancelled": "Otkazano",
+    "confirmed": "Potvrđeno",
+    "rejected": "Odbijeno"
+  },
+  "messages": {
+    "success": "Uspešno",
+    "error": "Greška",
+    "warning": "Upozorenje",
+    "info": "Informacija",
+    "loading": "Učitavanje...",
+    "no_data": "Nema dostupnih podataka",
+    "something_went_wrong": "Nešto nije u redu",
+    "try_again": "Molimo pokušajte ponovo",
+    "required_field": "Ovo polje je obavezno",
+    "invalid_email": "Unesite ispravnu email adresu",
+    "password_too_short": "Lozinka mora imati najmanje 8 karaktera",
+    "passwords_dont_match": "Lozinke se ne poklapaju"
+  },
+  "pagination": {
+    "previous": "Prethodna",
+    "next": "Sledeća",
+    "page": "Stranica",
+    "of": "od",
+    "showing": "Prikazano",
+    "to": "do",
+    "results": "rezultata"
+  },
+  "date_format": {
+    "short": "D. MMM YYYY",
+    "long": "D. MMMM YYYY",
+    "with_time": "D. MMM YYYY [u] HH:mm"
+  },
+  "settings": {
+    "title": "Podešavanja",
+    "subtitle": "Upravljajte podešavanjima naloga",
+    "profile": {
+      "title": "Profil",
+      "description": "Ažurirajte svoje lične podatke",
+      "first_name": "Ime",
+      "last_name": "Prezime",
+      "email": "Email",
+      "email_note": "Email ne može biti promenjen",
+      "timezone": "Vremenska zona",
+      "save_button": "Sačuvaj izmene",
+      "saving": "Čuvanje..."
+    },
+    "success": "Podešavanja uspešno sačuvana",
+    "error": "Greška pri čuvanju podešavanja"
+  },
+  "error_boundary": {
+    "title": "Nešto nije u redu",
+    "message": "Žao nam je, ali došlo je do neočekivane greške. Molimo osvežite stranicu.",
+    "error_details": "Detalji greške",
+    "try_again": "Pokušaj ponovo",
+    "refresh_page": "Osveži stranicu"
+  },
+  "rating": {
+    "title": "Ocenite {{name}}",
+    "description": "Kakvo je bilo vaše iskustvo? Vaše mišljenje pomaže u unapređenju platforme.",
+    "rating_label": "Ocena",
+    "comment_label": "Komentar (opciono)",
+    "comment_placeholder": "Podelite svoje mišljenje...",
+    "anonymous": "Pošalji anonimno",
+    "submit": "Pošalji ocenu"
+  },
+  "referral": {
+    "title": "Vaš link za preporuku",
+    "description": "Podelite ovaj link sa prijateljima da zaradite nagrade kada se registruju!",
+    "your_code": "Vaš kod: {{code}}",
+    "loading": "Učitavanje..."
+  },
+  "participants": {
+    "title": "Učesnici ({{current}}/{{max}})",
+    "no_participants": "Još nema učesnika",
+    "loading": "Učitavanje učesnika..."
+  },
+  "footer": {
+    "instagram_title": "Pratite nas na Instagramu"
+  },
+  "aria_labels": {
+    "mobile_navigation": "Mobilna navigacija",
+    "close_navigation": "Zatvori navigaciju",
+    "top_navigation": "Gornja navigacija",
+    "email_preview": "Pregled email-a"
   }
 }

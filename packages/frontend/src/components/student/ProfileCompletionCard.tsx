@@ -28,25 +28,25 @@ export function ProfileCompletionCard({
     >
       <Card
         variant="elevated"
-        className="overflow-hidden border-2 border-gold-300"
+        className="overflow-hidden border-2 border-spanish-olive-300"
       >
         <CardContent className="p-0">
-          <div className="p-6 bg-gradient-to-br from-gold-50 via-white to-spanish-cream-50 relative overflow-hidden">
+          <div className="p-6 bg-gradient-to-br from-spanish-cream-50 via-white to-spanish-olive-50 relative overflow-hidden">
             {/* Decorative background elements */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-gold-200/30 to-transparent rounded-bl-full" />
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-spanish-red-100/20 to-transparent rounded-tr-full" />
+            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-spanish-sunshine-200/30 to-transparent rounded-bl-full" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-spanish-olive-100/20 to-transparent rounded-tr-full" />
 
             <div className="relative">
               {/* Header */}
               <div className="flex items-center gap-3 mb-4">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-gold-400 to-gold-500 flex items-center justify-center shadow-md">
-                  <User className="h-6 w-6 text-navy-800" />
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-spanish-olive-400 to-spanish-olive-500 flex items-center justify-center shadow-md">
+                  <User className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-display font-bold text-xl text-navy-800">
+                  <h3 className="font-display font-bold text-xl text-slate-900">
                     Complete Your Profile
                   </h3>
-                  <p className="text-sm text-navy-500">
+                  <p className="text-sm text-slate-600">
                     Help your professor personalize your learning
                   </p>
                 </div>
@@ -55,11 +55,11 @@ export function ProfileCompletionCard({
               {/* Progress Section */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-navy-600">
+                  <span className="text-sm font-medium text-slate-600">
                     {completion.completedCount} of {completion.totalCount}{" "}
                     fields completed
                   </span>
-                  <span className="text-2xl font-bold text-gold-600">
+                  <span className="text-2xl font-bold text-spanish-olive-600">
                     {completion.percentage}%
                   </span>
                 </div>
@@ -67,7 +67,7 @@ export function ProfileCompletionCard({
                 {/* Progress Bar */}
                 <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
                   <div
-                    className="bg-gradient-to-r from-gold-400 to-gold-600 h-3 rounded-full transition-all duration-500 shadow-sm"
+                    className="bg-gradient-to-r from-spanish-olive-400 to-spanish-olive-600 h-3 rounded-full transition-all duration-500 shadow-sm"
                     style={{ width: `${completion.percentage}%` }}
                   />
                 </div>
@@ -75,22 +75,22 @@ export function ProfileCompletionCard({
 
               {/* Missing Fields Preview */}
               {incompleteFields.length > 0 && (
-                <div className="mb-4 p-4 bg-white/60 rounded-xl border border-gold-200">
-                  <p className="text-sm font-medium text-navy-600 mb-2">
+                <div className="mb-4 p-4 bg-white/60 rounded-xl border border-spanish-olive-200">
+                  <p className="text-sm font-medium text-slate-600 mb-2">
                     Next to complete:
                   </p>
                   <div className="space-y-2">
                     {incompleteFields.slice(0, 3).map((field) => (
                       <div
                         key={field.field}
-                        className="flex items-center gap-2 text-sm text-navy-500"
+                        className="flex items-center gap-2 text-sm text-slate-600"
                       >
                         <Circle className="h-4 w-4 text-gray-400 flex-shrink-0" />
                         <span>{field.label}</span>
                       </div>
                     ))}
                     {incompleteFields.length > 3 && (
-                      <p className="text-xs text-navy-400 pl-6">
+                      <p className="text-xs text-slate-500 pl-6">
                         +{incompleteFields.length - 3} more field
                         {incompleteFields.length - 3 !== 1 ? "s" : ""}
                       </p>
@@ -103,7 +103,7 @@ export function ProfileCompletionCard({
               <Button
                 variant="primary"
                 size="lg"
-                className="w-full shadow-glow-gold group"
+                className="w-full group"
                 asChild
               >
                 <Link to="/dashboard/profile">
@@ -113,7 +113,7 @@ export function ProfileCompletionCard({
               </Button>
 
               {/* Motivational Text */}
-              <p className="text-xs text-center text-navy-400 mt-3">
+              <p className="text-xs text-center text-slate-500 mt-3">
                 A complete profile helps us provide better recommendations
               </p>
             </div>

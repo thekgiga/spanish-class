@@ -1,35 +1,37 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
-  variant?: 'default' | 'elevated' | 'outlined' | 'filled';
+  variant?: "default" | "elevated" | "outlined" | "filled";
 }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, hover = false, variant = 'default', ...props }, ref) => {
+  ({ className, hover = false, variant = "default", ...props }, ref) => {
+    // Premium Education Color System (v1.0.0)
     const variants = {
-      default: 'bg-white border border-spanish-cream-200',
-      elevated: 'bg-white shadow-medium',
-      outlined: 'bg-transparent border-2 border-spanish-cream-300',
-      filled: 'bg-spanish-cream-50 border border-spanish-cream-200',
+      default: "bg-white border border-edu-slate-200",
+      elevated: "bg-white shadow-medium",
+      outlined: "bg-transparent border-2 border-edu-slate-300",
+      filled: "bg-edu-slate-50 border border-edu-slate-200",
     };
 
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-2xl text-card-foreground shadow-soft',
+          "rounded-2xl text-card-foreground shadow-soft",
           variants[variant],
-          hover && 'transition-all duration-300 ease-out hover:shadow-medium hover:-translate-y-1 cursor-pointer',
-          className
+          hover &&
+            "transition-all duration-300 ease-out hover:shadow-medium hover:border-edu-blue-200 hover:-translate-y-1 cursor-pointer",
+          className,
         )}
         {...props}
       />
     );
-  }
+  },
 );
-Card.displayName = 'Card';
+Card.displayName = "Card";
 
 const CardHeader = React.forwardRef<
   HTMLDivElement,
@@ -37,11 +39,11 @@ const CardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('flex flex-col space-y-1.5 p-6 pb-4', className)}
+    className={cn("flex flex-col space-y-1.5 p-6 pb-4", className)}
     {...props}
   />
 ));
-CardHeader.displayName = 'CardHeader';
+CardHeader.displayName = "CardHeader";
 
 const CardTitle = React.forwardRef<
   HTMLParagraphElement,
@@ -49,11 +51,14 @@ const CardTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-xl font-display font-semibold leading-none tracking-tight text-navy-800', className)}
+    className={cn(
+      "text-xl font-display font-semibold leading-none tracking-tight text-edu-slate-800",
+      className,
+    )}
     {...props}
   />
 ));
-CardTitle.displayName = 'CardTitle';
+CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<
   HTMLParagraphElement,
@@ -61,19 +66,19 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn('text-sm text-muted-foreground', className)}
+    className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
 ));
-CardDescription.displayName = 'CardDescription';
+CardDescription.displayName = "CardDescription";
 
 const CardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
 ));
-CardContent.displayName = 'CardContent';
+CardContent.displayName = "CardContent";
 
 const CardFooter = React.forwardRef<
   HTMLDivElement,
@@ -81,10 +86,17 @@ const CardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('flex items-center p-6 pt-0', className)}
+    className={cn("flex items-center p-6 pt-0", className)}
     {...props}
   />
 ));
-CardFooter.displayName = 'CardFooter';
+CardFooter.displayName = "CardFooter";
 
-export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+};

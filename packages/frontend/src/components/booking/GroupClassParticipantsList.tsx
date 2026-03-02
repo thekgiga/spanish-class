@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Users } from "lucide-react";
@@ -26,6 +27,7 @@ interface GroupClassParticipantsListProps {
 export default function GroupClassParticipantsList({
   slotId,
 }: GroupClassParticipantsListProps) {
+  const { t } = useTranslation("common");
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [maxParticipants, setMaxParticipants] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -48,7 +50,9 @@ export default function GroupClassParticipantsList({
 
   if (loading) {
     return (
-      <div className="text-center text-gray-500">Loading participants...</div>
+      <div className="text-center text-gray-500">
+        {t("participants.loading")}
+      </div>
     );
   }
 
@@ -58,13 +62,18 @@ export default function GroupClassParticipantsList({
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Participants ({participants.length}/{maxParticipants})
+            {t("participants.title", {
+              current: participants.length,
+              max: maxParticipants,
+            })}
           </CardTitle>
         </div>
       </CardHeader>
       <CardContent>
         {participants.length === 0 ? (
-          <p className="text-gray-500 text-center py-4">No participants yet</p>
+          <p className="text-gray-500 text-center py-4">
+            {t("participants.no_participants")}
+          </p>
         ) : (
           <div className="space-y-3">
             {participants.map((participant) => (

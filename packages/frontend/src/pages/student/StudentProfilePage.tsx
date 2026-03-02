@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-hot-toast";
 import {
   User,
@@ -10,6 +11,8 @@ import {
   Clock,
   CheckCircle2,
   Circle,
+  Mail,
+  Globe,
 } from "lucide-react";
 import {
   Card,
@@ -29,7 +32,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { studentApi } from "@/lib/api";
+import { studentApi, authApi } from "@/lib/api";
+import { useAuthStore } from "@/stores/auth";
 import { SpanishLevelValues, ClassTypeValues } from "@spanish-class/shared";
 import type {
   ProfileCompletion,
@@ -37,63 +41,108 @@ import type {
   ClassType,
 } from "@spanish-class/shared";
 
-const spanishLevels: {
+const timezones = [
+  "Europe/Madrid",
+  "Europe/London",
+  "Europe/Paris",
+  "Europe/Berlin",
+  "America/New_York",
+  "America/Chicago",
+  "America/Denver",
+  "America/Los_Angeles",
+  "America/Sao_Paulo",
+  "America/Mexico_City",
+  "Asia/Tokyo",
+  "Asia/Shanghai",
+  "Australia/Sydney",
+];
+
+// Helper function to get Spanish levels with translations
+const getSpanishLevels = (
+  t: any,
+): {
   value: SpanishLevel;
   label: string;
   description: string;
-}[] = [
+}[] => [
   {
     value: SpanishLevelValues.I_DONT_KNOW,
-    label: "I don't know",
-    description: "Not sure about my level",
+    label: t("spanish_levels.UNKNOWN.label"),
+    description: t("spanish_levels.UNKNOWN.description"),
   },
   {
     value: SpanishLevelValues.BEGINNER,
-    label: "Beginner (A1)",
-    description: "Just starting out",
+    label: t("spanish_levels.BEGINNER.label"),
+    description: t("spanish_levels.BEGINNER.description"),
   },
   {
     value: SpanishLevelValues.ELEMENTARY,
-    label: "Elementary (A2)",
-    description: "Basic phrases and expressions",
+    label: t("spanish_levels.ELEMENTARY.label"),
+    description: t("spanish_levels.ELEMENTARY.description"),
   },
   {
     value: SpanishLevelValues.INTERMEDIATE,
-    label: "Intermediate (B1)",
-    description: "Can handle most situations",
+    label: t("spanish_levels.INTERMEDIATE.label"),
+    description: t("spanish_levels.INTERMEDIATE.description"),
   },
   {
     value: SpanishLevelValues.UPPER_INTERMEDIATE,
-    label: "Upper Intermediate (B2)",
-    description: "Fluent in familiar topics",
+    label: t("spanish_levels.UPPER_INTERMEDIATE.label"),
+    description: t("spanish_levels.UPPER_INTERMEDIATE.description"),
   },
   {
     value: SpanishLevelValues.ADVANCED,
-    label: "Advanced (C1)",
-    description: "Express ideas fluently",
+    label: t("spanish_levels.ADVANCED.label"),
+    description: t("spanish_levels.ADVANCED.description"),
   },
   {
     value: SpanishLevelValues.NATIVE,
-    label: "Native (C2)",
-    description: "Native or near-native",
+    label: t("spanish_levels.NATIVE.label"),
+    description: t("spanish_levels.NATIVE.description"),
   },
 ];
 
-const classTypes: { value: ClassType; label: string }[] = [
-  { value: ClassTypeValues.PRIVATE_LESSONS, label: "Private Lessons" },
-  { value: ClassTypeValues.GROUP_CLASSES, label: "Group Classes" },
+// Helper function to get class types with translations
+const getClassTypes = (t: any): { value: ClassType; label: string }[] => [
+  {
+    value: ClassTypeValues.PRIVATE_LESSONS,
+    label: t("class_types.PRIVATE_LESSONS"),
+  },
+  {
+    value: ClassTypeValues.GROUP_CLASSES,
+    label: t("class_types.GROUP_CLASSES"),
+  },
   {
     value: ClassTypeValues.CONVERSATION_PRACTICE,
-    label: "Conversation Practice",
+    label: t("class_types.CONVERSATION_PRACTICE"),
   },
-  { value: ClassTypeValues.EXAM_PREPARATION, label: "Exam Preparation" },
-  { value: ClassTypeValues.BUSINESS_SPANISH, label: "Business Spanish" },
-  { value: ClassTypeValues.GRAMMAR_FOCUS, label: "Grammar Focus" },
-  { value: ClassTypeValues.PRONUNCIATION, label: "Pronunciation" },
-  { value: ClassTypeValues.WRITING_SKILLS, label: "Writing Skills" },
+  {
+    value: ClassTypeValues.EXAM_PREPARATION,
+    label: t("class_types.EXAM_PREPARATION"),
+  },
+  {
+    value: ClassTypeValues.BUSINESS_SPANISH,
+    label: t("class_types.BUSINESS_SPANISH"),
+  },
+  {
+    value: ClassTypeValues.GRAMMAR_FOCUS,
+    label: t("class_types.GRAMMAR_FOCUS"),
+  },
+  {
+    value: ClassTypeValues.PRONUNCIATION,
+    label: t("class_types.PRONUNCIATION"),
+  },
+  {
+    value: ClassTypeValues.WRITING_SKILLS,
+    label: t("class_types.WRITING_SKILLS"),
+  },
 ];
 
 interface ProfileFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  timezone: string;
   dateOfBirth: string;
   phoneNumber: string;
   aboutMe: string;
@@ -104,10 +153,16 @@ interface ProfileFormData {
 }
 
 export function StudentProfilePage() {
+  const { t } = useTranslation("student");
+  const { user, setUser } = useAuthStore();
   const [completion, setCompletion] = useState<ProfileCompletion | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState<ProfileFormData | null>(null);
+
+  // Get translated options
+  const spanishLevels = getSpanishLevels(t);
+  const classTypes = getClassTypes(t);
 
   const {
     register,
@@ -118,6 +173,10 @@ export function StudentProfilePage() {
     formState: { isSubmitting, errors },
   } = useForm<ProfileFormData>({
     defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      timezone: "",
       dateOfBirth: "",
       phoneNumber: "",
       aboutMe: "",
@@ -140,6 +199,10 @@ export function StudentProfilePage() {
 
       // Prepare profile data
       const formData = {
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        email: user?.email || "",
+        timezone: user?.timezone || "Europe/Madrid",
         dateOfBirth: data.profile.dateOfBirth
           ? new Date(data.profile.dateOfBirth).toISOString().split("T")[0]
           : "",
@@ -156,7 +219,9 @@ export function StudentProfilePage() {
       setProfileData(formData);
       reset(formData);
     } catch (error: any) {
-      toast.error(error.response?.data?.error || "Failed to load profile");
+      toast.error(
+        error.response?.data?.error || t("profile.personal_info.error"),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -164,6 +229,15 @@ export function StudentProfilePage() {
 
   const onSubmit = async (data: ProfileFormData) => {
     try {
+      // Update account settings (first name, last name, timezone)
+      const updatedUser = await authApi.updateProfile({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        timezone: data.timezone,
+      });
+      setUser(updatedUser);
+
+      // Update student profile
       const updateData = {
         dateOfBirth: data.dateOfBirth || null,
         phoneNumber: data.phoneNumber || null,
@@ -185,14 +259,11 @@ export function StudentProfilePage() {
 
       // Show celebration toast if profile just reached 100%
       if (!wasComplete && isNowComplete) {
-        toast.success(
-          "🎉 Congratulations! Your profile is now 100% complete!",
-          {
-            duration: 5000,
-          },
-        );
+        toast.success(t("profile.personal_info.success") + " 🎉", {
+          duration: 5000,
+        });
       } else {
-        toast.success("Profile updated successfully");
+        toast.success(t("profile.personal_info.success"));
       }
     } catch (error: any) {
       // Handle validation errors with field-specific messages
@@ -239,7 +310,9 @@ export function StudentProfilePage() {
           duration: 8000,
         });
       } else {
-        toast.error(error.response?.data?.error || "Failed to update profile");
+        toast.error(
+          error.response?.data?.error || t("profile.personal_info.error"),
+        );
       }
     }
   };
@@ -296,39 +369,40 @@ export function StudentProfilePage() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-display font-bold text-navy-800">
-          My Profile
+        <h1 className="text-2xl font-display font-bold text-slate-900">
+          {t("profile.title")}
         </h1>
-        <p className="text-muted-foreground">
-          Complete your profile to help your professor personalize your learning
-          experience
-        </p>
+        <p className="text-slate-600">{t("profile.subtitle")}</p>
       </div>
 
       {/* Profile Completion Indicator */}
       {completion && (
         <Card
           className={
-            completion.percentage === 100 ? "border-2 border-green-500" : ""
+            completion.percentage === 100
+              ? "border-2 border-green-500"
+              : "border-2 border-spanish-teal-200"
           }
         >
           <CardContent className="pt-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-navy-800">
-                    Profile Completion
+                  <h3 className="font-semibold text-slate-900">
+                    {t("profile.completion_title")}
                   </h3>
                   {completion.percentage === 100 && (
                     <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
                       <CheckCircle2 className="h-3 w-3" />
-                      Complete
+                      {t("profile.completion_complete")}
                     </span>
                   )}
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {completion.completedCount} of {completion.totalCount} fields
-                  completed
+                  {t("profile.completion_fields", {
+                    completed: completion.completedCount,
+                    total: completion.totalCount,
+                  })}
                 </p>
               </div>
               <div
@@ -383,12 +457,14 @@ export function StudentProfilePage() {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <User className="h-5 w-5" />
-                    Personal Details
+                    {t("profile.personal_info.title")}
                   </CardTitle>
-                  <CardDescription>Your personal information</CardDescription>
+                  <CardDescription>
+                    {t("profile.personal_info.description")}
+                  </CardDescription>
                 </div>
                 <Button onClick={handleEdit} variant="outline">
-                  Edit Profile
+                  {t("profile.edit_profile")}
                 </Button>
               </div>
             </CardHeader>
@@ -396,8 +472,31 @@ export function StudentProfilePage() {
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <Label className="flex items-center gap-2 text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    {t("profile.personal_info.first_name")}
+                  </Label>
+                  <p className="font-medium">
+                    {profileData.firstName ||
+                      t("profile.personal_info.not_provided")}
+                  </p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="flex items-center gap-2 text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    {t("profile.personal_info.last_name")}
+                  </Label>
+                  <p className="font-medium">
+                    {profileData.lastName ||
+                      t("profile.personal_info.not_provided")}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <Label className="flex items-center gap-2 text-muted-foreground">
                     <Calendar className="h-4 w-4" />
-                    Date of Birth
+                    {t("profile.personal_info.date_of_birth")}
                   </Label>
                   <p className="font-medium">
                     {formatDateForDisplay(profileData.dateOfBirth)}
@@ -406,18 +505,22 @@ export function StudentProfilePage() {
                 <div className="space-y-1">
                   <Label className="flex items-center gap-2 text-muted-foreground">
                     <Phone className="h-4 w-4" />
-                    Phone Number
+                    {t("profile.personal_info.phone")}
                   </Label>
                   <p className="font-medium">
-                    {profileData.phoneNumber || "Not provided"}
+                    {profileData.phoneNumber ||
+                      t("profile.personal_info.not_provided")}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-muted-foreground">About Me</Label>
+                <Label className="text-muted-foreground">
+                  {t("profile.personal_info.about_me")}
+                </Label>
                 <p className="font-medium whitespace-pre-wrap">
-                  {profileData.aboutMe || "Not provided"}
+                  {profileData.aboutMe ||
+                    t("profile.personal_info.not_provided")}
                 </p>
               </div>
             </CardContent>
@@ -427,13 +530,17 @@ export function StudentProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5" />
-                Learning Preferences
+                {t("profile.preferences.title")}
               </CardTitle>
-              <CardDescription>Your learning preferences</CardDescription>
+              <CardDescription>
+                {t("profile.preferences.description")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-1">
-                <Label className="text-muted-foreground">Spanish Level</Label>
+                <Label className="text-muted-foreground">
+                  {t("profile.preferences.spanish_level")}
+                </Label>
                 <p className="font-medium">
                   {getLevelLabel(profileData.spanishLevel)}
                 </p>
@@ -441,7 +548,7 @@ export function StudentProfilePage() {
 
               <div className="space-y-1">
                 <Label className="text-muted-foreground">
-                  Preferred Class Types
+                  {t("profile.preferences.preferred_class_types")}
                 </Label>
                 <p className="font-medium">
                   {getClassTypeLabels(profileData.preferredClassTypes)}
@@ -451,20 +558,22 @@ export function StudentProfilePage() {
               <div className="space-y-1">
                 <Label className="flex items-center gap-2 text-muted-foreground">
                   <Target className="h-4 w-4" />
-                  Learning Goals
+                  {t("profile.preferences.learning_goals")}
                 </Label>
                 <p className="font-medium whitespace-pre-wrap">
-                  {profileData.learningGoals || "Not provided"}
+                  {profileData.learningGoals ||
+                    t("profile.personal_info.not_provided")}
                 </p>
               </div>
 
               <div className="space-y-1">
                 <Label className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="h-4 w-4" />
-                  Availability Notes
+                  {t("profile.preferences.availability_notes")}
                 </Label>
                 <p className="font-medium whitespace-pre-wrap">
-                  {profileData.availabilityNotes || "Not provided"}
+                  {profileData.availabilityNotes ||
+                    t("profile.personal_info.not_provided")}
                 </p>
               </div>
             </CardContent>
@@ -473,16 +582,120 @@ export function StudentProfilePage() {
       ) : (
         /* Edit Mode */
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Account Settings */}
+          <Card className="border-2 border-spanish-teal-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                {t("profile.account_settings.title")}
+              </CardTitle>
+              <CardDescription>
+                {t("profile.account_settings.description")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-spanish-coral-600" />
+                  {t("profile.personal_info.email")}
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  {...register("email")}
+                  disabled
+                  className="bg-slate-50"
+                />
+                <p className="text-xs text-slate-600">
+                  {t("profile.personal_info.email_note")}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-spanish-teal-600" />
+                  {t("profile.personal_info.timezone")}
+                </Label>
+                <Controller
+                  name="timezone"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {timezones.map((tz) => (
+                          <SelectItem key={tz} value={tz}>
+                            {tz.replace(/_/g, " ")}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <p className="text-xs text-slate-600">
+                  {t("profile.personal_info.timezone_note")}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Personal Details (US-18) */}
-          <Card>
+          <Card className="border-2 border-spanish-teal-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Personal Details
+                {t("profile.personal_info.title")}
               </CardTitle>
-              <CardDescription>Tell us a bit about yourself</CardDescription>
+              <CardDescription>
+                {t("profile.personal_info.description_edit")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">
+                    {t("profile.personal_info.first_name")}
+                  </Label>
+                  <Input
+                    id="firstName"
+                    {...register("firstName", {
+                      required: t("profile.personal_info.first_name_required"),
+                    })}
+                    className={
+                      errors.firstName
+                        ? "border-red-500 focus:ring-red-500"
+                        : ""
+                    }
+                  />
+                  {errors.firstName && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <span>⚠️</span> {errors.firstName.message}
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">
+                    {t("profile.personal_info.last_name")}
+                  </Label>
+                  <Input
+                    id="lastName"
+                    {...register("lastName", {
+                      required: t("profile.personal_info.last_name_required"),
+                    })}
+                    className={
+                      errors.lastName ? "border-red-500 focus:ring-red-500" : ""
+                    }
+                  />
+                  {errors.lastName && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <span>⚠️</span> {errors.lastName.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label
@@ -519,7 +732,7 @@ export function StudentProfilePage() {
                   <Input
                     id="phoneNumber"
                     type="tel"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder={t("profile.personal_info.phone_placeholder")}
                     {...register("phoneNumber")}
                     className={
                       errors.phoneNumber
@@ -536,10 +749,12 @@ export function StudentProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="aboutMe">About Me</Label>
+                <Label htmlFor="aboutMe">
+                  {t("profile.personal_info.about_me")}
+                </Label>
                 <Textarea
                   id="aboutMe"
-                  placeholder="Tell us a bit about yourself, your background, and why you're learning Spanish..."
+                  placeholder={t("profile.personal_info.about_me_placeholder")}
                   className={`min-h-[100px] ${errors.aboutMe ? "border-red-500 focus:ring-red-500" : ""}`}
                   {...register("aboutMe")}
                 />
@@ -570,14 +785,18 @@ export function StudentProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Spanish Level</Label>
+                <Label>{t("profile.preferences.spanish_level")}</Label>
                 <Controller
                   name="spanishLevel"
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select your current level" />
+                        <SelectValue
+                          placeholder={t(
+                            "profile.preferences.spanish_level_placeholder",
+                          )}
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {spanishLevels.map((level) => (
@@ -597,9 +816,9 @@ export function StudentProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Preferred Class Types</Label>
+                <Label>{t("profile.preferences.preferred_class_types")}</Label>
                 <p className="text-xs text-muted-foreground mb-2">
-                  Select the types of classes you're interested in
+                  {t("profile.preferences.preferred_class_types_note")}
                 </p>
                 <Controller
                   name="preferredClassTypes"
@@ -644,7 +863,9 @@ export function StudentProfilePage() {
                 </Label>
                 <Textarea
                   id="learningGoals"
-                  placeholder="What do you hope to achieve? (e.g., prepare for DELE exam, business communication, travel, etc.)"
+                  placeholder={t(
+                    "profile.preferences.learning_goals_placeholder",
+                  )}
                   className={`min-h-[100px] ${errors.learningGoals ? "border-red-500 focus:ring-red-500" : ""}`}
                   {...register("learningGoals")}
                 />
@@ -665,7 +886,9 @@ export function StudentProfilePage() {
                 </Label>
                 <Textarea
                   id="availabilityNotes"
-                  placeholder="Let us know your preferred times or any scheduling constraints..."
+                  placeholder={t(
+                    "profile.preferences.availability_notes_placeholder",
+                  )}
                   className={`min-h-[80px] ${errors.availabilityNotes ? "border-red-500 focus:ring-red-500" : ""}`}
                   {...register("availabilityNotes")}
                 />

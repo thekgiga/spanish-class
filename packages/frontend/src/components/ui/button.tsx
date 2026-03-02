@@ -1,58 +1,68 @@
-import * as React from 'react';
-import { Slot } from '@radix-ui/react-slot';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]',
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spanish-teal-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
   {
     variants: {
       variant: {
+        // Spanish Teal Primary Color System
         default:
-          'bg-navy-800 text-white hover:bg-navy-700 shadow-soft hover:shadow-medium',
+          "bg-gradient-to-r from-spanish-teal-500 to-spanish-teal-600 text-white hover:from-spanish-teal-600 hover:to-spanish-teal-700 shadow-lg",
         primary:
-          'bg-gradient-to-r from-spanish-red-500 to-spanish-red-600 text-white hover:from-spanish-red-600 hover:to-spanish-red-700 shadow-soft hover:shadow-glow-red',
+          "bg-gradient-to-r from-spanish-teal-500 to-spanish-teal-600 text-white hover:from-spanish-teal-600 hover:to-spanish-teal-700 shadow-lg",
         secondary:
-          'bg-gradient-to-r from-gold-400 to-gold-500 text-navy-900 hover:from-gold-500 hover:to-gold-600 shadow-soft hover:shadow-glow-gold font-semibold',
-        destructive:
-          'bg-red-500 text-white hover:bg-red-600 shadow-soft',
+          "border-2 border-spanish-teal-500 bg-transparent text-spanish-teal-700 hover:bg-spanish-teal-50",
+        // CTA variant for high-conversion actions only (Sign Up, Book Now homepage)
+        cta: "bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 text-white hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-lg font-semibold",
+        destructive: "bg-red-500 text-white hover:bg-red-600 shadow-lg",
         outline:
-          'border-2 border-spanish-red-500 bg-transparent text-spanish-red-600 hover:bg-spanish-red-500 hover:text-white',
-        'outline-gold':
-          'border-2 border-gold-500 bg-transparent text-gold-600 hover:bg-gold-500 hover:text-navy-900',
-        subtle:
-          'bg-spanish-cream-100 text-navy-700 hover:bg-spanish-cream-200',
+          "border-2 border-spanish-teal-500 bg-transparent text-spanish-teal-700 hover:bg-spanish-teal-50",
         ghost:
-          'hover:bg-spanish-cream-100 hover:text-navy-800',
-        link:
-          'text-spanish-red-600 underline-offset-4 hover:underline',
+          "bg-transparent text-slate-600 hover:bg-spanish-teal-50 hover:text-spanish-teal-700",
+        link: "text-spanish-teal-600 underline-offset-4 hover:text-spanish-teal-700 hover:underline",
       },
       size: {
-        default: 'h-11 px-6 py-2',
-        sm: 'h-9 rounded-lg px-4 text-xs',
-        lg: 'h-12 rounded-xl px-8 text-base',
-        xl: 'h-14 rounded-2xl px-10 text-lg',
-        icon: 'h-10 w-10 rounded-lg',
-        'icon-sm': 'h-8 w-8 rounded-lg',
+        default: "h-11 px-6 py-2",
+        sm: "h-9 rounded-lg px-4 text-xs",
+        lg: "h-12 rounded-xl px-8 text-base",
+        xl: "h-14 rounded-2xl px-10 text-lg",
+        icon: "h-10 w-10 rounded-lg",
+        "icon-sm": "h-8 w-8 rounded-lg",
       },
     },
     defaultVariants: {
-      variant: 'default',
-      size: 'default',
+      variant: "default",
+      size: "default",
     },
-  }
+  },
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   isLoading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, isLoading, children, disabled, ...props }, ref) => {
-    const Comp = asChild ? Slot : 'button';
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      isLoading,
+      children,
+      disabled,
+      ...props
+    },
+    ref,
+  ) => {
+    const Comp = asChild ? Slot : "button";
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
@@ -89,8 +99,8 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         )}
       </Comp>
     );
-  }
+  },
 );
-Button.displayName = 'Button';
+Button.displayName = "Button";
 
 export { Button, buttonVariants };

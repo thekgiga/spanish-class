@@ -20,7 +20,17 @@ i18n
       loadPath: "/locales/{{lng}}/{{ns}}.json",
     },
 
-    ns: ["common", "auth", "booking", "dashboard"],
+    ns: [
+      "common",
+      "auth",
+      "home",
+      "booking",
+      "dashboard",
+      "student",
+      "admin",
+      "professor",
+      "about",
+    ],
     defaultNS: "common",
 
     detection: {

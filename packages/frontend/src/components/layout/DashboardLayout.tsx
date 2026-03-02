@@ -1,25 +1,21 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   Calendar,
   BookOpen,
   Users,
-  Settings,
   LogOut,
   Menu,
   X,
   ChevronLeft,
-  Plus,
   Mail,
   UserCircle,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { useAuthStore } from "@/stores/auth";
 import { getInitials } from "@/lib/utils";
 import { usePendingBookingsCount } from "@/hooks/usePendingBookingsCount";
@@ -37,7 +33,6 @@ const adminNavItems: NavItem[] = [
   { href: "/admin/slots", label: "Availability", icon: BookOpen },
   { href: "/admin/students", label: "Students", icon: Users },
   { href: "/admin/email-logs", label: "Email Logs", icon: Mail },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 const studentNavItems: NavItem[] = [
@@ -50,7 +45,6 @@ const studentNavItems: NavItem[] = [
   },
   { href: "/dashboard/bookings", label: "My Bookings", icon: BookOpen },
   { href: "/dashboard/profile", label: "My Profile", icon: UserCircle },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 interface DashboardLayoutProps {
@@ -58,6 +52,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
+  const { t } = useTranslation("common");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
@@ -66,7 +61,6 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
 
   const navItems = isAdmin ? adminNavItems : studentNavItems;
 
-  // Fetch pending bookings count for admin badge
   const { data: pendingData } = usePendingBookingsCount(isAdmin);
 
   const handleLogout = async () => {
@@ -75,14 +69,18 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
   };
 
   const isActive = (href: string) => {
+    // Exact match for dashboard/admin root
     if (href === "/admin" || href === "/dashboard") {
       return location.pathname === href;
     }
-    return location.pathname.startsWith(href);
+    // For sub-routes, check exact match or if it's a parent path followed by /
+    return (
+      location.pathname === href || location.pathname.startsWith(href + "/")
+    );
   };
 
   return (
-    <div className="min-h-screen bg-spanish-cream-50/50">
+    <div className="min-h-screen bg-gradient-to-br from-spanish-teal-50 via-white to-spanish-coral-50">
       {/* Mobile sidebar backdrop */}
       <AnimatePresence>
         {sidebarOpen && (
@@ -90,7 +88,7 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-navy-900/60 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -99,227 +97,156 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-spanish-cream-200 transition-all duration-300 ease-out",
+          "fixed top-0 left-0 z-50 h-screen transition-all duration-300 ease-in-out",
           collapsed ? "w-20" : "w-72",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        {/* Logo */}
-        <div className="flex h-20 items-center justify-between px-6 border-b border-spanish-cream-200">
-          <Link
-            to={isAdmin ? "/admin" : "/dashboard"}
-            className="flex items-center gap-3"
-          >
-            <img
-              src="/icons/elite_logo.png"
-              alt="Elite Spanish Class"
-              className="h-10 w-10 rounded-xl object-contain flex-shrink-0 shadow-glow-red"
-            />
+        <div className="h-full bg-white border-r border-slate-200 shadow-xl flex flex-col">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-slate-200">
             {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex flex-col"
-              >
-                <span className="font-display text-lg font-semibold text-navy-800">
+              <Link to="/" className="flex items-center gap-3 group">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 flex items-center justify-center shadow-lg shadow-spanish-teal-500/30 group-hover:scale-110 transition-transform">
+                  <span className="text-white font-display text-lg font-bold">
+                    S
+                  </span>
+                </div>
+                <span className="font-display text-lg font-bold text-slate-900">
                   Spanish Class
                 </span>
-                <span className="text-xs text-spanish-red-500 font-medium">
-                  {isAdmin ? "Professor Portal" : "Student Portal"}
-                </span>
-              </motion.div>
-            )}
-          </Link>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            className="hidden lg:flex text-navy-400 hover:text-navy-600"
-            onClick={() => setCollapsed(!collapsed)}
-          >
-            <ChevronLeft
-              className={cn(
-                "h-4 w-4 transition-transform duration-300",
-                collapsed && "rotate-180",
-              )}
-            />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-
-        {/* Quick action - Admin only */}
-        {isAdmin && !collapsed && (
-          <div className="px-4 py-4">
-            <Button
-              className="w-full justify-start gap-2"
-              variant="primary"
-              asChild
-            >
-              <Link to="/admin/slots/new">
-                <Plus className="h-4 w-4" />
-                Create New Slot
               </Link>
-            </Button>
+            )}
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="hidden lg:flex p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
+            >
+              <ChevronLeft
+                className={cn(
+                  "h-5 w-5 transition-transform",
+                  collapsed && "rotate-180",
+                )}
+              />
+            </button>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-        )}
 
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-4 py-4">
-          <div className="space-y-1">
-            {navItems.map((item, index) => (
-              <motion.div
-                key={item.href}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
+          {/* User info */}
+          {user && !collapsed && (
+            <div className="p-4 border-b border-slate-200">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-spanish-teal-50 to-spanish-coral-50 border-2 border-spanish-teal-200">
+                <Avatar className="h-10 w-10 ring-2 ring-spanish-teal-200">
+                  <AvatarFallback className="bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 text-white font-semibold">
+                    {getInitials(user.firstName, user.lastName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 truncate">
+                    {user.firstName} {user.lastName}
+                  </p>
+                  <p className="text-xs text-slate-600 truncate">
+                    {user.email}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Navigation */}
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
+            {navItems.map((item) => {
+              const active = isActive(item.href);
+              return (
                 <Link
+                  key={item.href}
                   to={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
-                    isActive(item.href)
-                      ? "bg-gradient-to-r from-spanish-red-500 to-spanish-red-600 text-white shadow-glow-red"
-                      : "text-navy-600 hover:bg-spanish-cream-100 hover:text-navy-800",
-                    collapsed && "justify-center px-0",
+                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all",
+                    active
+                      ? "bg-spanish-teal-500 text-white shadow-lg border-2 border-spanish-teal-600"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-spanish-teal-50",
+                    collapsed && "justify-center",
                   )}
-                  onClick={() => setSidebarOpen(false)}
                 >
-                  <item.icon
-                    className={cn(
-                      "h-5 w-5 flex-shrink-0",
-                      isActive(item.href) && "text-white",
-                    )}
-                  />
-                  {!collapsed && <span className="flex-1">{item.label}</span>}
-                  {!collapsed && item.badge && (
-                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-gold-400 text-navy-900">
-                      {item.badge}
-                    </span>
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1">{item.label}</span>
+                      {item.badge && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-xs font-bold">
+                          {item.badge}
+                        </span>
+                      )}
+                      {isAdmin &&
+                        item.href === "/admin" &&
+                        pendingData?.count &&
+                        pendingData.count > 0 && (
+                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white shadow-lg">
+                            {pendingData.count}
+                          </span>
+                        )}
+                    </>
                   )}
-                  {!collapsed &&
-                    isAdmin &&
-                    item.href === "/admin" &&
-                    pendingData &&
-                    pendingData.count > 0 && (
-                      <Badge variant="warning" className="text-xs px-2 py-0.5">
-                        {pendingData.count}
-                      </Badge>
-                    )}
                 </Link>
-              </motion.div>
-            ))}
+              );
+            })}
+          </nav>
+
+          {/* Logout button */}
+          <div className="p-4 border-t border-slate-200">
+            <button
+              onClick={handleLogout}
+              className={cn(
+                "flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 transition-all",
+                collapsed && "justify-center",
+              )}
+            >
+              <LogOut className="h-5 w-5" />
+              {!collapsed && <span>{t("navigation.logout")}</span>}
+            </button>
           </div>
-
-          {/* Decorative divider */}
-          {!collapsed && (
-            <div className="my-6 flex items-center gap-3">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-spanish-cream-300 to-transparent" />
-              <Sparkles className="h-3 w-3 text-gold-400" />
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-spanish-cream-300 to-transparent" />
-            </div>
-          )}
-
-          {/* Quick stats for admin */}
-          {isAdmin && !collapsed && (
-            <div className="mt-4 p-4 rounded-xl bg-gradient-to-br from-gold-50 to-spanish-cream-100 border border-gold-200/50">
-              <p className="text-xs font-medium text-gold-700 uppercase tracking-wider">
-                Quick Tip
-              </p>
-              <p className="mt-1 text-sm text-navy-600">
-                Use bulk create to schedule recurring classes faster.
-              </p>
-            </div>
-          )}
-        </nav>
-
-        {/* User section */}
-        <div className="p-4 border-t border-spanish-cream-200 bg-spanish-cream-50/50">
-          <div
-            className={cn(
-              "flex items-center gap-3 p-3 rounded-xl bg-white shadow-soft",
-              collapsed && "justify-center p-2",
-            )}
-          >
-            <Avatar className="h-10 w-10 ring-2 ring-spanish-red-100 ring-offset-2">
-              <AvatarFallback className="bg-gradient-to-br from-spanish-red-100 to-gold-100 text-spanish-red-700 font-semibold">
-                {user && getInitials(user.firstName, user.lastName)}
-              </AvatarFallback>
-            </Avatar>
-            {!collapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-navy-800 truncate">
-                  {user?.firstName} {user?.lastName}
-                </p>
-                <p className="text-xs text-navy-500 truncate">{user?.email}</p>
-              </div>
-            )}
-          </div>
-          <Button
-            variant="ghost"
-            className={cn(
-              "w-full mt-3 justify-start text-navy-500 hover:text-spanish-red-600 hover:bg-spanish-red-50",
-              collapsed && "justify-center px-0",
-            )}
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            {!collapsed && <span className="ml-2">Log out</span>}
-          </Button>
         </div>
       </aside>
 
       {/* Main content */}
       <div
         className={cn(
-          "transition-all duration-300 min-h-screen",
-          collapsed ? "lg:pl-20" : "lg:pl-72",
+          "transition-all duration-300",
+          collapsed ? "lg:ml-20" : "lg:ml-72",
         )}
       >
         {/* Mobile header */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-spanish-cream-200 bg-white/80 backdrop-blur-xl px-4 lg:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <Menu className="h-5 w-5 text-navy-600" />
-          </Button>
-          <Link
-            to={isAdmin ? "/admin" : "/dashboard"}
-            className="flex items-center gap-3"
-          >
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-spanish-red-500 to-spanish-red-700 flex items-center justify-center shadow-sm">
-              <span className="text-white font-display text-lg font-bold">
-                S
+        <div className="lg:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200 p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all"
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 flex items-center justify-center shadow-lg shadow-spanish-teal-500/30">
+                <span className="text-white font-display text-sm font-bold">
+                  S
+                </span>
+              </div>
+              <span className="font-display text-lg font-bold text-slate-900">
+                Spanish Class
               </span>
             </div>
-            <span className="font-display text-lg font-semibold text-navy-800">
-              Spanish Class
-            </span>
-          </Link>
-        </header>
+            <div className="w-10" /> {/* Spacer for centering */}
+          </div>
+        </div>
 
         {/* Page content */}
-        <main className="p-4 lg:p-8 max-w-7xl mx-auto">
+        <main className="p-6 sm:p-8 lg:p-12">
           <Outlet />
         </main>
-
-        {/* Footer */}
-        <footer className="border-t border-spanish-cream-200 bg-white/50 px-4 py-6 lg:px-8">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-navy-500">
-            <p>Spanish Class Platform</p>
-            <div className="flex items-center gap-1">
-              <span>Made with</span>
-              <span className="text-spanish-red-500">love</span>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   );

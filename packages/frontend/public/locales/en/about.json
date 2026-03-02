@@ -1,0 +1,77 @@
+{
+  "page": {
+    "seo_title": "About Us - Premium Spanish Learning Platform",
+    "seo_description": "Learn about Spanish Class, our mission to make Spanish language learning accessible, engaging, and culturally immersive. Certified teachers, personalized learning plans, and a supportive community of language enthusiasts.",
+    "badge": "About Us",
+    "title": "Our Story",
+    "subtitle": "We believe that learning Spanish should be more than memorizing grammar rules. It's about discovering a new culture, connecting with millions of speakers worldwide, and opening doors to incredible opportunities."
+  },
+  "mission": {
+    "title": "Our Mission",
+    "paragraph1": "At Spanish Class, our mission is to make Spanish language learning accessible, engaging, and culturally immersive for students worldwide. We combine expert teaching with modern technology to create a premium learning experience that fits your lifestyle.",
+    "paragraph2": "Whether you're preparing for DELE exams, planning to study abroad, or simply passionate about Hispanic culture, we're here to guide you every step of the way.",
+    "why_choose_title": "Why Choose Us",
+    "reason_1": "Certified teachers with years of experience",
+    "reason_2": "Personalized learning plans for every student",
+    "reason_3": "Flexible scheduling that fits your lifestyle",
+    "reason_4": "Cultural immersion beyond language learning",
+    "reason_5": "Modern platform for seamless booking experience"
+  },
+  "values": {
+    "badge": "Our Values",
+    "title": "Our Core Values",
+    "subtitle": "These principles guide everything we do at Spanish Class",
+    "passion_title": "Passion for Teaching",
+    "passion_description": "We love helping students discover the beauty of the Spanish language and Hispanic culture.",
+    "personalized_title": "Personalized Learning",
+    "personalized_description": "Every student has unique goals. We create customized learning plans tailored to your needs.",
+    "community_title": "Community Focus",
+    "community_description": "Learning is better together. Join a supportive community of Spanish language enthusiasts.",
+    "cultural_title": "Cultural Immersion",
+    "cultural_description": "Experience authentic Spanish culture through language, not just grammar and vocabulary."
+  },
+  "timeline": {
+    "badge": "Our Journey",
+    "title": "Growing & Evolving",
+    "subtitle": "Our milestones on the path to serving you better",
+    "2020_title": "Founded",
+    "2020_description": "Started with a vision to make Spanish learning accessible and engaging online.",
+    "2021_title": "100 Students",
+    "2021_description": "Reached our first major milestone with students from 15 different countries.",
+    "2023_title": "DELE Certified",
+    "2023_description": "Became an authorized DELE exam preparation center.",
+    "2026_title": "Premium Platform",
+    "2026_description": "Launched our modern booking platform for seamless class scheduling."
+  },
+  "cta": {
+    "title": "Ready to Start Your Spanish Journey?",
+    "subtitle": "Join our community of passionate learners and experience the difference of personalized, culturally-immersive Spanish education.",
+    "button_primary": "Get Started Today",
+    "button_secondary": "Contact Us",
+    "features": "Professional teachers • Flexible scheduling • Personalized learning"
+  },
+  "contact": {
+    "seo_title": "Contact Us - Spanish Class",
+    "seo_description": "Get in touch with Spanish Class. Send us a message and we'll respond as soon as possible. We're here to answer your questions about our Spanish learning platform.",
+    "badge": "Contact Us",
+    "title": "Get in Touch",
+    "subtitle": "Have questions about our Spanish classes? We're here to help. Send us a message and we'll get back to you as soon as possible.",
+    "form_name_label": "Your Name",
+    "form_name_placeholder": "John Doe",
+    "form_email_label": "Email Address",
+    "form_email_placeholder": "you@example.com",
+    "form_subject_label": "Subject",
+    "form_subject_placeholder": "How can we help you?",
+    "form_message_label": "Message",
+    "form_message_placeholder": "Tell us more about your inquiry...",
+    "form_submit": "Send Message",
+    "form_submitting": "Sending...",
+    "form_success_title": "Message Sent!",
+    "form_success_message": "Thank you for contacting us. We'll respond within 24 hours.",
+    "info_title": "Contact Information",
+    "info_email_label": "Email",
+    "info_location_label": "Location",
+    "info_location_value": "Belgrade, Serbia",
+    "info_instagram_label": "Instagram"
+  }
+}
