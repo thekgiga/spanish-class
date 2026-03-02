@@ -138,7 +138,7 @@ async function attemptBooking(
   let meetLink = slot.meetLink;
   if (!meetLink) {
     const meeting = createMeetingRoom(slot.id);
-    meetLink = meeting.roomName;
+    meetLink = meeting.joinUrl;
   }
 
   // Update slot with optimistic locking: check version hasn't changed

@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-02-25
 
 ## Active Technologies
+- TypeScript 5.4+ (ES2020), React 18 (011-premium-education-ui-redesign)
+- N/A (UI-only changes) (011-premium-education-ui-redesign)
 
 - TypeScript 5.4+ (Node.js 18+ for backend, ES2020 for frontend)
 - Prisma ORM (Database schema and migrations)
@@ -168,11 +170,10 @@ npx prisma studio            # Open Prisma Studio
 - Use Prettier for formatting (if configured)
 
 ## Recent Changes
+- 011-premium-education-ui-redesign: Added TypeScript 5.4+ (ES2020), React 18
 
 - 2026-02-25: Organized all scripts into `/scripts/` directory with categories
 - 2026-02-25: Created comprehensive scripts documentation in `scripts/README.md`
-- 2026-02-25: Updated GitHub Actions workflows for new script paths
-- 005-profile-completion: Added TypeScript 5.4+ (Node.js 18+ for backend, ES2020 for frontend)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

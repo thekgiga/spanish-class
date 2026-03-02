@@ -133,7 +133,7 @@ export async function createPrivateInvitation(data: {
     const meeting = createMeetingRoom(slot.id);
     await tx.availabilitySlot.update({
       where: { id: slot.id },
-      data: { meetLink: meeting.roomName },
+      data: { meetLink: meeting.joinUrl },
     });
 
     // Create confirmed booking
@@ -155,15 +155,12 @@ export async function createPrivateInvitation(data: {
       },
     });
 
-    return { slot: { ...slot, meetLink: meeting.roomName }, booking, meeting };
+    return { slot: { ...slot, meetLink: meeting.joinUrl }, booking, meeting };
   });
 
   // T012: Send email notification (non-blocking)
-  const provider = getMeetingProvider();
-  const meetingUrl = provider.getJoinUrl(
-    result.meeting.roomName,
-    `${student.firstName} ${student.lastName}`,
-  );
+  // Meeting URL is already in joinUrl format
+  const meetingUrl = result.meeting.joinUrl;
 
   sendPrivateInvitationEmail({
     student,

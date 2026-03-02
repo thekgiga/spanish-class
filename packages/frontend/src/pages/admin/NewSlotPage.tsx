@@ -500,7 +500,7 @@ export function NewSlotPage() {
           <h1 className="text-2xl font-display font-bold text-navy-800">
             {isEditMode ? t("slots.actions.edit") : t("slots.create_button")}
           </h1>
-          <parameter name="text-muted-foreground">
+          <p className="text-muted-foreground">
             {isEditMode
               ? t("slots.form.date_time.subtitle_single")
               : t("slots.subtitle")}
@@ -776,7 +776,8 @@ export function NewSlotPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-muted-foreground truncate max-w-[120px]">
-                              {slot.title || t("slots.form.existing_slots.spanish_class")}
+                              {slot.title ||
+                                t("slots.form.existing_slots.spanish_class")}
                             </span>
                             <Badge
                               variant={
@@ -873,7 +874,9 @@ export function NewSlotPage() {
                           <SelectContent>
                             {[2, 4, 6, 8, 12].map((w) => (
                               <SelectItem key={w} value={w.toString()}>
-                                {t("slots.form.recurring.weeks_count", { count: w })}
+                                {t("slots.form.recurring.weeks_count", {
+                                  count: w,
+                                })}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -912,7 +915,9 @@ export function NewSlotPage() {
                   )}
                 >
                   <User className="h-8 w-8 mb-2 text-navy-800" />
-                  <p className="font-semibold text-navy-800">{t("slots.form.session_type.individual")}</p>
+                  <p className="font-semibold text-navy-800">
+                    {t("slots.form.session_type.individual")}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {t("slots.form.session_type.individual_desc")}
                   </p>
@@ -930,7 +935,9 @@ export function NewSlotPage() {
                   )}
                 >
                   <Users className="h-8 w-8 mb-2 text-navy-800" />
-                  <p className="font-semibold text-navy-800">{t("slots.form.session_type.group")}</p>
+                  <p className="font-semibold text-navy-800">
+                    {t("slots.form.session_type.group")}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {t("slots.form.session_type.group_desc")}
                   </p>
@@ -965,8 +972,12 @@ export function NewSlotPage() {
                   {confirmedBookingsCount === 0
                     ? t("slots.form.booked_students.no_bookings")
                     : confirmedBookingsCount > 1
-                      ? t("slots.form.booked_students.count_plural", { count: confirmedBookingsCount })
-                      : t("slots.form.booked_students.count", { count: confirmedBookingsCount })}
+                      ? t("slots.form.booked_students.count_plural", {
+                          count: confirmedBookingsCount,
+                        })
+                      : t("slots.form.booked_students.count", {
+                          count: confirmedBookingsCount,
+                        })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -1023,7 +1034,9 @@ export function NewSlotPage() {
                 ) : (
                   <div className="text-center py-6">
                     <Users className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-                    <p className="text-muted-foreground">{t("slots.form.booked_students.no_bookings_yet")}</p>
+                    <p className="text-muted-foreground">
+                      {t("slots.form.booked_students.no_bookings_yet")}
+                    </p>
                     <p className="text-sm text-muted-foreground mt-1">
                       {t("slots.form.booked_students.can_book")}
                     </p>
@@ -1058,7 +1071,9 @@ export function NewSlotPage() {
           {/* Title & Description */}
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">{t("slots.form.details.title")}</CardTitle>
+              <CardTitle className="text-lg">
+                {t("slots.form.details.title")}
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -1119,7 +1134,9 @@ export function NewSlotPage() {
                 >
                   <CardContent className="space-y-4">
                     <Input
-                      placeholder={t("slots.form.private_slot.search_placeholder")}
+                      placeholder={t(
+                        "slots.form.private_slot.search_placeholder",
+                      )}
                       value={studentSearch}
                       onChange={(e) => setStudentSearch(e.target.value)}
                     />
@@ -1220,7 +1237,9 @@ export function NewSlotPage() {
                 ) : (
                   <>
                     <Input
-                      placeholder={t("slots.form.direct_booking.search_placeholder")}
+                      placeholder={t(
+                        "slots.form.direct_booking.search_placeholder",
+                      )}
                       value={studentSearch}
                       onChange={(e) => setStudentSearch(e.target.value)}
                     />
@@ -1335,9 +1354,13 @@ export function NewSlotPage() {
             </DialogTitle>
             <DialogDescription>
               {confirmedBookingsCount > 1
-                ? t("slots.form.cancel_dialog.message_plural", { count: confirmedBookingsCount })
+                ? t("slots.form.cancel_dialog.message_plural", {
+                    count: confirmedBookingsCount,
+                  })
                 : confirmedBookingsCount === 1
-                  ? t("slots.form.cancel_dialog.message", { count: confirmedBookingsCount })
+                  ? t("slots.form.cancel_dialog.message", {
+                      count: confirmedBookingsCount,
+                    })
                   : t("slots.form.cancel_dialog.message", { count: 0 })}
             </DialogDescription>
           </DialogHeader>
