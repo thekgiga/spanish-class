@@ -25,6 +25,8 @@ export function CalendarPage() {
   // Calendar state
   const [view, setView] = useState<View>("week");
   const [date, setDate] = useState(new Date());
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
 
   // Modal state
   const [isSlotModalOpen, setIsSlotModalOpen] = useState(false);
@@ -47,12 +49,20 @@ export function CalendarPage() {
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
   const { data, isLoading } = useQuery({
-    queryKey: ["professor-slots", format(date, "yyyy-MM")],
+    queryKey: [
+      "professor-slots",
+      format(date, "yyyy-MM"),
+      statusFilter,
+      typeFilter,
+    ],
     queryFn: () =>
       professorApi.getSlots({
+        page: 1,
+        limit: 100,
         startDate: calendarStart.toISOString(),
         endDate: calendarEnd.toISOString(),
-        limit: 200,
+        status: statusFilter || undefined,
+        slotType: typeFilter || undefined,
       }),
   });
 
@@ -133,22 +143,28 @@ export function CalendarPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">
+          <h1 className="text-xl sm:text-2xl font-display font-bold text-navy-800">
             {t("calendar.title")}
           </h1>
-          <p className="text-muted-foreground">{t("calendar.subtitle")}</p>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            {t("calendar.subtitle")}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button
             variant="outline"
             onClick={() => setShowPrivateInvitationModal(true)}
+            className="text-xs sm:text-sm px-3 sm:px-4"
           >
-            <UserPlus className="mr-2 h-4 w-4" />
-            {t("calendar.private_invitation")}
+            <UserPlus className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline ml-2">
+              {t("calendar.private_invitation")}
+            </span>
+            <span className="sm:hidden ml-2">Invite</span>
           </Button>
         </div>
       </div>
@@ -160,6 +176,10 @@ export function CalendarPage() {
         date={date}
         onNavigate={handleNavigate}
         onCreateSlot={handleCreateSlot}
+        statusFilter={statusFilter}
+        typeFilter={typeFilter}
+        onStatusFilterChange={setStatusFilter}
+        onTypeFilterChange={setTypeFilter}
       />
 
       {/* Calendar */}

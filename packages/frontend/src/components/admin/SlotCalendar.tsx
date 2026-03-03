@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Calendar, dateFnsLocalizer, View } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale";
-import { Lock, Users, User, CalendarDays } from "lucide-react";
+import { Lock, Unlock, Users, User, Repeat } from "lucide-react";
 import {
   getStatusColor,
   getStatusTextColor,
@@ -57,75 +57,142 @@ export function SlotCalendar({
   onSelectEvent,
 }: SlotCalendarProps) {
   // Transform slots to calendar events
+  // Filter out CANCELLED slots - they should not be visible on calendar
   const events: CalendarEvent[] = useMemo(() => {
-    return slots.map((slot) => ({
-      id: slot.id,
-      title: slot.title || `${slot.slotType} Class`,
-      start: new Date(slot.startTime),
-      end: new Date(slot.endTime),
-      resource: slot,
-    }));
+    return slots
+      .filter((slot) => slot.status !== "CANCELLED")
+      .map((slot) => ({
+        id: slot.id,
+        title: slot.title || `${slot.slotType} Class`,
+        start: new Date(slot.startTime),
+        end: new Date(slot.endTime),
+        resource: slot,
+      }));
   }, [slots]);
 
   // Custom event styling
   const eventStyleGetter = (event: CalendarEvent) => {
     const slot = event.resource;
-    const backgroundColor = getStatusColor(slot.status);
+    const backgroundGradient = getStatusColor(slot.status);
     const borderColor = getBorderColor(slot.isPrivate);
     const textColor = getStatusTextColor(slot.status);
 
-    // Glassy effect for available slots
     const isAvailable = slot.status === "AVAILABLE";
+    const isBooked =
+      slot.status === "FULLY_BOOKED" || slot.currentParticipants > 0;
 
     return {
       style: {
-        backgroundColor,
+        background: backgroundGradient,
         borderLeft: `4px solid ${borderColor}`,
-        opacity: slot.status === "CANCELLED" ? 0.5 : 1,
         color: textColor,
         fontSize: "0.875rem",
-        padding: "4px 8px",
-        borderRadius: "8px",
-        backdropFilter: isAvailable ? "blur(8px)" : "none",
-        border: isAvailable ? `1px solid rgba(20, 184, 166, 0.3)` : "none",
+        padding: "2px",
+        borderRadius: "6px",
+        border: slot.isPrivate
+          ? `2px solid ${borderColor}`
+          : `1px solid rgba(255, 255, 255, 0.2)`,
         boxShadow: isAvailable
-          ? "0 2px 8px rgba(20, 184, 166, 0.1)"
-          : "0 2px 4px rgba(0, 0, 0, 0.1)",
+          ? "0 2px 8px rgba(20, 184, 166, 0.3), inset 0 1px 1px rgba(255,255,255,0.3)"
+          : isBooked
+            ? "0 2px 8px rgba(245, 158, 11, 0.3), inset 0 1px 1px rgba(255,255,255,0.3)"
+            : "0 2px 4px rgba(0, 0, 0, 0.1)",
       },
     };
   };
 
-  // Custom event component with icons
+  // Custom event component with enhanced info - Mobile optimized
   const EventComponent = ({ event }: { event: CalendarEvent }) => {
     const slot = event.resource;
     const isAvailable = slot.status === "AVAILABLE";
     const isBooked =
       slot.status === "FULLY_BOOKED" || slot.currentParticipants > 0;
+    const isGroup = slot.slotType === "GROUP";
+    const isMobile = window.innerWidth < 640;
 
     return (
-      <div className="flex flex-col gap-0.5 overflow-hidden">
-        {/* Main row */}
-        <div className="flex items-center gap-1">
-          {slot.isPrivate && <Lock className="h-3 w-3 flex-shrink-0" />}
-          {slot.slotType === "GROUP" ? (
-            <Users className="h-3 w-3 flex-shrink-0" />
-          ) : (
-            <User className="h-3 w-3 flex-shrink-0" />
+      <div className="flex flex-col gap-0.5 sm:gap-1 overflow-hidden h-full p-0.5 sm:p-1">
+        {/* Top row: Privacy + Type + Status */}
+        <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+          {/* Privacy icon - hide on very small screens */}
+          {!isMobile && (
+            <>
+              {slot.isPrivate ? (
+                <Lock className="h-2.5 sm:h-3.5 w-2.5 sm:w-3.5 flex-shrink-0 opacity-90" />
+              ) : (
+                <Unlock className="h-2.5 sm:h-3.5 w-2.5 sm:w-3.5 flex-shrink-0 opacity-60" />
+              )}
+            </>
           )}
-          <span className="truncate font-medium text-xs">{event.title}</span>
-          {slot.maxParticipants > 1 && (
-            <span className="text-xs opacity-90 flex-shrink-0">
-              ({slot.currentParticipants}/{slot.maxParticipants})
-            </span>
+
+          {/* Recurring pattern indicator */}
+          {slot.recurringPatternId && (
+            <div title="Part of recurring pattern">
+              <Repeat className="h-2 sm:h-3 w-2 sm:w-3 flex-shrink-0 opacity-70" />
+            </div>
           )}
+
+          {/* Slot type with badge style */}
+          <div
+            className={`px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] font-semibold flex items-center gap-0.5 sm:gap-1 ${
+              isGroup
+                ? "bg-white/30 backdrop-blur-sm"
+                : "bg-white/20 backdrop-blur-sm"
+            }`}
+          >
+            {isGroup ? (
+              <>
+                <Users className="h-2 sm:h-2.5 w-2 sm:w-2.5" />
+                <span className="hidden sm:inline">GROUP</span>
+                <span className="sm:hidden">G</span>
+              </>
+            ) : (
+              <>
+                <User className="h-2 sm:h-2.5 w-2 sm:w-2.5" />
+                <span className="hidden sm:inline">1:1</span>
+              </>
+            )}
+          </div>
+
+          {/* Availability badge */}
+          <div
+            className={`ml-auto px-1 sm:px-1.5 py-0.5 rounded text-[8px] sm:text-[10px] font-bold ${
+              isAvailable
+                ? "bg-emerald-500/90 text-white"
+                : "bg-amber-500/90 text-white"
+            }`}
+          >
+            {isMobile
+              ? isAvailable
+                ? "O"
+                : "B"
+              : isAvailable
+                ? "OPEN"
+                : "BOOKED"}
+          </div>
         </div>
 
-        {/* Booking details for booked slots */}
-        {isBooked &&
+        {/* Title - hide on mobile in compact views */}
+        {!isMobile && (
+          <div className="truncate font-semibold text-[10px] sm:text-xs leading-tight">
+            {event.title}
+          </div>
+        )}
+
+        {/* Booking info - simplified on mobile */}
+        {slot.maxParticipants > 1 && !isMobile && (
+          <div className="text-[9px] sm:text-[11px] font-medium opacity-90">
+            {slot.currentParticipants}/{slot.maxParticipants}
+          </div>
+        )}
+
+        {/* Student names - hide on mobile */}
+        {!isMobile &&
+          isBooked &&
           "bookings" in slot &&
           slot.bookings &&
           slot.bookings.length > 0 && (
-            <div className="text-xs opacity-80 truncate">
+            <div className="text-[9px] sm:text-[10px] opacity-75 truncate">
               {slot.bookings
                 .map(
                   (b: any) =>
@@ -134,14 +201,6 @@ export function SlotCalendar({
                 .join(", ")}
             </div>
           )}
-
-        {/* Available indicator */}
-        {isAvailable && (
-          <div className="text-xs opacity-70 flex items-center gap-1">
-            <CalendarDays className="h-2.5 w-2.5" />
-            <span>Available</span>
-          </div>
-        )}
       </div>
     );
   };
@@ -160,7 +219,9 @@ export function SlotCalendar({
         selectable
         startAccessor="start"
         endAccessor="end"
-        style={{ height: 700 }}
+        style={{
+          height: view === "agenda" ? 500 : window.innerWidth < 640 ? 500 : 700,
+        }}
         eventPropGetter={eventStyleGetter}
         components={{
           event: EventComponent,

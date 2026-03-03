@@ -30,7 +30,7 @@ export function StudentSelector({
 
   const { data: studentsData } = useQuery({
     queryKey: ["professor-students"],
-    queryFn: () => professorApi.getStudents({ limit: 1000 }),
+    queryFn: () => professorApi.getStudents({ all: true }),
   });
 
   // Filter and sort students
@@ -51,7 +51,7 @@ export function StudentSelector({
       (s) =>
         s.firstName.toLowerCase().includes(searchLower) ||
         s.lastName.toLowerCase().includes(searchLower) ||
-        s.email.toLowerCase().includes(searchLower)
+        s.email.toLowerCase().includes(searchLower),
     );
   }, [studentsData?.data, search]);
 
@@ -121,7 +121,7 @@ export function StudentSelector({
                 "w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors",
                 isSelected(student.id)
                   ? "bg-spanish-teal-50 border border-spanish-teal-200"
-                  : "hover:bg-muted"
+                  : "hover:bg-muted",
               )}
             >
               <div>

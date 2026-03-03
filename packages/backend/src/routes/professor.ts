@@ -6,9 +6,11 @@ import {
   createSlotSchema,
   bulkCreateSlotSchema,
   updateSlotSchema,
+  updateRecurringPatternSchema,
   createNoteSchema,
   slotsQuerySchema,
   paginationSchema,
+  studentsQuerySchema,
   createRecurringPatternSchema,
   professorBookStudentSchema,
   createPrivateInvitationSchema,
@@ -24,6 +26,7 @@ import {
   sendCancellationToStudent,
   sendBookingConfirmedToStudent,
   sendBookingRejectionToStudent,
+  sendSlotTimeChangedEmail,
 } from "../services/email.js";
 import {
   validateMeetingAccess,
@@ -64,16 +67,15 @@ router.get("/dashboard", async (req, res, next) => {
     const [
       totalStudents,
       totalBookings,
-      upcomingSlots,
+      pendingApprovals,
       todaySessions,
       completedThisMonth,
     ] = await Promise.all([
       prisma.user.count({ where: { isAdmin: false } }),
       prisma.booking.count({ where: { status: "CONFIRMED" } }),
-      prisma.availabilitySlot.count({
+      prisma.booking.count({
         where: {
-          startTime: { gte: new Date() },
-          status: { in: ["AVAILABLE", "FULLY_BOOKED"] },
+          status: "PENDING_CONFIRMATION",
         },
       }),
       prisma.availabilitySlot.count({
@@ -121,7 +123,7 @@ router.get("/dashboard", async (req, res, next) => {
         stats: {
           totalStudents,
           totalBookings,
-          upcomingSlots,
+          pendingApprovals,
           todaySessions,
           completedThisMonth,
         },
@@ -664,6 +666,106 @@ router.get("/recurring-patterns", async (req, res, next) => {
   }
 });
 
+// PUT /api/professor/recurring-patterns/:id - Update recurring pattern
+router.put(
+  "/recurring-patterns/:id",
+  validate(updateRecurringPatternSchema),
+  async (req, res, next) => {
+    try {
+      const pattern = await prisma.recurringPattern.findFirst({
+        where: { id: req.params.id, professorId: req.user!.id },
+      });
+
+      if (!pattern) {
+        throw new AppError(404, "Recurring pattern not found");
+      }
+
+      // Update the pattern
+      const updatedPattern = await prisma.recurringPattern.update({
+        where: { id: req.params.id },
+        data: {
+          ...req.body,
+        },
+      });
+
+      // Update all future AVAILABLE slots in this pattern
+      const now = new Date();
+
+      // First, get all slots that need to be updated
+      const slotsToUpdate = await prisma.availabilitySlot.findMany({
+        where: {
+          recurringPatternId: pattern.id,
+          status: "AVAILABLE", // Only update slots that are not booked
+          startTime: { gte: now }, // Only update future slots
+        },
+      });
+
+      // Update each slot individually if time changed
+      if (req.body.startTime || req.body.endTime) {
+        const newStartTime = req.body.startTime || pattern.startTime;
+        const newEndTime = req.body.endTime || pattern.endTime;
+
+        for (const slot of slotsToUpdate) {
+          const slotDate = new Date(slot.startTime);
+          const [startHours, startMinutes] = newStartTime
+            .split(":")
+            .map(Number);
+          const [endHours, endMinutes] = newEndTime.split(":").map(Number);
+
+          const newStart = new Date(slotDate);
+          newStart.setHours(startHours, startMinutes, 0, 0);
+
+          const newEnd = new Date(slotDate);
+          newEnd.setHours(endHours, endMinutes, 0, 0);
+
+          await prisma.availabilitySlot.update({
+            where: { id: slot.id },
+            data: {
+              startTime: newStart,
+              endTime: newEnd,
+              slotType: req.body.slotType,
+              maxParticipants: req.body.maxParticipants,
+              title: req.body.title,
+              description: req.body.description,
+            },
+          });
+        }
+      } else {
+        // Only update non-time fields
+        await prisma.availabilitySlot.updateMany({
+          where: {
+            recurringPatternId: pattern.id,
+            status: "AVAILABLE",
+            startTime: { gte: now },
+          },
+          data: {
+            slotType: req.body.slotType,
+            maxParticipants: req.body.maxParticipants,
+            title: req.body.title,
+            description: req.body.description,
+          },
+        });
+      }
+
+      const updateResult = { count: slotsToUpdate.length };
+
+      res.json({
+        success: true,
+        data: {
+          pattern: {
+            ...updatedPattern,
+            daysOfWeek: JSON.parse(updatedPattern.daysOfWeek),
+          },
+          slotsUpdated: updateResult.count,
+        },
+        message: `Recurring pattern updated. ${updateResult.count} future available slots updated.`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 // DELETE /api/professor/recurring-patterns/:id - Delete recurring pattern
 router.delete("/recurring-patterns/:id", async (req, res, next) => {
   try {
@@ -866,6 +968,28 @@ router.put("/slots/:id", validate(updateSlotSchema), async (req, res, next) => {
       throw new AppError(404, "Slot not found");
     }
 
+    // BUG FIX #5, #6: Block editing completed or cancelled slots
+    if (slot.status === "COMPLETED" || slot.status === "CANCELLED") {
+      throw new AppError(400, "Cannot edit completed or cancelled slots");
+    }
+
+    // BUG FIX #7: Block editing past slots
+    if (new Date(slot.endTime) < new Date()) {
+      throw new AppError(400, "Cannot edit slots in the past");
+    }
+
+    // BUG FIX #2: Validate maxParticipants reduction
+    if (
+      req.body.maxParticipants !== undefined &&
+      req.body.maxParticipants < slot.currentParticipants
+    ) {
+      throw new AppError(
+        400,
+        `Cannot reduce max participants to ${req.body.maxParticipants}. ` +
+          `Currently ${slot.currentParticipants} students are booked.`,
+      );
+    }
+
     // Check for overlaps if time is being changed
     if (req.body.startTime || req.body.endTime) {
       const newStart = req.body.startTime
@@ -895,23 +1019,91 @@ router.put("/slots/:id", validate(updateSlotSchema), async (req, res, next) => {
           "This time slot overlaps with an existing slot",
         );
       }
+
+      // BUG FIX #3: Notify students if time changes and slot has bookings
+      if (slot.currentParticipants > 0) {
+        // Fetch all confirmed bookings with student details
+        const bookings = await prisma.booking.findMany({
+          where: {
+            slotId: slot.id,
+            status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
+          },
+          include: {
+            student: true,
+          },
+        });
+
+        // Get professor details
+        const professor = await prisma.user.findUnique({
+          where: { id: req.user!.id },
+        });
+
+        if (professor && bookings.length > 0) {
+          // Send notification emails to all affected students
+          const emailPromises = bookings.map((booking) =>
+            sendSlotTimeChangedEmail({
+              student: booking.student as any,
+              professor: professor as any,
+              slot: slot as any,
+              oldStartTime: slot.startTime,
+              oldEndTime: slot.endTime,
+              newStartTime: newStart,
+              newEndTime: newEnd,
+            }),
+          );
+
+          // Send all emails in parallel but don't block the update
+          Promise.all(emailPromises).catch((err) =>
+            console.error("Failed to send time change notifications:", err),
+          );
+        }
+      }
     }
 
-    const updated = await prisma.availabilitySlot.update({
-      where: { id: slot.id },
-      data: {
-        ...req.body,
-        startTime: req.body.startTime
-          ? new Date(req.body.startTime)
-          : undefined,
-        endTime: req.body.endTime ? new Date(req.body.endTime) : undefined,
-      },
-    });
+    // Handle edit scope for recurring slots
+    const { editScope, ...updateData } = req.body;
 
-    res.json({
-      success: true,
-      data: updated,
-    });
+    if (editScope === "single" && slot.recurringPatternId) {
+      // Detach from recurring pattern when editing single slot
+      const updated = await prisma.availabilitySlot.update({
+        where: { id: slot.id },
+        data: {
+          ...updateData,
+          startTime: updateData.startTime
+            ? new Date(updateData.startTime)
+            : undefined,
+          endTime: updateData.endTime
+            ? new Date(updateData.endTime)
+            : undefined,
+          recurringPatternId: null, // Detach from series
+        },
+      });
+
+      res.json({
+        success: true,
+        data: updated,
+        message: "Slot updated and detached from recurring series",
+      });
+    } else {
+      // Standard update (no recurring pattern or editScope not specified)
+      const updated = await prisma.availabilitySlot.update({
+        where: { id: slot.id },
+        data: {
+          ...updateData,
+          startTime: updateData.startTime
+            ? new Date(updateData.startTime)
+            : undefined,
+          endTime: updateData.endTime
+            ? new Date(updateData.endTime)
+            : undefined,
+        },
+      });
+
+      res.json({
+        success: true,
+        data: updated,
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -1055,14 +1247,53 @@ router.post("/slots/:id/cancel-with-bookings", async (req, res, next) => {
 // GET /api/professor/students
 router.get(
   "/students",
-  validateQuery(paginationSchema),
+  validateQuery(studentsQuerySchema),
   async (req, res, next) => {
     try {
-      const { page, limit } = req.query as unknown as {
+      const { page, limit, all } = req.query as unknown as {
         page: number;
         limit: number;
+        all?: boolean;
       };
 
+      // If all=true, fetch all students without pagination
+      if (all) {
+        const students = await prisma.user.findMany({
+          where: { isAdmin: false },
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            timezone: true,
+            createdAt: true,
+            _count: {
+              select: {
+                bookings: {
+                  where: {
+                    status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
+                  },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+
+        res.json({
+          success: true,
+          data: students,
+          pagination: {
+            page: 1,
+            limit: students.length,
+            total: students.length,
+            totalPages: 1,
+          },
+        });
+        return;
+      }
+
+      // Standard paginated response
       const [students, total] = await Promise.all([
         prisma.user.findMany({
           where: { isAdmin: false },
@@ -1669,18 +1900,37 @@ router.post("/bookings/:id/reject", async (req, res, next) => {
       throw new AppError(400, "This booking cannot be rejected");
     }
 
-    // Update booking to rejected
-    const updatedBooking = await prisma.booking.update({
-      where: { id: bookingId },
-      data: {
-        status: "REJECTED",
-        rejectedAt: new Date(),
-        cancelReason: reason,
-      },
-      include: {
-        slot: true,
-        student: true,
-      },
+    // Update booking to rejected AND update slot state atomically
+    // BUG FIX #1: Rejection must decrement currentParticipants and recalculate status
+    const updatedBooking = await prisma.$transaction(async (tx) => {
+      // Update booking status to REJECTED
+      const updated = await tx.booking.update({
+        where: { id: bookingId },
+        data: {
+          status: "REJECTED",
+          rejectedAt: new Date(),
+          cancelReason: reason,
+        },
+        include: {
+          slot: true,
+          student: true,
+        },
+      });
+
+      // Decrement currentParticipants and recalculate slot status
+      const newCount = Math.max(0, booking.slot.currentParticipants - 1);
+      const newStatus =
+        newCount >= booking.slot.maxParticipants ? "FULLY_BOOKED" : "AVAILABLE";
+
+      await tx.availabilitySlot.update({
+        where: { id: booking.slot.id },
+        data: {
+          currentParticipants: newCount,
+          status: newStatus,
+        },
+      });
+
+      return updated;
     });
 
     // Send rejection email to student

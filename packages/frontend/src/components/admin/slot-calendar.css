@@ -176,7 +176,76 @@
 }
 
 /* Responsive adjustments */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
+  /* Mobile optimizations */
+  .calendar-wrapper {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+  }
+
+  .rbc-header {
+    font-size: 0.625rem;
+    padding: 0.5rem 0.125rem;
+    text-align: center;
+  }
+
+  .rbc-header + .rbc-header {
+    border-left: 1px solid #e2e8f0;
+  }
+
+  .rbc-event {
+    font-size: 0.625rem;
+    padding: 1px 2px;
+  }
+
+  .rbc-label {
+    font-size: 0.625rem;
+    padding: 0 0.25rem;
+  }
+
+  /* Time gutter narrower on mobile */
+  .rbc-time-gutter {
+    width: 40px !important;
+    min-width: 40px !important;
+  }
+
+  .rbc-time-header-gutter {
+    width: 40px !important;
+  }
+
+  /* Compact time slots on mobile */
+  .rbc-time-slot {
+    min-height: 30px;
+  }
+
+  /* Agenda view mobile */
+  .rbc-agenda-date-cell,
+  .rbc-agenda-time-cell,
+  .rbc-agenda-event-cell {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* Month view - hide day names on very small screens */
+  .rbc-month-view .rbc-header span {
+    display: inline-block;
+  }
+
+  /* Make events more compact in month view */
+  .rbc-month-view .rbc-event {
+    padding: 1px 2px;
+    font-size: 0.625rem;
+  }
+
+  /* Show more link */
+  .rbc-show-more {
+    font-size: 0.625rem;
+    padding: 0.125rem 0.25rem;
+  }
+}
+
+@media (max-width: 768px) and (min-width: 641px) {
+  /* Tablet optimizations */
   .calendar-wrapper {
     padding: 1rem;
   }
@@ -193,5 +262,10 @@
 
   .rbc-label {
     font-size: 0.625rem;
+  }
+
+  .rbc-time-gutter {
+    width: 50px !important;
+    min-width: 50px !important;
   }
 }

@@ -1498,3 +1498,131 @@ export async function sendBookingRejectionToStudent(
     throw err;
   }
 }
+
+/**
+ * Send slot time change notification to student (Bug Fix #3)
+ */
+export async function sendSlotTimeChangedEmail(data: {
+  student: UserPublic;
+  professor: UserPublic;
+  slot: AvailabilitySlot;
+  oldStartTime: Date;
+  oldEndTime: Date;
+  newStartTime: Date;
+  newEndTime: Date;
+}): Promise<void> {
+  const {
+    student,
+    professor,
+    slot,
+    oldStartTime,
+    oldEndTime,
+    newStartTime,
+    newEndTime,
+  } = data;
+
+  const oldDateStr = formatDateTime(oldStartTime, student.timezone);
+  const newDateStr = formatDateTime(newStartTime, student.timezone);
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+        .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+        .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+        .details { background: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b; }
+        .time-change { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin: 20px 0; }
+        .old-time { text-decoration: line-through; color: #dc2626; }
+        .new-time { color: #16a34a; font-weight: 600; }
+        .arrow { font-size: 24px; color: #f59e0b; }
+        .button { display: inline-block; background: #3b82f6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px 5px; }
+        h1 { margin: 0; font-size: 24px; }
+        .emoji { font-size: 32px; margin-bottom: 10px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="emoji">🔔</div>
+          <h1>Class Time Updated</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${student.firstName},</p>
+          <p><strong>${professor.firstName} ${professor.lastName}</strong> has updated the time for your upcoming class.</p>
+
+          <div class="details">
+            <p><strong>Class Type:</strong> ${slot.title || slot.slotType}</p>
+
+            <div class="time-change">
+              <div>
+                <p style="margin: 0; font-size: 12px; color: #6b7280;">Previous Time</p>
+                <p class="old-time" style="margin: 5px 0 0 0;">${oldDateStr}</p>
+              </div>
+              <div class="arrow">→</div>
+              <div>
+                <p style="margin: 0; font-size: 12px; color: #6b7280;">New Time</p>
+                <p class="new-time" style="margin: 5px 0 0 0;">${newDateStr}</p>
+              </div>
+            </div>
+
+            <p style="margin-top: 20px;"><strong>Professor:</strong> ${professor.firstName} ${professor.lastName}</p>
+          </div>
+
+          <p><strong>📅 Please update your calendar with the new time.</strong></p>
+
+          <p>If you have any concerns about this change, please contact ${professor.firstName} directly.</p>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${FRONTEND_URL}/dashboard/student" class="button">View in Dashboard</a>
+          </div>
+        </div>
+        <div class="footer">
+          <p>You received this email because you have a confirmed booking with ${professor.firstName} ${professor.lastName}.</p>
+          <p>&copy; ${new Date().getFullYear()} Spanish Class Platform. All rights reserved.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const subject = `⏰ Class Time Updated - ${professor.firstName} ${professor.lastName}`;
+
+  try {
+    const { data: resendData, error } = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: student.email,
+      subject,
+      html,
+    });
+
+    if (error) {
+      await logEmail({
+        emailType: "slot_time_changed",
+        fromAddress: EMAIL_FROM,
+        toAddress: student.email,
+        subject,
+        htmlContent: html,
+        status: "failed",
+        error: error.message,
+      });
+      throw new Error(error.message);
+    }
+
+    await logEmail({
+      emailType: "slot_time_changed",
+      fromAddress: EMAIL_FROM,
+      toAddress: student.email,
+      subject,
+      htmlContent: html,
+      status: "sent",
+      metadata: { resendId: resendData?.id },
+    });
+  } catch (err) {
+    console.error("Failed to send slot time changed email:", err);
+    throw err;
+  }
+}

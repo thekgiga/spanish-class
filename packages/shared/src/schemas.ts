@@ -136,11 +136,37 @@ export const updateSlotSchema = z
         "CANCELLED",
       ])
       .optional(),
+    editScope: z.enum(["single", "series"]).optional(),
   })
   .refine(
     (data) => {
       if (data.startTime && data.endTime) {
         return new Date(data.endTime) > new Date(data.startTime);
+      }
+      return true;
+    },
+    { message: "End time must be after start time" },
+  );
+
+export const updateRecurringPatternSchema = z
+  .object({
+    startTime: z
+      .string()
+      .regex(/^\d{2}:\d{2}$/, "Invalid time format (HH:mm)")
+      .optional(),
+    endTime: z
+      .string()
+      .regex(/^\d{2}:\d{2}$/, "Invalid time format (HH:mm)")
+      .optional(),
+    slotType: slotTypeEnum.optional(),
+    maxParticipants: z.number().int().min(1).max(20).optional(),
+    title: z.string().max(100).optional().nullable(),
+    description: z.string().max(500).optional().nullable(),
+  })
+  .refine(
+    (data) => {
+      if (data.startTime && data.endTime) {
+        return data.endTime > data.startTime;
       }
       return true;
     },
@@ -239,6 +265,12 @@ export const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
 });
 
+export const studentsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(1000).default(20),
+  all: z.coerce.boolean().optional(),
+});
+
 export const slotsQuerySchema = paginationSchema.extend({
   startDate: z.string().datetime().optional(),
   endDate: z.string().datetime().optional(),
@@ -280,10 +312,14 @@ export type UpdateNoteInput = z.infer<typeof updateNoteSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
+export type StudentsQueryInput = z.infer<typeof studentsQuerySchema>;
 export type SlotsQueryInput = z.infer<typeof slotsQuerySchema>;
 export type BookingsQueryInput = z.infer<typeof bookingsQuerySchema>;
 export type CreateRecurringPatternInput = z.infer<
   typeof createRecurringPatternSchema
+>;
+export type UpdateRecurringPatternInput = z.infer<
+  typeof updateRecurringPatternSchema
 >;
 export type ProfessorBookStudentInput = z.infer<
   typeof professorBookStudentSchema

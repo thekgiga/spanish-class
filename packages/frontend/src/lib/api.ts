@@ -157,6 +157,7 @@ export const professorApi = {
   getStudents: async (params?: {
     page?: number;
     limit?: number;
+    all?: boolean;
   }): Promise<
     PaginatedResponse<UserPublic & { _count: { bookings: number } }>
   > => {
@@ -205,10 +206,30 @@ export const professorApi = {
     return res.data.data;
   },
 
+  getRecurringPattern: async (id: string): Promise<RecurringPattern> => {
+    const res = await api.get(`/professor/recurring-patterns/${id}`);
+    return res.data.data;
+  },
+
   createRecurringPattern: async (
     data: CreateRecurringPatternInput,
   ): Promise<{ pattern: RecurringPattern; slots: AvailabilitySlot[] }> => {
     const res = await api.post("/professor/recurring-patterns", data);
+    return res.data.data;
+  },
+
+  updateRecurringPattern: async (
+    id: string,
+    data: {
+      startTime?: string;
+      endTime?: string;
+      slotType?: string;
+      maxParticipants?: number;
+      title?: string | null;
+      description?: string | null;
+    },
+  ): Promise<{ pattern: RecurringPattern; slotsUpdated: number }> => {
+    const res = await api.put(`/professor/recurring-patterns/${id}`, data);
     return res.data.data;
   },
 

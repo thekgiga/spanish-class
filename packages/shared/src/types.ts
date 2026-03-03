@@ -183,7 +183,7 @@ export interface AuthResponse {
 export interface ProfessorDashboardStats {
   totalStudents: number;
   totalBookings: number;
-  upcomingSlots: number;
+  pendingApprovals: number;
   todaySessions: number;
   completedThisMonth: number;
 }

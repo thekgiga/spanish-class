@@ -56,12 +56,13 @@ export const WEEK_END_HOUR = 23;
 export function getStatusColor(status: AvailabilitySlot["status"]): string {
   switch (status) {
     case "AVAILABLE":
-      // Glassy/subtle style for available slots
-      return "rgba(20, 184, 166, 0.15)"; // Very transparent teal
+      // Bright teal gradient for available slots
+      return "linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)"; // Teal gradient
     case "FULLY_BOOKED":
-      return "#F59E0B"; // Solid Amber for booked
+      // Amber/orange gradient for booked slots
+      return "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)"; // Amber gradient
     case "IN_PROGRESS":
-      return "#3B82F6"; // Blue
+      return "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)"; // Blue gradient
     case "COMPLETED":
       return "#94A3B8"; // Gray
     case "CANCELLED":
@@ -73,14 +74,14 @@ export function getStatusColor(status: AvailabilitySlot["status"]): string {
 
 /**
  * Get text color for slot status
- * Available slots need darker text since background is transparent
+ * All slots now use white text for better contrast
  */
 export function getStatusTextColor(status: AvailabilitySlot["status"]): string {
   switch (status) {
-    case "AVAILABLE":
-      return "#0F766E"; // Dark teal for readable text on transparent bg
+    case "COMPLETED":
+      return "#1E293B"; // Dark text for gray background
     default:
-      return "#FFFFFF"; // White text for solid backgrounds
+      return "#FFFFFF"; // White text for all colored backgrounds
   }
 }
 
