@@ -228,170 +228,153 @@ export function AdminDashboard() {
                   <Skeleton key={i} className="h-24 w-full rounded-xl" />
                 ))}
               </div>
-            ) : data?.todaysSlots && data.todaysSlots.length > 0 ? (
+            ) : data?.todaysSlots &&
+              data.todaysSlots.filter(
+                (slot: any) => slot.bookings && slot.bookings.length > 0,
+              ).length > 0 ? (
               <div className="space-y-3">
-                {data.todaysSlots.map((slot: any, index: number) => (
-                  <motion.div
-                    key={slot.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={cn(
-                      "group p-5 rounded-xl transition-all duration-200",
-                      slot.status === "AVAILABLE"
-                        ? "bg-gradient-to-r from-spanish-teal-50/50 to-spanish-coral-50/50 border border-spanish-teal-200/40 hover:border-spanish-teal-300/60 hover:shadow-sm backdrop-blur-sm"
-                        : "bg-white border border-slate-200/60 hover:bg-slate-50 hover:shadow-md hover:border-spanish-teal-200/60",
-                    )}
-                  >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      {/* Left side - Time and Title */}
-                      <div className="flex items-start sm:items-center gap-4">
-                        <div className="h-14 w-14 flex-shrink-0 rounded-xl bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 flex items-center justify-center shadow-lg shadow-spanish-teal-500/30">
-                          <Clock className="h-6 w-6 text-white" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-semibold text-slate-900 text-lg truncate">
-                              {slot.title || "Spanish Class"}
-                            </p>
-                            {slot.isPrivate ? (
-                              <div title="Private">
-                                <Lock className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                              </div>
-                            ) : (
-                              <div title="Public">
-                                <Unlock className="h-4 w-4 text-emerald-600 flex-shrink-0" />
-                              </div>
-                            )}
+                {data.todaysSlots
+                  .filter(
+                    (slot: any) => slot.bookings && slot.bookings.length > 0,
+                  )
+                  .map((slot: any, index: number) => (
+                    <motion.div
+                      key={slot.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group p-5 rounded-xl bg-white border border-slate-200/60 hover:bg-slate-50 hover:shadow-md hover:border-spanish-teal-200/60 transition-all duration-200"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        {/* Left side - Time and Title */}
+                        <div className="flex items-start sm:items-center gap-4">
+                          <div className="h-14 w-14 flex-shrink-0 rounded-xl bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 flex items-center justify-center shadow-lg shadow-spanish-teal-500/30">
+                            <Clock className="h-6 w-6 text-white" />
                           </div>
-                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
-                            <p className="text-sm text-slate-600 font-medium">
-                              {formatTime(slot.startTime)} -{" "}
-                              {formatTime(slot.endTime)}
-                            </p>
-                            <span className="text-slate-300 hidden sm:inline">
-                              •
-                            </span>
-                            <p className="text-sm text-slate-500">
-                              {getDuration(slot.startTime, slot.endTime)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Right side - Details and Actions */}
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
-                        {/* Slot Type & Booking Info */}
-                        <div className="flex items-center gap-3 sm:text-right">
-                          <Badge
-                            className={cn(
-                              slot.slotType === "GROUP"
-                                ? "bg-clay-100 text-clay-700 border-clay-200"
-                                : "bg-spanish-olive-100 text-spanish-olive-700 border-spanish-olive-200",
-                            )}
-                          >
-                            {slot.slotType === "GROUP" ? (
-                              <>
-                                <Users className="h-3 w-3 mr-1" />
-                                Group
-                              </>
-                            ) : (
-                              <>
-                                <User className="h-3 w-3 mr-1" />
-                                Individual
-                              </>
-                            )}
-                          </Badge>
-                          <p className="text-sm text-slate-600">
-                            <span className="font-semibold">
-                              {slot.currentParticipants}
-                            </span>
-                            <span className="text-slate-400">
-                              /{slot.maxParticipants}
-                            </span>{" "}
-                            booked
-                          </p>
-                        </div>
-
-                        {/* Join Button */}
-                        {slot.meetLink && (
-                          <Button
-                            size="lg"
-                            className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white shadow-lg shadow-emerald-500/30"
-                            asChild
-                          >
-                            <a
-                              href={slot.meetLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              <Video className="mr-2 h-5 w-5" />
-                              Join Now
-                            </a>
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Student Details - Show who booked OR show available status */}
-                    {slot.bookings && slot.bookings.length > 0 ? (
-                      <div className="mt-4 pt-4 border-t border-slate-200/60">
-                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                          Booked By
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {slot.bookings.map((booking: any) => (
-                            <div
-                              key={booking.id}
-                              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200/60"
-                            >
-                              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 flex items-center justify-center text-white text-xs font-bold">
-                                {booking.student.firstName[0]}
-                                {booking.student.lastName[0]}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-medium text-slate-900 truncate">
-                                  {booking.student.firstName}{" "}
-                                  {booking.student.lastName}
-                                </p>
-                                <p className="text-xs text-slate-500 truncate">
-                                  {booking.student.email}
-                                </p>
-                              </div>
-                              {booking.status === "PENDING_CONFIRMATION" && (
-                                <Badge
-                                  variant="warning"
-                                  className="ml-2 text-xs"
-                                >
-                                  Pending
-                                </Badge>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-semibold text-slate-900 text-lg truncate">
+                                {slot.title || "Spanish Class"}
+                              </p>
+                              {slot.isPrivate ? (
+                                <div title="Private">
+                                  <Lock className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                                </div>
+                              ) : (
+                                <div title="Public">
+                                  <Unlock className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                                </div>
                               )}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    ) : slot.status === "AVAILABLE" ? (
-                      <div className="mt-4 pt-4 border-t border-slate-200/60">
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-spanish-teal-50 to-spanish-coral-50 border border-spanish-teal-200/60">
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-5 w-5 text-spanish-teal-600" />
-                            <div>
-                              <p className="text-sm font-semibold text-spanish-teal-900">
-                                Available for Booking
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
+                              <p className="text-sm text-slate-600 font-medium">
+                                {formatTime(slot.startTime)} -{" "}
+                                {formatTime(slot.endTime)}
                               </p>
-                              <p className="text-xs text-spanish-teal-700">
-                                Waiting for students to book this slot
+                              <span className="text-slate-300 hidden sm:inline">
+                                •
+                              </span>
+                              <p className="text-sm text-slate-500">
+                                {getDuration(slot.startTime, slot.endTime)}
                               </p>
                             </div>
                           </div>
-                          <Badge className="bg-spanish-teal-500/20 text-spanish-teal-700 border-spanish-teal-500/30">
-                            Open
-                          </Badge>
+                        </div>
+
+                        {/* Right side - Details and Actions */}
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
+                          {/* Slot Type & Booking Info */}
+                          <div className="flex items-center gap-3 sm:text-right">
+                            <Badge
+                              className={cn(
+                                slot.slotType === "GROUP"
+                                  ? "bg-clay-100 text-clay-700 border-clay-200"
+                                  : "bg-spanish-olive-100 text-spanish-olive-700 border-spanish-olive-200",
+                              )}
+                            >
+                              {slot.slotType === "GROUP" ? (
+                                <>
+                                  <Users className="h-3 w-3 mr-1" />
+                                  Group
+                                </>
+                              ) : (
+                                <>
+                                  <User className="h-3 w-3 mr-1" />
+                                  Individual
+                                </>
+                              )}
+                            </Badge>
+                            <p className="text-sm text-slate-600">
+                              <span className="font-semibold">
+                                {slot.currentParticipants}
+                              </span>
+                              <span className="text-slate-400">
+                                /{slot.maxParticipants}
+                              </span>{" "}
+                              booked
+                            </p>
+                          </div>
+
+                          {/* Join Button */}
+                          {slot.meetLink && (
+                            <Button
+                              size="lg"
+                              className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white shadow-lg shadow-emerald-500/30"
+                              asChild
+                            >
+                              <a
+                                href={slot.meetLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <Video className="mr-2 h-5 w-5" />
+                                Join Now
+                              </a>
+                            </Button>
+                          )}
                         </div>
                       </div>
-                    ) : null}
-                  </motion.div>
-                ))}
+
+                      {/* Student Details - Show who booked */}
+                      {slot.bookings && slot.bookings.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-slate-200/60">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                            Booked By
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {slot.bookings.map((booking: any) => (
+                              <div
+                                key={booking.id}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200/60"
+                              >
+                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 flex items-center justify-center text-white text-xs font-bold">
+                                  {booking.student.firstName[0]}
+                                  {booking.student.lastName[0]}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-medium text-slate-900 truncate">
+                                    {booking.student.firstName}{" "}
+                                    {booking.student.lastName}
+                                  </p>
+                                  <p className="text-xs text-slate-500 truncate">
+                                    {booking.student.email}
+                                  </p>
+                                </div>
+                                {booking.status === "PENDING_CONFIRMATION" && (
+                                  <Badge
+                                    variant="warning"
+                                    className="ml-2 text-xs"
+                                  >
+                                    Pending
+                                  </Badge>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
               </div>
             ) : (
               <div className="text-center py-16">
