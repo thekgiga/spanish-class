@@ -57,29 +57,54 @@ export function SlotCalendar({
   onSelectEvent,
 }: SlotCalendarProps) {
   // Transform slots to calendar events
-  // Filter out CANCELLED slots - they should not be visible on calendar
+  // Keep CANCELLED slots visible (in red) so professors can delete them
   const events: CalendarEvent[] = useMemo(() => {
-    return slots
-      .filter((slot) => slot.status !== "CANCELLED")
-      .map((slot) => ({
-        id: slot.id,
-        title: slot.title || `${slot.slotType} Class`,
-        start: new Date(slot.startTime),
-        end: new Date(slot.endTime),
-        resource: slot,
-      }));
+    return slots.map((slot) => ({
+      id: slot.id,
+      title: slot.title || `${slot.slotType} Class`,
+      start: new Date(slot.startTime),
+      end: new Date(slot.endTime),
+      resource: slot,
+    }));
   }, [slots]);
 
   // Custom event styling
   const eventStyleGetter = (event: CalendarEvent) => {
     const slot = event.resource;
-    const backgroundGradient = getStatusColor(slot.status);
+
+    // Check if slot has any pending approval bookings
+    const hasPendingApprovals =
+      "bookings" in slot &&
+      Array.isArray(slot.bookings) &&
+      slot.bookings.some((b) => b.status === "PENDING_CONFIRMATION");
+
+    const backgroundGradient = getStatusColor(slot.status, hasPendingApprovals);
     const borderColor = getBorderColor(slot.isPrivate);
-    const textColor = getStatusTextColor(slot.status);
+    const textColor = getStatusTextColor(slot.status, hasPendingApprovals);
 
     const isAvailable = slot.status === "AVAILABLE";
-    const isBooked =
-      slot.status === "FULLY_BOOKED" || slot.currentParticipants > 0;
+    const isCancelled = slot.status === "CANCELLED";
+    const isCompleted = slot.status === "COMPLETED";
+
+    // Enhanced box shadow based on status
+    let boxShadow = "0 2px 4px rgba(0, 0, 0, 0.1)";
+    if (hasPendingApprovals) {
+      // Yellow glow for pending approvals - most important
+      boxShadow =
+        "0 2px 10px rgba(252, 211, 77, 0.5), inset 0 1px 1px rgba(255,255,255,0.4)";
+    } else if (isCancelled) {
+      // Red glow for cancelled - needs deletion
+      boxShadow =
+        "0 2px 10px rgba(239, 68, 68, 0.4), inset 0 1px 1px rgba(255,255,255,0.3)";
+    } else if (isAvailable) {
+      // Teal glow for available
+      boxShadow =
+        "0 2px 8px rgba(20, 184, 166, 0.3), inset 0 1px 1px rgba(255,255,255,0.3)";
+    } else if (slot.status === "FULLY_BOOKED") {
+      // Green glow for confirmed bookings
+      boxShadow =
+        "0 2px 8px rgba(16, 185, 129, 0.3), inset 0 1px 1px rgba(255,255,255,0.3)";
+    }
 
     return {
       style: {
@@ -91,12 +116,13 @@ export function SlotCalendar({
         borderRadius: "6px",
         border: slot.isPrivate
           ? `2px solid ${borderColor}`
-          : `1px solid rgba(255, 255, 255, 0.2)`,
-        boxShadow: isAvailable
-          ? "0 2px 8px rgba(20, 184, 166, 0.3), inset 0 1px 1px rgba(255,255,255,0.3)"
-          : isBooked
-            ? "0 2px 8px rgba(245, 158, 11, 0.3), inset 0 1px 1px rgba(255,255,255,0.3)"
-            : "0 2px 4px rgba(0, 0, 0, 0.1)",
+          : isCancelled
+            ? "2px solid #DC2626"
+            : hasPendingApprovals
+              ? "2px solid #F59E0B"
+              : `1px solid rgba(255, 255, 255, 0.2)`,
+        boxShadow,
+        opacity: isCancelled ? 0.9 : isCompleted ? 0.7 : 1,
       },
     };
   };

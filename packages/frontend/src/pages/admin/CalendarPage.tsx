@@ -11,13 +11,10 @@ import {
   endOfWeek,
   format,
 } from "date-fns";
-import { UserPlus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { professorApi } from "@/lib/api";
 import { SlotCalendar } from "@/components/admin/SlotCalendar";
 import { SlotModal } from "@/components/admin/SlotModal";
 import { CalendarToolbar } from "@/components/admin/CalendarToolbar";
-import { PrivateInvitationModal } from "@/components/professor/PrivateInvitationModal";
 
 export function CalendarPage() {
   const { t } = useTranslation("admin");
@@ -27,6 +24,7 @@ export function CalendarPage() {
   const [date, setDate] = useState(new Date());
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [showHidden, setShowHidden] = useState(false);
 
   // Modal state
   const [isSlotModalOpen, setIsSlotModalOpen] = useState(false);
@@ -39,8 +37,6 @@ export function CalendarPage() {
   const [selectedEndTime, setSelectedEndTime] = useState<string | undefined>(
     undefined,
   );
-  const [showPrivateInvitationModal, setShowPrivateInvitationModal] =
-    useState(false);
 
   // Fetch slots data
   const monthStart = startOfMonth(date);
@@ -54,6 +50,7 @@ export function CalendarPage() {
       format(date, "yyyy-MM"),
       statusFilter,
       typeFilter,
+      showHidden,
     ],
     queryFn: () =>
       professorApi.getSlots({
@@ -63,6 +60,7 @@ export function CalendarPage() {
         endDate: calendarEnd.toISOString(),
         status: statusFilter || undefined,
         slotType: typeFilter || undefined,
+        includeHidden: showHidden,
       }),
   });
 
@@ -154,19 +152,6 @@ export function CalendarPage() {
             {t("calendar.subtitle")}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowPrivateInvitationModal(true)}
-            className="text-xs sm:text-sm px-3 sm:px-4"
-          >
-            <UserPlus className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden sm:inline ml-2">
-              {t("calendar.private_invitation")}
-            </span>
-            <span className="sm:hidden ml-2">Invite</span>
-          </Button>
-        </div>
       </div>
 
       {/* Calendar Toolbar */}
@@ -180,6 +165,8 @@ export function CalendarPage() {
         typeFilter={typeFilter}
         onStatusFilterChange={setStatusFilter}
         onTypeFilterChange={setTypeFilter}
+        showHidden={showHidden}
+        onShowHiddenChange={setShowHidden}
       />
 
       {/* Calendar */}
@@ -202,13 +189,6 @@ export function CalendarPage() {
         selectedEndTime={selectedEndTime}
         existingSlot={selectedSlot}
         mode={modalMode}
-      />
-
-      {/* Private Invitation Modal */}
-      <PrivateInvitationModal
-        isOpen={showPrivateInvitationModal}
-        onClose={() => setShowPrivateInvitationModal(false)}
-        defaultDate={selectedDate}
       />
     </div>
   );

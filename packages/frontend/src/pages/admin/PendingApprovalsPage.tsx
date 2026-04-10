@@ -20,12 +20,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { professorApi } from "@/lib/api";
 import { formatTime } from "@/lib/utils";
+import { StudentProfileModal } from "@/components/admin/StudentProfileModal";
 
 export function PendingApprovalsPage() {
   const { t } = useTranslation("admin");
   const queryClient = useQueryClient();
   const [rejectingBooking, setRejectingBooking] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [studentModalOpen, setStudentModalOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null,
+  );
+
+  const openStudentModal = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    setStudentModalOpen(true);
+  };
 
   const { data, isLoading } = useQuery({
     queryKey: ["pending-bookings"],
@@ -114,15 +124,18 @@ export function PendingApprovalsPage() {
                         <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
                           <User className="h-5 w-5 text-amber-600" />
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-navy-800">
+                        <button
+                          onClick={() => openStudentModal(booking.student?.id)}
+                          className="text-left hover:opacity-80 transition-opacity"
+                        >
+                          <h3 className="font-semibold text-navy-800 hover:underline">
                             {booking.student?.firstName}{" "}
                             {booking.student?.lastName}
                           </h3>
                           <p className="text-sm text-muted-foreground">
                             {booking.student?.email}
                           </p>
-                        </div>
+                        </button>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
@@ -247,6 +260,13 @@ export function PendingApprovalsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Student Profile Modal */}
+      <StudentProfileModal
+        open={studentModalOpen}
+        onClose={() => setStudentModalOpen(false)}
+        studentId={selectedStudentId}
+      />
     </div>
   );
 }

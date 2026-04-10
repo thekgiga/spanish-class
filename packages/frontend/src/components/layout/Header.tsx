@@ -14,15 +14,17 @@ import { useAuthStore } from "@/stores/auth";
 import { getInitials } from "@/lib/utils";
 import { PrimaryButton } from "@/components/ui/premium";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
-
-const navLinks = [
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-];
+import { useTranslation } from "react-i18next";
 
 export function Header() {
+  const { t } = useTranslation("common");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
+
+  const navLinks = [
+    { label: t("navigation.about"), href: "/about" },
+    { label: t("navigation.contact"), href: "/contact" },
+  ];
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -88,20 +90,22 @@ export function Header() {
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  className="w-64 rounded-2xl shadow-2xl border-2 border-spanish-teal-100 bg-white"
+                  className="w-72 rounded-2xl shadow-2xl border-2 border-spanish-teal-100 bg-white"
                   align="end"
                 >
                   <div className="flex items-center justify-start gap-3 p-4">
-                    <Avatar className="h-12 w-12 border-2 border-spanish-teal-300">
+                    <Avatar className="h-12 w-12 flex-shrink-0 border-2 border-spanish-teal-300">
                       <AvatarFallback className="bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 text-white font-semibold">
                         {getInitials(user.firstName, user.lastName)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-semibold text-slate-900">
+                    <div className="flex flex-col space-y-1 leading-none min-w-0 flex-1">
+                      <p className="font-semibold text-slate-900 truncate">
                         {user.firstName} {user.lastName}
                       </p>
-                      <p className="text-sm text-slate-600">{user.email}</p>
+                      <p className="text-sm text-slate-600 truncate">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
                   <DropdownMenuSeparator className="bg-spanish-teal-100" />
@@ -114,28 +118,30 @@ export function Header() {
                       className="flex items-center text-slate-700"
                     >
                       <LayoutDashboard className="mr-3 h-4 w-4" />
-                      Dashboard
+                      {t("navigation.dashboard")}
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    asChild
-                    className="cursor-pointer hover:bg-spanish-teal-50"
-                  >
-                    <Link
-                      to={`${dashboardPath}/profile`}
-                      className="flex items-center text-slate-700"
+                  {!user.isAdmin && (
+                    <DropdownMenuItem
+                      asChild
+                      className="cursor-pointer hover:bg-spanish-teal-50"
                     >
-                      <User className="mr-3 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
+                      <Link
+                        to="/dashboard/profile"
+                        className="flex items-center text-slate-700"
+                      >
+                        <User className="mr-3 h-4 w-4" />
+                        {t("navigation.profile")}
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator className="bg-spanish-teal-100" />
                   <DropdownMenuItem
                     onClick={handleLogout}
                     className="cursor-pointer text-spanish-coral-600 hover:bg-spanish-coral-50"
                   >
                     <LogOut className="mr-3 h-4 w-4" />
-                    Sign out
+                    {t("navigation.logout")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -147,7 +153,7 @@ export function Header() {
               >
                 <Link to="/auth">
                   <Sparkles className="h-4 w-4" />
-                  Sign In
+                  {t("navigation.login")}
                 </Link>
               </PrimaryButton>
             )}
@@ -161,7 +167,7 @@ export function Header() {
               className="inline-flex items-center justify-center rounded-xl p-2 text-slate-700 hover:bg-spanish-teal-50 hover:text-spanish-teal-600 transition-all"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <span className="sr-only">Open menu</span>
+              <span className="sr-only">{t("navigation.menu")}</span>
               {mobileMenuOpen ? (
                 <X className="h-6 w-6" aria-hidden="true" />
               ) : (
@@ -197,7 +203,7 @@ export function Header() {
                     className="block rounded-xl px-3 py-2 text-base font-medium text-slate-700 hover:bg-spanish-teal-50 hover:text-spanish-teal-600 transition-all"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Dashboard
+                    {t("navigation.dashboard")}
                   </Link>
                   <button
                     onClick={() => {
@@ -206,7 +212,7 @@ export function Header() {
                     }}
                     className="block w-full text-left rounded-xl px-3 py-2 text-base font-medium text-spanish-coral-600 hover:bg-spanish-coral-50 transition-all"
                   >
-                    Sign out
+                    {t("navigation.logout")}
                   </button>
                 </>
               ) : (
@@ -217,7 +223,7 @@ export function Header() {
                 >
                   <span className="flex items-center gap-2">
                     <Sparkles className="h-4 w-4" />
-                    Sign In
+                    {t("navigation.login")}
                   </span>
                 </Link>
               )}

@@ -96,6 +96,7 @@ export function StudentSelector({
             >
               {student.firstName} {student.lastName}
               <button
+                type="button"
                 onClick={() => toggleStudent(student)}
                 className="ml-1 p-0.5 hover:bg-gray-300 rounded"
               >
@@ -116,6 +117,7 @@ export function StudentSelector({
           students.map((student) => (
             <button
               key={student.id}
+              type="button"
               onClick={() => toggleStudent(student)}
               className={cn(
                 "w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors",

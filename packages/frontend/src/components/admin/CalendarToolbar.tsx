@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { ChevronLeft, ChevronRight, Plus, Filter } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Filter, Star } from "lucide-react";
 import { View } from "react-big-calendar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,11 +9,16 @@ interface CalendarToolbarProps {
   onViewChange: (view: View) => void;
   date: Date;
   onNavigate: (action: "PREV" | "NEXT" | "TODAY") => void;
-  onCreateSlot: () => void;
+  onCreateSlot?: () => void;
   statusFilter?: string | null;
   typeFilter?: string | null;
   onStatusFilterChange: (value: string | null) => void;
   onTypeFilterChange: (value: string | null) => void;
+  showForMeOnly?: boolean;
+  forMeOnly?: boolean;
+  onForMeOnlyChange?: (value: boolean) => void;
+  showHidden?: boolean;
+  onShowHiddenChange?: (value: boolean) => void;
 }
 
 export function CalendarToolbar({
@@ -26,6 +31,11 @@ export function CalendarToolbar({
   typeFilter,
   onStatusFilterChange,
   onTypeFilterChange,
+  showForMeOnly = false,
+  forMeOnly = false,
+  onForMeOnlyChange,
+  showHidden = false,
+  onShowHiddenChange,
 }: CalendarToolbarProps) {
   const viewButtons: { value: View; label: string }[] = [
     { value: "week", label: "Week" },
@@ -38,19 +48,21 @@ export function CalendarToolbar({
     <div className="space-y-3">
       {/* Filters - Mobile Optimized */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           <Filter className="hidden sm:block h-4 w-4 text-muted-foreground flex-shrink-0" />
-          <select
-            value={statusFilter || ""}
-            onChange={(e) => onStatusFilterChange(e.target.value || null)}
-            className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 border rounded-lg text-xs sm:text-sm bg-white min-w-0"
-          >
-            <option value="">All Statuses</option>
-            <option value="AVAILABLE">Available</option>
-            <option value="FULLY_BOOKED">Booked</option>
-            <option value="COMPLETED">Completed</option>
-            <option value="CANCELLED">Cancelled</option>
-          </select>
+          {!showForMeOnly && (
+            <select
+              value={statusFilter || ""}
+              onChange={(e) => onStatusFilterChange(e.target.value || null)}
+              className="flex-1 sm:flex-none px-2 sm:px-3 py-1.5 border rounded-lg text-xs sm:text-sm bg-white min-w-0"
+            >
+              <option value="">All Statuses</option>
+              <option value="AVAILABLE">Available</option>
+              <option value="FULLY_BOOKED">Booked</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+            </select>
+          )}
           <select
             value={typeFilter || ""}
             onChange={(e) => onTypeFilterChange(e.target.value || null)}
@@ -60,6 +72,29 @@ export function CalendarToolbar({
             <option value="INDIVIDUAL">Individual</option>
             <option value="GROUP">Group</option>
           </select>
+          {showForMeOnly && onForMeOnlyChange && (
+            <Button
+              variant={forMeOnly ? "primary" : "outline"}
+              size="sm"
+              onClick={() => onForMeOnlyChange(!forMeOnly)}
+              className="gap-1"
+            >
+              <Star className={cn("h-4 w-4", forMeOnly && "fill-current")} />
+              <span className="hidden sm:inline">For Me Only</span>
+              <span className="sm:hidden">Private</span>
+            </Button>
+          )}
+          {onShowHiddenChange && (
+            <label className="flex items-center gap-2 text-xs sm:text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showHidden}
+                onChange={(e) => onShowHiddenChange(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <span className="text-gray-700">Show hidden</span>
+            </label>
+          )}
         </div>
       </div>
 
@@ -119,14 +154,16 @@ export function CalendarToolbar({
           </div>
 
           {/* Create Slot Button - Icon only on mobile */}
-          <Button
-            variant="primary"
-            onClick={onCreateSlot}
-            className="px-3 sm:px-4"
-          >
-            <Plus className="h-4 w-4" />
-            <span className="hidden sm:inline ml-2">Create Slot</span>
-          </Button>
+          {onCreateSlot && (
+            <Button
+              variant="primary"
+              onClick={onCreateSlot}
+              className="px-3 sm:px-4"
+            >
+              <Plus className="h-4 w-4" />
+              <span className="hidden sm:inline ml-2">Create Slot</span>
+            </Button>
+          )}
         </div>
       </div>
     </div>

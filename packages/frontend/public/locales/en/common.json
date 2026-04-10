@@ -129,12 +129,22 @@
     "loading": "Loading participants..."
   },
   "footer": {
-    "instagram_title": "Follow us on Instagram"
+    "instagram_title": "Follow us on Instagram",
+    "email": "Email",
+    "location": "Belgrade, Serbia",
+    "copyright": "© {{year}} Spanish Class. All rights reserved."
   },
   "aria_labels": {
     "mobile_navigation": "Mobile navigation",
     "close_navigation": "Close navigation",
     "top_navigation": "Top navigation",
     "email_preview": "Email Preview"
+  },
+  "general": {
+    "student": "student",
+    "students": "students",
+    "selected": "selected",
+    "one_on_one": "1-on-1 session",
+    "multiple_students": "Multiple students"
   }
 }

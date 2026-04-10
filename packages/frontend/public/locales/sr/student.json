@@ -44,8 +44,11 @@
     "completion_title": "Dovršenost profila",
     "completion_complete": "Kompletno",
     "completion_fields": "{{completed}} od {{total}} polja popunjeno",
+    "next_to_complete": "Sledeće za popunjavanje",
+    "completion_motivation": "Kompletan profil nam pomaže da pružimo bolje preporuke",
     "edit_profile": "Uredite profil",
     "save_profile": "Sačuvajte profil",
+    "save": "Sačuvaj izmene",
     "cancel": "Otkaži",
     "tabs": {
       "personal": "Lični podaci",
@@ -123,8 +126,10 @@
       }
     },
     "class_types": {
+      "PRIVATE_LESSON": "Privatna lekcija",
       "PRIVATE_LESSONS": "Privatne lekcije",
       "GROUP_CLASSES": "Grupni časovi",
+      "CONVERSATION_I": "Konverzacije I",
       "CONVERSATION_PRACTICE": "Konverzacijska praksa",
       "EXAM_PREPARATION": "Priprema za ispit",
       "BUSINESS_SPANISH": "Poslovni španski",

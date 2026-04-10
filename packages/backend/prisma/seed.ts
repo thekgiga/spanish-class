@@ -1,46 +1,60 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables from config directory
+const ENV = process.env.ENV || "local";
+const envPath = path.join(__dirname, "..", "..", "..", "config", ENV, ".env");
+dotenv.config({ path: envPath });
+
+console.log(`Loading environment from: ${envPath}`);
+console.log(`DATABASE_URL configured: ${!!process.env.DATABASE_URL}`);
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding database...');
+  console.log("Seeding database...");
 
   // Create admin/professor user
-  const adminPassword = await bcrypt.hash('Admin123!', 12);
+  const adminPassword = await bcrypt.hash("Admin123!", 12);
 
   const admin = await prisma.user.upsert({
-    where: { email: 'professor@spanishclass.com' },
+    where: { email: "professor@spanishclass.com" },
     update: {},
     create: {
-      email: 'professor@spanishclass.com',
+      email: "professor@spanishclass.com",
       passwordHash: adminPassword,
-      firstName: 'Maria',
-      lastName: 'Garcia',
+      firstName: "Maria",
+      lastName: "Garcia",
       isAdmin: true,
-      timezone: 'Europe/Madrid',
+      timezone: "Europe/Madrid",
     },
   });
 
-  console.log('Created admin user:', admin.email);
+  console.log("Created admin user:", admin.email);
 
   // Create a test student
-  const studentPassword = await bcrypt.hash('Student123!', 12);
+  const studentPassword = await bcrypt.hash("Student123!", 12);
 
   const student = await prisma.user.upsert({
-    where: { email: 'student@example.com' },
+    where: { email: "student@example.com" },
     update: {},
     create: {
-      email: 'student@example.com',
+      email: "student@example.com",
       passwordHash: studentPassword,
-      firstName: 'John',
-      lastName: 'Doe',
+      firstName: "John",
+      lastName: "Doe",
       isAdmin: false,
-      timezone: 'America/New_York',
+      timezone: "America/New_York",
     },
   });
 
-  console.log('Created student user:', student.email);
+  console.log("Created student user:", student.email);
 
   // Create some sample availability slots for the next 7 days
   const today = new Date();
@@ -61,10 +75,11 @@ async function main() {
       professorId: admin.id,
       startTime: morningStart,
       endTime: morningEnd,
-      slotType: 'INDIVIDUAL' as const,
+      slotType: "INDIVIDUAL" as const,
       maxParticipants: 1,
-      title: 'Conversation Practice',
-      description: 'One-on-one conversation practice session focusing on real-world scenarios.',
+      title: "Conversation Practice",
+      description:
+        "One-on-one conversation practice session focusing on real-world scenarios.",
     });
 
     // Afternoon slot (15:00 - 16:00) - Group class on weekdays
@@ -78,10 +93,11 @@ async function main() {
         professorId: admin.id,
         startTime: afternoonStart,
         endTime: afternoonEnd,
-        slotType: 'GROUP' as const,
+        slotType: "GROUP" as const,
         maxParticipants: 5,
-        title: 'Group Grammar Workshop',
-        description: 'Interactive group session covering essential Spanish grammar concepts.',
+        title: "Group Grammar Workshop",
+        description:
+          "Interactive group session covering essential Spanish grammar concepts.",
       });
     }
   }
@@ -95,7 +111,7 @@ async function main() {
 
   console.log(`Created ${sampleSlots.length} sample slots`);
 
-  console.log('Seeding completed!');
+  console.log("Seeding completed!");
 }
 
 main()

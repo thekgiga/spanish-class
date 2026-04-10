@@ -8,12 +8,10 @@ import { format, parse, addMinutes } from "date-fns";
 import {
   Users,
   User,
-  Lock,
+  Mail,
   Trash2,
   AlertTriangle,
   Repeat,
-  CalendarDays,
-  Mail,
   CheckCircle,
   XCircle,
   Clock,
@@ -33,13 +31,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { professorApi } from "@/lib/api";
 import { detectSlotConflicts } from "@/utils/slot-utils";
-import { StudentSelector } from "./StudentSelector";
 import { RecurringPatternForm } from "./RecurringPatternForm";
 import { CancelSlotModal } from "./CancelSlotModal";
 import { EditScopeDialog } from "./EditScopeDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { StudentProfileModal } from "./StudentProfileModal";
+import { StudentSelector } from "./StudentSelector";
 import { Badge } from "@/components/ui/badge";
 import type { AvailabilitySlot } from "@spanish-class/shared";
+
+interface Student {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 
 const slotFormSchema = z.object({
   startTime: z.string(),
@@ -48,18 +54,10 @@ const slotFormSchema = z.object({
   maxParticipants: z.number().int().min(1).max(20),
   title: z.string().optional(),
   description: z.string().optional(),
-  isPrivate: z.boolean(),
   isRecurring: z.boolean(),
 });
 
 type SlotFormData = z.infer<typeof slotFormSchema>;
-
-interface Student {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-}
 
 interface SlotModalProps {
   isOpen: boolean;
@@ -82,16 +80,27 @@ export function SlotModal({
 }: SlotModalProps) {
   const queryClient = useQueryClient();
   const [duration, setDuration] = useState(60);
-  const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
-  const [accessMode, setAccessMode] = useState<"public" | "private" | "direct">(
-    "public",
-  );
   const [recurringDays, setRecurringDays] = useState<number[]>([]);
   const [weeksAhead, setWeeksAhead] = useState(4);
   const [activeTab, setActiveTab] = useState("details");
   const [isInitialized, setIsInitialized] = useState(false);
   const [showEditScopeDialog, setShowEditScopeDialog] = useState(false);
   const [editScope, setEditScope] = useState<"single" | "series" | null>(null);
+  const [studentModalOpen, setStudentModalOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null,
+  );
+
+  // Scheduling mode: "available" or "direct"
+  const [schedulingMode, setSchedulingMode] = useState<"available" | "direct">(
+    "available",
+  );
+  const [selectedStudents, setSelectedStudents] = useState<Student[]>([]);
+
+  const openStudentModal = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    setStudentModalOpen(true);
+  };
   const [pendingFormData, setPendingFormData] = useState<SlotFormData | null>(
     null,
   );
@@ -106,7 +115,6 @@ export function SlotModal({
         maxParticipants: 1,
         title: "",
         description: "",
-        isPrivate: false,
         isRecurring: false,
       },
     });
@@ -133,7 +141,6 @@ export function SlotModal({
         maxParticipants: existingSlot.maxParticipants,
         title: existingSlot.title || "",
         description: existingSlot.description || "",
-        isPrivate: existingSlot.isPrivate,
         isRecurring: false,
       });
 
@@ -198,13 +205,12 @@ export function SlotModal({
   useEffect(() => {
     if (slotType === "INDIVIDUAL") {
       setValue("maxParticipants", 1);
+      // In direct mode, limit to 1 student for individual sessions
+      if (schedulingMode === "direct" && selectedStudents.length > 1) {
+        setSelectedStudents([selectedStudents[0]]);
+      }
     }
-  }, [slotType, setValue]);
-
-  // Sync isPrivate with accessMode
-  useEffect(() => {
-    setValue("isPrivate", accessMode === "private");
-  }, [accessMode, setValue]);
+  }, [slotType, setValue, schedulingMode, selectedStudents]);
 
   // Get all slots for conflict detection
   const { data: slotsData } = useQuery({
@@ -247,11 +253,7 @@ export function SlotModal({
           maxParticipants: data.maxParticipants,
           title: data.title,
           description: data.description,
-          isPrivate: data.isPrivate,
-          allowedStudentIds:
-            accessMode === "private"
-              ? selectedStudents.map((s) => s.id)
-              : undefined,
+          isPrivate: false, // Always public now
         });
       } else {
         // Create single slot
@@ -262,15 +264,7 @@ export function SlotModal({
           maxParticipants: data.maxParticipants,
           title: data.title,
           description: data.description,
-          isPrivate: data.isPrivate,
-          allowedStudentIds:
-            accessMode === "private"
-              ? selectedStudents.map((s) => s.id)
-              : undefined,
-          bookForStudentId:
-            accessMode === "direct" && selectedStudents[0]
-              ? selectedStudents[0].id
-              : undefined,
+          isPrivate: false, // Always public now
         });
       }
     },
@@ -278,8 +272,6 @@ export function SlotModal({
       if (isRecurring) {
         const slotsCount = data?.slots?.length || data?.slotsCreated || 0;
         toast.success(`Recurring pattern created with ${slotsCount} slots!`);
-      } else if (accessMode === "direct") {
-        toast.success(`Slot created and invitation sent!`);
       } else {
         toast.success("Slot created successfully!");
       }
@@ -291,6 +283,41 @@ export function SlotModal({
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error || "Failed to create slot");
+    },
+  });
+
+  // Direct scheduling mutation
+  const directScheduleMutation = useMutation({
+    mutationFn: async (data: SlotFormData) => {
+      if (selectedStudents.length === 0) {
+        throw new Error("Please select at least one student");
+      }
+
+      const startDateTime = parse(data.startTime, "HH:mm", selectedDate);
+      const endDateTime = parse(data.endTime, "HH:mm", selectedDate);
+
+      return professorApi.scheduleDirectSession({
+        studentIds: selectedStudents.map((s) => s.id),
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
+        slotType: data.slotType,
+        maxParticipants: data.maxParticipants,
+        title: data.title,
+        description: data.description,
+      });
+    },
+    onSuccess: async () => {
+      const studentCount = selectedStudents.length;
+      toast.success(`Session scheduled with ${studentCount} student(s)!`);
+
+      // Refetch all professor-slots queries to refresh calendar
+      await queryClient.refetchQueries({
+        predicate: (query) => query.queryKey[0] === "professor-slots",
+      });
+      onClose();
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || "Failed to schedule session");
     },
   });
 
@@ -379,12 +406,44 @@ export function SlotModal({
       if (!existingSlot) return Promise.reject();
       return professorApi.deleteSlot(existingSlot.id);
     },
-    onSuccess: async () => {
-      toast.success("Slot cancelled successfully!");
-      await queryClient.refetchQueries({
-        predicate: (query) => query.queryKey[0] === "professor-slots",
-      });
-      onClose();
+    onSuccess: async (response) => {
+      // Check if the slot was hidden (CANCELLED slot) or just cancelled
+      if (response.slotTime) {
+        // Slot was hidden from calendar
+        toast.success("Slot hidden from calendar!");
+
+        // Ask if user wants to create a new slot at this time
+        const createNew = confirm(
+          "Would you like to create a new available slot at this same time?",
+        );
+
+        if (createNew) {
+          // Reopen modal in create mode with pre-filled data
+          await queryClient.refetchQueries({
+            predicate: (query) => query.queryKey[0] === "professor-slots",
+          });
+          onClose(); // Close current modal first
+
+          // Small delay to allow modal to close before reopening
+          setTimeout(() => {
+            // This would need to be implemented via a callback to parent
+            // For now, just show success message
+            toast("Please create a new slot for this time using the calendar");
+          }, 300);
+        } else {
+          await queryClient.refetchQueries({
+            predicate: (query) => query.queryKey[0] === "professor-slots",
+          });
+          onClose();
+        }
+      } else {
+        // Slot was cancelled (not hidden)
+        toast.success("Slot cancelled successfully!");
+        await queryClient.refetchQueries({
+          predicate: (query) => query.queryKey[0] === "professor-slots",
+        });
+        onClose();
+      }
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.error || "Failed to cancel slot");
@@ -431,8 +490,20 @@ export function SlotModal({
 
   const onSubmit = (data: SlotFormData) => {
     if (mode === "create") {
-      createSlotMutation.mutate(data);
+      // Check scheduling mode
+      if (schedulingMode === "direct") {
+        // Direct scheduling - validate students selected
+        if (selectedStudents.length === 0) {
+          toast.error("Please select at least one student");
+          return;
+        }
+        directScheduleMutation.mutate(data);
+      } else {
+        // Available slot - create normally
+        createSlotMutation.mutate(data);
+      }
     } else {
+      // Edit mode - only available slots can be edited
       // Check if this is a recurring slot
       if (existingSlot?.recurringPatternId) {
         // Show edit scope dialog
@@ -455,15 +526,24 @@ export function SlotModal({
   };
 
   const handleDelete = () => {
-    // BUG FIX #4: Smart delete - check for bookings first
+    const isCancelled = existingSlot?.status === "CANCELLED";
     const hasBookings = (existingSlot?.currentParticipants || 0) > 0;
 
-    if (hasBookings) {
-      // Show cancel-with-bookings modal instead
+    if (isCancelled) {
+      // CANCELLED slot - offer to hide from calendar
+      if (
+        confirm(
+          "Hide this cancelled slot from your calendar? It will remain in booking history.",
+        )
+      ) {
+        deleteSlotMutation.mutate();
+      }
+    } else if (hasBookings) {
+      // Active slot with bookings - show cancel-with-bookings modal
       setShowCancelModal(true);
     } else {
-      // Simple delete confirmation for empty slots
-      if (confirm("Delete this slot? This action cannot be undone.")) {
+      // Active empty slot - cancel it
+      if (confirm("Cancel this slot?")) {
         deleteSlotMutation.mutate();
       }
     }
@@ -499,14 +579,67 @@ export function SlotModal({
           </DialogHeader>
 
           <form onSubmit={handleSubmit(onSubmit)}>
+            {/* Scheduling Mode Toggle - Only in Create Mode */}
+            {mode === "create" && (
+              <div className="mb-4">
+                <Label className="mb-2 block">Scheduling Mode</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSchedulingMode("available");
+                      setSelectedStudents([]);
+                    }}
+                    className={`p-4 rounded-lg border-2 text-left transition-colors ${
+                      schedulingMode === "available"
+                        ? "border-spanish-teal-500 bg-spanish-teal-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5" />
+                      <div>
+                        <p className="font-medium">Available Slot</p>
+                        <p className="text-xs text-muted-foreground">
+                          Anyone can book
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSchedulingMode("direct")}
+                    className={`p-4 rounded-lg border-2 text-left transition-colors ${
+                      schedulingMode === "direct"
+                        ? "border-spanish-teal-500 bg-spanish-teal-50"
+                        : "border-gray-300 hover:border-gray-400"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Mail className="h-5 w-5" />
+                      <div>
+                        <p className="font-medium">Direct Schedule</p>
+                        <p className="text-xs text-muted-foreground">
+                          Schedule with specific students
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="recurring" disabled={mode === "edit"}>
+                <TabsTrigger
+                  value="recurring"
+                  disabled={mode === "edit" || schedulingMode === "direct"}
+                >
                   <Repeat className="h-4 w-4 mr-1" />
                   Recurring
                 </TabsTrigger>
-                <TabsTrigger value="access">Access</TabsTrigger>
                 {mode === "edit" && (
                   <TabsTrigger value="bookings">Bookings</TabsTrigger>
                 )}
@@ -526,6 +659,33 @@ export function SlotModal({
                       </AlertDescription>
                     </Alert>
                   )}
+
+                {/* Student Selector - Only in Direct Schedule Mode */}
+                {mode === "create" && schedulingMode === "direct" && (
+                  <div>
+                    <Label className="mb-2 block">
+                      Select Student(s) <span className="text-red-500">*</span>
+                    </Label>
+                    <StudentSelector
+                      selectedStudents={selectedStudents}
+                      onStudentsChange={setSelectedStudents}
+                      multiSelect={slotType === "GROUP"}
+                      placeholder="Search for students..."
+                    />
+                    {selectedStudents.length === 0 && (
+                      <p className="text-sm text-red-500 mt-1">
+                        Please select at least one student
+                      </p>
+                    )}
+                    {selectedStudents.length > 0 && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {selectedStudents.length}{" "}
+                        {selectedStudents.length === 1 ? "student" : "students"}{" "}
+                        selected
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Time & Duration */}
                 <div className="grid grid-cols-2 gap-4">
@@ -700,97 +860,7 @@ export function SlotModal({
                 )}
               </TabsContent>
 
-              {/* Tab 3: Access */}
-              <TabsContent value="access" className="space-y-4 mt-4">
-                <div>
-                  <Label className="mb-3 block">Access Control</Label>
-                  <div className="space-y-3">
-                    <button
-                      type="button"
-                      onClick={() => setAccessMode("public")}
-                      className={`w-full p-4 rounded-lg border-2 text-left transition-colors ${
-                        accessMode === "public"
-                          ? "border-spanish-teal-500 bg-spanish-teal-50"
-                          : "border-gray-300 hover:border-gray-400"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <CalendarDays className="h-5 w-5" />
-                        <div>
-                          <p className="font-medium">Public</p>
-                          <p className="text-xs text-muted-foreground">
-                            Any student can book this slot
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setAccessMode("private")}
-                      className={`w-full p-4 rounded-lg border-2 text-left transition-colors ${
-                        accessMode === "private"
-                          ? "border-spanish-teal-500 bg-spanish-teal-50"
-                          : "border-gray-300 hover:border-gray-400"
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Lock className="h-5 w-5" />
-                        <div>
-                          <p className="font-medium">Private</p>
-                          <p className="text-xs text-muted-foreground">
-                            Only selected students can see and book
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setAccessMode("direct")}
-                      disabled={slotType === "GROUP"}
-                      className={`w-full p-4 rounded-lg border-2 text-left transition-colors ${
-                        accessMode === "direct"
-                          ? "border-spanish-teal-500 bg-spanish-teal-50"
-                          : "border-gray-300 hover:border-gray-400"
-                      } ${slotType === "GROUP" ? "opacity-50 cursor-not-allowed" : ""}`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <User className="h-5 w-5" />
-                        <div>
-                          <p className="font-medium">Direct Booking</p>
-                          <p className="text-xs text-muted-foreground">
-                            Book this slot for a specific student
-                          </p>
-                        </div>
-                      </div>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Student Selector */}
-                {(accessMode === "private" || accessMode === "direct") && (
-                  <div className="mt-4">
-                    <Label className="mb-2 block">
-                      {accessMode === "private"
-                        ? "Allowed Students"
-                        : "Book For"}
-                    </Label>
-                    <StudentSelector
-                      selectedStudents={selectedStudents}
-                      onStudentsChange={setSelectedStudents}
-                      multiSelect={accessMode === "private"}
-                      placeholder={
-                        accessMode === "private"
-                          ? "Select students who can book..."
-                          : "Select student to book for..."
-                      }
-                    />
-                  </div>
-                )}
-              </TabsContent>
-
-              {/* Tab 4: Bookings (Edit Mode Only) */}
+              {/* Tab 3: Bookings (Edit Mode Only) */}
               {mode === "edit" && (
                 <TabsContent value="bookings" className="space-y-4 mt-4">
                   {!slotWithBookings?.bookings ||
@@ -865,10 +935,15 @@ export function SlotModal({
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
-                                  <p className="font-medium">
+                                  <button
+                                    onClick={() =>
+                                      openStudentModal(booking.student.id)
+                                    }
+                                    className="font-medium hover:underline text-left"
+                                  >
                                     {booking.student.firstName}{" "}
                                     {booking.student.lastName}
-                                  </p>
+                                  </button>
                                   <Badge
                                     variant="neutral"
                                     className={`${config?.color} ${config?.bg} border ${config?.border}`}
@@ -940,9 +1015,11 @@ export function SlotModal({
                   isLoading={deleteSlotMutation.isPending}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
-                  {(existingSlot?.currentParticipants || 0) > 0
-                    ? "Cancel Slot"
-                    : "Delete Slot"}
+                  {existingSlot?.status === "CANCELLED"
+                    ? "Hide from Calendar"
+                    : (existingSlot?.currentParticipants || 0) > 0
+                      ? "Cancel Slot"
+                      : "Cancel Slot"}
                 </Button>
               )}
               <Button type="button" variant="ghost" onClick={onClose}>
@@ -982,6 +1059,12 @@ export function SlotModal({
           setPendingFormData(null);
         }}
         onSelectScope={handleEditScopeSelected}
+      />
+
+      <StudentProfileModal
+        open={studentModalOpen}
+        onClose={() => setStudentModalOpen(false)}
+        studentId={selectedStudentId}
       />
     </>
   );

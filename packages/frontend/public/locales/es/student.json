@@ -44,8 +44,11 @@
     "completion_title": "Completitud del perfil",
     "completion_complete": "Completo",
     "completion_fields": "{{completed}} de {{total}} campos completados",
+    "next_to_complete": "Siguiente para completar",
+    "completion_motivation": "Un perfil completo nos ayuda a proporcionar mejores recomendaciones",
     "edit_profile": "Editar perfil",
     "save_profile": "Guardar perfil",
+    "save": "Guardar cambios",
     "cancel": "Cancelar",
     "tabs": {
       "personal": "Información personal",
@@ -123,8 +126,10 @@
       }
     },
     "class_types": {
+      "PRIVATE_LESSON": "Lección privada",
       "PRIVATE_LESSONS": "Lecciones privadas",
       "GROUP_CLASSES": "Clases grupales",
+      "CONVERSATION_I": "Conversación I",
       "CONVERSATION_PRACTICE": "Práctica de conversación",
       "EXAM_PREPARATION": "Preparación de exámenes",
       "BUSINESS_SPANISH": "Español de negocios",

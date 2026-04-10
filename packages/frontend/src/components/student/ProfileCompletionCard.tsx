@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { User, ArrowRight, Circle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +13,8 @@ interface ProfileCompletionCardProps {
 export function ProfileCompletionCard({
   completion,
 }: ProfileCompletionCardProps) {
+  const { t } = useTranslation("student");
+
   // Only show if profile is incomplete
   if (completion.percentage >= 100) {
     return null;
@@ -44,10 +47,10 @@ export function ProfileCompletionCard({
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-xl text-slate-900">
-                    Complete Your Profile
+                    {t("profile.completion_title")}
                   </h3>
                   <p className="text-sm text-slate-600">
-                    Help your professor personalize your learning
+                    {t("profile.subtitle")}
                   </p>
                 </div>
               </div>
@@ -56,8 +59,10 @@ export function ProfileCompletionCard({
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-slate-600">
-                    {completion.completedCount} of {completion.totalCount}{" "}
-                    fields completed
+                    {t("profile.completion_fields", {
+                      completed: completion.completedCount,
+                      total: completion.totalCount,
+                    })}
                   </span>
                   <span className="text-2xl font-bold text-spanish-olive-600">
                     {completion.percentage}%
@@ -77,7 +82,7 @@ export function ProfileCompletionCard({
               {incompleteFields.length > 0 && (
                 <div className="mb-4 p-4 bg-white/60 rounded-xl border border-spanish-olive-200">
                   <p className="text-sm font-medium text-slate-600 mb-2">
-                    Next to complete:
+                    {t("profile.next_to_complete")}:
                   </p>
                   <div className="space-y-2">
                     {incompleteFields.slice(0, 3).map((field) => (
@@ -107,14 +112,14 @@ export function ProfileCompletionCard({
                 asChild
               >
                 <Link to="/dashboard/profile">
-                  <span>Complete Your Profile</span>
+                  <span>{t("profile.completion_title")}</span>
                   <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
 
               {/* Motivational Text */}
               <p className="text-xs text-center text-slate-500 mt-3">
-                A complete profile helps us provide better recommendations
+                {t("profile.completion_motivation")}
               </p>
             </div>
           </div>

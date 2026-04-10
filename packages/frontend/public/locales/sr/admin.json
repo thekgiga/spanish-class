@@ -73,6 +73,14 @@
     "update_success": "Termin uspešno ažuriran",
     "delete_success": "Termin uspešno obrisan",
     "recurring_success": "{{count}} ponavljajućih termina kreirano",
+    "hide": {
+      "button_hide_from_calendar": "Sakrij iz kalendara",
+      "button_cancel_slot": "Otkaži termin",
+      "hide_cancelled_message": "Termin će biti uklonjen iz prikaza kalendara, ali će ostati u istoriji rezervacija.",
+      "create_new_at_time": "Želite li da kreirate novi dostupan termin u isto vreme?",
+      "success_hidden": "Termin sakriven iz kalendara!",
+      "show_hidden_slots": "Prikaži sakrivene"
+    },
     "form": {
       "mode": {
         "single": "Pojedinačni",
@@ -202,6 +210,12 @@
       "view": "Pogledaj",
       "no_search_results": "Nema studenata koji odgovaraju vašoj pretrazi",
       "no_students_yet": "Još nema registrovanih studenata"
+    },
+    "modal": {
+      "title": "Profil studenta",
+      "quick_view": "Brzi pregled",
+      "close": "Zatvori",
+      "not_found": "Student nije pronađen"
     },
     "detail": {
       "title": "Profil studenta",
@@ -343,5 +357,35 @@
     "bookings": "Zakazivanja",
     "students": "Studenti",
     "sessions": "Sesije"
+  },
+  "direct_scheduling": {
+    "title": "Zakaži sesiju",
+    "subtitle": "Direktno zakaži sesiju sa studentima",
+    "select_students": "Izaberi studente",
+    "select_students_placeholder": "Pretraži studente...",
+    "date_time": "Datum i vreme",
+    "date_label": "Datum",
+    "start_time_label": "Početno vreme",
+    "end_time_label": "Krajnje vreme",
+    "duration_presets": "Brzo trajanje",
+    "session_details": "Detalji sesije",
+    "session_type": "Tip sesije",
+    "individual": "Individualna (1-na-1)",
+    "group": "Grupna sesija",
+    "max_participants": "Maksimalno učesnika",
+    "title_optional": "Naslov (opciono)",
+    "title_placeholder": "npr. Španska konverzaciona praksa",
+    "description_optional": "Opis (opciono)",
+    "description_placeholder": "Šta ćete obraditi u ovoj sesiji?",
+    "schedule_button": "Zakaži sesiju",
+    "scheduling": "Zakazivanje...",
+    "cancel": "Otkaži",
+    "success": "Sesija uspešno zakazana sa {{count}} student(a)!",
+    "error": "Neuspelo zakazivanje sesije",
+    "validation": {
+      "at_least_one_student": "Molimo izaberite bar jednog studenta",
+      "end_after_start": "Krajnje vreme mora biti posle početnog",
+      "individual_one_student": "Individualne sesije mogu imati samo jednog studenta"
+    }
   }
 }

@@ -119,6 +119,27 @@ export const professorBookStudentSchema = z.object({
   sendInvitation: z.boolean().default(true),
 });
 
+// Direct session scheduling (simplified booking)
+export const scheduleDirectSessionSchema = z
+  .object({
+    studentIds: z
+      .array(z.string())
+      .min(1, "At least one student is required")
+      .max(20, "Maximum 20 students per session"),
+    startTime: z.string().datetime({ message: "Invalid start time format" }),
+    endTime: z.string().datetime({ message: "Invalid end time format" }),
+    slotType: slotTypeEnum.default("INDIVIDUAL"),
+    maxParticipants: z.number().int().min(1).max(20).default(1),
+    title: z.string().max(100).optional(),
+    description: z.string().max(500).optional(),
+  })
+  .refine((data) => new Date(data.endTime) > new Date(data.startTime), {
+    message: "End time must be after start time",
+  })
+  .refine((data) => data.slotType === "GROUP" || data.studentIds.length === 1, {
+    message: "Individual sessions can only have one student",
+  });
+
 export const updateSlotSchema = z
   .object({
     startTime: z.string().datetime().optional(),
@@ -324,6 +345,9 @@ export type UpdateRecurringPatternInput = z.infer<
 export type ProfessorBookStudentInput = z.infer<
   typeof professorBookStudentSchema
 >;
+export type ScheduleDirectSessionInput = z.infer<
+  typeof scheduleDirectSessionSchema
+>;
 export type UpdateStudentProfileInput = z.infer<
   typeof updateStudentProfileSchema
 >;
@@ -331,40 +355,6 @@ export type UpdateStudentProfileInput = z.infer<
 // Export enum types for frontend use
 export type SpanishLevel = z.infer<typeof spanishLevelEnum>;
 export type ClassType = z.infer<typeof classTypeEnum>;
-
-// Private Invitation Schemas
-export const createPrivateInvitationSchema = z
-  .object({
-    studentId: z.string().min(1, "Student ID is required"),
-    startTime: z.string().datetime({ message: "Invalid start time format" }),
-    endTime: z.string().datetime({ message: "Invalid end time format" }),
-    title: z.string().max(100).optional(),
-    description: z.string().max(500).optional(),
-  })
-  .refine((data) => new Date(data.endTime) > new Date(data.startTime), {
-    message: "End time must be after start time",
-  })
-  .refine(
-    (data) => {
-      const duration =
-        (new Date(data.endTime).getTime() -
-          new Date(data.startTime).getTime()) /
-        (1000 * 60);
-      return duration >= 15 && duration <= 180;
-    },
-    { message: "Duration must be between 15 minutes and 3 hours" },
-  );
-
-export const cancelPrivateInvitationSchema = z.object({
-  reason: z.string().max(500).optional(),
-});
-
-export type CreatePrivateInvitationInput = z.infer<
-  typeof createPrivateInvitationSchema
->;
-export type CancelPrivateInvitationInput = z.infer<
-  typeof cancelPrivateInvitationSchema
->;
 
 // Pricing Schemas
 export const createPricingSchema = z.object({

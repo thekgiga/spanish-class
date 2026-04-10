@@ -60,6 +60,8 @@ model AvailabilitySlot {
   isPrivate           Boolean    @default(false) @map("is_private")
   recurringPatternId  String?    @map("recurring_pattern_id")
   version             Int        @default(1) // Optimistic locking for concurrent bookings
+  isHiddenByProfessor Boolean    @default(false) @map("is_hidden_by_professor") // Soft delete: hide from calendar
+  hiddenAt            DateTime?  @map("hidden_at") // When it was hidden
   createdAt           DateTime   @default(now()) @map("created_at")
   updatedAt           DateTime   @updatedAt @map("updated_at")
 

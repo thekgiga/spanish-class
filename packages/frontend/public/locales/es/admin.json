@@ -73,6 +73,14 @@
     "update_success": "Espacio actualizado con éxito",
     "delete_success": "Espacio eliminado con éxito",
     "recurring_success": "{{count}} espacios recurrentes creados",
+    "hide": {
+      "button_hide_from_calendar": "Ocultar del calendario",
+      "button_cancel_slot": "Cancelar espacio",
+      "hide_cancelled_message": "El espacio se eliminará de la vista del calendario, pero permanecerá en el historial de reservas.",
+      "create_new_at_time": "¿Le gustaría crear un nuevo espacio disponible a la misma hora?",
+      "success_hidden": "¡Espacio ocultado del calendario!",
+      "show_hidden_slots": "Mostrar ocultos"
+    },
     "form": {
       "mode": {
         "single": "Individual",
@@ -202,6 +210,12 @@
       "view": "Ver",
       "no_search_results": "No se encontraron estudiantes que coincidan con tu búsqueda",
       "no_students_yet": "Aún no hay estudiantes registrados"
+    },
+    "modal": {
+      "title": "Perfil del estudiante",
+      "quick_view": "Vista rápida",
+      "close": "Cerrar",
+      "not_found": "Estudiante no encontrado"
     },
     "detail": {
       "title": "Perfil del estudiante",
@@ -343,5 +357,35 @@
     "bookings": "Reservas",
     "students": "Estudiantes",
     "sessions": "Sesiones"
+  },
+  "direct_scheduling": {
+    "title": "Programar sesión",
+    "subtitle": "Programa directamente una sesión con estudiantes",
+    "select_students": "Seleccionar estudiantes",
+    "select_students_placeholder": "Buscar estudiantes...",
+    "date_time": "Fecha y hora",
+    "date_label": "Fecha",
+    "start_time_label": "Hora de inicio",
+    "end_time_label": "Hora de fin",
+    "duration_presets": "Duración rápida",
+    "session_details": "Detalles de la sesión",
+    "session_type": "Tipo de sesión",
+    "individual": "Individual (1-a-1)",
+    "group": "Sesión grupal",
+    "max_participants": "Participantes máximos",
+    "title_optional": "Título (opcional)",
+    "title_placeholder": "ej. Práctica de conversación en español",
+    "description_optional": "Descripción (opcional)",
+    "description_placeholder": "¿Qué cubrirán en esta sesión?",
+    "schedule_button": "Programar sesión",
+    "scheduling": "Programando...",
+    "cancel": "Cancelar",
+    "success": "¡Sesión programada exitosamente con {{count}} estudiante(s)!",
+    "error": "Error al programar la sesión",
+    "validation": {
+      "at_least_one_student": "Por favor seleccione al menos un estudiante",
+      "end_after_start": "La hora de fin debe ser después de la hora de inicio",
+      "individual_one_student": "Las sesiones individuales solo pueden tener un estudiante"
+    }
   }
 }

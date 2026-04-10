@@ -6,6 +6,7 @@ import { Users } from "lucide-react";
 import { getSlotParticipants } from "@/lib/api";
 import BookingStatusBadge from "./BookingStatusBadge";
 import { getInitials } from "@/lib/utils";
+import { StudentProfileModal } from "@/components/admin/StudentProfileModal";
 import type { BookingStatus } from "@spanish-class/shared";
 
 interface Participant {
@@ -28,6 +29,15 @@ export default function GroupClassParticipantsList({
   slotId,
 }: GroupClassParticipantsListProps) {
   const { t } = useTranslation("common");
+  const [studentModalOpen, setStudentModalOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null,
+  );
+
+  const openStudentModal = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    setStudentModalOpen(true);
+  };
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [maxParticipants, setMaxParticipants] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -81,7 +91,10 @@ export default function GroupClassParticipantsList({
                 key={participant.bookingId}
                 className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
               >
-                <div className="flex items-center gap-3">
+                <button
+                  onClick={() => openStudentModal(participant.student.id)}
+                  className="flex items-center gap-3 hover:opacity-80 transition-opacity text-left"
+                >
                   <Avatar>
                     <AvatarFallback>
                       {getInitials(
@@ -91,7 +104,7 @@ export default function GroupClassParticipantsList({
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">
+                    <p className="font-medium hover:underline">
                       {participant.student.firstName}{" "}
                       {participant.student.lastName}
                     </p>
@@ -99,13 +112,20 @@ export default function GroupClassParticipantsList({
                       {participant.student.email}
                     </p>
                   </div>
-                </div>
+                </button>
                 <BookingStatusBadge status={participant.status} />
               </div>
             ))}
           </div>
         )}
       </CardContent>
+
+      {/* Student Profile Modal */}
+      <StudentProfileModal
+        open={studentModalOpen}
+        onClose={() => setStudentModalOpen(false)}
+        studentId={selectedStudentId}
+      />
     </Card>
   );
 }

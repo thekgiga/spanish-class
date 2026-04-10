@@ -129,12 +129,22 @@
     "loading": "Cargando participantes..."
   },
   "footer": {
-    "instagram_title": "Síguenos en Instagram"
+    "instagram_title": "Síguenos en Instagram",
+    "email": "Correo electrónico",
+    "location": "Belgrado, Serbia",
+    "copyright": "© {{year}} Spanish Class. Todos los derechos reservados."
   },
   "aria_labels": {
     "mobile_navigation": "Navegación móvil",
     "close_navigation": "Cerrar navegación",
     "top_navigation": "Navegación superior",
     "email_preview": "Vista previa del correo"
+  },
+  "general": {
+    "student": "estudiante",
+    "students": "estudiantes",
+    "selected": "seleccionado",
+    "one_on_one": "Sesión 1-a-1",
+    "multiple_students": "Múltiples estudiantes"
   }
 }

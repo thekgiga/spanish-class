@@ -194,37 +194,6 @@ export interface StudentDashboardStats {
   nextSession?: BookingWithSlot | null;
 }
 
-// Private Invitation Types
-export interface PrivateInvitation {
-  slotId: string;
-  bookingId: string;
-  studentId: string;
-  startTime: Date;
-  endTime: Date;
-  title?: string | null;
-  description?: string | null;
-  status: BookingStatus;
-  createdAt: Date;
-}
-
-export interface PrivateInvitationWithDetails extends PrivateInvitation {
-  student: UserPublic;
-  professor: UserPublic;
-  meetLink?: string | null;
-}
-
-export interface CreatePrivateInvitationData {
-  studentId: string;
-  startTime: Date;
-  endTime: Date;
-  title?: string;
-  description?: string;
-}
-
-export interface CancelPrivateInvitationData {
-  reason?: string;
-}
-
 // Student Profile Types
 export interface StudentProfile {
   dateOfBirth?: string | null;

@@ -50,23 +50,33 @@ export const WEEK_START_HOUR = 6;
 export const WEEK_END_HOUR = 23;
 
 /**
- * Get color for slot status
- * Returns background color for calendar events
+ * Enhanced status color with support for pending approvals
+ * @param status - Slot status
+ * @param hasPendingApprovals - Whether the slot has any PENDING_CONFIRMATION bookings
  */
-export function getStatusColor(status: AvailabilitySlot["status"]): string {
+export function getStatusColor(
+  status: AvailabilitySlot["status"],
+  hasPendingApprovals?: boolean,
+): string {
+  // Special case: Pending approvals (bright yellow/amber) - highest priority visual
+  if (hasPendingApprovals) {
+    return "linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%)"; // Yellow-Amber gradient
+  }
+
   switch (status) {
     case "AVAILABLE":
       // Bright teal gradient for available slots
       return "linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)"; // Teal gradient
     case "FULLY_BOOKED":
-      // Amber/orange gradient for booked slots
-      return "linear-gradient(135deg, #F59E0B 0%, #D97706 100%)"; // Amber gradient
+      // Deep green gradient for confirmed booked slots (all bookings confirmed)
+      return "linear-gradient(135deg, #10B981 0%, #059669 100%)"; // Green gradient
     case "IN_PROGRESS":
       return "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)"; // Blue gradient
     case "COMPLETED":
-      return "#94A3B8"; // Gray
+      return "linear-gradient(135deg, #94A3B8 0%, #64748B 100%)"; // Gray gradient
     case "CANCELLED":
-      return "#EF4444"; // Red
+      // Bright red gradient for cancelled slots - highly visible for deletion
+      return "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"; // Red gradient
     default:
       return "#64748B"; // Slate
   }
@@ -74,12 +84,21 @@ export function getStatusColor(status: AvailabilitySlot["status"]): string {
 
 /**
  * Get text color for slot status
- * All slots now use white text for better contrast
+ * @param status - Slot status
+ * @param hasPendingApprovals - Whether the slot has any PENDING_CONFIRMATION bookings
  */
-export function getStatusTextColor(status: AvailabilitySlot["status"]): string {
+export function getStatusTextColor(
+  status: AvailabilitySlot["status"],
+  hasPendingApprovals?: boolean,
+): string {
+  // Dark text for pending approvals (yellow background)
+  if (hasPendingApprovals) {
+    return "#78350F"; // Dark brown for yellow background (better contrast)
+  }
+
   switch (status) {
     case "COMPLETED":
-      return "#1E293B"; // Dark text for gray background
+      return "#FFFFFF"; // White text even for gray gradient
     default:
       return "#FFFFFF"; // White text for all colored backgrounds
   }

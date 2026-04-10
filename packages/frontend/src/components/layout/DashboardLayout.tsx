@@ -22,28 +22,28 @@ import { usePendingBookingsCount } from "@/hooks/usePendingBookingsCount";
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: string; // Changed from label to labelKey for i18n
   icon: React.ElementType;
   badge?: string;
 }
 
 const adminNavItems: NavItem[] = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/calendar", label: "Calendar", icon: Calendar },
-  { href: "/admin/students", label: "Students", icon: Users },
-  { href: "/admin/email-logs", label: "Email Logs", icon: Mail },
+  { href: "/admin", labelKey: "sidebar.dashboard", icon: LayoutDashboard },
+  { href: "/admin/calendar", labelKey: "sidebar.calendar", icon: Calendar },
+  { href: "/admin/students", labelKey: "sidebar.students", icon: Users },
+  { href: "/admin/email-logs", labelKey: "sidebar.email_logs", icon: Mail },
 ];
 
 const studentNavItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", labelKey: "sidebar.dashboard", icon: LayoutDashboard },
   {
     href: "/dashboard/book",
-    label: "Book Class",
+    labelKey: "sidebar.book",
     icon: Calendar,
     badge: "New",
   },
-  { href: "/dashboard/bookings", label: "My Bookings", icon: BookOpen },
-  { href: "/dashboard/profile", label: "My Profile", icon: UserCircle },
+  { href: "/dashboard/bookings", labelKey: "sidebar.bookings", icon: BookOpen },
+  { href: "/dashboard/profile", labelKey: "sidebar.profile", icon: UserCircle },
 ];
 
 interface DashboardLayoutProps {
@@ -51,7 +51,7 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
-  const { t } = useTranslation("common");
+  const { t } = useTranslation(["common", "dashboard"]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
@@ -175,7 +175,9 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
                   <item.icon className="h-5 w-5 flex-shrink-0" />
                   {!collapsed && (
                     <>
-                      <span className="flex-1">{item.label}</span>
+                      <span className="flex-1">
+                        {t(item.labelKey, { ns: "dashboard" })}
+                      </span>
                       {item.badge && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-xs font-bold">
                           {item.badge}

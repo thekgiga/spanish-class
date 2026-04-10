@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
@@ -22,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { professorApi } from "@/lib/api";
 import { formatTime, getDuration, cn } from "@/lib/utils";
 import { usePendingBookingsCount } from "@/hooks/usePendingBookingsCount";
+import { StudentProfileModal } from "@/components/admin/StudentProfileModal";
 
 export function AdminDashboard() {
   const { t } = useTranslation("admin");
@@ -31,6 +33,15 @@ export function AdminDashboard() {
   });
 
   const { data: pendingData } = usePendingBookingsCount();
+  const [studentModalOpen, setStudentModalOpen] = useState(false);
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(
+    null,
+  );
+
+  const openStudentModal = (studentId: string) => {
+    setSelectedStudentId(studentId);
+    setStudentModalOpen(true);
+  };
 
   const stats = [
     {
@@ -87,14 +98,6 @@ export function AdminDashboard() {
             <p className="text-slate-600 text-lg">{t("dashboard.subtitle")}</p>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="lg"
-              className="bg-white hover:bg-slate-50 border-slate-200"
-            >
-              <Bell className="mr-2 h-5 w-5" />
-              {t("dashboard.quick_actions.view_analytics")}
-            </Button>
             <Button size="lg" variant="primary" asChild>
               <Link to="/admin/calendar">
                 <Plus className="mr-2 h-5 w-5" />
@@ -335,44 +338,48 @@ export function AdminDashboard() {
                         </div>
                       </div>
 
-                      {/* Student Details - Show who booked */}
-                      {slot.bookings && slot.bookings.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-slate-200/60">
-                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                            Booked By
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {slot.bookings.map((booking: any) => (
-                              <div
-                                key={booking.id}
-                                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200/60"
-                              >
-                                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 flex items-center justify-center text-white text-xs font-bold">
-                                  {booking.student.firstName[0]}
-                                  {booking.student.lastName[0]}
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-sm font-medium text-slate-900 truncate">
-                                    {booking.student.firstName}{" "}
-                                    {booking.student.lastName}
-                                  </p>
-                                  <p className="text-xs text-slate-500 truncate">
-                                    {booking.student.email}
-                                  </p>
-                                </div>
-                                {booking.status === "PENDING_CONFIRMATION" && (
-                                  <Badge
-                                    variant="warning"
-                                    className="ml-2 text-xs"
+                      {/* Student Details - Show only CONFIRMED bookings */}
+                      {slot.bookings &&
+                        slot.bookings.length > 0 &&
+                        (() => {
+                          const confirmedBookings = slot.bookings.filter(
+                            (b: any) => b.status === "CONFIRMED",
+                          );
+                          return confirmedBookings.length > 0 ? (
+                            <div className="mt-4 pt-4 border-t border-slate-200/60">
+                              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                                Confirmed Students
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {confirmedBookings.map((booking: any) => (
+                                  <div
+                                    key={booking.id}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-slate-200/60"
                                   >
-                                    Pending
-                                  </Badge>
-                                )}
+                                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 flex items-center justify-center text-white text-xs font-bold">
+                                      {booking.student.firstName[0]}
+                                      {booking.student.lastName[0]}
+                                    </div>
+                                    <button
+                                      onClick={() =>
+                                        openStudentModal(booking.student.id)
+                                      }
+                                      className="min-w-0 text-left hover:opacity-80 transition-opacity"
+                                    >
+                                      <p className="text-sm font-medium text-slate-900 truncate hover:underline">
+                                        {booking.student.firstName}{" "}
+                                        {booking.student.lastName}
+                                      </p>
+                                      <p className="text-xs text-slate-500 truncate">
+                                        {booking.student.email}
+                                      </p>
+                                    </button>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                            </div>
+                          ) : null;
+                        })()}
                     </motion.div>
                   ))}
               </div>
@@ -473,6 +480,13 @@ export function AdminDashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Student Profile Modal */}
+      <StudentProfileModal
+        open={studentModalOpen}
+        onClose={() => setStudentModalOpen(false)}
+        studentId={selectedStudentId}
+      />
     </div>
   );
 }

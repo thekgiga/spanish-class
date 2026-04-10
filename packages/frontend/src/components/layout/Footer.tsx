@@ -29,24 +29,24 @@ export function Footer() {
               to="/about"
               className="text-slate-600 hover:text-spanish-teal-600 transition-colors"
             >
-              About
+              {t("navigation.about")}
             </Link>
             <Link
               to="/contact"
               className="text-slate-600 hover:text-spanish-teal-600 transition-colors"
             >
-              Contact
+              {t("navigation.contact")}
             </Link>
             <a
               href="mailto:professor@spanishclass.com"
               className="flex items-center gap-1.5 text-slate-600 hover:text-spanish-teal-600 transition-colors"
             >
               <Mail className="h-4 w-4" />
-              Email
+              {t("footer.email")}
             </a>
             <span className="flex items-center gap-1.5 text-slate-600">
               <MapPin className="h-4 w-4" />
-              Belgrade, Serbia
+              {t("footer.location")}
             </span>
           </div>
 
@@ -71,8 +71,7 @@ export function Footer() {
         <div className="mt-6 pt-6 border-t border-slate-200">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-slate-500 text-sm text-center sm:text-left">
-              &copy; {new Date().getFullYear()} Spanish Class. All rights
-              reserved.
+              {t("footer.copyright", { year: new Date().getFullYear() })}
             </p>
             <LanguageSwitcher />
           </div>

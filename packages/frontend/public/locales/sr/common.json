@@ -129,12 +129,22 @@
     "loading": "Učitavanje učesnika..."
   },
   "footer": {
-    "instagram_title": "Pratite nas na Instagramu"
+    "instagram_title": "Pratite nas na Instagramu",
+    "email": "Email",
+    "location": "Beograd, Srbija",
+    "copyright": "© {{year}} Spanish Class. Sva prava zadržana."
   },
   "aria_labels": {
     "mobile_navigation": "Mobilna navigacija",
     "close_navigation": "Zatvori navigaciju",
     "top_navigation": "Gornja navigacija",
     "email_preview": "Pregled email-a"
+  },
+  "general": {
+    "student": "student",
+    "students": "studenta",
+    "selected": "izabrano",
+    "one_on_one": "1-na-1 sesija",
+    "multiple_students": "Više studenata"
   }
 }

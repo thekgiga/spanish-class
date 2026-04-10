@@ -73,6 +73,14 @@
     "update_success": "Slot updated successfully",
     "delete_success": "Slot deleted successfully",
     "recurring_success": "{{count}} recurring slots created",
+    "hide": {
+      "button_hide_from_calendar": "Hide from Calendar",
+      "button_cancel_slot": "Cancel Slot",
+      "hide_cancelled_message": "The slot will be removed from calendar view but remain in booking history.",
+      "create_new_at_time": "Would you like to create a new available slot at this same time?",
+      "success_hidden": "Slot hidden from calendar!",
+      "show_hidden_slots": "Show hidden"
+    },
     "form": {
       "mode": {
         "single": "Single",
@@ -202,6 +210,12 @@
       "view": "View",
       "no_search_results": "No students found matching your search",
       "no_students_yet": "No students registered yet"
+    },
+    "modal": {
+      "title": "Student Profile",
+      "quick_view": "Quick View",
+      "close": "Close",
+      "not_found": "Student not found"
     },
     "detail": {
       "title": "Student Profile",
@@ -343,5 +357,35 @@
     "bookings": "Bookings",
     "students": "Students",
     "sessions": "Sessions"
+  },
+  "direct_scheduling": {
+    "title": "Schedule Session",
+    "subtitle": "Directly schedule a session with students",
+    "select_students": "Select Students",
+    "select_students_placeholder": "Search for students...",
+    "date_time": "Date & Time",
+    "date_label": "Date",
+    "start_time_label": "Start Time",
+    "end_time_label": "End Time",
+    "duration_presets": "Quick Duration",
+    "session_details": "Session Details",
+    "session_type": "Session Type",
+    "individual": "Individual (1-on-1)",
+    "group": "Group Session",
+    "max_participants": "Max Participants",
+    "title_optional": "Title (optional)",
+    "title_placeholder": "e.g., Spanish Conversation Practice",
+    "description_optional": "Description (optional)",
+    "description_placeholder": "What will you cover in this session?",
+    "schedule_button": "Schedule Session",
+    "scheduling": "Scheduling...",
+    "cancel": "Cancel",
+    "success": "Session scheduled successfully with {{count}} student(s)!",
+    "error": "Failed to schedule session",
+    "validation": {
+      "at_least_one_student": "Please select at least one student",
+      "end_after_start": "End time must be after start time",
+      "individual_one_student": "Individual sessions can only have one student"
+    }
   }
 }

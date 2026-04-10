@@ -110,6 +110,7 @@ export const professorApi = {
     endDate?: string;
     status?: string;
     slotType?: string;
+    includeHidden?: boolean;
   }): Promise<PaginatedResponse<AvailabilitySlot>> => {
     const res = await api.get("/professor/slots", { params });
     return res.data;
@@ -140,8 +141,23 @@ export const professorApi = {
     return res.data.data;
   },
 
-  deleteSlot: async (id: string): Promise<void> => {
-    await api.delete(`/professor/slots/${id}`);
+  deleteSlot: async (
+    id: string,
+  ): Promise<{
+    message: string;
+    slotTime?: {
+      startTime: Date;
+      endTime: Date;
+      slotType: string;
+      maxParticipants: number;
+    };
+  }> => {
+    const res = await api.delete(`/professor/slots/${id}`);
+    return res.data;
+  },
+
+  unhideSlot: async (id: string): Promise<void> => {
+    await api.post(`/professor/slots/${id}/unhide`);
   },
 
   cancelSlotWithBookings: async (
@@ -240,6 +256,20 @@ export const professorApi = {
   // Direct booking
   bookStudent: async (data: ProfessorBookStudentInput): Promise<Booking> => {
     const res = await api.post("/professor/book-student", data);
+    return res.data.data;
+  },
+
+  // Direct session scheduling (simplified)
+  scheduleDirectSession: async (data: {
+    studentIds: string[];
+    startTime: string;
+    endTime: string;
+    slotType: "INDIVIDUAL" | "GROUP";
+    maxParticipants: number;
+    title?: string;
+    description?: string;
+  }): Promise<{ slot: AvailabilitySlot; bookings: Booking[] }> => {
+    const res = await api.post("/professor/schedule-session", data);
     return res.data.data;
   },
 

@@ -67,38 +67,38 @@ const getSpanishLevels = (
 }[] => [
   {
     value: SpanishLevelValues.I_DONT_KNOW,
-    label: t("spanish_levels.UNKNOWN.label"),
-    description: t("spanish_levels.UNKNOWN.description"),
+    label: t("profile.spanish_levels.UNKNOWN.label"),
+    description: t("profile.spanish_levels.UNKNOWN.description"),
   },
   {
     value: SpanishLevelValues.BEGINNER,
-    label: t("spanish_levels.BEGINNER.label"),
-    description: t("spanish_levels.BEGINNER.description"),
+    label: t("profile.spanish_levels.BEGINNER.label"),
+    description: t("profile.spanish_levels.BEGINNER.description"),
   },
   {
     value: SpanishLevelValues.ELEMENTARY,
-    label: t("spanish_levels.ELEMENTARY.label"),
-    description: t("spanish_levels.ELEMENTARY.description"),
+    label: t("profile.spanish_levels.ELEMENTARY.label"),
+    description: t("profile.spanish_levels.ELEMENTARY.description"),
   },
   {
     value: SpanishLevelValues.INTERMEDIATE,
-    label: t("spanish_levels.INTERMEDIATE.label"),
-    description: t("spanish_levels.INTERMEDIATE.description"),
+    label: t("profile.spanish_levels.INTERMEDIATE.label"),
+    description: t("profile.spanish_levels.INTERMEDIATE.description"),
   },
   {
     value: SpanishLevelValues.UPPER_INTERMEDIATE,
-    label: t("spanish_levels.UPPER_INTERMEDIATE.label"),
-    description: t("spanish_levels.UPPER_INTERMEDIATE.description"),
+    label: t("profile.spanish_levels.UPPER_INTERMEDIATE.label"),
+    description: t("profile.spanish_levels.UPPER_INTERMEDIATE.description"),
   },
   {
     value: SpanishLevelValues.ADVANCED,
-    label: t("spanish_levels.ADVANCED.label"),
-    description: t("spanish_levels.ADVANCED.description"),
+    label: t("profile.spanish_levels.ADVANCED.label"),
+    description: t("profile.spanish_levels.ADVANCED.description"),
   },
   {
     value: SpanishLevelValues.NATIVE,
-    label: t("spanish_levels.NATIVE.label"),
-    description: t("spanish_levels.NATIVE.description"),
+    label: t("profile.spanish_levels.NATIVE.label"),
+    description: t("profile.spanish_levels.NATIVE.description"),
   },
 ];
 
@@ -106,35 +106,35 @@ const getSpanishLevels = (
 const getClassTypes = (t: any): { value: ClassType; label: string }[] => [
   {
     value: ClassTypeValues.PRIVATE_LESSONS,
-    label: t("class_types.PRIVATE_LESSONS"),
+    label: t("profile.class_types.PRIVATE_LESSONS"),
   },
   {
     value: ClassTypeValues.GROUP_CLASSES,
-    label: t("class_types.GROUP_CLASSES"),
+    label: t("profile.class_types.GROUP_CLASSES"),
   },
   {
     value: ClassTypeValues.CONVERSATION_PRACTICE,
-    label: t("class_types.CONVERSATION_PRACTICE"),
+    label: t("profile.class_types.CONVERSATION_PRACTICE"),
   },
   {
     value: ClassTypeValues.EXAM_PREPARATION,
-    label: t("class_types.EXAM_PREPARATION"),
+    label: t("profile.class_types.EXAM_PREPARATION"),
   },
   {
     value: ClassTypeValues.BUSINESS_SPANISH,
-    label: t("class_types.BUSINESS_SPANISH"),
+    label: t("profile.class_types.BUSINESS_SPANISH"),
   },
   {
     value: ClassTypeValues.GRAMMAR_FOCUS,
-    label: t("class_types.GRAMMAR_FOCUS"),
+    label: t("profile.class_types.GRAMMAR_FOCUS"),
   },
   {
     value: ClassTypeValues.PRONUNCIATION,
-    label: t("class_types.PRONUNCIATION"),
+    label: t("profile.class_types.PRONUNCIATION"),
   },
   {
     value: ClassTypeValues.WRITING_SKILLS,
-    label: t("class_types.WRITING_SKILLS"),
+    label: t("profile.class_types.WRITING_SKILLS"),
   },
 ];
 
@@ -368,11 +368,40 @@ export function StudentProfilePage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-display font-bold text-slate-900">
-          {t("profile.title")}
-        </h1>
-        <p className="text-slate-600">{t("profile.subtitle")}</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-slate-900">
+            {t("profile.title")}
+          </h1>
+          <p className="text-slate-600">{t("profile.subtitle")}</p>
+        </div>
+
+        {/* Action Buttons */}
+        {!isEditing ? (
+          <Button onClick={handleEdit} size="lg" className="ml-4">
+            {t("profile.edit_profile")}
+          </Button>
+        ) : (
+          <div className="flex gap-3 ml-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
+              {t("profile.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              size="lg"
+              isLoading={isSubmitting}
+              form="profile-form"
+            >
+              {t("profile.save")}
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Profile Completion Indicator */}
@@ -451,22 +480,51 @@ export function StudentProfilePage() {
       {!isEditing && profileData ? (
         /* View Mode */
         <>
+          {/* Account Settings Card */}
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    {t("profile.personal_info.title")}
-                  </CardTitle>
-                  <CardDescription>
-                    {t("profile.personal_info.description")}
-                  </CardDescription>
-                </div>
-                <Button onClick={handleEdit} variant="outline">
-                  {t("profile.edit_profile")}
-                </Button>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="h-5 w-5" />
+                {t("profile.account_settings.title")}
+              </CardTitle>
+              <CardDescription>
+                {t("profile.account_settings.description")}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-1">
+                <Label className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  {t("profile.personal_info.email")}
+                </Label>
+                <p className="font-medium">{profileData.email}</p>
+                <p className="text-xs text-slate-600">
+                  {t("profile.personal_info.email_note")}
+                </p>
               </div>
+
+              <div className="space-y-1">
+                <Label className="flex items-center gap-2 text-muted-foreground">
+                  <Globe className="h-4 w-4" />
+                  {t("profile.personal_info.timezone")}
+                </Label>
+                <p className="font-medium">
+                  {profileData.timezone.replace(/_/g, " ")}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Personal Details Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                {t("profile.personal_info.title")}
+              </CardTitle>
+              <CardDescription>
+                {t("profile.personal_info.description")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
@@ -581,9 +639,13 @@ export function StudentProfilePage() {
         </>
       ) : (
         /* Edit Mode */
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form
+          id="profile-form"
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6"
+        >
           {/* Account Settings */}
-          <Card className="border-2 border-spanish-teal-200">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Globe className="h-5 w-5" />
@@ -642,7 +704,7 @@ export function StudentProfilePage() {
           </Card>
 
           {/* Personal Details (US-18) */}
-          <Card className="border-2 border-spanish-teal-200">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="h-5 w-5" />
@@ -900,22 +962,6 @@ export function StudentProfilePage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Save and Cancel Buttons */}
-          <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" size="lg" isLoading={isSubmitting}>
-              Save Profile
-            </Button>
-          </div>
         </form>
       )}
     </div>
