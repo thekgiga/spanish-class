@@ -1,0 +1,45 @@
+# Caddyfile — reverse proxy + static frontend + auto Let's Encrypt.
+# Substitutions ({$VAR}) come from docker-compose env. Production sets
+# DOMAIN to e.g. spanishclass.com; local sets it to :80 for plain HTTP.
+
+{
+    email {$ACME_EMAIL}
+    # Cloudflare in front does Full (strict) — terminate TLS here with a real cert.
+}
+
+{$SITE_ADDRESS} {
+    encode zstd gzip
+
+    # Security headers (Cloudflare may layer its own; these are belt+suspenders)
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options    "nosniff"
+        X-Frame-Options           "DENY"
+        Referrer-Policy           "strict-origin-when-cross-origin"
+        Permissions-Policy        "camera=(), microphone=(self), geolocation=()"
+        # CSP starts in report-only; tighten after first week of telemetry.
+        Content-Security-Policy-Report-Only "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://*.sentry.io; frame-src https://meet.jit.si; font-src 'self' data:;"
+        -Server
+    }
+
+    # Backend API. The backend mounts routes at /api/* itself,
+    # so we use `handle` (preserves path) instead of `handle_path` (strips prefix).
+    handle /api/* {
+        reverse_proxy backend:3001
+    }
+    @health path /health
+    handle @health {
+        reverse_proxy backend:3001
+    }
+
+    # Static frontend (SPA — fall back to index.html for client routes)
+    handle {
+        root * /srv/frontend
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Block obviously hostile probes
+    @bad path /.env /.git/* /wp-* /xmlrpc.php /phpmyadmin/*
+    respond @bad 404
+}

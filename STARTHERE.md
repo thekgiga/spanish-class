@@ -1,0 +1,372 @@
+# START HERE — Deployment Runbook
+
+This is your **single linear runbook** for taking the Spanish-class app from "VM created at Hetzner" to "running in production with backups and monitoring." Follow top-down. Each step has a single, observable success signal.
+
+If you've never done server admin before, that's fine — every command is here verbatim.
+
+> Conventions in this doc
+> - `<…>` are placeholders you replace.
+> - Steps prefixed with **🖥️ LOCAL** run on your Mac.
+> - Steps prefixed with **☁️ SERVER** run after `ssh`-ing into the VM.
+> - Steps prefixed with **🌐 WEB** are clicks in a browser dashboard.
+
+---
+
+## 0. Inputs you need before you start
+
+Collect these. Write them in a temporary text file (delete after); some go into 1Password later.
+
+| Item | Where you get it |
+|---|---|
+| Production domain (e.g. `spanishclass.com`) | Your registrar |
+| Staging hostname (e.g. `staging.spanishclass.com`) | Subdomain of the above |
+| Your laptop public IP (`curl ifconfig.me`) | one terminal command |
+| Hetzner VM IPv4 | Hetzner console |
+| SSH private key for the `deploy` user | created in step 3 |
+| GHCR personal access token (scope: write:packages) | github.com/settings/tokens |
+| Backblaze B2 application key + bucket name | b2 console |
+| `age` keypair for backup encryption | created in step 6 |
+| Resend API key (your existing one) | resend.com dashboard |
+| Cloudflare account | cloudflare.com |
+| UptimeRobot, Sentry, Healthchecks.io accounts | sign up, free tiers |
+
+---
+
+## 1. 🖥️ LOCAL — Verify the code builds and runs in Docker
+
+You should not deploy what you haven't run locally. ~10 minutes.
+
+```bash
+cd ~/Projects/spanish-class
+
+# 1.1 Make sure your local env file exists (the existing convention)
+cp config/templates/.env.local.template config/local/.env
+# Edit config/local/.env — fill in values for local dev (DB password can be 'localdev')
+
+# 1.2 Build images locally
+docker compose build
+
+# 1.3 Start the stack
+docker compose up -d
+
+# 1.4 Watch services come healthy
+docker compose ps
+# Wait until backend, mysql, redis all say "running (healthy)"
+
+# 1.5 Open the app
+open http://localhost
+```
+
+**Success signal:** `http://localhost` shows the frontend; login works against the seeded admin (run `docker compose exec backend npm run db:seed` if needed).
+
+**If it fails:** check `docker compose logs backend` first. The two most common issues are (a) missing values in `config/local/.env` and (b) `prisma migrate deploy` failing because the schema has a manual edit. Fix locally before going further.
+
+When happy: `docker compose down`.
+
+---
+
+## 2. 🌐 WEB — Move DNS to Cloudflare
+
+Free tier, ~10 minutes.
+
+1. Sign up at cloudflare.com → Add a site → enter `<your-domain>`.
+2. Cloudflare scans existing DNS records. Verify they look right.
+3. Cloudflare gives you **two nameservers** (`xxx.ns.cloudflare.com`). Go to your **registrar** and change the domain's nameservers to those two. Propagation: minutes to hours.
+4. Wait until Cloudflare's dashboard says the site is **Active** (green).
+5. In Cloudflare → **SSL/TLS** → Overview, set mode to **Full (strict)**. (You won't be able to fully verify this until step 5; pre-set it now.)
+6. In Cloudflare → **SSL/TLS** → Edge Certificates: Always Use HTTPS = ON, Minimum TLS = 1.2, HSTS = ON (12 months, includeSubDomains, preload).
+7. In Cloudflare → **Security** → Bots: Bot Fight Mode = ON. WAF → Managed Rules: enabled.
+
+**Success signal:** `dig +short NS <your-domain>` shows Cloudflare nameservers.
+
+---
+
+## 3. ☁️ SERVER — Bootstrap the VM
+
+You already created the VM (CX23 Falkenstein, Ubuntu, SSH key attached). ~15 minutes.
+
+```bash
+# 3.1 First SSH (as root, port 22 — bootstrap will change this)
+ssh root@<vm-ip>
+```
+
+If this prompts for a password, your SSH key isn't on the box. Add it via Hetzner Console → Server → SSH → Add Key, then retry.
+
+```bash
+# 3.2 Clone the repo on the VM
+apt-get update -y && apt-get install -y git
+git clone https://github.com/<owner>/spanish-class.git /tmp/spanish-class
+
+# 3.3 Run the bootstrap script. It will:
+#     - create a `deploy` user with sudo and your SSH key
+#     - move SSH to port 2222 and disable root login
+#     - install Docker, ufw, fail2ban
+#     - create /srv/spanish-class, /opt/backup
+bash /tmp/spanish-class/scripts/server/bootstrap.sh
+
+# 3.4 The script ends. Now disconnect:
+exit
+```
+
+```bash
+# 3.5 Reconnect on the NEW port as the deploy user. From your laptop:
+ssh -p 2222 deploy@<vm-ip>
+```
+
+**Success signal:** you can SSH as `deploy@<vm-ip>` on port 2222, and `root@<vm-ip>` on port 22 is rejected.
+
+```bash
+# 3.6 Move the repo to its permanent location
+sudo rm -rf /srv/spanish-class
+sudo git clone https://github.com/<owner>/spanish-class.git /srv/spanish-class
+sudo chown -R deploy:deploy /srv/spanish-class
+cd /srv/spanish-class
+```
+
+---
+
+## 4. ☁️ SERVER — Create the env files
+
+```bash
+cd /srv/spanish-class
+
+# 4.1 Host-level env (image tags, DB creds, SITE_ADDRESS)
+cp config/templates/.env.host.prod.template .env
+nano .env
+#  Fill in:
+#   SITE_ADDRESS=<your domain>
+#   ACME_EMAIL=<your email>
+#   BACKEND_IMAGE=ghcr.io/<owner>/spanish-class-backend:latest
+#   FRONTEND_IMAGE=ghcr.io/<owner>/spanish-class-frontend:latest
+#   MYSQL_ROOT_PASSWORD=<openssl rand -base64 32>
+#   MYSQL_PASSWORD=<openssl rand -base64 32>
+chmod 600 .env
+
+# 4.2 App-level env (loaded by config/prod/.env in the backend)
+sudo mkdir -p config/prod
+sudo cp config/templates/.env.prod.template config/prod/.env
+sudo nano config/prod/.env
+#  Fill in:
+#   JWT_SECRET=<openssl rand -base64 48>
+#   RESEND_API_KEY=<from resend dashboard>
+#   FRONTEND_URL=https://<your-domain>
+#   SENTRY_DSN=<from sentry, optional first-pass>
+#   ... etc; mirror what your local config has, minus dev-only values
+sudo chmod 600 config/prod/.env
+sudo chown deploy:deploy config/prod/.env
+```
+
+**Success signal:** `ls -la .env config/prod/.env` shows both with mode `-rw-------` owned by `deploy`.
+
+---
+
+## 5. ☁️ SERVER — Local build for first deploy (before CI is set up)
+
+This gets the app on the VM before GitHub Actions is wired up. Later deploys go via CI.
+
+```bash
+cd /srv/spanish-class
+
+# The compose file's `build:` blocks will compile images on the VM itself
+docker compose build
+
+# Bring up the stack
+docker compose up -d
+
+# Watch
+docker compose ps
+docker compose logs -f --tail=100 backend
+# Ctrl-C the logs once you see "Server running on port 3001"
+```
+
+---
+
+## 6. 🌐 WEB — DNS + first cert
+
+1. Cloudflare → DNS → Records → Add record:
+   - Type **A**, Name `@` (or `<your-domain>` literal), IPv4 = `<vm-ip>`, **Proxy status: Proxied** (orange cloud), TTL Auto.
+   - Type **AAAA**, Name `@`, IPv6 = the VM's IPv6 from Hetzner, Proxied.
+2. Wait 1–2 min. Test: `dig +short <your-domain>` returns a `104.x` or `172.67.x` Cloudflare IP.
+3. From your laptop: `curl -I https://<your-domain>/health`.
+
+**Success signal:** `200 OK` from `/health`. Caddy successfully obtained a cert.
+
+If it doesn't work first time:
+- `docker compose logs caddy | tail -50` shows the ACME challenge progress.
+- Common issue: Cloudflare set to "Flexible" instead of "Full (strict)" — fix and re-try.
+- Common issue: port 80 not open at Hetzner Cloud Firewall (must be — Let's Encrypt needs it via Cloudflare).
+
+---
+
+## 7. ☁️ SERVER — Seed first admin & verify
+
+```bash
+cd /srv/spanish-class
+
+# 7.1 Run the seed (creates the default professor@spanishclass.com account)
+docker compose exec backend npm run db:seed
+# Note the password it prints.
+
+# 7.2 In a browser, log in at https://<your-domain> as that admin.
+# Confirm the dashboard renders.
+```
+
+**Success signal:** admin login works end-to-end from a fresh private window.
+
+🚨 **Immediately** change the seed password to a strong one from the app UI.
+
+---
+
+## 8. 🌐 WEB — Backblaze B2 backup target
+
+1. Sign up at backblaze.com.
+2. **Buckets** → Create a Bucket → `spanish-class-backups`, Private, no default encryption (we encrypt before upload).
+3. **Application Keys** → Add a New Application Key → Name `spanish-class-backup`, scope = your bucket, read+write. **Save the keyID and applicationKey** — they're shown only once.
+
+---
+
+## 9. ☁️ SERVER — Configure backups
+
+```bash
+ssh -p 2222 deploy@<vm-ip>
+
+# 9.1 Generate age keypair on your LAPTOP (NOT on the server)
+#     (run this on your Mac, not on the VM)
+#  brew install age
+#  age-keygen -o ~/age-spanish-class.key
+#  → public key starts with `age1…`, private starts with `AGE-SECRET-KEY-1…`
+#  Save the PRIVATE key in 1Password AND a sealed envelope (physical).
+
+# 9.2 On the VM, write the public key only
+sudo tee /opt/backup/age-recipients.txt <<EOF
+age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+EOF
+sudo chmod 644 /opt/backup/age-recipients.txt
+
+# 9.3 The PRIVATE key goes on the VM too — but only because we need to
+#     restore in place. Store it in 1Password as the source of truth.
+sudo tee /opt/backup/age-key.txt <<'EOF'
+# created: <date>; public: age1...
+AGE-SECRET-KEY-1...
+EOF
+sudo chmod 600 /opt/backup/age-key.txt
+sudo chown root:root /opt/backup/age-key.txt
+
+# 9.4 Configure rclone for B2
+rclone config
+#  - n (new remote)
+#  - name: b2
+#  - storage: 6 (Backblaze B2)
+#  - account: <your keyID>
+#  - key: <your applicationKey>
+#  - leave the rest default
+#  - q to quit
+
+# 9.5 Verify
+rclone lsd b2:spanish-class-backups   # should list nothing yet, no error
+
+# 9.6 Copy backup scripts into /opt/backup
+sudo install -m 750 -o root /srv/spanish-class/scripts/backup/backup.sh /opt/backup/backup.sh
+sudo install -m 750 -o root /srv/spanish-class/scripts/backup/restore.sh /opt/backup/restore.sh
+
+# 9.7 Sign up at healthchecks.io → New Check → "spanish-class backups", expected schedule daily.
+#     Copy the ping URL.
+echo "https://hc-ping.com/<your-uuid>" | sudo tee /opt/backup/healthcheck.url
+
+# 9.8 Run a manual backup to verify
+sudo /opt/backup/backup.sh
+# Should end with "today's backups in B2: 1"
+
+# 9.9 Schedule via cron
+sudo crontab -e
+# Add:
+# 30 3 * * * /opt/backup/backup.sh >> /var/log/spanish-class/backup.log 2>&1
+```
+
+**Success signal:** `rclone ls b2:spanish-class-backups/` lists at least one file dated today.
+
+---
+
+## 10. 🌐 WEB — CI/CD: GitHub secrets
+
+GitHub repo → Settings → Secrets and variables → Actions → New repository secret:
+
+| Secret | Value |
+|---|---|
+| `STAGING_HOST` | (staging VM IP — set up later if you skip staging) |
+| `STAGING_USER` | `deploy` |
+| `STAGING_SSH_KEY` | private key contents (`cat ~/.ssh/id_ed25519`) |
+| `STAGING_SSH_PORT` | `2222` |
+| `STAGING_DOMAIN` | `staging.<your-domain>` |
+| `PROD_HOST` | prod VM IP |
+| `PROD_USER` | `deploy` |
+| `PROD_SSH_KEY` | private key contents |
+| `PROD_SSH_PORT` | `2222` |
+| `PROD_DOMAIN` | `<your-domain>` |
+
+Then **Settings → Environments → New environment → `production`** → enable **Required reviewers**, add yourself. This is the manual gate.
+
+Push to `main`. CI builds, scans, and (because staging host isn't set yet) the staging deploy step fails — that's fine; comment it out or set the staging secrets to your prod VM temporarily.
+
+---
+
+## 11. 🌐 WEB — Monitoring
+
+| Service | What to do | Time |
+|---|---|---|
+| **UptimeRobot** | New monitor, HTTP(s), `https://<your-domain>/health`, 5-min interval. Add email alert contact. | 3 min |
+| **Sentry** | New project (Node) → DSN → put in `config/prod/.env` as `SENTRY_DSN`. New project (React) → DSN → put as `VITE_SENTRY_DSN` and rebuild frontend. | 10 min |
+| **Healthchecks.io** | (already done in step 9.7) | — |
+
+---
+
+## 12. 🌐 WEB — Cloudflare hardening (Phase 4 of the plan)
+
+Once you confirm the site is up via Cloudflare, restrict the origin so only Cloudflare can reach it.
+
+1. **Hetzner Cloud Console → Firewalls** → edit your firewall:
+   - Remove the broad 80/443 rules.
+   - Add 80 + 443 **only** from Cloudflare's published IP ranges: https://www.cloudflare.com/ips/
+   - Keep SSH (2222) from your IP only.
+2. **Cloudflare → Rules → Rate limiting** (Security → WAF → Rate limiting rules):
+   - `/api/auth/*` → 10 req/min/IP, block 10 min.
+3. **Cloudflare → Security → WAF → Custom rules**:
+   - Block when `cf.threat_score gt 14`.
+
+**Success signal:** From a host that isn't yours, `curl https://<vm-ip>/` is rejected/timed out; `curl https://<your-domain>/` works.
+
+---
+
+## 13. Done — checklist
+
+- [ ] `https://<your-domain>` loads, TLS valid, A grade on ssllabs.com.
+- [ ] You can log in as admin.
+- [ ] Direct VM IP is not reachable from non-Cloudflare hosts.
+- [ ] B2 has a backup file dated today.
+- [ ] UptimeRobot, Sentry, Healthchecks.io all green.
+- [ ] CI build succeeds for a no-op commit; the manual production promotion gate works.
+- [ ] One restore drill performed into a throwaway VM. Date recorded in [docs/operations/restore-runbook.md](docs/operations/restore-runbook.md).
+
+---
+
+## What I deliberately deferred (do these before going truly public)
+
+These are Phase 2 (application hardening) items from the plan that need code changes. They're real production hardening — don't skip, but they're separate PRs:
+
+1. **`helmet` middleware** in the Express app.
+2. **`express-rate-limit`** on `/api/auth/login`, `/api/auth/register`, `/api/auth/reset-password`.
+3. **2FA for admins** (`otplib` + new tables + UI).
+4. **Admin audit log** (new table + middleware).
+5. **JWT refresh-token rotation** if not already done.
+6. **Zod validation audit** — every route must validate.
+7. **`bin/admin-2fa-reset.ts`** emergency helper referenced in the incident playbook.
+
+The infrastructure can ship without these; **don't onboard real paying users until the auth-side items (1–3, 5, 6) are done**. They're tracked in [specs/012-cloud-deployment-docker/tasks.md](specs/012-cloud-deployment-docker/tasks.md) Phase 2.
+
+---
+
+## Where to look when something goes wrong
+
+- [docs/operations/incident-response.md](docs/operations/incident-response.md) — 1-page playbook.
+- [docs/operations/deployment.md](docs/operations/deployment.md) — common ops commands.
+- [docs/operations/restore-runbook.md](docs/operations/restore-runbook.md) — DR procedures.

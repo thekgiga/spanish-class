@@ -1,0 +1,37 @@
+# Local development overrides.
+# Activated automatically by `docker compose up` when this file is present.
+# To skip and run prod-like locally: `docker compose -f docker-compose.yml up`.
+
+services:
+
+  caddy:
+    # Local HTTP only; let Vite-served apps work without TLS pain.
+    environment:
+      SITE_ADDRESS: ":80"
+    # No 443 mapping; just 80
+    ports:
+      - "80:80"
+
+  backend:
+    environment:
+      ENV: local
+      NODE_ENV: development
+    volumes:
+      # Mount source for fast iteration (requires rebuild for type changes)
+      - ./config/local/.env:/app/config/local/.env:ro
+
+  mysql:
+    # Expose locally for Prisma Studio / DBeaver
+    ports:
+      - "3306:3306"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  # The worker entrypoint (`dist/jobs/worker.js`) doesn't exist yet in the
+  # codebase — BullMQ workers are not wired as a separate process. Disable
+  # the worker container locally so it doesn't crash-loop. When workers are
+  # added, remove this block.
+  worker:
+    profiles: ["donotstart"]
