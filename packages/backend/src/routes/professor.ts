@@ -2,6 +2,7 @@ import { Router } from "express";
 import { prisma } from "../lib/prisma.js";
 import { authenticate, requireAdmin } from "../middleware/auth.js";
 import { validate, validateQuery } from "../middleware/validate.js";
+import { autoAudit } from "../middleware/auditLog.js";
 import {
   createSlotSchema,
   bulkCreateSlotSchema,
@@ -13,6 +14,7 @@ import {
   professorBookStudentSchema,
   createPrivateInvitationSchema,
   cancelPrivateInvitationSchema,
+  cancelSlotWithBookingsSchema,
 } from "@spanish-class/shared";
 import { AppError } from "../middleware/error.js";
 import {
@@ -41,6 +43,8 @@ const router: ExpressRouter = Router();
 
 // All routes require authentication and admin access
 router.use(authenticate, requireAdmin);
+// Auto-audit all mutating admin requests (POST/PUT/PATCH/DELETE)
+router.use(autoAudit("professor"));
 
 // Debug endpoint removed - Google Calendar integration removed in favor of Jitsi-only approach
 
@@ -946,7 +950,7 @@ router.delete("/slots/:id", async (req, res, next) => {
 });
 
 // POST /api/professor/slots/:id/cancel-with-bookings
-router.post("/slots/:id/cancel-with-bookings", async (req, res, next) => {
+router.post("/slots/:id/cancel-with-bookings", validate(cancelSlotWithBookingsSchema), async (req, res, next) => {
   try {
     const { reason } = req.body;
 

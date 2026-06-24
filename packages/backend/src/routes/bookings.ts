@@ -6,6 +6,11 @@ import {
   sendBookingConfirmedToStudent,
   sendBookingRejectionToStudent,
 } from "../services/email.js";
+import { validate } from "../middleware/validate.js";
+import {
+  confirmBookingSchema,
+  rejectBookingSchema,
+} from "@spanish-class/shared";
 import type { AvailabilitySlot, UserPublic } from "@spanish-class/shared";
 
 const router = Router();
@@ -14,7 +19,7 @@ const router = Router();
  * POST /api/bookings/confirm-booking (T043)
  * Confirm a booking using a confirmation token (professor only)
  */
-router.post("/confirm-booking", async (req, res, next) => {
+router.post("/confirm-booking", validate(confirmBookingSchema), async (req, res, next) => {
   try {
     const { token } = req.body;
 
@@ -119,7 +124,7 @@ router.post("/confirm-booking", async (req, res, next) => {
  * POST /api/bookings/reject-booking (T044)
  * Reject a booking using a confirmation token (professor only)
  */
-router.post("/reject-booking", async (req, res, next) => {
+router.post("/reject-booking", validate(rejectBookingSchema), async (req, res, next) => {
   try {
     const { token, reason } = req.body;
 
