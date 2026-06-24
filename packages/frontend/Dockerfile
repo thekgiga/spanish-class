@@ -2,7 +2,7 @@
 # We compile in a Node image, then copy the dist/ into a tiny image
 # whose only job is to expose those files via a named volume to Caddy.
 
-FROM node:20-alpine AS deps
+FROM node:26-alpine AS deps
 WORKDIR /repo
 RUN apk add --no-cache libc6-compat
 
