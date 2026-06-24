@@ -36,7 +36,6 @@ case "$MODE" in
   worker)
     wait_for_mysql
     echo "[entrypoint] starting worker"
-    # Adjust if worker entrypoint lives elsewhere
     exec node dist/jobs/worker.js
     ;;
   *)

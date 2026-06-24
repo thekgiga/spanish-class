@@ -1,6 +1,6 @@
 # spanish-class Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-02-25
+Auto-generated from all feature plans. Last updated: 2026-06-24
 
 ## Active Technologies
 - TypeScript 5.4+ (ES2020), React 18 (011-premium-education-ui-redesign)
@@ -130,19 +130,36 @@ nano config/prod/.env  # Fill in actual values (different secrets!)
 
 ### Database Operations
 
-- **Local development:** Use `npx prisma migrate dev` in `packages/backend/`
-- **Remote databases:** Use scripts in `scripts/database/` (run from local machine)
-- **Never run Prisma CLI on cPanel** - Memory limits prevent it from working
-- **Migrations are pre-generated** during build and included in deployment package
+- **Local development:** Use `npx prisma migrate dev` in `packages/backend/`, or run via Docker: `docker compose exec backend /app/node_modules/.bin/prisma migrate deploy --schema=/app/packages/backend/prisma/schema.prisma`
+- **Production deployments:** Backend container runs `prisma migrate deploy` on every start (see [packages/backend/docker/entrypoint.sh](packages/backend/docker/entrypoint.sh)). Just commit migration files; deploy applies them.
+- **Migration files** live in `packages/backend/prisma/migrations/` and are tracked in git.
 
-### cPanel Deployment Notes
+### Production Deployment (Hetzner + Docker)
 
-- Backend deployed to `~/spanish-class-{env}/`
-- Frontend deployed to `~/public_html/{env}/`
-- `node_modules` must be a symlink (managed by cPanel Node.js Selector)
-- Shared packages placed in `_shared_lib/` with post-install symlinks
-- Prisma client pre-generated locally (not on server)
-- Restart Node.js app in cPanel UI after deployment
+**Current model** (feature [012-cloud-deployment-docker](specs/012-cloud-deployment-docker/spec.md)): single Hetzner Cloud VM running the full stack via `docker compose`, fronted by Cloudflare for DDoS/WAF/DNS. Encrypted off-box backups to Backblaze B2.
+
+**Read first**:
+- [STARTHERE.md](STARTHERE.md) — linear 13-step runbook for the first deploy
+- [docs/operations/deployment.md](docs/operations/deployment.md) — day-to-day deploy + rollback commands
+- [docs/operations/incident-response.md](docs/operations/incident-response.md) — 1-page playbook for outages
+- [docs/operations/restore-runbook.md](docs/operations/restore-runbook.md) — disaster recovery procedures
+- [docs/operations/follow-up-work.md](docs/operations/follow-up-work.md) — what's still outstanding (PR-3 hardening, operator setup)
+
+**Key files**:
+- [docker-compose.yml](docker-compose.yml) — production stack (Caddy + backend + worker + frontend + MySQL + Redis)
+- [docker-compose.override.yml](docker-compose.override.yml) — local-dev overrides (HTTP, exposed DB ports)
+- [packages/backend/Dockerfile](packages/backend/Dockerfile) — multi-stage Node 20 image, non-root, auto-migrates on start
+- [packages/frontend/Dockerfile](packages/frontend/Dockerfile) — Vite build, dist seeded into shared volume
+- [caddy/Caddyfile](caddy/Caddyfile) — TLS, security headers, /api proxy, SPA fallback
+- [scripts/server/bootstrap.sh](scripts/server/bootstrap.sh) — idempotent Ubuntu hardening for fresh VMs
+- [scripts/backup/](scripts/backup/) — encrypted off-box backup + restore
+- [.github/workflows/deploy.yml](.github/workflows/deploy.yml) — CI → build → Trivy scan → auto-staging → gated manual production
+
+**Cost model**: ~$8/mo (CX23 VM €5.49 + Hetzner backups €1.10 + Backblaze B2 < $0.30 + free monitoring tiers).
+
+### Legacy cPanel Deployment (deprecated)
+
+The cPanel deployment scripts under `scripts/deploy/` and `scripts/database/` are kept for one cutover cycle and will be removed after the Hetzner migration is verified in production for 7 days. **New work should not target cPanel.**
 
 ## Commands
 
@@ -170,6 +187,7 @@ npx prisma studio            # Open Prisma Studio
 - Use Prettier for formatting (if configured)
 
 ## Recent Changes
+- 2026-06-24: 012-cloud-deployment-docker — containerized stack (Docker Compose), Hetzner CX23 target, Cloudflare front, Backblaze B2 backups, CI/CD via GitHub Actions. cPanel deployment deprecated.
 - 011-premium-education-ui-redesign: Added TypeScript 5.4+ (ES2020), React 18
 
 - 2026-02-25: Organized all scripts into `/scripts/` directory with categories

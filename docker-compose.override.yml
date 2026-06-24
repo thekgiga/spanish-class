@@ -29,9 +29,12 @@ services:
     ports:
       - "6379:6379"
 
-  # The worker entrypoint (`dist/jobs/worker.js`) doesn't exist yet in the
-  # codebase — BullMQ workers are not wired as a separate process. Disable
-  # the worker container locally so it doesn't crash-loop. When workers are
-  # added, remove this block.
+  # Local worker mounts the same env file as backend (it reads ENV=local
+  # and resolves config/local/.env via the env.ts loader).
   worker:
-    profiles: ["donotstart"]
+    environment:
+      ENV: local
+      NODE_ENV: development
+    volumes:
+      - ./config/local/.env:/app/config/local/.env:ro
+

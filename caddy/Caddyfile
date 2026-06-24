@@ -10,15 +10,21 @@
 {$SITE_ADDRESS} {
     encode zstd gzip
 
-    # Security headers (Cloudflare may layer its own; these are belt+suspenders)
+    # Security headers (Cloudflare may layer its own; these are belt+suspenders).
+    # CSP allows: Google Fonts (style + font), Sentry (connect), Jitsi (frame).
+    # Kept in report-only for the first week of telemetry, then promote to enforce.
     header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         X-Content-Type-Options    "nosniff"
+        # Jitsi is embedded as an iframe inside our own pages, so we do NOT iframe
+        # ourselves anywhere — DENY is correct. The Jitsi frame goes the other way.
         X-Frame-Options           "DENY"
         Referrer-Policy           "strict-origin-when-cross-origin"
-        Permissions-Policy        "camera=(), microphone=(self), geolocation=()"
-        # CSP starts in report-only; tighten after first week of telemetry.
-        Content-Security-Policy-Report-Only "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https://*.sentry.io; frame-src https://meet.jit.si; font-src 'self' data:;"
+        # microphone+camera 'self' so Jitsi can request permissions on our origin.
+        Permissions-Policy        "camera=(self), microphone=(self), geolocation=(), payment=(), usb=()"
+        Cross-Origin-Opener-Policy "same-origin"
+        Cross-Origin-Resource-Policy "same-origin"
+        Content-Security-Policy-Report-Only "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self'; connect-src 'self' https://*.sentry.io https://*.ingest.sentry.io; frame-src https://meet.jit.si https://*.jit.si; font-src 'self' data: https://fonts.gstatic.com; manifest-src 'self'; worker-src 'self' blob:; object-src 'none'; form-action 'self';"
         -Server
     }
 
