@@ -2,7 +2,7 @@
 # Targets linux/amd64 (Hetzner CX23, Intel).
 
 # ───────── deps ─────────
-FROM node:20-alpine AS deps
+FROM node:26-alpine AS deps
 WORKDIR /repo
 
 # System deps for native modules (bcryptjs is pure JS, prisma needs openssl)
@@ -35,7 +35,7 @@ RUN npm -w @spanish-class/shared run build \
 RUN npm prune --omit=dev
 
 # ───────── runtime ─────────
-FROM node:20-alpine AS runtime
+FROM node:26-alpine AS runtime
 WORKDIR /app
 
 # openssl required by Prisma's query engine; tini gives proper signal forwarding
