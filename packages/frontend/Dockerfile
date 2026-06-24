@@ -29,7 +29,7 @@ RUN npm -w @spanish-class/shared run build \
 
 # Final stage: just the static dist on a tiny base. Compose mounts /usr/share/app
 # as a volume and Caddy bind-mounts the same volume.
-FROM alpine:3.20 AS dist
+FROM alpine:3.24 AS dist
 RUN mkdir -p /usr/share/app
 COPY --from=build /repo/packages/frontend/dist /usr/share/app
 # Container exists only to seed the volume; it sleeps forever as a side car.
