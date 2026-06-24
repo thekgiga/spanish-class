@@ -44,7 +44,9 @@ coverage
 
 # Prisma
 packages/backend/prisma/*.db
-packages/backend/prisma/migrations
+# Migrations are version-controlled — they must be committed so prod
+# `prisma migrate deploy` has them. Only the local dev SQLite/scratch
+# artefacts above are ignored.
 
 # PWA
 sw.js

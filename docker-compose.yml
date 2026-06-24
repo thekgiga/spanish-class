@@ -84,6 +84,14 @@ services:
       redis:
         condition: service_healthy
     mem_limit: 384m
+    # Override the image's default HTTP healthcheck — worker doesn't listen on
+    # a port. Just confirm node process is alive.
+    healthcheck:
+      test: ["CMD","sh","-c","pgrep -f 'dist/jobs/worker.js' > /dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
 
   mysql:
     image: mysql:8.0
@@ -114,12 +122,15 @@ services:
   redis:
     image: redis:7-alpine
     restart: unless-stopped
+    # BullMQ persists job state in Redis — eviction would drop jobs silently.
+    # `noeviction` returns OOM errors on write instead, which surfaces problems
+    # loudly and lets us scale RAM before they cause data loss.
     command:
       - redis-server
       - --maxmemory
       - 128mb
       - --maxmemory-policy
-      - allkeys-lru
+      - noeviction
       - --appendonly
       - "yes"
     volumes:

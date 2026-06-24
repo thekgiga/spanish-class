@@ -24,6 +24,57 @@ Online Spanish class booking platform with video conferencing, automated reminde
 
 ## 🚀 Quick Start
 
+### Option A — Docker (recommended) ⭐
+
+The whole stack (backend, frontend, MySQL, Redis, Caddy reverse proxy) runs in one command. You don't need Node, MySQL, or Redis installed on your machine — only Docker Desktop.
+
+```bash
+git clone <repository-url>
+cd spanish-class
+
+# Fill in local secrets (DB password, JWT secret, etc.) — the template
+# ships with sensible local-dev defaults; just save it as-is to start.
+cp config/templates/.env.local.template config/local/.env
+
+# Build images + start the stack
+docker compose up -d --build
+
+# Apply DB schema and seed users
+docker compose exec backend /app/node_modules/.bin/prisma migrate deploy --schema=/app/packages/backend/prisma/schema.prisma
+docker compose exec backend node --input-type=module -e "
+  import {PrismaClient} from '@prisma/client';
+  import bcrypt from 'bcryptjs';
+  const p = new PrismaClient();
+  await p.user.upsert({
+    where:{email:'professor@spanishclass.com'},
+    update:{},
+    create:{email:'professor@spanishclass.com',passwordHash:await bcrypt.hash('Admin123!',12),firstName:'Maria',lastName:'Garcia',isAdmin:true,timezone:'Europe/Madrid'}
+  });
+  await p.user.upsert({
+    where:{email:'student@example.com'},
+    update:{},
+    create:{email:'student@example.com',passwordHash:await bcrypt.hash('Student123!',12),firstName:'John',lastName:'Smith',timezone:'Europe/Madrid'}
+  });
+  await p.\$disconnect();
+"
+```
+
+Open **http://localhost** — login with `professor@spanishclass.com` / `Admin123!`.
+
+Useful commands:
+```bash
+docker compose ps                              # what's running
+docker compose logs -f --tail=200 backend     # tail logs
+docker compose down                            # stop, keep data
+docker compose down -v                         # stop + wipe DB/Redis volumes
+```
+
+For deploying to a real cloud VM, see **[STARTHERE.md](STARTHERE.md)** and [docs/operations/](docs/operations/).
+
+### Option B — Native (no Docker)
+
+Use this if you want to run services directly on your host (faster reload, Prisma Studio, etc.). Requires MySQL + Redis installed locally.
+
 **Clone and install:**
 ```bash
 git clone <repository-url>

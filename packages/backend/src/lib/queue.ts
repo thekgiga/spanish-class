@@ -2,12 +2,22 @@ import { Queue, Worker, QueueEvents } from "bullmq";
 
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
 
-// Parse Redis URL for connection options
-const redisOpts = {
-  host: "localhost",
-  port: 6379,
-  maxRetriesPerRequest: null,
-};
+// BullMQ takes either a host/port pair or a node-redis-compatible object.
+// Parse REDIS_URL so we honour the env var (Docker sets it to redis://redis:6379;
+// previously this was hardcoded to localhost and silently failed inside compose).
+function parseRedisUrl(url: string) {
+  const parsed = new URL(url);
+  return {
+    host: parsed.hostname,
+    port: parsed.port ? Number(parsed.port) : 6379,
+    username: parsed.username || undefined,
+    password: parsed.password || undefined,
+    // BullMQ requires this to be null for workers/queues
+    maxRetriesPerRequest: null,
+  };
+}
+
+const redisOpts = parseRedisUrl(REDIS_URL);
 
 // Email queue for async email sending
 export const emailQueue = new Queue("emails", {

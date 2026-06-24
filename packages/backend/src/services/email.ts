@@ -4,7 +4,40 @@ import { generateBookingIcs, generateCancellationIcs } from "./ics.js";
 import { prisma } from "../lib/prisma.js";
 import { getMeetingProvider } from "./meeting-provider.js";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// In local dev (and in CI/tests) we usually don't want to actually send mail.
+// Resend's constructor throws if the key is empty, and we don't want to
+// require operators to invent a placeholder. Treat missing or placeholder
+// keys as "log only" — outgoing emails go to stdout instead of the wire.
+const apiKey = process.env.RESEND_API_KEY;
+const isLiveKey =
+  !!apiKey && apiKey.length > 0 && !apiKey.startsWith("re_local");
+
+type ResendLike = Pick<Resend, "emails">;
+const resend: ResendLike = isLiveKey
+  ? new Resend(apiKey)
+  : {
+      emails: {
+        send: async (opts: Parameters<Resend["emails"]["send"]>[0]) => {
+          // Print one line per "send"; useful for local smoke testing.
+          const to = Array.isArray((opts as any).to)
+            ? (opts as any).to.join(", ")
+            : (opts as any).to;
+          console.log(
+            `[email:mock] to=${to} subject=${JSON.stringify((opts as any).subject)} from=${(opts as any).from}`,
+          );
+          return {
+            data: { id: `mock_${Date.now()}` },
+            error: null,
+          } as Awaited<ReturnType<Resend["emails"]["send"]>>;
+        },
+      } as unknown as Resend["emails"],
+    };
+
+if (!isLiveKey) {
+  console.warn(
+    "[email] RESEND_API_KEY missing or placeholder — emails will be logged to stdout, not sent.",
+  );
+}
 
 const EMAIL_FROM =
   process.env.EMAIL_FROM || "Spanish Class <noreply@spanishclass.com>";
