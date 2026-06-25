@@ -4,21 +4,32 @@ import crypto from "crypto";
 import { prisma } from "../lib/prisma.js";
 import { generateToken } from "../lib/jwt.js";
 import { validate } from "../middleware/validate.js";
-import { authenticate } from "../middleware/auth.js";
+import { authenticate, requireAdmin } from "../middleware/auth.js";
+import { authLimiter } from "../middleware/rateLimiter.js";
 import {
   loginSchema,
   registerSchema,
   updateUserSchema,
+  verifyTotpSchema,
+  verifyTotpWithRecoverySchema,
 } from "@spanish-class/shared";
 import { AppError } from "../middleware/error.js";
 import { sendVerificationEmail } from "../services/email.js";
+import {
+  generateTotpSetup,
+  verifyAndEnableTotp,
+  verifyTotpCode,
+  verifyRecoveryCode,
+  isTotpRequired,
+  disableTotp,
+} from "../services/twoFactor.js";
 
 const VERIFICATION_TOKEN_EXPIRY_HOURS = 24;
 
 const router: RouterType = Router();
 
 // POST /api/auth/register
-router.post("/register", validate(registerSchema), async (req, res, next) => {
+router.post("/register", authLimiter, validate(registerSchema), async (req, res, next) => {
   try {
     const { email, password, firstName, lastName, timezone } = req.body;
 
@@ -90,7 +101,7 @@ router.post("/register", validate(registerSchema), async (req, res, next) => {
 });
 
 // POST /api/auth/login
-router.post("/login", validate(loginSchema), async (req, res, next) => {
+router.post("/login", authLimiter, validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -134,6 +145,25 @@ router.post("/login", validate(loginSchema), async (req, res, next) => {
 
     // Generate token
     const token = generateToken(userData);
+
+    // Check if admin needs to complete 2FA verification
+    const totpRequired = user.isAdmin && (await isTotpRequired(user.id));
+    if (totpRequired) {
+      // Issue a short-lived pre-auth token that only unlocks the 2FA verify endpoint.
+      // The client must hit POST /api/auth/2fa/verify to get the real token.
+      const preAuthToken = generateToken({ ...userData, twoFactorPending: true } as any);
+      res.cookie("token", preAuthToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 5 * 60 * 1000, // 5 minutes only
+      });
+      res.json({
+        success: true,
+        data: { totpRequired: true },
+      });
+      return;
+    }
 
     // Set HTTP-only cookie
     res.cookie("token", token, {
@@ -347,4 +377,106 @@ router.put(
   },
 );
 
+// ── 2FA endpoints (admin only) ────────────────────────────────────────────────
+
+// GET /api/auth/2fa/setup — generate a TOTP secret + QR code + recovery codes
+router.get("/2fa/setup", authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    const { qrCodeDataUrl, recoveryCodes } = await generateTotpSetup(
+      req.user!.id,
+      req.user!.email,
+    );
+    res.json({ success: true, data: { qrCodeDataUrl, recoveryCodes } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/auth/2fa/verify — verify code and enable 2FA (first time) OR
+//   complete a login when totpRequired was true in the login response.
+router.post("/2fa/verify", validate(verifyTotpSchema), authenticate, async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    const userId = req.user!.id;
+    const tf = await prisma.userTwoFactor.findUnique({ where: { userId } });
+
+    if (!tf?.enabled) {
+      // Enrollment flow
+      const ok = await verifyAndEnableTotp(userId, code);
+      if (!ok) throw new AppError(400, "Invalid TOTP code");
+      res.json({ success: true, message: "2FA enabled successfully" });
+      return;
+    }
+
+    // Login-completion flow
+    const ok = await verifyTotpCode(userId, code);
+    if (!ok) throw new AppError(401, "Invalid TOTP code");
+
+    const userData = {
+      id: req.user!.id,
+      email: req.user!.email,
+      firstName: req.user!.firstName,
+      lastName: req.user!.lastName,
+      isAdmin: req.user!.isAdmin,
+      timezone: req.user!.timezone,
+      createdAt: req.user!.createdAt,
+      updatedAt: req.user!.updatedAt,
+    };
+    const token = generateToken(userData);
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    res.json({ success: true, data: { user: userData, token } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/auth/2fa/recovery — verify a recovery code to bypass TOTP
+router.post(
+  "/2fa/recovery",
+  validate(verifyTotpWithRecoverySchema),
+  authenticate,
+  async (req, res, next) => {
+    try {
+      const ok = await verifyRecoveryCode(req.user!.id, req.body.code);
+      if (!ok) throw new AppError(401, "Invalid recovery code");
+      const userData = {
+        id: req.user!.id,
+        email: req.user!.email,
+        firstName: req.user!.firstName,
+        lastName: req.user!.lastName,
+        isAdmin: req.user!.isAdmin,
+        timezone: req.user!.timezone,
+        createdAt: req.user!.createdAt,
+        updatedAt: req.user!.updatedAt,
+      };
+      const token = generateToken(userData);
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      res.json({ success: true, data: { user: userData, token } });
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+// POST /api/auth/2fa/disable — admin self-service or emergency reset
+router.post("/2fa/disable", authenticate, requireAdmin, async (req, res, next) => {
+  try {
+    await disableTotp(req.user!.id);
+    res.json({ success: true, message: "2FA disabled" });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;
+

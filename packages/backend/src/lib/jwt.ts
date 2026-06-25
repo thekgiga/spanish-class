@@ -2,7 +2,10 @@ import jwt, { SignOptions } from 'jsonwebtoken';
 import type { UserPublic } from '@spanish-class/shared';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'development-secret-change-in-production';
-const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || '7d') as SignOptions['expiresIn'];
+// Default 4h in prod for reasonable security; 7d in local dev for convenience.
+// Override via JWT_EXPIRES_IN in config/<env>/.env.
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN ||
+  (process.env.NODE_ENV === 'production' ? '4h' : '7d')) as SignOptions['expiresIn'];
 
 export interface JwtPayload {
   userId: string;

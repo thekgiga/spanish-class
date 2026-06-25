@@ -41,6 +41,8 @@ model User {
   referralsReceived        Referral[]         @relation("ReferralsReceived")
   ratingsGiven             Rating[]           @relation("RatingsGiven")
   ratingsReceived          Rating[]           @relation("RatingsReceived")
+  twoFactor                UserTwoFactor?
+  auditLogsActed           AdminAuditLog[]    @relation("AuditLogsActed")
 
   @@map("users")
 }
@@ -360,4 +362,39 @@ model Rating {
   @@index([rateeId])
   @@index([bookingId])
   @@map("ratings")
+}
+
+// ── Security models (PR-3) ────────────────────────────────────────────────────
+
+model UserTwoFactor {
+  id             String    @id @default(cuid())
+  userId         String    @unique @map("user_id")
+  secretEncrypted String   @map("secret_encrypted") @db.Text
+  enabled        Boolean   @default(false)
+  verifiedAt     DateTime? @map("verified_at")
+  recoveryCodesJson String? @map("recovery_codes_json") @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_two_factor")
+}
+
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  actorId     String   @map("actor_id")
+  action      String   @db.VarChar(100)
+  targetType  String?  @map("target_type") @db.VarChar(50)
+  targetId    String?  @map("target_id") @db.VarChar(255)
+  ip          String?  @db.VarChar(45)
+  userAgent   String?  @map("user_agent") @db.Text
+  payloadJson String?  @map("payload_json") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  actor User @relation("AuditLogsActed", fields: [actorId], references: [id])
+
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
 }

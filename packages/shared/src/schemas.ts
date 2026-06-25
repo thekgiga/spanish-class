@@ -281,6 +281,23 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type PaginationInput = z.infer<typeof paginationSchema>;
 export type SlotsQueryInput = z.infer<typeof slotsQuerySchema>;
+
+// ── Additional schemas added during security hardening (PR-3) ─────────────────
+
+export const cancelSlotWithBookingsSchema = z.object({
+  reason: z.string().max(500).optional(),
+});
+
+// 2FA schemas
+export const verifyTotpSchema = z.object({
+  code: z.string().length(6, "TOTP code must be 6 digits").regex(/^\d{6}$/),
+});
+
+export const verifyTotpWithRecoverySchema = z.object({
+  code: z.string().min(8).max(10),
+});
+
+
 export type BookingsQueryInput = z.infer<typeof bookingsQuerySchema>;
 export type CreateRecurringPatternInput = z.infer<
   typeof createRecurringPatternSchema
