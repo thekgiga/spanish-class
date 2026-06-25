@@ -27,12 +27,11 @@ import { PrimaryButton } from "@/components/ui/premium";
 import { useAuthStore } from "@/stores/auth";
 import { cn } from "@/lib/utils";
 
-type AuthMode = "login" | "register";
+type AuthMode = "login" | "register" | "register-success";
 
 export function AuthPage() {
   const { t } = useTranslation("auth");
   const location = useLocation();
-  // Default to login mode
   const [mode, setMode] = useState<AuthMode>("login");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
@@ -57,7 +56,12 @@ export function AuthPage() {
 
   const onLogin = async (data: LoginInput) => {
     try {
-      await login(data.email, data.password);
+      const result = await login(data.email, data.password);
+      if (result?.totpRequired) {
+        // 2FA gate — leave on this page; backend has issued a short pre-auth cookie
+        toast("Please complete two-factor authentication.", { icon: "🔐" });
+        return;
+      }
       toast.success(t("login.success_message"));
       navigate(from, { replace: true });
     } catch (error: unknown) {
@@ -74,9 +78,13 @@ export function AuthPage() {
 
   const onRegister = async (data: RegisterInput) => {
     try {
-      await registerUser(data);
-      toast.success(t("register.success_message"));
-      navigate("/dashboard");
+      const result = await registerUser(data);
+      if (result?.requiresEmailVerification) {
+        setMode("register-success");
+      } else {
+        toast.success(t("register.success_message"));
+        navigate("/dashboard");
+      }
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } } };
       toast.error(err.response?.data?.error || t("register.error_default"));
@@ -404,6 +412,14 @@ export function AuthPage() {
                         {loginForm.formState.errors.password.message}
                       </p>
                     )}
+                    <div className="flex justify-end">
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs text-slate-500 hover:text-spanish-teal-600 transition-colors"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
                   </div>
 
                   <PrimaryButton
@@ -437,6 +453,35 @@ export function AuthPage() {
                     </button>
                   </p>
                 </div>
+              </motion.div>
+            )}
+
+            {mode === "register-success" && (
+              <motion.div
+                key="register-success"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="py-4 text-center"
+              >
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+                  <CheckCircle2 className="h-8 w-8 text-green-600" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 mb-2">Account created!</h2>
+                <p className="text-slate-500 text-sm mb-6">
+                  We've sent a verification email to your inbox. Click the link in the email to
+                  activate your account and start learning.
+                </p>
+                <p className="text-xs text-slate-400 mb-6">
+                  Don't see it? Check your spam folder.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMode("login")}
+                  className="text-sm text-spanish-teal-600 hover:text-spanish-teal-700 font-medium"
+                >
+                  Go to login
+                </button>
               </motion.div>
             )}
           </AnimatePresence>

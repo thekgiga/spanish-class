@@ -26,6 +26,15 @@ const ContactPage = lazy(() =>
 const AuthPage = lazy(() =>
   import("@/pages/auth/AuthPage").then((m) => ({ default: m.AuthPage })),
 );
+const ForgotPasswordPage = lazy(
+  () => import("@/pages/auth/ForgotPasswordPage"),
+);
+const ResetPasswordPage = lazy(
+  () => import("@/pages/auth/ResetPasswordPage"),
+);
+const VerifyEmailPage = lazy(
+  () => import("@/pages/auth/VerifyEmailPage"),
+);
 const DesignShowcase = lazy(() =>
   import("@/pages/DesignShowcase").then((m) => ({
     default: m.DesignShowcase,
@@ -183,6 +192,23 @@ function AppRoutes() {
                 </AuthRedirect>
               }
             />
+            <Route
+              path="/forgot-password"
+              element={
+                <AuthRedirect>
+                  <ForgotPasswordPage />
+                </AuthRedirect>
+              }
+            />
+            <Route
+              path="/reset-password"
+              element={
+                <AuthRedirect>
+                  <ResetPasswordPage />
+                </AuthRedirect>
+              }
+            />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
             {/* Legacy redirects */}
             <Route path="/login" element={<Navigate to="/auth" replace />} />
             <Route path="/register" element={<Navigate to="/auth" replace />} />

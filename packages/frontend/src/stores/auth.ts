@@ -7,17 +7,22 @@ interface AuthState {
   user: UserPublic | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  emailVerified: boolean;
   setUser: (user: UserPublic | null) => void;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ totpRequired?: boolean; emailVerified?: boolean }>;
   register: (data: {
     email: string;
     password: string;
     firstName: string;
     lastName: string;
     timezone?: string;
-  }) => Promise<void>;
+  }) => Promise<{ requiresEmailVerification: boolean }>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string, confirmPassword: string) => Promise<void>;
+  verifyEmail: (token: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -26,30 +31,38 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       isLoading: true,
       isAuthenticated: false,
+      emailVerified: true,
 
       setUser: (user) =>
-        set({
-          user,
-          isAuthenticated: !!user,
-          isLoading: false,
-        }),
+        set({ user, isAuthenticated: !!user, isLoading: false }),
 
       login: async (email, password) => {
-        const { user } = await authApi.login({ email, password });
-        set({ user, isAuthenticated: true, isLoading: false });
+        const result = await authApi.login({ email, password });
+        if (result.totpRequired) {
+          return { totpRequired: true };
+        }
+        set({
+          user: result.user,
+          isAuthenticated: true,
+          isLoading: false,
+          emailVerified: result.emailVerified !== false,
+        });
+        return { emailVerified: result.emailVerified !== false };
       },
 
       register: async (data) => {
-        const { user } = await authApi.register({
+        const result = await authApi.register({
           ...data,
           timezone: data.timezone || 'Europe/Madrid',
         });
-        set({ user, isAuthenticated: true, isLoading: false });
+        // After register: not auto-logged-in (requires email verification)
+        // result.requiresEmailVerification is true for new users
+        return { requiresEmailVerification: result.requiresEmailVerification ?? false };
       },
 
       logout: async () => {
         await authApi.logout();
-        set({ user: null, isAuthenticated: false });
+        set({ user: null, isAuthenticated: false, emailVerified: true });
       },
 
       checkAuth: async () => {
@@ -59,7 +72,6 @@ export const useAuthStore = create<AuthState>()(
             set({ user: null, isAuthenticated: false, isLoading: false });
             return;
           }
-
           const user = await authApi.me();
           set({ user, isAuthenticated: true, isLoading: false });
         } catch {
@@ -67,10 +79,42 @@ export const useAuthStore = create<AuthState>()(
           set({ user: null, isAuthenticated: false, isLoading: false });
         }
       },
+
+      forgotPassword: async (email) => {
+        await authApi.forgotPassword(email);
+      },
+
+      resetPassword: async (token, password, confirmPassword) => {
+        const result = await authApi.resetPassword(token, password, confirmPassword);
+        set({
+          user: result.user,
+          isAuthenticated: true,
+          isLoading: false,
+          emailVerified: result.emailVerified !== false,
+        });
+      },
+
+      verifyEmail: async (token) => {
+        const result = await authApi.verifyEmail(token);
+        set({
+          user: result.user,
+          isAuthenticated: true,
+          isLoading: false,
+          emailVerified: true,
+        });
+      },
+
+      resendVerification: async (email) => {
+        await authApi.resendVerification(email);
+      },
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
-    }
-  )
+      partialize: (state) => ({
+        user: state.user,
+        isAuthenticated: state.isAuthenticated,
+        emailVerified: state.emailVerified,
+      }),
+    },
+  ),
 );

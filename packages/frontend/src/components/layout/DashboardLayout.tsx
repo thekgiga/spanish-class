@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
+import { EmailVerificationBanner } from "@/components/shared/EmailVerificationBanner";
 import {
   LayoutDashboard,
   Calendar,
@@ -244,6 +245,7 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
         </div>
 
         {/* Page content */}
+        <EmailVerificationBanner />
         <main className="p-6 sm:p-8 lg:p-12">
           <Outlet />
         </main>

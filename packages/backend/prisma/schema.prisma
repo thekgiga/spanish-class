@@ -43,6 +43,12 @@ model User {
   ratingsReceived          Rating[]           @relation("RatingsReceived")
   twoFactor                UserTwoFactor?
   auditLogsActed           AdminAuditLog[]    @relation("AuditLogsActed")
+  passwordResetTokens      PasswordResetToken[]
+
+  // Email verification
+  isEmailVerified            Boolean   @default(false) @map("is_email_verified")
+  emailVerificationToken     String?   @unique @map("email_verification_token") @db.VarChar(128)
+  emailVerificationExpiresAt DateTime? @map("email_verification_expires_at")
 
   @@map("users")
 }
@@ -397,4 +403,18 @@ model AdminAuditLog {
   @@index([actorId, createdAt])
   @@index([createdAt])
   @@map("admin_audit_logs")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  tokenHash String    @unique @map("token_hash") @db.VarChar(64)
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_reset_tokens")
 }
