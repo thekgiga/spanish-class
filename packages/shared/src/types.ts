@@ -177,6 +177,9 @@ export interface RegisterData {
 export interface AuthResponse {
   user: UserPublic;
   token: string;
+  emailVerified?: boolean;
+  totpRequired?: boolean;
+  requiresEmailVerification?: boolean;
 }
 
 // Dashboard Stats

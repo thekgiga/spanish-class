@@ -91,6 +91,40 @@ export const authApi = {
     );
     return res.data.data.user;
   },
+
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    const res = await api.post<{ message: string }>("/auth/forgot-password", { email });
+    return res.data;
+  },
+
+  resetPassword: async (
+    token: string,
+    password: string,
+    confirmPassword: string,
+  ): Promise<AuthResponse> => {
+    const res = await api.post<{ data: AuthResponse }>("/auth/reset-password", {
+      token,
+      password,
+      confirmPassword,
+    });
+    if (res.data.data.token) {
+      localStorage.setItem("token", res.data.data.token);
+    }
+    return res.data.data;
+  },
+
+  verifyEmail: async (token: string): Promise<AuthResponse> => {
+    const res = await api.post<{ data: AuthResponse }>("/auth/verify-email", { token });
+    if (res.data.data.token) {
+      localStorage.setItem("token", res.data.data.token);
+    }
+    return res.data.data;
+  },
+
+  resendVerification: async (email: string): Promise<{ message: string }> => {
+    const res = await api.post<{ message: string }>("/auth/resend-verification", { email });
+    return res.data;
+  },
 };
 
 // Professor API
