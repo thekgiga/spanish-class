@@ -98,26 +98,53 @@ chmod 600 /home/${DEPLOY_USER}/.ssh/authorized_keys
 # ─── 3. SSH hardening ────────────────────────────────────────────────
 log "hardening sshd — listening on port 22 AND ${SSH_PORT} until you finalize"
 SSHD=/etc/ssh/sshd_config
+
+# Remove stale append-blocks from previous runs so re-run is idempotent
+sed -i '/^# Emergency console access/,/^# END bootstrap-sshd-block/d' "$SSHD"
+
 sed -i \
   -e 's/^#\?PermitRootLogin .*/PermitRootLogin no/' \
   -e 's/^#\?PasswordAuthentication .*/PasswordAuthentication no/' \
   -e 's/^#\?PubkeyAuthentication .*/PubkeyAuthentication yes/' \
-  -e 's/^#\?ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' \
   -e 's/^#\?KbdInteractiveAuthentication .*/KbdInteractiveAuthentication no/' \
   -e 's/^#\?UsePAM .*/UsePAM yes/' \
   "$SSHD"
+
+# ChallengeResponseAuthentication was removed in OpenSSH 9+ (Ubuntu 26.04).
+# Only add it if the option is still recognised by this sshd.
+if sshd -t -o "ChallengeResponseAuthentication=no" 2>/dev/null; then
+  sed -i 's/^#\?ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' "$SSHD"
+fi
+
 # Allow password login only for the admin user (needed for Hetzner web console)
 cat >> "$SSHD" <<EOF
 
 # Emergency console access — password allowed only for ${ADMIN_USER}
 Match User ${ADMIN_USER}
     PasswordAuthentication yes
+# END bootstrap-sshd-block
 EOF
+
 # Listen on both port 22 (fallback) and the new port until the user confirms access.
 # Remove existing Port lines, then add both.
 sed -i '/^#\?Port /d' "$SSHD"
-echo -e "Port 22\nPort ${SSH_PORT}" >> "$SSHD"
-systemctl restart ssh
+printf 'Port 22\nPort %s\n' "${SSH_PORT}" >> "$SSHD"
+
+# Validate config before restarting — prevents locking ourselves out
+sshd -t || { echo "[bootstrap] sshd config invalid — aborting SSH restart"; cat "$SSHD" | tail -20; exit 1; }
+
+# Ubuntu 26.04 uses sshd.service; 24.04 and earlier use ssh.service.
+# Use the one that is actually active/loaded — not just listed.
+if systemctl is-active --quiet sshd 2>/dev/null; then
+  SSH_SVC="sshd"
+elif systemctl is-active --quiet ssh 2>/dev/null; then
+  SSH_SVC="ssh"
+else
+  # Neither is active yet — fall back to whichever unit file exists
+  SSH_SVC="ssh"
+  systemctl list-unit-files sshd.service >/dev/null 2>&1 && SSH_SVC="sshd"
+fi
+systemctl restart "$SSH_SVC"
 
 # ─── 4. Docker ────────────────────────────────────────────────────────
 log "installing Docker Engine"
@@ -125,7 +152,24 @@ if ! command -v docker >/dev/null; then
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
   chmod a+r /etc/apt/keyrings/docker.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" \
+
+  # Docker may not have packages for brand-new Ubuntu codenames immediately.
+  # Fall back through the LTS chain until we find a working repo.
+  DISTRO_CODENAME="$(lsb_release -cs)"
+  # Map unreleased/unsupported codenames to the latest known-good LTS
+  case "$DISTRO_CODENAME" in
+    resolute|*)
+      # Check if Docker has this codename; if not, fall back to noble (24.04 LTS)
+      if ! curl -fsSL --head \
+          "https://download.docker.com/linux/ubuntu/dists/${DISTRO_CODENAME}/Release" \
+          >/dev/null 2>&1; then
+        log "Docker repo has no '${DISTRO_CODENAME}' release — falling back to 'noble' (Ubuntu 24.04 LTS)"
+        DISTRO_CODENAME="noble"
+      fi
+      ;;
+  esac
+
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu ${DISTRO_CODENAME} stable" \
     > /etc/apt/sources.list.d/docker.list
   apt-get update -y
   apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
@@ -191,7 +235,7 @@ log "Next steps:"
 log "  1) From your laptop, test NEW port:  ssh -p ${SSH_PORT} ${DEPLOY_USER}@<server-ip>"
 log "  2) Once confirmed working, close port 22 on the SERVER:"
 log "       sudo ufw delete allow 22/tcp"
-log "       sudo sed -i '/^Port 22$/d' /etc/ssh/sshd_config && sudo systemctl restart ssh"
+log "       sudo sed -i '/^Port 22\$/d' /etc/ssh/sshd_config && sudo systemctl restart ssh sshd 2>/dev/null; true"
 log "  3) Also remove port 22 from your Hetzner Cloud Firewall inbound rules."
 log "  4) Clone the repo into ${APP_DIR}"
 log "  5) Create /srv/spanish-class/.env from config/templates/.env.host.prod.template"
