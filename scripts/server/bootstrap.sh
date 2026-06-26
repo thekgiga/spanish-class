@@ -100,7 +100,6 @@ log "hardening sshd — listening on port 22 AND ${SSH_PORT} until you finalize"
 SSHD=/etc/ssh/sshd_config
 
 # Remove ALL lines we may have added on previous runs (Port lines, Match block).
-# Must do this before any writes so re-runs are fully idempotent.
 sed -i '/^# Emergency console access/,/^# END bootstrap-sshd-block/d' "$SSHD"
 sed -i '/^Port [0-9]/d' "$SSHD"
 
@@ -118,9 +117,8 @@ if sshd -t -o "ChallengeResponseAuthentication=no" 2>/dev/null; then
   sed -i 's/^#\?ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' "$SSHD"
 fi
 
-# Append global directives BEFORE the Match block.
-# Port must be a global directive (not inside any Match context).
-# Match User extends to end of file, so it must always be last.
+# Port lines must appear before any Match block (Match extends to EOF).
+# Also handled via socket activation on Ubuntu 26.04 (see below).
 cat >> "$SSHD" <<EOF
 
 # bootstrap: port config (global — must appear before Match blocks)
@@ -134,9 +132,8 @@ Match User ${ADMIN_USER}
 # END bootstrap-sshd-block
 EOF
 
-# Validate config before restarting — prevents locking ourselves out.
-# /run/sshd is the privilege separation dir; sshd -t checks for it even
-# in test mode. Create it so the test doesn't fail on a cold boot.
+# Validate config before restarting.
+# /run/sshd must exist for sshd -t to pass (privilege separation dir).
 mkdir -p /run/sshd
 if ! sshd -t; then
   echo "[bootstrap] sshd config invalid — showing tail of ${SSHD}:"
@@ -144,16 +141,37 @@ if ! sshd -t; then
   exit 1
 fi
 
-# Ubuntu 26.04 uses sshd.service; 24.04 and earlier use ssh.service.
-if systemctl is-active --quiet sshd 2>/dev/null; then
-  SSH_SVC="sshd"
-elif systemctl is-active --quiet ssh 2>/dev/null; then
-  SSH_SVC="ssh"
+# Ubuntu 22.04+ uses socket-activated SSH (ssh.socket / sshd.socket).
+# When socket activation is in use, the Port directive in sshd_config
+# is IGNORED — the listening ports are controlled entirely by the socket
+# unit. We must configure the socket unit to add port ${SSH_PORT}.
+if systemctl is-active --quiet ssh.socket 2>/dev/null || \
+   systemctl is-enabled --quiet ssh.socket 2>/dev/null; then
+  log "socket-activated SSH detected — adding port ${SSH_PORT} to ssh.socket"
+  SOCKET_UNIT="ssh.socket"
 else
-  SSH_SVC="ssh"
-  systemctl list-unit-files sshd.service >/dev/null 2>&1 && SSH_SVC="sshd"
+  SOCKET_UNIT=""
 fi
-systemctl restart "$SSH_SVC"
+
+if [ -n "$SOCKET_UNIT" ]; then
+  mkdir -p /etc/systemd/system/${SOCKET_UNIT}.d/
+  cat > /etc/systemd/system/${SOCKET_UNIT}.d/listen.conf <<EOF
+[Socket]
+# Clear the default ListenStream, then re-add both ports.
+ListenStream=
+ListenStream=22
+ListenStream=${SSH_PORT}
+EOF
+  systemctl daemon-reload
+  systemctl restart "$SOCKET_UNIT"
+else
+  # Non-socket-activated: just restart the service
+  if systemctl is-active --quiet sshd 2>/dev/null; then
+    systemctl restart sshd
+  else
+    systemctl restart ssh
+  fi
+fi
 
 # ─── 4. Docker ────────────────────────────────────────────────────────
 log "installing Docker Engine"
