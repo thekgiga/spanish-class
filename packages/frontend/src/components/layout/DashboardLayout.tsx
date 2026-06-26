@@ -15,6 +15,7 @@ import {
   Mail,
   UserCircle,
   Shield,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -35,6 +36,7 @@ const adminNavItems: NavItem[] = [
   { href: "/admin/slots", label: "Availability", icon: BookOpen },
   { href: "/admin/students", label: "Students", icon: Users },
   { href: "/admin/email-logs", label: "Email Logs", icon: Mail },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
   { href: "/admin/settings/security", label: "Security", icon: Shield },
 ];
 

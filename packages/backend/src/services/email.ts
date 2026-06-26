@@ -1628,3 +1628,85 @@ export async function sendPasswordResetEmail(
     throw new Error(`Failed to send password reset email: ${error.message}`);
   }
 }
+
+// ── No-show notification ───────────────────────────────────────────────────
+
+interface NoShowEmailData {
+  student: Pick<UserPublic, "email" | "firstName" | "lastName">;
+  slot: Pick<AvailabilitySlot, "startTime" | "title">;
+}
+
+export async function sendNoShowNotificationToStudent(
+  data: NoShowEmailData,
+): Promise<void> {
+  const { student, slot } = data;
+  const classDate = formatDateTime(slot.startTime, "Europe/Madrid");
+  const classTitle = slot.title || "Spanish Class";
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1a1f36 0%, #2d3748 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+        .content { background: #fff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+        .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+        .info-box { background: #fffbeb; border: 1px solid #fbbf24; padding: 15px; border-radius: 8px; margin: 20px 0; color: #92400e; }
+        h1 { margin: 0; font-size: 24px; }
+        .emoji { font-size: 32px; margin-bottom: 10px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <div class="emoji">📋</div>
+          <h1>Missed Class Notice</h1>
+        </div>
+        <div class="content">
+          <p>Hi ${student.firstName},</p>
+          <p>We noticed you missed your scheduled class:</p>
+          <div class="info-box">
+            <strong>${classTitle}</strong><br>
+            ${classDate}
+          </div>
+          <p>If this was a mistake or you had an emergency, please reach out to your professor directly to discuss rescheduling.</p>
+          <p>To avoid disruptions for other students, please remember to cancel at least the required number of hours before your class if you're unable to attend.</p>
+        </div>
+        <div class="footer">
+          <p>Spanish Class Platform — We look forward to seeing you next time!</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+
+  await logEmail({
+    emailType: "no_show_notification",
+    fromAddress: EMAIL_FROM,
+    toAddress: student.email,
+    subject: `Missed class: ${classTitle} — ${classDate}`,
+    htmlContent: html,
+    status: "sent",
+  });
+
+  const { error } = await resend.emails.send({
+    from: EMAIL_FROM,
+    to: student.email,
+    subject: `Missed class: ${classTitle} — ${classDate}`,
+    html,
+  });
+
+  if (error) {
+    await logEmail({
+      emailType: "no_show_notification",
+      fromAddress: EMAIL_FROM,
+      toAddress: student.email,
+      subject: `Missed class: ${classTitle}`,
+      htmlContent: html,
+      status: "failed",
+      error: error.message,
+    });
+  }
+}

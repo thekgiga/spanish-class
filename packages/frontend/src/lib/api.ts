@@ -309,6 +309,24 @@ export const professorApi = {
     });
     return res.data.data;
   },
+
+  getSettings: async () => {
+    const res = await api.get("/professor/settings");
+    return res.data.data;
+  },
+
+  updateSettings: async (data: {
+    cancellationWindowHours?: number;
+    noShowThreshold?: number;
+  }) => {
+    const res = await api.put("/professor/settings", data);
+    return res.data.data;
+  },
+
+  markNoShow: async (bookingId: string) => {
+    const res = await api.post(`/professor/bookings/${bookingId}/no-show`);
+    return res.data.data as { noShowCount: number; threshold: number; atThreshold: boolean };
+  },
 };
 
 // Email Log type

@@ -1697,4 +1697,162 @@ router.post("/bookings/:id/reject", async (req, res, next) => {
   }
 });
 
+// ── Professor settings ─────────────────────────────────────────────────────
+
+// GET /api/professor/settings — return current settings (upsert defaults on first access)
+router.get("/settings", async (req, res, next) => {
+  try {
+    const settings = await prisma.professorSettings.upsert({
+      where: { userId: req.user!.id },
+      update: {},
+      create: { userId: req.user!.id },
+    });
+    res.json({ success: true, data: { settings } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/professor/settings — update configurable fields
+router.put("/settings", async (req, res, next) => {
+  try {
+    const { cancellationWindowHours, noShowThreshold } = req.body;
+
+    const allowedWindows = [2, 4, 12, 24, 48];
+    if (
+      cancellationWindowHours !== undefined &&
+      !allowedWindows.includes(Number(cancellationWindowHours))
+    ) {
+      res.status(400).json({
+        success: false,
+        error: `cancellationWindowHours must be one of: ${allowedWindows.join(", ")}`,
+      });
+      return;
+    }
+
+    if (
+      noShowThreshold !== undefined &&
+      (Number(noShowThreshold) < 1 || Number(noShowThreshold) > 10)
+    ) {
+      res.status(400).json({
+        success: false,
+        error: "noShowThreshold must be between 1 and 10",
+      });
+      return;
+    }
+
+    const settings = await prisma.professorSettings.upsert({
+      where: { userId: req.user!.id },
+      update: {
+        ...(cancellationWindowHours !== undefined && {
+          cancellationWindowHours: Number(cancellationWindowHours),
+        }),
+        ...(noShowThreshold !== undefined && {
+          noShowThreshold: Number(noShowThreshold),
+        }),
+      },
+      create: {
+        userId: req.user!.id,
+        ...(cancellationWindowHours !== undefined && {
+          cancellationWindowHours: Number(cancellationWindowHours),
+        }),
+        ...(noShowThreshold !== undefined && {
+          noShowThreshold: Number(noShowThreshold),
+        }),
+      },
+    });
+
+    res.json({ success: true, data: { settings } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ── No-show marking ────────────────────────────────────────────────────────
+
+// POST /api/professor/bookings/:id/no-show — mark a confirmed past booking as no-show
+router.post("/bookings/:id/no-show", async (req, res, next) => {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: req.params.id },
+      include: {
+        slot: true,
+        student: {
+          select: {
+            id: true, email: true, firstName: true, lastName: true,
+            isAdmin: true, timezone: true, createdAt: true, updatedAt: true,
+          },
+        },
+      },
+    });
+
+    if (!booking) throw new AppError(404, "Booking not found");
+    if (booking.slot.professorId !== req.user!.id) {
+      throw new AppError(403, "You do not own this booking's slot");
+    }
+    if (booking.status !== "CONFIRMED") {
+      throw new AppError(400, "Only confirmed bookings can be marked as no-show");
+    }
+    if (new Date(booking.slot.startTime) > new Date()) {
+      throw new AppError(400, "Cannot mark no-show before the class has started");
+    }
+
+    await prisma.booking.update({
+      where: { id: booking.id },
+      data: { status: "NO_SHOW" },
+    });
+
+    // Increment student engagement stats
+    await prisma.studentEngagementStats.upsert({
+      where: { studentId: booking.studentId },
+      update: { noShowCount: { increment: 1 } },
+      create: { studentId: booking.studentId, noShowCount: 1 },
+    });
+
+    // Increment professor daily stats for today
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    await prisma.professorDailyStats.upsert({
+      where: { professorId_date: { professorId: req.user!.id, date: today } },
+      update: { noShowClasses: { increment: 1 } },
+      create: { professorId: req.user!.id, date: today, noShowClasses: 1 },
+    });
+
+    // Get updated no-show count and threshold for the professor
+    const [engagementStats, settings] = await Promise.all([
+      prisma.studentEngagementStats.findUnique({
+        where: { studentId: booking.studentId },
+      }),
+      prisma.professorSettings.findUnique({ where: { userId: req.user!.id } }),
+    ]);
+
+    const noShowCount = engagementStats?.noShowCount ?? 1;
+    const threshold = settings?.noShowThreshold ?? 3;
+
+    // Non-blocking email notification to student
+    import("../services/email.js")
+      .then(({ sendNoShowNotificationToStudent }) =>
+        sendNoShowNotificationToStudent({
+          student: booking.student,
+          slot: booking.slot as any,
+        }).catch((err: unknown) =>
+          console.error("[no-show] Failed to send email:", err),
+        ),
+      )
+      .catch(() => {});
+
+    res.json({
+      success: true,
+      message: "Booking marked as no-show",
+      data: {
+        noShowCount,
+        threshold,
+        atThreshold: noShowCount >= threshold,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;
