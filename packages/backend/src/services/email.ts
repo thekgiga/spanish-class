@@ -1117,6 +1117,7 @@ interface ConfirmationEmailData {
  */
 export async function sendConfirmationRequestToProfessor(
   data: ConfirmationEmailData,
+  options?: { isReminder?: boolean },
 ): Promise<void> {
   const { slot, professor, student, confirmationToken, expiresAt } = data;
 
@@ -1190,7 +1191,9 @@ export async function sendConfirmationRequestToProfessor(
     </html>
   `;
 
-  const subject = `New Booking Request from ${student.firstName} ${student.lastName} - Action Required`;
+  const subject = options?.isReminder
+    ? `⚠️ Reminder: Booking awaiting confirmation — ${hoursUntilExpiry}h left (${student.firstName} ${student.lastName})`
+    : `New Booking Request from ${student.firstName} ${student.lastName} - Action Required`;
 
   try {
     const { data: resendData, error } = await resend.emails.send({

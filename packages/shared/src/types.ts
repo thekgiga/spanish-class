@@ -23,6 +23,8 @@ export type UserPublic = Omit<User, "passwordHash"> & {
   preferredClassTypes?: string[] | null;
   learningGoals?: string | null;
   availabilityNotes?: string | null;
+  isEmailVerified?: boolean;
+  twoFactorEnabled?: boolean;
 };
 
 // Slot Types

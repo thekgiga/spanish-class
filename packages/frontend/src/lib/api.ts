@@ -125,6 +125,21 @@ export const authApi = {
     const res = await api.post<{ message: string }>("/auth/resend-verification", { email });
     return res.data;
   },
+
+  setup2FA: async (): Promise<{ qrCodeDataUrl: string; recoveryCodes: string[] }> => {
+    const res = await api.get<{ data: { qrCodeDataUrl: string; recoveryCodes: string[] } }>(
+      "/auth/2fa/setup",
+    );
+    return res.data.data;
+  },
+
+  confirm2FA: async (code: string): Promise<void> => {
+    await api.post("/auth/2fa/verify", { code });
+  },
+
+  disable2FA: async (): Promise<void> => {
+    await api.post("/auth/2fa/disable");
+  },
 };
 
 // Professor API

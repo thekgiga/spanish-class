@@ -1,11 +1,9 @@
 import cron from "node-cron";
 import { expirePendingBookings } from "../jobs/expirePendingBookings.js";
+import { sendBookingReminders } from "../jobs/sendBookingReminders.js";
 
 let isSchedulerStarted = false;
 
-/**
- * Initialize and start all scheduled jobs (T046)
- */
 export function startScheduler(): void {
   if (isSchedulerStarted) {
     console.log("[Scheduler] Already started");
@@ -14,35 +12,33 @@ export function startScheduler(): void {
 
   console.log("[Scheduler] Starting scheduled jobs...");
 
-  // Schedule hourly expiry check for pending bookings
-  // Runs every hour at minute 0
+  // Hourly: expire pending bookings that missed the confirmation window
   cron.schedule("0 * * * *", async () => {
     try {
-      console.log("[Scheduler] Running expirePendingBookings job...");
+      console.log("[Scheduler] Running expirePendingBookings...");
       const result = await expirePendingBookings();
-      console.log(
-        `[Scheduler] expirePendingBookings completed. Expired: ${result.expiredCount}`,
-      );
+      console.log(`[Scheduler] expirePendingBookings done. Expired: ${result.expiredCount}`);
     } catch (error) {
       console.error("[Scheduler] expirePendingBookings failed:", error);
     }
   });
 
-  // TODO: Add other scheduled jobs here
-  // - Daily analytics aggregation (runs at 2 AM)
-  // - Monthly stats aggregation (runs on 1st of month at 3 AM)
-  // - Platform-wide stats (runs every 15 minutes)
+  // Every 2 hours: send reminders for bookings approaching their confirmation deadline
+  cron.schedule("0 */2 * * *", async () => {
+    try {
+      console.log("[Scheduler] Running sendBookingReminders...");
+      const result = await sendBookingReminders();
+      console.log(`[Scheduler] sendBookingReminders done. Sent: ${result.remindersSent}`);
+    } catch (error) {
+      console.error("[Scheduler] sendBookingReminders failed:", error);
+    }
+  });
 
   isSchedulerStarted = true;
   console.log("[Scheduler] All jobs scheduled successfully");
 }
 
-/**
- * Stop all scheduled jobs
- */
 export function stopScheduler(): void {
-  // node-cron doesn't provide a way to stop all tasks
-  // We'd need to maintain references to each task to stop them individually
   isSchedulerStarted = false;
   console.log("[Scheduler] Scheduler stopped");
 }
