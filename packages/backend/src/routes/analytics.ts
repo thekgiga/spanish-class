@@ -1,6 +1,11 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
+import { validateQuery } from "../middleware/validate.js";
 import { AppError } from "../middleware/error.js";
+import {
+  dateRangeQuerySchema,
+  userIdParamSchema,
+} from "@spanish-class/shared";
 import {
   getProfessorAnalytics,
   getStudentEngagementStats,
@@ -15,25 +20,18 @@ router.use(authenticate);
  * GET /api/analytics/professor (T094)
  * Get analytics for the authenticated professor
  */
-router.get("/professor", async (req, res, next) => {
+router.get("/professor", validateQuery(dateRangeQuerySchema), async (req, res, next) => {
   try {
     const professorId = req.user!.id;
+    const { startDate, endDate } = req.query as any;
 
-    // Parse date range from query params
-    const startDate = req.query.startDate
-      ? new Date(req.query.startDate as string)
-      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Default: 30 days ago
+    const start = startDate
+      ? new Date(startDate)
+      : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const end = endDate ? new Date(endDate) : new Date();
 
-    const endDate = req.query.endDate
-      ? new Date(req.query.endDate as string)
-      : new Date(); // Default: today
-
-    const analytics = await getProfessorAnalytics(professorId, startDate, endDate);
-
-    res.json({
-      success: true,
-      data: analytics,
-    });
+    const analytics = await getProfessorAnalytics(professorId, start, end);
+    res.json({ success: true, data: analytics });
   } catch (error) {
     next(error);
   }
@@ -45,20 +43,19 @@ router.get("/professor", async (req, res, next) => {
  */
 router.get("/student/:id", async (req, res, next) => {
   try {
-    const { id: studentId } = req.params;
+    const parsed = userIdParamSchema.safeParse(req.params);
+    if (!parsed.success) {
+      throw new AppError(400, parsed.error.errors[0].message);
+    }
+    const { id: studentId } = parsed.data;
     const userId = req.user!.id;
 
-    // Only allow users to view their own stats or admins to view any
     if (userId !== studentId && !req.user!.isAdmin) {
       throw new AppError(403, "You can only view your own statistics");
     }
 
     const stats = await getStudentEngagementStats(studentId);
-
-    res.json({
-      success: true,
-      data: stats,
-    });
+    res.json({ success: true, data: stats });
   } catch (error) {
     next(error);
   }
@@ -68,26 +65,20 @@ router.get("/student/:id", async (req, res, next) => {
  * GET /api/analytics/platform (T096)
  * Get platform-wide analytics (admin only)
  */
-router.get("/platform", async (req, res, next) => {
+router.get("/platform", validateQuery(dateRangeQuerySchema), async (req, res, next) => {
   try {
     if (!req.user!.isAdmin) {
       throw new AppError(403, "Only administrators can view platform analytics");
     }
+    const { startDate, endDate } = req.query as any;
 
-    const startDate = req.query.startDate
-      ? new Date(req.query.startDate as string)
+    const start = startDate
+      ? new Date(startDate)
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const end = endDate ? new Date(endDate) : new Date();
 
-    const endDate = req.query.endDate
-      ? new Date(req.query.endDate as string)
-      : new Date();
-
-    const analytics = await getPlatformAnalytics(startDate, endDate);
-
-    res.json({
-      success: true,
-      data: analytics,
-    });
+    const analytics = await getPlatformAnalytics(start, end);
+    res.json({ success: true, data: analytics });
   } catch (error) {
     next(error);
   }

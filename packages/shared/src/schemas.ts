@@ -406,8 +406,6 @@ export const createReferralSchema = z.object({
 
 export type CreateReferralInput = z.infer<typeof createReferralSchema>;
 
-// ── P0 Auth Flows: Password Reset + Email Verification ───────────────────────
-
 export const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
 });
@@ -442,3 +440,39 @@ export const resendVerificationSchema = z.object({
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+
+// ── Route-level query / body schemas ─────────────────────────────────────────
+
+// Analytics: date-range query params
+export const dateRangeQuerySchema = z.object({
+  startDate: z.string().datetime({ offset: true }).optional(),
+  endDate:   z.string().datetime({ offset: true }).optional(),
+});
+
+// Language: locale body
+export const languagePreferenceSchema = z.object({
+  locale: z.enum(["en", "sr", "es"]),
+});
+
+// Referrals: track body
+export const trackReferralSchema = z.object({
+  referralCode: z.string().min(1, "Referral code is required").max(50),
+});
+
+// Param schemas — re-usable across routes
+export const notificationIdParamSchema = z.object({
+  id: z.string().min(1, "Notification ID is required"),
+});
+export const slotIdParamSchema = z.object({
+  slotId: z.string().min(1, "Slot ID is required"),
+});
+export const userIdParamSchema = z.object({
+  id: z.string().min(1, "User ID is required"),
+});
+export const studentIdParamSchema = z.object({
+  studentId: z.string().min(1, "Student ID is required"),
+});
+
+export type DateRangeQuery = z.infer<typeof dateRangeQuerySchema>;
+export type LanguagePreferenceInput = z.infer<typeof languagePreferenceSchema>;
+export type TrackReferralInput = z.infer<typeof trackReferralSchema>;

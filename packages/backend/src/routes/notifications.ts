@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
+import { AppError } from "../middleware/error.js";
+import { notificationIdParamSchema } from "@spanish-class/shared";
 import {
   addSSEConnection,
   removeSSEConnection,
@@ -10,7 +12,6 @@ import {
 
 const router = Router();
 
-// All notification routes require authentication
 router.use(authenticate);
 
 // GET /api/notifications — list last 30 notifications
@@ -26,7 +27,11 @@ router.get("/", async (req, res, next) => {
 // PUT /api/notifications/:id/read — mark one as read
 router.put("/:id/read", async (req, res, next) => {
   try {
-    await markRead(req.params.id, req.user!.id);
+    const parsed = notificationIdParamSchema.safeParse(req.params);
+    if (!parsed.success) {
+      throw new AppError(400, parsed.error.errors[0].message);
+    }
+    await markRead(parsed.data.id, req.user!.id);
     res.json({ success: true });
   } catch (error) {
     next(error);
@@ -43,25 +48,23 @@ router.post("/read-all", async (req, res, next) => {
   }
 });
 
-// GET /api/notifications/stream — SSE endpoint
+// GET /api/notifications/stream — SSE endpoint (no body/query to validate)
 router.get("/stream", (req, res) => {
   const userId = req.user!.id;
 
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-  res.setHeader("X-Accel-Buffering", "no"); // disable nginx buffering
+  res.setHeader("X-Accel-Buffering", "no");
   res.flushHeaders();
 
-  // Send initial "connected" ping
   res.write("event: connected\ndata: {}\n\n");
 
   addSSEConnection(userId, res);
 
-  // Keepalive every 25 seconds to prevent proxy/browser timeout
   const keepalive = setInterval(() => {
     try {
-      res.write(":\n\n"); // SSE comment = keepalive
+      res.write(":\n\n");
     } catch {
       clearInterval(keepalive);
     }
