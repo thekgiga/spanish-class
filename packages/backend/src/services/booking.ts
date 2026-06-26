@@ -9,9 +9,12 @@ import {
   sendCancellationToProfessor,
   sendConfirmationRequestToProfessor,
   sendPendingConfirmationToStudent,
+  sendWaitlistConfirmationToStudent,
+  sendWaitlistPromotionToStudent,
 } from "./email.js";
 import { createMeetingRoom, getMeetingProvider } from "./meeting-provider.js";
 import { generateConfirmationToken } from "./confirmation-token.js";
+import { createNotification } from "./notifications.js";
 
 type TransactionClient = Prisma.TransactionClient;
 
@@ -25,6 +28,12 @@ interface BookSlotResult {
     meetLink: string | null;
     meetingUrl: string | null;
   };
+}
+
+interface WaitlistResult {
+  waitlisted: true;
+  position: number;
+  slotId: string;
 }
 
 /**
@@ -174,7 +183,55 @@ async function attemptBooking(
 export async function bookSlot(
   slotId: string,
   student: UserPublic,
-): Promise<BookSlotResult> {
+): Promise<BookSlotResult | WaitlistResult> {
+  // Check for fully-booked group slots BEFORE the retry loop — waitlist is not a conflict
+  const slotForWaitlist = await prisma.availabilitySlot.findUnique({
+    where: { id: slotId },
+    select: { status: true, slotType: true, maxParticipants: true, currentParticipants: true, startTime: true },
+  });
+  if (
+    slotForWaitlist &&
+    slotForWaitlist.slotType === "GROUP" &&
+    (slotForWaitlist.status === "FULLY_BOOKED" ||
+      slotForWaitlist.currentParticipants >= slotForWaitlist.maxParticipants)
+  ) {
+    // Check the slot is in the future
+    if (new Date(slotForWaitlist.startTime) <= new Date()) {
+      throw new AppError(400, "Cannot join waitlist for a past slot");
+    }
+    // Check student isn't already waitlisted
+    const existing = await prisma.waitlistEntry.findUnique({
+      where: { slotId_userId: { slotId, userId: student.id } },
+    });
+    if (existing) {
+      throw new AppError(409, `You are already on the waitlist at position ${existing.position}`);
+    }
+    // Check student doesn't already have a booking for this slot
+    const existingBooking = await prisma.booking.findFirst({
+      where: { slotId, studentId: student.id, status: { notIn: ["CANCELLED_BY_STUDENT", "CANCELLED_BY_PROFESSOR", "REJECTED", "EXPIRED"] } },
+    });
+    if (existingBooking) {
+      throw new AppError(409, "You already have a booking for this slot");
+    }
+    const position = (await prisma.waitlistEntry.count({ where: { slotId } })) + 1;
+    await prisma.waitlistEntry.create({ data: { slotId, userId: student.id, position } });
+
+    // Get slot details for the email
+    const slotForEmail = await prisma.availabilitySlot.findUnique({
+      where: { id: slotId },
+      include: { professor: { select: { id: true, email: true, firstName: true, lastName: true, isAdmin: true, timezone: true, createdAt: true, updatedAt: true } } },
+    });
+    if (slotForEmail) {
+      sendWaitlistConfirmationToStudent({
+        student,
+        slot: slotForEmail as any,
+        professor: slotForEmail.professor as any,
+        position,
+      }).catch((e: unknown) => console.error("[waitlist] email failed:", e));
+    }
+    return { waitlisted: true, position, slotId };
+  }
+
   const maxRetries = 3;
   let lastError: Error | null = null;
 
@@ -218,6 +275,12 @@ export async function bookSlot(
       ]).catch((err: unknown) =>
         console.error("Failed to send booking emails:", err),
       );
+
+      // Fire in-app notifications (non-blocking)
+      const slotTitle = slot.title || "Spanish Class";
+      const classDate = new Date(slot.startTime).toLocaleDateString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+      createNotification(student.id, "booking_pending", "Booking pending confirmation", `Your booking for ${slotTitle} on ${classDate} is awaiting professor confirmation.`, "/dashboard/bookings").catch(() => {});
+      createNotification(slot.professor.id, "booking_request", "New booking request", `${student.firstName} ${student.lastName} has requested to book ${slotTitle} on ${classDate}.`, "/admin").catch(() => {});
 
       return {
         bookingId: booking.id,
@@ -349,10 +412,28 @@ export async function cancelBooking(
       },
     });
 
-    return { booking, cancelledBy };
+    // Promote first waitlist entry (if any) for group slots
+    const nextWaiting = await tx.waitlistEntry.findFirst({
+      where: { slotId: booking.slotId },
+      orderBy: { position: "asc" },
+      include: {
+        user: { select: { id: true, email: true, firstName: true, lastName: true, isAdmin: true, timezone: true, createdAt: true, updatedAt: true } },
+      },
+    });
+
+    if (nextWaiting) {
+      await tx.waitlistEntry.delete({ where: { id: nextWaiting.id } });
+      // Resequence remaining entries
+      const remaining = await tx.waitlistEntry.findMany({ where: { slotId: booking.slotId }, orderBy: { position: "asc" } });
+      for (let i = 0; i < remaining.length; i++) {
+        await tx.waitlistEntry.update({ where: { id: remaining[i].id }, data: { position: i + 1 } });
+      }
+    }
+
+    return { booking, cancelledBy, promotedWaitlistEntry: nextWaiting || null };
   });
 
-  const { booking, cancelledBy } = result;
+  const { booking, cancelledBy, promotedWaitlistEntry } = result;
 
   // Send cancellation emails
   // Cast slot to fix Prisma enum vs shared enum type mismatch
@@ -377,4 +458,13 @@ export async function cancelBooking(
   ]).catch((err: unknown) =>
     console.error("Failed to send cancellation emails:", err),
   );
+
+  // If someone was promoted from the waitlist, notify them
+  if (promotedWaitlistEntry) {
+    sendWaitlistPromotionToStudent({
+      student: promotedWaitlistEntry.user as unknown as import("@spanish-class/shared").UserPublic,
+      slot: cancelSlotForEmail,
+      professor: booking.slot.professor as unknown as import("@spanish-class/shared").UserPublic,
+    }).catch((e: unknown) => console.error("[waitlist] promotion email failed:", e));
+  }
 }

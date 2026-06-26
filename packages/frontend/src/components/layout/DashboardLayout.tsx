@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import i18n from "@/lib/i18n";
+import { updateLanguagePreference } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { EmailVerificationBanner } from "@/components/shared/EmailVerificationBanner";
+import { NotificationBell } from "@/components/shared/NotificationBell";
 import {
   LayoutDashboard,
   Calendar,
@@ -162,9 +165,34 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
             </div>
           )}
 
+          {/* Language switcher */}
+          {!collapsed && (
+            <div className="px-4 py-2 border-b border-slate-100">
+              <div className="flex items-center gap-1">
+                {(["en", "sr", "es"] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => {
+                      i18n.changeLanguage(lang);
+                      updateLanguagePreference(lang).catch(() => {});
+                    }}
+                    className={cn(
+                      "px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide transition-colors",
+                      i18n.language.startsWith(lang)
+                        ? "bg-spanish-teal-100 text-spanish-teal-700"
+                        : "text-slate-400 hover:text-slate-600 hover:bg-slate-100",
+                    )}
+                  >
+                    {lang}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
-            {navItems.map((item) => {
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1">            {navItems.map((item) => {
               const active = isActive(item.href);
               return (
                 <Link
@@ -240,6 +268,7 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
               <Menu className="h-6 w-6" />
             </button>
             <div className="flex items-center gap-2">
+              <NotificationBell />
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 flex items-center justify-center shadow-lg shadow-spanish-teal-500/30">
                 <span className="text-white font-display text-sm font-bold">
                   S

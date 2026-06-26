@@ -1855,4 +1855,29 @@ router.post("/bookings/:id/no-show", async (req, res, next) => {
   }
 });
 
+// GET /api/professor/slots/:id/waitlist — view waitlist for a slot
+router.get("/slots/:id/waitlist", async (req, res, next) => {
+  try {
+    const slot = await prisma.availabilitySlot.findUnique({
+      where: { id: req.params.id },
+      select: { professorId: true },
+    });
+    if (!slot || slot.professorId !== req.user!.id) {
+      throw new AppError(404, "Slot not found");
+    }
+    const entries = await prisma.waitlistEntry.findMany({
+      where: { slotId: req.params.id },
+      orderBy: { position: "asc" },
+      include: {
+        user: {
+          select: { id: true, email: true, firstName: true, lastName: true, createdAt: true },
+        },
+      },
+    });
+    res.json({ success: true, data: { waitlist: entries, count: entries.length } });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

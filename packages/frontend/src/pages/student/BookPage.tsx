@@ -114,11 +114,16 @@ export function BookPage() {
 
   const bookMutation = useMutation({
     mutationFn: studentApi.bookSlot,
-    onSuccess: () => {
+    onSuccess: (data: any) => {
       queryClient.invalidateQueries({ queryKey: ["available-slots"] });
       queryClient.invalidateQueries({ queryKey: ["student-dashboard"] });
       queryClient.invalidateQueries({ queryKey: ["student-bookings"] });
-      setBookingSuccess(true);
+      if (data?.waitlisted) {
+        toast.success(`You've been added to the waitlist at position ${data.data?.position ?? 1}. We'll notify you if a spot opens up.`, { duration: 6000 });
+        setSelectedSlot(null);
+      } else {
+        setBookingSuccess(true);
+      }
     },
     onError: (error: any) => {
       toast.error(

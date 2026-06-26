@@ -45,6 +45,8 @@ model User {
   auditLogsActed           AdminAuditLog[]    @relation("AuditLogsActed")
   passwordResetTokens      PasswordResetToken[]
   professorSettings        ProfessorSettings?
+  waitlistEntries          WaitlistEntry[]
+  notifications            Notification[]
 
   // Email verification
   isEmailVerified            Boolean   @default(false) @map("is_email_verified")
@@ -76,6 +78,7 @@ model AvailabilitySlot {
   bookings         Booking[]
   allowedStudents  SlotAllowedStudent[]
   recurringPattern RecurringPattern? @relation(fields: [recurringPatternId], references: [id])
+  waitlistEntries  WaitlistEntry[]
 
   @@index([professorId])
   @@index([startTime])
@@ -432,4 +435,41 @@ model ProfessorSettings {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("professor_settings")
+}
+
+// ── PR-7: Waitlist ────────────────────────────────────────────────────────────
+
+model WaitlistEntry {
+  id         String    @id @default(cuid())
+  slotId     String    @map("slot_id")
+  userId     String    @map("user_id")
+  position   Int
+  createdAt  DateTime  @default(now()) @map("created_at")
+  notifiedAt DateTime? @map("notified_at")
+
+  slot AvailabilitySlot @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  user User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([slotId, userId])
+  @@index([slotId, position])
+  @@map("waitlist_entries")
+}
+
+// ── PR-8: Notifications ───────────────────────────────────────────────────────
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  type      String    @db.VarChar(50)
+  title     String    @db.VarChar(200)
+  body      String    @db.Text
+  href      String?   @db.VarChar(500)
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
+  @@map("notifications")
 }
