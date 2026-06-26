@@ -99,9 +99,12 @@ chmod 600 /home/${DEPLOY_USER}/.ssh/authorized_keys
 log "hardening sshd — listening on port 22 AND ${SSH_PORT} until you finalize"
 SSHD=/etc/ssh/sshd_config
 
-# Remove stale append-blocks from previous runs so re-run is idempotent
+# Remove ALL lines we may have added on previous runs (Port lines, Match block).
+# Must do this before any writes so re-runs are fully idempotent.
 sed -i '/^# Emergency console access/,/^# END bootstrap-sshd-block/d' "$SSHD"
+sed -i '/^Port [0-9]/d' "$SSHD"
 
+# In-place directive replacements (all global, safe above any Match block)
 sed -i \
   -e 's/^#\?PermitRootLogin .*/PermitRootLogin no/' \
   -e 's/^#\?PasswordAuthentication .*/PasswordAuthentication no/' \
@@ -111,36 +114,39 @@ sed -i \
   "$SSHD"
 
 # ChallengeResponseAuthentication was removed in OpenSSH 9+ (Ubuntu 26.04).
-# Only add it if the option is still recognised by this sshd.
 if sshd -t -o "ChallengeResponseAuthentication=no" 2>/dev/null; then
   sed -i 's/^#\?ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' "$SSHD"
 fi
 
-# Allow password login only for the admin user (needed for Hetzner web console)
+# Append global directives BEFORE the Match block.
+# Port must be a global directive (not inside any Match context).
+# Match User extends to end of file, so it must always be last.
 cat >> "$SSHD" <<EOF
 
+# bootstrap: port config (global — must appear before Match blocks)
+Port 22
+Port ${SSH_PORT}
+
 # Emergency console access — password allowed only for ${ADMIN_USER}
+# (Match User must be last in the file)
 Match User ${ADMIN_USER}
     PasswordAuthentication yes
 # END bootstrap-sshd-block
 EOF
 
-# Listen on both port 22 (fallback) and the new port until the user confirms access.
-# Remove existing Port lines, then add both.
-sed -i '/^#\?Port /d' "$SSHD"
-printf 'Port 22\nPort %s\n' "${SSH_PORT}" >> "$SSHD"
-
 # Validate config before restarting — prevents locking ourselves out
-sshd -t || { echo "[bootstrap] sshd config invalid — aborting SSH restart"; cat "$SSHD" | tail -20; exit 1; }
+if ! sshd -t; then
+  echo "[bootstrap] sshd config invalid — showing tail of ${SSHD}:"
+  tail -30 "$SSHD"
+  exit 1
+fi
 
 # Ubuntu 26.04 uses sshd.service; 24.04 and earlier use ssh.service.
-# Use the one that is actually active/loaded — not just listed.
 if systemctl is-active --quiet sshd 2>/dev/null; then
   SSH_SVC="sshd"
 elif systemctl is-active --quiet ssh 2>/dev/null; then
   SSH_SVC="ssh"
 else
-  # Neither is active yet — fall back to whichever unit file exists
   SSH_SVC="ssh"
   systemctl list-unit-files sshd.service >/dev/null 2>&1 && SSH_SVC="sshd"
 fi
