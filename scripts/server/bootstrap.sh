@@ -155,12 +155,17 @@ fi
 
 if [ -n "$SOCKET_UNIT" ]; then
   mkdir -p /etc/systemd/system/${SOCKET_UNIT}.d/
+  # Explicitly bind both IPv4 and IPv6 on both ports.
+  # Without the address prefix systemd may bind IPv6-only on some kernels,
+  # leaving IPv4 connections refused.
   cat > /etc/systemd/system/${SOCKET_UNIT}.d/listen.conf <<EOF
 [Socket]
-# Clear the default ListenStream, then re-add both ports.
+# Clear inherited ListenStream, then re-add all bind points.
 ListenStream=
-ListenStream=22
-ListenStream=${SSH_PORT}
+ListenStream=0.0.0.0:22
+ListenStream=[::]:22
+ListenStream=0.0.0.0:${SSH_PORT}
+ListenStream=[::]:${SSH_PORT}
 EOF
   systemctl daemon-reload
   systemctl restart "$SOCKET_UNIT"
