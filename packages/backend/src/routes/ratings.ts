@@ -1,5 +1,8 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
+import { validate } from "../middleware/validate.js";
+import { AppError } from "../middleware/error.js";
+import { createRatingSchema, userIdParamSchema } from "@spanish-class/shared";
 import {
   createRating,
   getUserRatings,
@@ -13,25 +16,13 @@ router.use(authenticate);
 /**
  * POST /api/ratings (T113)
  */
-router.post("/", async (req, res, next) => {
+router.post("/", validate(createRatingSchema), async (req, res, next) => {
   try {
     const raterId = req.user!.id;
     const { rateeId, rating, comment, bookingId, isAnonymous } = req.body;
 
-    const newRating = await createRating(
-      raterId,
-      rateeId,
-      rating,
-      comment,
-      bookingId,
-      isAnonymous,
-    );
-
-    res.json({
-      success: true,
-      data: newRating,
-      message: "Rating submitted successfully",
-    });
+    const newRating = await createRating(raterId, rateeId, rating, comment, bookingId, isAnonymous);
+    res.json({ success: true, data: newRating, message: "Rating submitted successfully" });
   } catch (error) {
     next(error);
   }
@@ -42,13 +33,11 @@ router.post("/", async (req, res, next) => {
  */
 router.get("/user/:id", async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const ratings = await getUserRatings(id);
+    const parsed = userIdParamSchema.safeParse(req.params);
+    if (!parsed.success) throw new AppError(400, parsed.error.errors[0].message);
 
-    res.json({
-      success: true,
-      data: ratings,
-    });
+    const ratings = await getUserRatings(parsed.data.id);
+    res.json({ success: true, data: ratings });
   } catch (error) {
     next(error);
   }
@@ -59,13 +48,8 @@ router.get("/user/:id", async (req, res, next) => {
  */
 router.get("/pending", async (req, res, next) => {
   try {
-    const userId = req.user!.id;
-    const pending = await getPendingRatings(userId);
-
-    res.json({
-      success: true,
-      data: pending,
-    });
+    const pending = await getPendingRatings(req.user!.id);
+    res.json({ success: true, data: pending });
   } catch (error) {
     next(error);
   }

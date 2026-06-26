@@ -1,8 +1,10 @@
 import { Router } from "express";
 import { detectLanguage, type Locale } from "../middleware/languageDetection.js";
 import { authenticate } from "../middleware/auth.js";
+import { validate } from "../middleware/validate.js";
 import { prisma } from "../lib/prisma.js";
 import { AppError } from "../middleware/error.js";
+import { languagePreferenceSchema } from "@spanish-class/shared";
 
 const router = Router();
 
@@ -12,29 +14,18 @@ const router = Router();
  */
 router.get("/detect", (req, res) => {
   const detection = detectLanguage(req);
-
-  res.json({
-    success: true,
-    data: detection,
-  });
+  res.json({ success: true, data: detection });
 });
 
 /**
  * POST /api/users/language-preference (T066)
  * Update user's language preference
  */
-router.post("/preference", authenticate, async (req, res, next) => {
+router.post("/preference", authenticate, validate(languagePreferenceSchema), async (req, res, next) => {
   try {
     const userId = req.user!.id;
-    const { locale } = req.body;
+    const { locale } = req.body as { locale: Locale };
 
-    // Validate locale
-    const validLocales: Locale[] = ["en", "sr", "es"];
-    if (!validLocales.includes(locale)) {
-      throw new AppError(400, "Invalid locale. Must be one of: en, sr, es");
-    }
-
-    // Update user's language preference
     const user = await prisma.user.update({
       where: { id: userId },
       data: { languagePreference: locale },

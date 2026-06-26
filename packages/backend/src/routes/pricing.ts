@@ -1,34 +1,32 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
+import { validate } from "../middleware/validate.js";
 import { pricingAuth } from "../middleware/pricingAuth.js";
 import {
-  getProfessorPricing,
   getStudentPricing,
   setStudentPricing,
   deleteStudentPricing,
   getProfessorStudents,
 } from "../services/pricing.js";
 import { AppError } from "../middleware/error.js";
+import {
+  createPricingSchema,
+  updatePricingSchema,
+  studentIdParamSchema,
+} from "@spanish-class/shared";
 
 const router = Router();
 
-// All pricing routes require authentication and professor role
 router.use(authenticate);
 router.use(pricingAuth);
 
 /**
  * GET /api/pricing/students (T053)
- * Get all students with their pricing for the authenticated professor
  */
 router.get("/students", async (req, res, next) => {
   try {
-    const professorId = req.user!.id;
-    const students = await getProfessorStudents(professorId);
-
-    res.json({
-      success: true,
-      data: students,
-    });
+    const students = await getProfessorStudents(req.user!.id);
+    res.json({ success: true, data: students });
   } catch (error) {
     next(error);
   }
@@ -36,26 +34,14 @@ router.get("/students", async (req, res, next) => {
 
 /**
  * GET /api/pricing/students/:studentId (T056)
- * Get pricing for a specific student
  */
 router.get("/students/:studentId", async (req, res, next) => {
   try {
-    const professorId = req.user!.id;
-    const { studentId } = req.params;
+    const parsed = studentIdParamSchema.safeParse(req.params);
+    if (!parsed.success) throw new AppError(400, parsed.error.errors[0].message);
 
-    const pricing = await getStudentPricing(professorId, studentId);
-
-    if (!pricing) {
-      return res.json({
-        success: true,
-        data: null,
-      });
-    }
-
-    res.json({
-      success: true,
-      data: pricing,
-    });
+    const pricing = await getStudentPricing(req.user!.id, parsed.data.studentId);
+    res.json({ success: true, data: pricing ?? null });
   } catch (error) {
     next(error);
   }
@@ -63,30 +49,15 @@ router.get("/students/:studentId", async (req, res, next) => {
 
 /**
  * POST /api/pricing/students/:studentId (T054)
- * Create pricing for a student
  */
-router.post("/students/:studentId", async (req, res, next) => {
+router.post("/students/:studentId", validate(createPricingSchema), async (req, res, next) => {
   try {
-    const professorId = req.user!.id;
-    const { studentId } = req.params;
+    const parsed = studentIdParamSchema.safeParse(req.params);
+    if (!parsed.success) throw new AppError(400, parsed.error.errors[0].message);
+
     const { priceRSD, notes } = req.body;
-
-    if (typeof priceRSD !== "number") {
-      throw new AppError(400, "Price must be a number");
-    }
-
-    const pricing = await setStudentPricing(
-      professorId,
-      studentId,
-      priceRSD,
-      notes,
-    );
-
-    res.json({
-      success: true,
-      data: pricing,
-      message: "Pricing created successfully",
-    });
+    const pricing = await setStudentPricing(req.user!.id, parsed.data.studentId, priceRSD, notes);
+    res.json({ success: true, data: pricing, message: "Pricing created successfully" });
   } catch (error) {
     next(error);
   }
@@ -94,30 +65,15 @@ router.post("/students/:studentId", async (req, res, next) => {
 
 /**
  * PUT /api/pricing/students/:studentId (T055)
- * Update pricing for a student
  */
-router.put("/students/:studentId", async (req, res, next) => {
+router.put("/students/:studentId", validate(updatePricingSchema), async (req, res, next) => {
   try {
-    const professorId = req.user!.id;
-    const { studentId } = req.params;
+    const parsed = studentIdParamSchema.safeParse(req.params);
+    if (!parsed.success) throw new AppError(400, parsed.error.errors[0].message);
+
     const { priceRSD, notes } = req.body;
-
-    if (typeof priceRSD !== "number") {
-      throw new AppError(400, "Price must be a number");
-    }
-
-    const pricing = await setStudentPricing(
-      professorId,
-      studentId,
-      priceRSD,
-      notes,
-    );
-
-    res.json({
-      success: true,
-      data: pricing,
-      message: "Pricing updated successfully",
-    });
+    const pricing = await setStudentPricing(req.user!.id, parsed.data.studentId, priceRSD, notes);
+    res.json({ success: true, data: pricing, message: "Pricing updated successfully" });
   } catch (error) {
     next(error);
   }
@@ -125,19 +81,14 @@ router.put("/students/:studentId", async (req, res, next) => {
 
 /**
  * DELETE /api/pricing/students/:studentId
- * Delete pricing for a student
  */
 router.delete("/students/:studentId", async (req, res, next) => {
   try {
-    const professorId = req.user!.id;
-    const { studentId } = req.params;
+    const parsed = studentIdParamSchema.safeParse(req.params);
+    if (!parsed.success) throw new AppError(400, parsed.error.errors[0].message);
 
-    await deleteStudentPricing(professorId, studentId);
-
-    res.json({
-      success: true,
-      message: "Pricing deleted successfully",
-    });
+    await deleteStudentPricing(req.user!.id, parsed.data.studentId);
+    res.json({ success: true, message: "Pricing deleted successfully" });
   } catch (error) {
     next(error);
   }

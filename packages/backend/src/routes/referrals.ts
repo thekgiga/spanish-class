@@ -1,5 +1,7 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
+import { validate } from "../middleware/validate.js";
+import { trackReferralSchema } from "@spanish-class/shared";
 import {
   getUserReferralCode,
   trackReferral,
@@ -15,13 +17,8 @@ router.use(authenticate);
  */
 router.get("/my-code", async (req, res, next) => {
   try {
-    const userId = req.user!.id;
-    const code = await getUserReferralCode(userId);
-
-    res.json({
-      success: true,
-      data: { referralCode: code },
-    });
+    const code = await getUserReferralCode(req.user!.id);
+    res.json({ success: true, data: { referralCode: code } });
   } catch (error) {
     next(error);
   }
@@ -30,18 +27,11 @@ router.get("/my-code", async (req, res, next) => {
 /**
  * POST /api/referrals/track (T108)
  */
-router.post("/track", async (req, res, next) => {
+router.post("/track", validate(trackReferralSchema), async (req, res, next) => {
   try {
     const { referralCode } = req.body;
-    const referredId = req.user!.id;
-
-    const referral = await trackReferral(referralCode, referredId);
-
-    res.json({
-      success: true,
-      data: referral,
-      message: "Referral tracked successfully",
-    });
+    const referral = await trackReferral(referralCode, req.user!.id);
+    res.json({ success: true, data: referral, message: "Referral tracked successfully" });
   } catch (error) {
     next(error);
   }
@@ -52,13 +42,8 @@ router.post("/track", async (req, res, next) => {
  */
 router.get("/stats", async (req, res, next) => {
   try {
-    const userId = req.user!.id;
-    const stats = await getReferralStats(userId);
-
-    res.json({
-      success: true,
-      data: stats,
-    });
+    const stats = await getReferralStats(req.user!.id);
+    res.json({ success: true, data: stats });
   } catch (error) {
     next(error);
   }

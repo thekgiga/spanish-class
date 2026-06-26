@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
 import { prisma } from "../lib/prisma.js";
 import { AppError } from "../middleware/error.js";
+import { slotIdParamSchema } from "@spanish-class/shared";
 
 const router = Router();
 
@@ -11,7 +12,11 @@ const router = Router();
  */
 router.get("/:slotId/participants", authenticate, async (req, res, next) => {
   try {
-    const { slotId } = req.params;
+    const parsed = slotIdParamSchema.safeParse(req.params);
+    if (!parsed.success) {
+      throw new AppError(400, parsed.error.errors[0].message);
+    }
+    const { slotId } = parsed.data;
 
     const slot = await prisma.availabilitySlot.findUnique({
       where: { id: slotId },
