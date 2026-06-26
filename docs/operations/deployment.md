@@ -2,6 +2,8 @@
 
 Single source of truth for deploying the Spanish-class app. The current architecture is documented in [specs/012-cloud-deployment-docker/](../../specs/012-cloud-deployment-docker/).
 
+> 📚 **Related**: [operator-gotchas.md](./operator-gotchas.md) for the "wait, what?" catalogue (SSH lockouts, IP rotation, Ubuntu 26.04 quirks). Skim it once; come back when something feels off.
+
 ## TL;DR
 
 | You want to … | Run this |
