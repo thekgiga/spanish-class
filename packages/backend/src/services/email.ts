@@ -1710,3 +1710,75 @@ export async function sendNoShowNotificationToStudent(
     });
   }
 }
+
+// ── Waitlist emails ────────────────────────────────────────────────────────────
+
+interface WaitlistEmailData {
+  student: Pick<UserPublic, "email" | "firstName">;
+  slot: Pick<AvailabilitySlot, "startTime" | "endTime" | "title">;
+  professor: Pick<UserPublic, "firstName" | "lastName" | "timezone">;
+  position?: number;
+}
+
+export async function sendWaitlistConfirmationToStudent(
+  data: WaitlistEmailData & { position: number },
+): Promise<void> {
+  const { student, slot, professor, position } = data;
+  const classDate = formatDateTime(slot.startTime, professor.timezone);
+  const classTitle = slot.title || "Spanish Class";
+
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1a1f36}
+      .container{max-width:600px;margin:0 auto;padding:20px}
+      .header{background:linear-gradient(135deg,#1a1f36 0%,#2d3748 100%);color:white;padding:30px;text-align:center;border-radius:12px 12px 0 0}
+      .content{background:#fff;padding:30px;border:1px solid #e2e8f0;border-top:none}
+      .footer{background:#f7fafc;padding:20px;text-align:center;font-size:14px;color:#718096;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none}
+      .badge{display:inline-block;background:#f0fdf4;border:1px solid #86efac;color:#166534;padding:8px 16px;border-radius:8px;font-size:18px;font-weight:700;margin:16px 0}
+      h1{margin:0;font-size:24px}.emoji{font-size:32px;margin-bottom:10px}
+    </style></head><body>
+    <div class="container">
+      <div class="header"><div class="emoji">📋</div><h1>You're on the Waitlist</h1></div>
+      <div class="content">
+        <p>Hi ${student.firstName},</p>
+        <p><strong>${classTitle}</strong> on ${classDate} is currently full, but you've been added to the waitlist.</p>
+        <div class="badge">Position #${position}</div>
+        <p>If a spot opens up, you'll receive an automatic notification and a booking request will be sent to the professor for confirmation.</p>
+        <p>You can remove yourself from the waitlist at any time from your bookings page.</p>
+      </div>
+      <div class="footer"><p>Spanish Class Platform</p></div>
+    </div></body></html>`;
+
+  await logEmail({ emailType: "waitlist_confirmation", fromAddress: EMAIL_FROM, toAddress: student.email, subject: `Waitlist confirmation: ${classTitle} (position #${position})`, htmlContent: html, status: "sent" });
+  await resend.emails.send({ from: EMAIL_FROM, to: student.email, subject: `Waitlist confirmation: ${classTitle} (position #${position})`, html });
+}
+
+export async function sendWaitlistPromotionToStudent(data: WaitlistEmailData): Promise<void> {
+  const { student, slot, professor } = data;
+  const classDate = formatDateTime(slot.startTime, professor.timezone);
+  const classTitle = slot.title || "Spanish Class";
+
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1a1f36}
+      .container{max-width:600px;margin:0 auto;padding:20px}
+      .header{background:linear-gradient(135deg,#1a1f36 0%,#2d3748 100%);color:white;padding:30px;text-align:center;border-radius:12px 12px 0 0}
+      .content{background:#fff;padding:30px;border:1px solid #e2e8f0;border-top:none}
+      .footer{background:#f7fafc;padding:20px;text-align:center;font-size:14px;color:#718096;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none}
+      .info-box{background:#f0fdf4;border:1px solid #86efac;padding:15px;border-radius:8px;margin:20px 0;color:#166534}
+      h1{margin:0;font-size:24px}.emoji{font-size:32px;margin-bottom:10px}
+    </style></head><body>
+    <div class="container">
+      <div class="header"><div class="emoji">🎉</div><h1>A Spot Opened Up!</h1></div>
+      <div class="content">
+        <p>Hi ${student.firstName},</p>
+        <p>Great news — a spot opened up in <strong>${classTitle}</strong>.</p>
+        <div class="info-box"><strong>${classTitle}</strong><br>${classDate}</div>
+        <p>A booking request has been automatically sent to your professor for confirmation. You'll receive a confirmation email once the professor approves.</p>
+      </div>
+      <div class="footer"><p>Spanish Class Platform</p></div>
+    </div></body></html>`;
+
+  await logEmail({ emailType: "waitlist_promotion", fromAddress: EMAIL_FROM, toAddress: student.email, subject: `Spot opened: ${classTitle}`, htmlContent: html, status: "sent" });
+  await resend.emails.send({ from: EMAIL_FROM, to: student.email, subject: `Good news — a spot opened up in ${classTitle}`, html });
+}

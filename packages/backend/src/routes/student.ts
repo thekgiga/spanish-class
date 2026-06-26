@@ -230,7 +230,16 @@ router.post(
   async (req, res, next) => {
     try {
       const result = await bookSlot(req.body.slotId, req.user!);
-
+      // Waitlist result — slot was full, student added to queue
+      if ("waitlisted" in result && result.waitlisted) {
+        res.status(202).json({
+          success: true,
+          waitlisted: true,
+          data: { position: result.position, slotId: result.slotId },
+          message: `You've been added to the waitlist at position ${result.position}. We'll notify you if a spot opens up.`,
+        });
+        return;
+      }
       res.status(201).json({
         success: true,
         data: result,
@@ -568,5 +577,47 @@ router.put(
     }
   },
 );
+
+// ── Waitlist ──────────────────────────────────────────────────────────────────
+
+// GET /api/student/slots/:id/waitlist-position
+router.get("/slots/:id/waitlist-position", async (req, res, next) => {
+  try {
+    const entry = await prisma.waitlistEntry.findUnique({
+      where: { slotId_userId: { slotId: req.params.id, userId: req.user!.id } },
+    });
+    res.json({
+      success: true,
+      data: { position: entry?.position ?? null, waitlisted: !!entry },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/student/slots/:id/waitlist — leave waitlist
+router.delete("/slots/:id/waitlist", async (req, res, next) => {
+  try {
+    const entry = await prisma.waitlistEntry.findUnique({
+      where: { slotId_userId: { slotId: req.params.id, userId: req.user!.id } },
+    });
+    if (!entry) {
+      res.status(404).json({ success: false, error: "You are not on the waitlist for this slot" });
+      return;
+    }
+    await prisma.waitlistEntry.delete({ where: { id: entry.id } });
+    // Resequence remaining entries
+    const remaining = await prisma.waitlistEntry.findMany({
+      where: { slotId: req.params.id },
+      orderBy: { position: "asc" },
+    });
+    for (let i = 0; i < remaining.length; i++) {
+      await prisma.waitlistEntry.update({ where: { id: remaining[i].id }, data: { position: i + 1 } });
+    }
+    res.json({ success: true, message: "Removed from waitlist" });
+  } catch (error) {
+    next(error);
+  }
+});
 
 export default router;

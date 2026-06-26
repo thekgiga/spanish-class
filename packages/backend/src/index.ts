@@ -8,6 +8,7 @@ import { authLimiter, generalLimiter } from "./middleware/rateLimiter.js";
 import authRoutes from "./routes/auth.js";
 import professorRoutes from "./routes/professor.js";
 import studentRoutes from "./routes/student.js";
+import notificationsRoutes from "./routes/notifications.js";
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
@@ -81,6 +82,7 @@ app.get("/health", (_, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/professor", professorRoutes);
 app.use("/api/student", studentRoutes);
+app.use("/api/notifications", notificationsRoutes);
 
 // ── Error handling ────────────────────────────────────────────────────────────
 app.use(notFoundHandler);

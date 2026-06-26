@@ -379,8 +379,10 @@ export const studentApi = {
 
   bookSlot: async (
     slotId: string,
-  ): Promise<{ bookingId: string; slot: AvailabilitySlot }> => {
+  ): Promise<{ bookingId: string; slot: AvailabilitySlot } | { waitlisted: true; data: { position: number; slotId: string } }> => {
     const res = await api.post("/student/bookings", { slotId });
+    // 202 = waitlisted; 201 = booked
+    if (res.data.waitlisted) return res.data;
     return res.data.data;
   },
 
