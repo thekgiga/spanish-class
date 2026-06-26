@@ -134,7 +134,10 @@ Match User ${ADMIN_USER}
 # END bootstrap-sshd-block
 EOF
 
-# Validate config before restarting — prevents locking ourselves out
+# Validate config before restarting — prevents locking ourselves out.
+# /run/sshd is the privilege separation dir; sshd -t checks for it even
+# in test mode. Create it so the test doesn't fail on a cold boot.
+mkdir -p /run/sshd
 if ! sshd -t; then
   echo "[bootstrap] sshd config invalid — showing tail of ${SSHD}:"
   tail -30 "$SSHD"
