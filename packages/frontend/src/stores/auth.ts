@@ -8,6 +8,7 @@ interface AuthState {
   isLoading: boolean;
   isAuthenticated: boolean;
   emailVerified: boolean;
+  twoFactorEnabled: boolean;
   setUser: (user: UserPublic | null) => void;
   login: (email: string, password: string) => Promise<{ totpRequired?: boolean; emailVerified?: boolean }>;
   register: (data: {
@@ -23,6 +24,9 @@ interface AuthState {
   resetPassword: (token: string, password: string, confirmPassword: string) => Promise<void>;
   verifyEmail: (token: string) => Promise<void>;
   resendVerification: (email: string) => Promise<void>;
+  setup2FA: () => Promise<{ qrCodeDataUrl: string; recoveryCodes: string[] }>;
+  confirm2FA: (code: string) => Promise<void>;
+  disable2FA: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -32,6 +36,7 @@ export const useAuthStore = create<AuthState>()(
       isLoading: true,
       isAuthenticated: false,
       emailVerified: true,
+      twoFactorEnabled: false,
 
       setUser: (user) =>
         set({ user, isAuthenticated: !!user, isLoading: false }),
@@ -62,7 +67,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         await authApi.logout();
-        set({ user: null, isAuthenticated: false, emailVerified: true });
+        set({ user: null, isAuthenticated: false, emailVerified: true, twoFactorEnabled: false });
       },
 
       checkAuth: async () => {
@@ -73,7 +78,12 @@ export const useAuthStore = create<AuthState>()(
             return;
           }
           const user = await authApi.me();
-          set({ user, isAuthenticated: true, isLoading: false });
+          set({
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+            twoFactorEnabled: user.twoFactorEnabled ?? false,
+          });
         } catch {
           localStorage.removeItem('token');
           set({ user: null, isAuthenticated: false, isLoading: false });
@@ -107,6 +117,20 @@ export const useAuthStore = create<AuthState>()(
       resendVerification: async (email) => {
         await authApi.resendVerification(email);
       },
+
+      setup2FA: async () => {
+        return authApi.setup2FA();
+      },
+
+      confirm2FA: async (code) => {
+        await authApi.confirm2FA(code);
+        set({ twoFactorEnabled: true });
+      },
+
+      disable2FA: async () => {
+        await authApi.disable2FA();
+        set({ twoFactorEnabled: false });
+      },
     }),
     {
       name: 'auth-storage',
@@ -114,6 +138,7 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
         emailVerified: state.emailVerified,
+        twoFactorEnabled: state.twoFactorEnabled,
       }),
     },
   ),

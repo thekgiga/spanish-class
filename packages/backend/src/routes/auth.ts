@@ -162,7 +162,15 @@ router.post("/login", authLimiter, validate(loginSchema), async (req, res, next)
 // ── Me + Logout + Profile ─────────────────────────────────────────────────────
 
 router.get("/me", authenticate, async (req, res) => {
-  res.json({ success: true, data: { user: req.user } });
+  // Enrich with twoFactorEnabled so the frontend can show the 2FA setup prompt
+  const tf = await prisma.userTwoFactor.findUnique({
+    where: { userId: req.user!.id },
+    select: { enabled: true },
+  });
+  res.json({
+    success: true,
+    data: { user: { ...req.user, twoFactorEnabled: tf?.enabled ?? false } },
+  });
 });
 
 router.post("/logout", (req, res) => {

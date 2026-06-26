@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   Mail,
   UserCircle,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -34,6 +35,7 @@ const adminNavItems: NavItem[] = [
   { href: "/admin/slots", label: "Availability", icon: BookOpen },
   { href: "/admin/students", label: "Students", icon: Users },
   { href: "/admin/email-logs", label: "Email Logs", icon: Mail },
+  { href: "/admin/settings/security", label: "Security", icon: Shield },
 ];
 
 const studentNavItems: NavItem[] = [
@@ -58,7 +60,7 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user, logout, twoFactorEnabled } = useAuthStore();
 
   const navItems = isAdmin ? adminNavItems : studentNavItems;
 
@@ -190,6 +192,11 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
                           <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white shadow-lg">
                             {pendingData.count}
                           </span>
+                        )}
+                      {isAdmin &&
+                        item.href === "/admin/settings/security" &&
+                        !twoFactorEnabled && (
+                          <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" title="2FA not enabled" />
                         )}
                     </>
                   )}

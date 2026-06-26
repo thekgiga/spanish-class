@@ -148,6 +148,7 @@ model Booking {
   rejectedAt              DateTime?     @map("rejected_at")
   confirmationToken       String?       @map("confirmation_token") @db.Text
   confirmationExpiresAt   DateTime?     @map("confirmation_expires_at")
+  reminderSentAt          DateTime?     @map("reminder_sent_at")
   createdAt               DateTime      @default(now()) @map("created_at")
   updatedAt               DateTime      @updatedAt @map("updated_at")
 
