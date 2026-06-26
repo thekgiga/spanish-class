@@ -98,14 +98,24 @@ chmod 600 /home/${DEPLOY_USER}/.ssh/authorized_keys
 # ─── 3. SSH hardening ────────────────────────────────────────────────
 log "hardening sshd — listening on port 22 AND ${SSH_PORT} until you finalize"
 SSHD=/etc/ssh/sshd_config
+
+# Remove stale append-blocks from previous runs so re-run is idempotent
+sed -i '/^# Emergency console access/,/^$/d' "$SSHD"
+
 sed -i \
   -e 's/^#\?PermitRootLogin .*/PermitRootLogin no/' \
   -e 's/^#\?PasswordAuthentication .*/PasswordAuthentication no/' \
   -e 's/^#\?PubkeyAuthentication .*/PubkeyAuthentication yes/' \
-  -e 's/^#\?ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' \
   -e 's/^#\?KbdInteractiveAuthentication .*/KbdInteractiveAuthentication no/' \
   -e 's/^#\?UsePAM .*/UsePAM yes/' \
   "$SSHD"
+
+# ChallengeResponseAuthentication was removed in OpenSSH 9+ (Ubuntu 26.04).
+# Only add it if the option is still recognised by this sshd.
+if sshd -t -o "ChallengeResponseAuthentication=no" 2>/dev/null; then
+  sed -i 's/^#\?ChallengeResponseAuthentication .*/ChallengeResponseAuthentication no/' "$SSHD"
+fi
+
 # Allow password login only for the admin user (needed for Hetzner web console)
 cat >> "$SSHD" <<EOF
 
@@ -113,11 +123,20 @@ cat >> "$SSHD" <<EOF
 Match User ${ADMIN_USER}
     PasswordAuthentication yes
 EOF
+
 # Listen on both port 22 (fallback) and the new port until the user confirms access.
 # Remove existing Port lines, then add both.
 sed -i '/^#\?Port /d' "$SSHD"
-echo -e "Port 22\nPort ${SSH_PORT}" >> "$SSHD"
-systemctl restart ssh
+printf 'Port 22\nPort %s\n' "${SSH_PORT}" >> "$SSHD"
+
+# Validate config before restarting — prevents locking ourselves out
+sshd -t || { echo "[bootstrap] sshd config invalid — aborting SSH restart"; cat "$SSHD" | tail -20; exit 1; }
+
+# Ubuntu 26.04 uses sshd.service; older releases use ssh.service
+SSH_SVC="ssh"
+systemctl list-unit-files ssh.service   >/dev/null 2>&1 && SSH_SVC="ssh"
+systemctl list-unit-files sshd.service  >/dev/null 2>&1 && SSH_SVC="sshd"
+systemctl restart "$SSH_SVC"
 
 # ─── 4. Docker ────────────────────────────────────────────────────────
 log "installing Docker Engine"
