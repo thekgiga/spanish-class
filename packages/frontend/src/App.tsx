@@ -81,6 +81,9 @@ const EmailLogsPage = lazy(() =>
 const SecuritySettingsPage = lazy(
   () => import("@/pages/admin/SecuritySettingsPage"),
 );
+const ProfessorSettingsPage = lazy(
+  () => import("@/pages/admin/ProfessorSettingsPage"),
+);
 const PendingApprovalsPage = lazy(() =>
   import("@/pages/admin/PendingApprovalsPage").then((m) => ({
     default: m.PendingApprovalsPage,
@@ -240,6 +243,7 @@ function AppRoutes() {
             />
             <Route path="email-logs" element={<EmailLogsPage />} />
             <Route path="settings/security" element={<SecuritySettingsPage />} />
+            <Route path="settings" element={<ProfessorSettingsPage />} />
           </Route>
 
           {/* Student Routes */}

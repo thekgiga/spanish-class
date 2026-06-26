@@ -308,15 +308,19 @@ export async function cancelBooking(
       throw new AppError(403, "You are not authorized to cancel this booking");
     }
 
-    // Check cancellation policy (24 hours before)
+    // Check cancellation policy — window is configurable per professor (default 24h)
+    const professorSettings = await prisma.professorSettings.findUnique({
+      where: { userId: booking.slot.professorId },
+    });
+    const windowHours = professorSettings?.cancellationWindowHours ?? 24;
     const hoursUntilStart =
       (new Date(booking.slot.startTime).getTime() - Date.now()) /
       (1000 * 60 * 60);
 
-    if (hoursUntilStart < 24 && !isAdmin) {
+    if (hoursUntilStart < windowHours && !isAdmin) {
       throw new AppError(
         400,
-        "Bookings must be cancelled at least 24 hours in advance",
+        `Bookings must be cancelled at least ${windowHours} hour${windowHours === 1 ? "" : "s"} in advance`,
       );
     }
 

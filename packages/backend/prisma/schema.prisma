@@ -44,6 +44,7 @@ model User {
   twoFactor                UserTwoFactor?
   auditLogsActed           AdminAuditLog[]    @relation("AuditLogsActed")
   passwordResetTokens      PasswordResetToken[]
+  professorSettings        ProfessorSettings?
 
   // Email verification
   isEmailVerified            Boolean   @default(false) @map("is_email_verified")
@@ -418,4 +419,17 @@ model PasswordResetToken {
 
   @@index([userId])
   @@map("password_reset_tokens")
+}
+
+model ProfessorSettings {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique @map("user_id")
+  cancellationWindowHours Int      @default(24) @map("cancellation_window_hours")
+  noShowThreshold         Int      @default(3) @map("no_show_threshold")
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("professor_settings")
 }

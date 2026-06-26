@@ -368,17 +368,43 @@ export function StudentDetailPage() {
                       </p>
                     </div>
                   </div>
-                  <Badge
-                    variant={
-                      booking.status === "CONFIRMED"
-                        ? "success"
-                        : booking.status === "COMPLETED"
-                          ? "neutral"
-                          : "destructive"
-                    }
-                  >
-                    {booking.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={
+                        booking.status === "CONFIRMED"
+                          ? "success"
+                          : booking.status === "COMPLETED"
+                            ? "neutral"
+                            : "destructive"
+                      }
+                    >
+                      {booking.status}
+                    </Badge>
+                    {booking.status === "CONFIRMED" &&
+                      booking.slot?.startTime &&
+                      new Date(booking.slot.startTime) < new Date() && (
+                        <button
+                          type="button"
+                          className="text-xs px-2 py-1 rounded border border-amber-300 text-amber-700 hover:bg-amber-50 transition-colors"
+                          onClick={async () => {
+                            if (!confirm("Mark this booking as no-show?")) return;
+                            try {
+                              const result = await professorApi.markNoShow(booking.id);
+                              toast.success(
+                                result.atThreshold
+                                  ? `Marked as no-show. Student has reached the no-show threshold (${result.noShowCount}/${result.threshold}).`
+                                  : `Marked as no-show (${result.noShowCount}/${result.threshold} no-shows).`,
+                              );
+                              queryClient.invalidateQueries({ queryKey: ["student", id] });
+                            } catch (err: any) {
+                              toast.error(err?.response?.data?.error || "Failed to mark no-show");
+                            }
+                          }}
+                        >
+                          Mark No-Show
+                        </button>
+                      )}
+                  </div>
                 </CardContent>
               </Card>
             ))
