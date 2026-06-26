@@ -56,6 +56,24 @@ log "creating user '${DEPLOY_USER}'"
 if ! id "$DEPLOY_USER" >/dev/null 2>&1; then
   useradd -m -s /bin/bash -G sudo "$DEPLOY_USER"
 fi
+
+# ─── 2b. Admin user (console/emergency access with password) ─────────
+ADMIN_USER="${ADMIN_USER:-thekgiga}"
+log "creating admin user '${ADMIN_USER}'"
+if ! id "$ADMIN_USER" >/dev/null 2>&1; then
+  useradd -m -s /bin/bash -G sudo "$ADMIN_USER"
+fi
+echo "${ADMIN_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${ADMIN_USER}
+chmod 440 /etc/sudoers.d/${ADMIN_USER}
+# Copy root's SSH key so this user can also SSH in with a key
+mkdir -p /home/${ADMIN_USER}/.ssh
+if [ -f /root/.ssh/authorized_keys ]; then
+  cp /root/.ssh/authorized_keys /home/${ADMIN_USER}/.ssh/authorized_keys
+fi
+chown -R ${ADMIN_USER}:${ADMIN_USER} /home/${ADMIN_USER}/.ssh
+chmod 700 /home/${ADMIN_USER}/.ssh
+chmod 600 /home/${ADMIN_USER}/.ssh/authorized_keys
+log "Set a password for '${ADMIN_USER}' after bootstrap: passwd ${ADMIN_USER}"
 # Allow sudo without password for docker compose ops
 echo "${DEPLOY_USER} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${DEPLOY_USER}
 chmod 440 /etc/sudoers.d/${DEPLOY_USER}
@@ -78,10 +96,9 @@ chmod 700 /home/${DEPLOY_USER}/.ssh
 chmod 600 /home/${DEPLOY_USER}/.ssh/authorized_keys
 
 # ─── 3. SSH hardening ────────────────────────────────────────────────
-log "hardening sshd on port ${SSH_PORT}"
+log "hardening sshd — listening on port 22 AND ${SSH_PORT} until you finalize"
 SSHD=/etc/ssh/sshd_config
 sed -i \
-  -e "s/^#\?Port .*/Port ${SSH_PORT}/" \
   -e 's/^#\?PermitRootLogin .*/PermitRootLogin no/' \
   -e 's/^#\?PasswordAuthentication .*/PasswordAuthentication no/' \
   -e 's/^#\?PubkeyAuthentication .*/PubkeyAuthentication yes/' \
@@ -89,8 +106,17 @@ sed -i \
   -e 's/^#\?KbdInteractiveAuthentication .*/KbdInteractiveAuthentication no/' \
   -e 's/^#\?UsePAM .*/UsePAM yes/' \
   "$SSHD"
-# Make sure Port is actually set (older defaults file may not contain it)
-grep -q '^Port ' "$SSHD" || echo "Port ${SSH_PORT}" >> "$SSHD"
+# Allow password login only for the admin user (needed for Hetzner web console)
+cat >> "$SSHD" <<EOF
+
+# Emergency console access — password allowed only for ${ADMIN_USER}
+Match User ${ADMIN_USER}
+    PasswordAuthentication yes
+EOF
+# Listen on both port 22 (fallback) and the new port until the user confirms access.
+# Remove existing Port lines, then add both.
+sed -i '/^#\?Port /d' "$SSHD"
+echo -e "Port 22\nPort ${SSH_PORT}" >> "$SSHD"
 systemctl restart ssh
 
 # ─── 4. Docker ────────────────────────────────────────────────────────
@@ -122,6 +148,7 @@ log "configuring ufw"
 ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
+ufw allow 22/tcp       # kept open until you confirm port 2222 works, then run: ufw delete allow 22/tcp
 ufw allow ${SSH_PORT}/tcp
 ufw allow 80/tcp
 ufw allow 443/tcp
@@ -161,8 +188,12 @@ EOF
 
 log "DONE."
 log "Next steps:"
-log "  1) From your laptop, test:  ssh -p ${SSH_PORT} ${DEPLOY_USER}@<server-ip>"
-log "  2) Clone the repo into ${APP_DIR}"
-log "  3) Create /srv/spanish-class/.env from config/templates/.env.host.prod.template"
-log "  4) Create config/prod/.env from config/templates/.env.prod.template"
-log "  5) cd ${APP_DIR} && docker compose pull && docker compose up -d"
+log "  1) From your laptop, test NEW port:  ssh -p ${SSH_PORT} ${DEPLOY_USER}@<server-ip>"
+log "  2) Once confirmed working, close port 22 on the SERVER:"
+log "       sudo ufw delete allow 22/tcp"
+log "       sudo sed -i '/^Port 22$/d' /etc/ssh/sshd_config && sudo systemctl restart ssh"
+log "  3) Also remove port 22 from your Hetzner Cloud Firewall inbound rules."
+log "  4) Clone the repo into ${APP_DIR}"
+log "  5) Create /srv/spanish-class/.env from config/templates/.env.host.prod.template"
+log "  6) Create config/prod/.env from config/templates/.env.prod.template"
+log "  7) cd ${APP_DIR} && docker compose pull && docker compose up -d"
