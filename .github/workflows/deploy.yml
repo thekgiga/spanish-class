@@ -120,7 +120,7 @@ jobs:
       name: staging
       url: https://${{ secrets.STAGING_DOMAIN }}
     steps:
-      - uses: appleboy/ssh-action@v1.0.3
+      - uses: appleboy/ssh-action@v1.2.5
         with:
           host:     ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
@@ -159,7 +159,7 @@ jobs:
       name: production               # configure required reviewers in repo settings
       url: https://${{ secrets.PROD_DOMAIN }}
     steps:
-      - uses: appleboy/ssh-action@v1.0.3
+      - uses: appleboy/ssh-action@v1.2.5
         with:
           host:     ${{ secrets.PROD_HOST }}
           username: ${{ secrets.PROD_USER }}
