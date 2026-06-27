@@ -99,7 +99,60 @@
       "saving": "Čuvanje..."
     },
     "success": "Podešavanja uspešno sačuvana",
-    "error": "Greška pri čuvanju podešavanja"
+    "error": "Greška pri čuvanju podešavanja",
+    "password": {
+      "title": "Promena lozinke",
+      "description": "Ažurirajte lozinku naloga. Sve aktivne sesije će biti odjavljene.",
+      "current_password": "Trenutna lozinka",
+      "new_password": "Nova lozinka",
+      "confirm_password": "Potvrdite novu lozinku",
+      "submit_button": "Promeni lozinku",
+      "success": "Lozinka promenjena. Prijavite se ponovo.",
+      "error": "Greška pri promeni lozinke"
+    },
+    "email_change": {
+      "title": "Email adresa",
+      "description": "Ažurirajte email adresu vašeg naloga",
+      "current_email": "Trenutni email",
+      "new_email": "Nova email adresa",
+      "current_password": "Potvrdite lozinkom",
+      "submit_button": "Pošalji potvrdu",
+      "success": "Email za verifikaciju je poslat. Kliknite na link da potvrdite.",
+      "error": "Greška pri pokretanju promene emaila"
+    },
+    "security": {
+      "title": "Bezbednost",
+      "description": "Upravljajte aktivnim sesijama i dvofaktorskom autentifikacijom",
+      "logout_all_button": "Odjavi se sa svih uređaja",
+      "logout_all_confirm": "Ovo će vas odjaviti sa svih aktivnih sesija, uključujući i ovu.",
+      "logout_all_success": "Sve sesije su prekinute",
+      "logout_all_error": "Greška pri odjavi sa svih sesija",
+      "two_factor_label": "Dvofaktorska autentifikacija",
+      "two_factor_enabled": "Aktivirana",
+      "two_factor_disabled": "Nije aktivirana",
+      "manage_2fa": "Upravljaj"
+    },
+    "danger_zone": {
+      "title": "Opasna zona",
+      "description": "Nepovratne i destruktivne akcije",
+      "delete_button": "Obriši nalog",
+      "delete_dialog_title": "Obrisati vaš nalog?",
+      "delete_dialog_description": "Ovo je trajno. Istorija rezervacija će biti sačuvana iz pravnih razloga, ali se više nećete moći prijaviti.",
+      "delete_confirm_label": "Unesite DELETE za potvrdu",
+      "delete_confirm_placeholder": "DELETE",
+      "delete_password_label": "Unesite vašu lozinku",
+      "delete_submit_button": "Trajno obriši nalog",
+      "delete_success": "Vaš nalog je obrisan.",
+      "delete_error": "Greška pri brisanju naloga. Proverite lozinku i pokušajte ponovo."
+    }
+  },
+  "password_strength": {
+    "label": "Jačina lozinke",
+    "too_weak": "Previše slaba",
+    "weak": "Slaba",
+    "fair": "Prihvatljiva",
+    "good": "Dobra",
+    "strong": "Jaka"
   },
   "error_boundary": {
     "title": "Nešto nije u redu",
@@ -121,7 +174,15 @@
     "title": "Vaš link za preporuku",
     "description": "Podelite ovaj link sa prijateljima da zaradite nagrade kada se registruju!",
     "your_code": "Vaš kod: {{code}}",
-    "loading": "Učitavanje..."
+    "loading": "Učitavanje...",
+    "page_title": "Preporuke",
+    "referral_code_label": "Kod za preporuku (opciono)",
+    "stats": {
+      "title": "Vaše statistike preporuka",
+      "total": "Ukupno preporučenih",
+      "completed": "Završeno",
+      "pending": "Na čekanju"
+    }
   },
   "participants": {
     "title": "Učesnici ({{current}}/{{max}})",

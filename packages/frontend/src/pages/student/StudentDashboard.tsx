@@ -45,6 +45,13 @@ export function StudentDashboard() {
     queryFn: studentApi.getProfile,
   });
 
+  // Fetch professor assignment
+  const { data: professorData } = useQuery({
+    queryKey: ["student-professor"],
+    queryFn: studentApi.getProfessor,
+    staleTime: 5 * 60 * 1000,
+  });
+
   // Vibrant Spanish Colors - Student Dashboard
   const stats = [
     {
@@ -103,6 +110,23 @@ export function StudentDashboard() {
             </Link>
           </PrimaryButton>
         </div>
+
+        {/* Stats Grid - Modern Card Design */}
+        {/* No-professor banner */}
+        {professorData && !professorData.professor && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="font-semibold text-amber-800 text-sm">You haven't been assigned a professor yet</p>
+              <p className="text-amber-700 text-xs mt-0.5">Choose your professor to start booking classes.</p>
+            </div>
+            <Link
+              to="/dashboard/choose-professor"
+              className="shrink-0 text-sm font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Choose Professor
+            </Link>
+          </div>
+        )}
 
         {/* Stats Grid - Modern Card Design */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

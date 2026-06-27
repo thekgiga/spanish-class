@@ -99,7 +99,60 @@
       "saving": "Saving..."
     },
     "success": "Settings saved successfully",
-    "error": "Failed to save settings"
+    "error": "Failed to save settings",
+    "password": {
+      "title": "Change Password",
+      "description": "Update your account password. All active sessions will be signed out.",
+      "current_password": "Current password",
+      "new_password": "New password",
+      "confirm_password": "Confirm new password",
+      "submit_button": "Change Password",
+      "success": "Password changed. Please log in again.",
+      "error": "Failed to change password"
+    },
+    "email_change": {
+      "title": "Email Address",
+      "description": "Update the email address on your account",
+      "current_email": "Current email",
+      "new_email": "New email address",
+      "current_password": "Confirm with your password",
+      "submit_button": "Send Verification",
+      "success": "Verification email sent. Click the link to confirm.",
+      "error": "Failed to initiate email change"
+    },
+    "security": {
+      "title": "Security",
+      "description": "Manage your active sessions and two-factor authentication",
+      "logout_all_button": "Sign out all devices",
+      "logout_all_confirm": "This will sign you out of all active sessions, including this one.",
+      "logout_all_success": "All sessions have been terminated",
+      "logout_all_error": "Failed to sign out all sessions",
+      "two_factor_label": "Two-factor authentication",
+      "two_factor_enabled": "Enabled",
+      "two_factor_disabled": "Not enabled",
+      "manage_2fa": "Manage"
+    },
+    "danger_zone": {
+      "title": "Danger Zone",
+      "description": "Irreversible and destructive actions",
+      "delete_button": "Delete Account",
+      "delete_dialog_title": "Delete your account?",
+      "delete_dialog_description": "This is permanent. Your booking history will be retained for legal purposes, but you will no longer be able to log in.",
+      "delete_confirm_label": "Type DELETE to confirm",
+      "delete_confirm_placeholder": "DELETE",
+      "delete_password_label": "Enter your password",
+      "delete_submit_button": "Permanently Delete Account",
+      "delete_success": "Your account has been deleted.",
+      "delete_error": "Failed to delete account. Check your password and try again."
+    }
+  },
+  "password_strength": {
+    "label": "Password strength",
+    "too_weak": "Too weak",
+    "weak": "Weak",
+    "fair": "Fair",
+    "good": "Good",
+    "strong": "Strong"
   },
   "error_boundary": {
     "title": "Something went wrong",
@@ -121,7 +174,15 @@
     "title": "Your Referral Link",
     "description": "Share this link with friends to earn rewards when they sign up!",
     "your_code": "Your Code: {{code}}",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "page_title": "Referrals",
+    "referral_code_label": "Referral code (optional)",
+    "stats": {
+      "title": "Your Referral Stats",
+      "total": "Total Referred",
+      "completed": "Completed",
+      "pending": "Pending"
+    }
   },
   "participants": {
     "title": "Participants ({{current}}/{{max}})",

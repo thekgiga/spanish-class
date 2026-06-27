@@ -35,6 +35,15 @@ const ResetPasswordPage = lazy(
 const VerifyEmailPage = lazy(
   () => import("@/pages/auth/VerifyEmailPage"),
 );
+const VerifyEmailChangePage = lazy(
+  () => import("@/pages/auth/VerifyEmailChangePage"),
+);
+const ReferralPage = lazy(() =>
+  import("@/pages/student/ReferralPage").then((m) => ({ default: m.ReferralPage })),
+);
+const ChooseProfessorPage = lazy(() =>
+  import("@/pages/student/ChooseProfessorPage").then((m) => ({ default: m.ChooseProfessorPage })),
+);
 const DesignShowcase = lazy(() =>
   import("@/pages/DesignShowcase").then((m) => ({
     default: m.DesignShowcase,
@@ -215,6 +224,7 @@ function AppRoutes() {
               }
             />
             <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/verify-email-change" element={<VerifyEmailChangePage />} />
             {/* Legacy redirects */}
             <Route path="/login" element={<Navigate to="/auth" replace />} />
             <Route path="/register" element={<Navigate to="/auth" replace />} />
@@ -259,6 +269,8 @@ function AppRoutes() {
             <Route path="book" element={<BookPage />} />
             <Route path="bookings" element={<BookingsPage />} />
             <Route path="profile" element={<StudentProfilePage />} />
+            <Route path="referrals" element={<ReferralPage />} />
+            <Route path="choose-professor" element={<ChooseProfessorPage />} />
           </Route>
 
           {/* 404 */}

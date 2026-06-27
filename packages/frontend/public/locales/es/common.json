@@ -99,7 +99,60 @@
       "saving": "Guardando..."
     },
     "success": "Configuración guardada correctamente",
-    "error": "Error al guardar la configuración"
+    "error": "Error al guardar la configuración",
+    "password": {
+      "title": "Cambiar contraseña",
+      "description": "Actualiza tu contraseña. Se cerrarán todas las sesiones activas.",
+      "current_password": "Contraseña actual",
+      "new_password": "Nueva contraseña",
+      "confirm_password": "Confirmar nueva contraseña",
+      "submit_button": "Cambiar contraseña",
+      "success": "Contraseña cambiada. Por favor inicia sesión de nuevo.",
+      "error": "Error al cambiar la contraseña"
+    },
+    "email_change": {
+      "title": "Dirección de correo",
+      "description": "Actualiza el correo electrónico de tu cuenta",
+      "current_email": "Correo actual",
+      "new_email": "Nueva dirección de correo",
+      "current_password": "Confirma con tu contraseña",
+      "submit_button": "Enviar verificación",
+      "success": "Correo de verificación enviado. Haz clic en el enlace para confirmar.",
+      "error": "Error al iniciar el cambio de correo"
+    },
+    "security": {
+      "title": "Seguridad",
+      "description": "Gestiona tus sesiones activas y la autenticación de dos factores",
+      "logout_all_button": "Cerrar sesión en todos los dispositivos",
+      "logout_all_confirm": "Se cerrará la sesión en todos los dispositivos activos, incluyendo este.",
+      "logout_all_success": "Todas las sesiones han sido terminadas",
+      "logout_all_error": "Error al cerrar sesión en todos los dispositivos",
+      "two_factor_label": "Autenticación de dos factores",
+      "two_factor_enabled": "Activada",
+      "two_factor_disabled": "No activada",
+      "manage_2fa": "Gestionar"
+    },
+    "danger_zone": {
+      "title": "Zona de peligro",
+      "description": "Acciones irreversibles y destructivas",
+      "delete_button": "Eliminar cuenta",
+      "delete_dialog_title": "¿Eliminar tu cuenta?",
+      "delete_dialog_description": "Esto es permanente. Tu historial de reservas se conservará por razones legales, pero ya no podrás iniciar sesión.",
+      "delete_confirm_label": "Escribe DELETE para confirmar",
+      "delete_confirm_placeholder": "DELETE",
+      "delete_password_label": "Ingresa tu contraseña",
+      "delete_submit_button": "Eliminar cuenta permanentemente",
+      "delete_success": "Tu cuenta ha sido eliminada.",
+      "delete_error": "Error al eliminar la cuenta. Verifica tu contraseña e inténtalo de nuevo."
+    }
+  },
+  "password_strength": {
+    "label": "Fortaleza de contraseña",
+    "too_weak": "Muy débil",
+    "weak": "Débil",
+    "fair": "Aceptable",
+    "good": "Buena",
+    "strong": "Fuerte"
   },
   "error_boundary": {
     "title": "Algo salió mal",
@@ -121,7 +174,15 @@
     "title": "Tu enlace de referido",
     "description": "¡Comparte este enlace con amigos para ganar recompensas cuando se registren!",
     "your_code": "Tu código: {{code}}",
-    "loading": "Cargando..."
+    "loading": "Cargando...",
+    "page_title": "Referidos",
+    "referral_code_label": "Código de referido (opcional)",
+    "stats": {
+      "title": "Tus estadísticas de referidos",
+      "total": "Total referidos",
+      "completed": "Completados",
+      "pending": "Pendientes"
+    }
   },
   "participants": {
     "title": "Participantes ({{current}}/{{max}})",

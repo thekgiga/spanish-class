@@ -12,6 +12,7 @@ import {
   rejectBookingSchema,
 } from "@spanish-class/shared";
 import type { AvailabilitySlot, UserPublic } from "@spanish-class/shared";
+import { applyRejectionSideEffects } from "../services/bookingRejection.js";
 
 const router = Router();
 
@@ -205,6 +206,15 @@ router.post("/reject-booking", validate(rejectBookingSchema), async (req, res, n
       student: booking.student,
       reason,
     });
+
+    // B3: decrement slot participants and notify student (non-blocking)
+    applyRejectionSideEffects(
+      booking.studentId,
+      booking.slotId,
+      booking.slot.currentParticipants,
+      booking.slot.maxParticipants,
+      booking.slot.title ?? undefined,
+    ).catch((err: unknown) => console.error("[reject-booking] side-effects failed:", err));
 
     res.json({
       success: true,

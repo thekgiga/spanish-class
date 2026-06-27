@@ -144,5 +144,15 @@
       "confirm_password": "Confirmar contraseña",
       "update_button": "Actualizar contraseña"
     }
+  },
+  "professor": {
+    "no_professor_message": "Aún no tienes un profesor asignado. Elige uno para comenzar.",
+    "choose_professor_button": "Elige tu profesor",
+    "your_professor": "Tu Profesor",
+    "cover_notice": "También mostrando clases del profesor sustituto",
+    "choose_page_title": "Elige tu Profesor",
+    "choose_page_subtitle": "Selecciona el profesor con quien deseas estudiar",
+    "select_button": "Seleccionar",
+    "selected_success": "¡Profesor seleccionado! Ya puedes reservar clases."
   }
 }

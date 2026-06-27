@@ -144,5 +144,15 @@
       "confirm_password": "Confirm Password",
       "update_button": "Update Password"
     }
+  },
+  "professor": {
+    "no_professor_message": "You haven't been assigned a professor yet. Choose one to get started.",
+    "choose_professor_button": "Choose Your Professor",
+    "your_professor": "Your Professor",
+    "cover_notice": "Also showing classes from cover professor(s)",
+    "choose_page_title": "Choose Your Professor",
+    "choose_page_subtitle": "Select the professor you'd like to study with",
+    "select_button": "Select",
+    "selected_success": "Professor selected! You can now book classes."
   }
 }

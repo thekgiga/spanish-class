@@ -1,6 +1,7 @@
 import speakeasy from "speakeasy";
 import qrcode from "qrcode";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma.js";
 
 const APP_NAME = process.env.APP_NAME || "SpanishClass";
@@ -49,6 +50,10 @@ function generateRecoveryCodes(): string[] {
   );
 }
 
+async function hashRecoveryCodes(codes: string[]): Promise<string[]> {
+  return Promise.all(codes.map((c) => bcrypt.hash(c, 10)));
+}
+
 // ── Public API ────────────────────────────────────────────────────────────────
 
 export async function generateTotpSetup(
@@ -64,7 +69,8 @@ export async function generateTotpSetup(
     encoding: "base32",
   });
   const qrCodeDataUrl = await qrcode.toDataURL(otpauthUrl);
-  const recoveryCodes = generateRecoveryCodes();
+  const plainCodes = generateRecoveryCodes();
+  const hashedCodes = await hashRecoveryCodes(plainCodes);
 
   await prisma.userTwoFactor.upsert({
     where: { userId },
@@ -72,17 +78,18 @@ export async function generateTotpSetup(
       secretEncrypted: encryptSecret(base32Secret),
       enabled: false,
       verifiedAt: null,
-      recoveryCodesJson: JSON.stringify(recoveryCodes),
+      recoveryCodesJson: JSON.stringify(hashedCodes),
     },
     create: {
       userId,
       secretEncrypted: encryptSecret(base32Secret),
       enabled: false,
-      recoveryCodesJson: JSON.stringify(recoveryCodes),
+      recoveryCodesJson: JSON.stringify(hashedCodes),
     },
   });
 
-  return { otpauthUrl, qrCodeDataUrl, recoveryCodes };
+  // Return plaintext codes once — never stored in plaintext
+  return { otpauthUrl, qrCodeDataUrl, recoveryCodes: plainCodes };
 }
 
 export async function verifyAndEnableTotp(
@@ -114,14 +121,24 @@ export async function verifyRecoveryCode(userId: string, code: string): Promise<
   const tf = await prisma.userTwoFactor.findUnique({ where: { userId } });
   if (!tf || !tf.enabled || !tf.recoveryCodesJson) return false;
 
-  const codes: string[] = JSON.parse(tf.recoveryCodesJson);
-  const idx = codes.indexOf(code.toUpperCase());
-  if (idx === -1) return false;
+  const hashes: string[] = JSON.parse(tf.recoveryCodesJson);
+  const normalised = code.toUpperCase();
 
-  codes.splice(idx, 1);
+  // Find the matching hash — bcrypt compare is timing-safe
+  let matchIdx = -1;
+  for (let i = 0; i < hashes.length; i++) {
+    if (await bcrypt.compare(normalised, hashes[i])) {
+      matchIdx = i;
+      break;
+    }
+  }
+  if (matchIdx === -1) return false;
+
+  // Remove the used code (single-use)
+  hashes.splice(matchIdx, 1);
   await prisma.userTwoFactor.update({
     where: { userId },
-    data: { recoveryCodesJson: JSON.stringify(codes) },
+    data: { recoveryCodesJson: JSON.stringify(hashes) },
   });
   return true;
 }
@@ -136,4 +153,20 @@ export async function disableTotp(userId: string): Promise<void> {
     where: { userId },
     data: { enabled: false, verifiedAt: null },
   });
+}
+
+// A5: Generate a fresh set of recovery codes, replacing the old ones.
+// Returns the plaintext codes (shown to the user once, never stored in plaintext).
+export async function regenerateRecoveryCodes(userId: string): Promise<string[]> {
+  const tf = await prisma.userTwoFactor.findUnique({ where: { userId } });
+  if (!tf || !tf.enabled) {
+    throw new Error("2FA is not enabled for this account");
+  }
+  const plainCodes = generateRecoveryCodes();
+  const hashedCodes = await hashRecoveryCodes(plainCodes);
+  await prisma.userTwoFactor.update({
+    where: { userId },
+    data: { recoveryCodesJson: JSON.stringify(hashedCodes) },
+  });
+  return plainCodes;
 }

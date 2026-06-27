@@ -3,6 +3,7 @@ import type { AvailabilitySlot, UserPublic } from "@spanish-class/shared";
 import { generateBookingIcs, generateCancellationIcs } from "./ics.js";
 import { prisma } from "../lib/prisma.js";
 import { getMeetingProvider } from "./meeting-provider.js";
+import { queueEmail } from "../lib/queue.js";
 
 // In local dev (and in CI/tests) we usually don't want to actually send mail.
 // Resend's constructor throws if the key is empty, and we don't want to
@@ -45,6 +46,9 @@ const PROFESSOR_EMAIL =
   process.env.PROFESSOR_EMAIL || "professor@spanishclass.com";
 const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
+// Exported for use by the BullMQ email worker in worker.ts
+export { resend, isLiveKey, EMAIL_FROM };
+
 // Helper function to log emails
 async function logEmail(params: {
   emailType: string;
@@ -71,6 +75,20 @@ async function logEmail(params: {
     });
   } catch (err) {
     console.error("Failed to log email:", err);
+  }
+
+  // J8: If the send failed and we have a live Resend key, enqueue for retry via BullMQ.
+  // The emailQueue is configured with 3 attempts + exponential backoff.
+  if (params.status === "failed" && isLiveKey) {
+    queueEmail({
+      type: params.emailType as Parameters<typeof queueEmail>[0]["type"],
+      to: params.toAddress,
+      subject: params.subject,
+      html: params.htmlContent,
+      metadata: { originalEmailType: params.emailType },
+    }).catch((err: unknown) => {
+      console.error("[email] Failed to enqueue retry for", params.emailType, err);
+    });
   }
 }
 
@@ -1781,4 +1799,417 @@ export async function sendWaitlistPromotionToStudent(data: WaitlistEmailData): P
 
   await logEmail({ emailType: "waitlist_promotion", fromAddress: EMAIL_FROM, toAddress: student.email, subject: `Spot opened: ${classTitle}`, htmlContent: html, status: "sent" });
   await resend.emails.send({ from: EMAIL_FROM, to: student.email, subject: `Good news — a spot opened up in ${classTitle}`, html });
+}
+
+// ── Auth Security Emails (A1, A7, A9, A10, A11) ───────────────────────────────
+
+export async function sendPasswordChangedEmail(params: {
+  email: string;
+  firstName: string;
+}): Promise<void> {
+  const { email, firstName } = params;
+  const subject = "Your password has been changed — Spanish Class";
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1a1f36}
+      .container{max-width:600px;margin:0 auto;padding:20px}
+      .header{background:linear-gradient(135deg,#d97706 0%,#b45309 100%);color:white;padding:30px;text-align:center;border-radius:12px 12px 0 0}
+      .content{background:#fff;padding:30px;border:1px solid #e2e8f0;border-top:none}
+      .footer{background:#f7fafc;padding:20px;text-align:center;font-size:14px;color:#718096;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none}
+      .warning-box{background:#fffbeb;border:1px solid #fbbf24;padding:15px;border-radius:8px;margin:20px 0;color:#92400e}
+      .btn{display:inline-block;padding:12px 24px;background:#ef4444;color:white;text-decoration:none;border-radius:8px;font-weight:600;margin:16px 0}
+      h1{margin:0;font-size:24px}.emoji{font-size:32px;margin-bottom:10px}
+    </style></head><body>
+    <div class="container">
+      <div class="header"><div class="emoji">🔐</div><h1>Password Changed</h1></div>
+      <div class="content">
+        <p>Hi ${firstName},</p>
+        <p>Your password was successfully changed.</p>
+        <div class="warning-box">
+          <strong>⚠️ Wasn't you?</strong><br>
+          If you did not make this change, your account may be compromised. Reset your password immediately.
+        </div>
+        <a href="${FRONTEND_URL}/forgot-password" class="btn">Reset My Password</a>
+        <p>If you did change your password, you can safely ignore this email.</p>
+      </div>
+      <div class="footer"><p>Spanish Class Platform</p></div>
+    </div></body></html>
+  `;
+
+  await logEmail({ emailType: "password_changed", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "sent" });
+  const { error } = await resend.emails.send({ from: EMAIL_FROM, to: email, subject, html });
+  if (error) {
+    await logEmail({ emailType: "password_changed", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "failed", error: error.message });
+  }
+}
+
+export async function sendNewIpAlertEmail(params: {
+  email: string;
+  firstName: string;
+  ip: string;
+  timestamp: Date;
+}): Promise<void> {
+  const { email, firstName, ip, timestamp } = params;
+  const subject = "New login from an unrecognized device — Spanish Class";
+  const formattedTime = timestamp.toUTCString();
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1a1f36}
+      .container{max-width:600px;margin:0 auto;padding:20px}
+      .header{background:linear-gradient(135deg,#dc2626 0%,#b91c1c 100%);color:white;padding:30px;text-align:center;border-radius:12px 12px 0 0}
+      .content{background:#fff;padding:30px;border:1px solid #e2e8f0;border-top:none}
+      .footer{background:#f7fafc;padding:20px;text-align:center;font-size:14px;color:#718096;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none}
+      .info-box{background:#fef2f2;border:1px solid #fca5a5;padding:15px;border-radius:8px;margin:20px 0;color:#991b1b;font-family:monospace}
+      .btn{display:inline-block;padding:12px 24px;background:#ef4444;color:white;text-decoration:none;border-radius:8px;font-weight:600;margin:16px 0}
+      h1{margin:0;font-size:24px}.emoji{font-size:32px;margin-bottom:10px}
+    </style></head><body>
+    <div class="container">
+      <div class="header"><div class="emoji">🚨</div><h1>Unrecognized Login</h1></div>
+      <div class="content">
+        <p>Hi ${firstName},</p>
+        <p>A login to your admin account was detected from a new IP address:</p>
+        <div class="info-box">
+          IP Address: ${ip}<br>
+          Time: ${formattedTime}
+        </div>
+        <p>If this was you, no action is needed — this IP address has been recorded.</p>
+        <p>If this was <strong>not you</strong>, secure your account immediately:</p>
+        <a href="${FRONTEND_URL}/forgot-password" class="btn">Secure My Account</a>
+      </div>
+      <div class="footer"><p>Spanish Class Platform</p></div>
+    </div></body></html>
+  `;
+
+  await logEmail({ emailType: "new_ip_login", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "sent" });
+  const { error } = await resend.emails.send({ from: EMAIL_FROM, to: email, subject, html });
+  if (error) {
+    await logEmail({ emailType: "new_ip_login", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "failed", error: error.message });
+  }
+}
+
+export async function sendEmailChangeVerificationEmail(params: {
+  newEmail: string;
+  firstName: string;
+  token: string;
+}): Promise<void> {
+  const { newEmail, firstName, token } = params;
+  const verifyLink = `${FRONTEND_URL}/verify-email-change?token=${token}`;
+  const subject = "Verify your new email address — Spanish Class";
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1a1f36}
+      .container{max-width:600px;margin:0 auto;padding:20px}
+      .header{background:linear-gradient(135deg,#0d9488 0%,#0f766e 100%);color:white;padding:30px;text-align:center;border-radius:12px 12px 0 0}
+      .content{background:#fff;padding:30px;border:1px solid #e2e8f0;border-top:none}
+      .footer{background:#f7fafc;padding:20px;text-align:center;font-size:14px;color:#718096;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none}
+      .btn{display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#0d9488,#0f766e);color:white;text-decoration:none;border-radius:8px;font-weight:600;margin:20px 0}
+      .expiry{color:#6b7280;font-size:14px;margin-top:16px}
+      h1{margin:0;font-size:24px}.emoji{font-size:32px;margin-bottom:10px}
+    </style></head><body>
+    <div class="container">
+      <div class="header"><div class="emoji">✉️</div><h1>Verify New Email</h1></div>
+      <div class="content">
+        <p>Hi ${firstName},</p>
+        <p>You requested to change your email address. Click the button below to verify <strong>${newEmail}</strong> as your new email address:</p>
+        <a href="${verifyLink}" class="btn">Verify New Email Address</a>
+        <p class="expiry">⏱️ This link expires in 24 hours.</p>
+        <p>If you did not request this change, you can safely ignore this email — your current email address will remain unchanged.</p>
+      </div>
+      <div class="footer"><p>Spanish Class Platform</p></div>
+    </div></body></html>
+  `;
+
+  await logEmail({ emailType: "email_change_verification", fromAddress: EMAIL_FROM, toAddress: newEmail, subject, htmlContent: html, status: "sent" });
+  const { error } = await resend.emails.send({ from: EMAIL_FROM, to: newEmail, subject, html });
+  if (error) {
+    await logEmail({ emailType: "email_change_verification", fromAddress: EMAIL_FROM, toAddress: newEmail, subject, htmlContent: html, status: "failed", error: error.message });
+  }
+}
+
+export async function sendEmailChangedNotificationEmail(params: {
+  oldEmail: string;
+  firstName: string;
+  newEmail: string;
+}): Promise<void> {
+  const { oldEmail, firstName, newEmail } = params;
+  const subject = "Your email address has been updated — Spanish Class";
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1a1f36}
+      .container{max-width:600px;margin:0 auto;padding:20px}
+      .header{background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);color:white;padding:30px;text-align:center;border-radius:12px 12px 0 0}
+      .content{background:#fff;padding:30px;border:1px solid #e2e8f0;border-top:none}
+      .footer{background:#f7fafc;padding:20px;text-align:center;font-size:14px;color:#718096;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none}
+      .info-box{background:#eff6ff;border:1px solid #93c5fd;padding:15px;border-radius:8px;margin:20px 0;color:#1e40af}
+      .warning-box{background:#fef2f2;border:1px solid #fca5a5;padding:15px;border-radius:8px;margin:20px 0;color:#991b1b}
+      h1{margin:0;font-size:24px}.emoji{font-size:32px;margin-bottom:10px}
+    </style></head><body>
+    <div class="container">
+      <div class="header"><div class="emoji">📧</div><h1>Email Address Updated</h1></div>
+      <div class="content">
+        <p>Hi ${firstName},</p>
+        <p>Your account email address has been successfully updated:</p>
+        <div class="info-box">
+          <strong>New email:</strong> ${newEmail}
+        </div>
+        <div class="warning-box">
+          <strong>⚠️ Wasn't you?</strong><br>
+          If you did not make this change, contact support immediately at <a href="mailto:${PROFESSOR_EMAIL}">${PROFESSOR_EMAIL}</a>.
+        </div>
+        <p>This notification was sent to your previous email address (${oldEmail}) for security purposes.</p>
+      </div>
+      <div class="footer"><p>Spanish Class Platform</p></div>
+    </div></body></html>
+  `;
+
+  await logEmail({ emailType: "email_changed_notification", fromAddress: EMAIL_FROM, toAddress: oldEmail, subject, htmlContent: html, status: "sent" });
+  const { error } = await resend.emails.send({ from: EMAIL_FROM, to: oldEmail, subject, html });
+  if (error) {
+    await logEmail({ emailType: "email_changed_notification", fromAddress: EMAIL_FROM, toAddress: oldEmail, subject, htmlContent: html, status: "failed", error: error.message });
+  }
+}
+
+export async function sendAccountDeletionEmail(params: {
+  email: string;
+  firstName: string;
+}): Promise<void> {
+  const { email, firstName } = params;
+  const subject = "Your account has been deleted — Spanish Class";
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1a1f36}
+      .container{max-width:600px;margin:0 auto;padding:20px}
+      .header{background:linear-gradient(135deg,#6b7280 0%,#4b5563 100%);color:white;padding:30px;text-align:center;border-radius:12px 12px 0 0}
+      .content{background:#fff;padding:30px;border:1px solid #e2e8f0;border-top:none}
+      .footer{background:#f7fafc;padding:20px;text-align:center;font-size:14px;color:#718096;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none}
+      h1{margin:0;font-size:24px}.emoji{font-size:32px;margin-bottom:10px}
+    </style></head><body>
+    <div class="container">
+      <div class="header"><div class="emoji">👋</div><h1>Account Deleted</h1></div>
+      <div class="content">
+        <p>Hi ${firstName},</p>
+        <p>Your Spanish Class account has been successfully deleted as requested.</p>
+        <p>Your booking history has been retained for legal and compliance purposes but you will no longer be able to log in.</p>
+        <p>If you deleted your account by mistake or need assistance, please contact us at <a href="mailto:${PROFESSOR_EMAIL}">${PROFESSOR_EMAIL}</a>.</p>
+      </div>
+      <div class="footer"><p>Spanish Class Platform — Goodbye, and we hope to see you again someday!</p></div>
+    </div></body></html>
+  `;
+
+  await logEmail({ emailType: "account_deletion", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "sent" });
+  const { error } = await resend.emails.send({ from: EMAIL_FROM, to: email, subject, html });
+  if (error) {
+    await logEmail({ emailType: "account_deletion", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "failed", error: error.message });
+  }
+}
+
+export async function sendWelcomeEmail(params: {
+  email: string;
+  firstName: string;
+}): Promise<void> {
+  const { email, firstName } = params;
+  const subject = `Welcome to Spanish Class, ${firstName}! 🎉`;
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;line-height:1.6;color:#1a1f36}
+      .container{max-width:600px;margin:0 auto;padding:20px}
+      .header{background:linear-gradient(135deg,#0d9488 0%,#ea580c 100%);color:white;padding:40px;text-align:center;border-radius:12px 12px 0 0}
+      .content{background:#fff;padding:30px;border:1px solid #e2e8f0;border-top:none}
+      .footer{background:#f7fafc;padding:20px;text-align:center;font-size:14px;color:#718096;border-radius:0 0 12px 12px;border:1px solid #e2e8f0;border-top:none}
+      .btn{display:inline-block;padding:14px 28px;background:linear-gradient(135deg,#0d9488,#ea580c);color:white;text-decoration:none;border-radius:8px;font-weight:600;margin:20px 0}
+      .steps{background:#f0fdf4;border:1px solid #86efac;padding:20px;border-radius:8px;margin:20px 0}
+      .steps li{margin:8px 0;color:#166534}
+      h1{margin:0;font-size:28px}.emoji{font-size:40px;margin-bottom:10px}
+    </style></head><body>
+    <div class="container">
+      <div class="header"><div class="emoji">🇪🇸</div><h1>¡Bienvenido, ${firstName}!</h1></div>
+      <div class="content">
+        <p>Hi ${firstName},</p>
+        <p>Your email is verified and your account is ready to go! Here's how to get started:</p>
+        <div class="steps">
+          <ul>
+            <li>✅ Account verified — you're all set</li>
+            <li>📅 Browse available class slots</li>
+            <li>📝 Complete your student profile</li>
+            <li>🎯 Book your first class!</li>
+          </ul>
+        </div>
+        <a href="${FRONTEND_URL}/slots" class="btn">Browse Available Classes</a>
+      </div>
+      <div class="footer"><p>Spanish Class Platform — ¡Buena suerte con tu español!</p></div>
+    </div></body></html>
+  `;
+
+  await logEmail({ emailType: "welcome", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "sent" });
+  const { error } = await resend.emails.send({ from: EMAIL_FROM, to: email, subject, html });
+  if (error) {
+    await logEmail({ emailType: "welcome", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "failed", error: error.message });
+  }
+}
+
+// ── Booking Expiry Emails (B1) ─────────────────────────────────────────────────
+
+export async function sendBookingExpiredToStudent(
+  data: Pick<ConfirmationEmailData, "slot" | "professor" | "student">,
+): Promise<void> {
+  const { slot, professor, student } = data;
+  const dateStr = formatDateTime(slot.startTime, student.timezone);
+  const classTitle = slot.title || "Spanish Class";
+  const subject = `Your booking request has expired — ${classTitle}`;
+
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+      .header { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+      .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+      .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+      .details { background: #fffbeb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b; }
+      .button { display: inline-block; background: #3b82f6; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px 5px; }
+      h1 { margin: 0; font-size: 24px; }
+      .emoji { font-size: 32px; margin-bottom: 10px; }
+    </style></head><body>
+    <div class="container">
+      <div class="header"><div class="emoji">⏰</div><h1>Booking Request Expired</h1></div>
+      <div class="content">
+        <p>Hi ${student.firstName},</p>
+        <p>Unfortunately, your booking request for <strong>${classTitle}</strong> was not confirmed by ${professor.firstName} ${professor.lastName} within the 48-hour window and has now expired.</p>
+        <div class="details">
+          <p><strong>Professor:</strong> ${professor.firstName} ${professor.lastName}</p>
+          <p><strong>Requested Time:</strong> ${dateStr}</p>
+        </div>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${FRONTEND_URL}/dashboard/book" class="button">Browse Available Slots</a>
+        </div>
+        <p style="text-align: center; color: #6b7280; font-size: 14px;">
+          You can book another slot at any time.
+        </p>
+      </div>
+      <div class="footer"><p>Spanish Class Platform</p></div>
+    </div></body></html>
+  `;
+
+  await logEmail({ emailType: "booking_expired_student", fromAddress: EMAIL_FROM, toAddress: student.email, subject, htmlContent: html, status: "sent" });
+  const { error } = await resend.emails.send({ from: EMAIL_FROM, to: student.email, subject, html });
+  if (error) {
+    await logEmail({ emailType: "booking_expired_student", fromAddress: EMAIL_FROM, toAddress: student.email, subject, htmlContent: html, status: "failed", error: error.message });
+  }
+}
+
+// ── Class-Start Reminder Emails (J3, J4) ──────────────────────────────────────
+
+export async function sendClassReminderToStudent(params: {
+  slot: AvailabilitySlot;
+  professor: UserPublic;
+  student: UserPublic;
+  hoursUntil: 24 | 1;
+}): Promise<void> {
+  const { slot, professor, student, hoursUntil } = params;
+  const classTitle = slot.title || "Spanish Class";
+  const dateStr = formatDateTime(slot.startTime, student.timezone);
+  const duration = Math.round(
+    (new Date(slot.endTime).getTime() - new Date(slot.startTime).getTime()) / 60000,
+  );
+  const timeLabel = hoursUntil === 24 ? "24 hours" : "1 hour";
+  const emailType = hoursUntil === 24 ? "class_reminder_24h" : "class_reminder_1h";
+  const subject = `Your class starts in ${timeLabel} — ${classTitle}`;
+
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+      .header { background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%); color: white; padding: 30px; text-align: center; border-radius: 12px 12px 0 0; }
+      .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+      .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+      .details { background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0d9488; }
+      .button { display: inline-block; background: linear-gradient(135deg, #0d9488, #0f766e); color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 10px 5px; }
+      h1 { margin: 0; font-size: 24px; }
+      .emoji { font-size: 32px; margin-bottom: 10px; }
+    </style></head><body>
+    <div class="container">
+      <div class="header">
+        <div class="emoji">${hoursUntil === 1 ? "⏱️" : "📅"}</div>
+        <h1>Class Starting in ${timeLabel}!</h1>
+      </div>
+      <div class="content">
+        <p>Hi ${student.firstName},</p>
+        <p>Just a reminder — your Spanish class starts in <strong>${timeLabel}</strong>.</p>
+        <div class="details">
+          <p><strong>Class:</strong> ${classTitle}</p>
+          <p><strong>Professor:</strong> ${professor.firstName} ${professor.lastName}</p>
+          <p><strong>When:</strong> ${dateStr}</p>
+          <p><strong>Duration:</strong> ${duration} minutes</p>
+        </div>
+        ${slot.meetLink ? `<div style="text-align: center; margin: 30px 0;"><a href="${slot.meetLink}" class="button">Join Class Now</a></div>` : ""}
+        <p style="text-align: center; color: #6b7280; font-size: 14px;">
+          You can also access your class from your <a href="${FRONTEND_URL}/dashboard/bookings">bookings page</a>.
+        </p>
+      </div>
+      <div class="footer"><p>Spanish Class Platform — ¡Buena suerte!</p></div>
+    </div></body></html>
+  `;
+
+  await logEmail({ emailType, fromAddress: EMAIL_FROM, toAddress: student.email, subject, htmlContent: html, status: "sent" });
+  const { error } = await resend.emails.send({ from: EMAIL_FROM, to: student.email, subject, html });
+  if (error) {
+    await logEmail({ emailType, fromAddress: EMAIL_FROM, toAddress: student.email, subject, htmlContent: html, status: "failed", error: error.message });
+  }
+}
+
+// ── Student Invitation Email ───────────────────────────────────────────────────
+
+export async function sendStudentInvitationEmail(params: {
+  email: string;
+  professorFirstName: string;
+  professorLastName: string;
+  inviteLink: string;
+  expiresAt: Date;
+}): Promise<void> {
+  const { email, professorFirstName, professorLastName, inviteLink, expiresAt } = params;
+  const professorName = `${professorFirstName} ${professorLastName}`;
+  const expiryStr = expiresAt.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const subject = `${professorName} has invited you to Spanish Class`;
+
+  const html = `
+    <!DOCTYPE html><html><head><style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1a1f36; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+      .header { background: linear-gradient(135deg, #0d9488 0%, #ea580c 100%); color: white; padding: 40px; text-align: center; border-radius: 12px 12px 0 0; }
+      .content { background: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; }
+      .footer { background: #f7fafc; padding: 20px; text-align: center; font-size: 14px; color: #718096; border-radius: 0 0 12px 12px; border: 1px solid #e2e8f0; border-top: none; }
+      .button { display: inline-block; background: linear-gradient(135deg, #0d9488, #ea580c); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; margin: 20px 0; }
+      .info-box { background: #f0fdf4; border: 1px solid #86efac; padding: 16px; border-radius: 8px; margin: 20px 0; color: #166534; }
+      .expiry { color: #6b7280; font-size: 14px; margin-top: 16px; }
+      h1 { margin: 0; font-size: 28px; }
+      .emoji { font-size: 40px; margin-bottom: 10px; }
+    </style></head><body>
+    <div class="container">
+      <div class="header">
+        <div class="emoji">🇪🇸</div>
+        <h1>You're Invited!</h1>
+      </div>
+      <div class="content">
+        <p>Hello!</p>
+        <p><strong>${professorName}</strong> has invited you to join Spanish Class — a platform for personalised Spanish language learning.</p>
+        <div class="info-box">
+          <p><strong>What you get:</strong></p>
+          <p>✅ One-on-one and group Spanish classes with ${professorFirstName}</p>
+          <p>✅ Flexible scheduling that fits your lifestyle</p>
+          <p>✅ Live video sessions</p>
+        </div>
+        <div style="text-align: center;">
+          <a href="${inviteLink}" class="button">Accept Invitation & Join</a>
+        </div>
+        <p class="expiry">⏰ This invitation expires on <strong>${expiryStr}</strong>.</p>
+        <p style="color: #6b7280; font-size: 14px;">If you did not expect this invitation, you can safely ignore this email.</p>
+      </div>
+      <div class="footer"><p>Spanish Class Platform — ¡Hasta pronto!</p></div>
+    </div></body></html>
+  `;
+
+  await logEmail({ emailType: "student_invitation", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "sent" });
+  const { error } = await resend.emails.send({ from: EMAIL_FROM, to: email, subject, html });
+  if (error) {
+    await logEmail({ emailType: "student_invitation", fromAddress: EMAIL_FROM, toAddress: email, subject, htmlContent: html, status: "failed", error: error.message });
+  }
 }

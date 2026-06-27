@@ -36,6 +36,18 @@ export async function authenticate(
     const payload = verifyToken(token);
     req.jwtPayload = payload;
 
+    // Block pre-auth (2FA pending) tokens from all endpoints except the 2FA verify/recovery routes
+    if (payload.twoFactorPending) {
+      const allowed2FAPaths = ['/api/auth/2fa/verify', '/api/auth/2fa/recovery'];
+      if (!allowed2FAPaths.includes(req.path) && !allowed2FAPaths.some(p => req.originalUrl.startsWith(p))) {
+        res.status(403).json({
+          success: false,
+          error: 'Two-factor authentication required',
+        });
+        return;
+      }
+    }
+
     // Fetch user from database
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
@@ -48,6 +60,8 @@ export async function authenticate(
         timezone: true,
         createdAt: true,
         updatedAt: true,
+        tokenVersion: true,
+        deletedAt: true,
       },
     });
 
@@ -59,7 +73,25 @@ export async function authenticate(
       return;
     }
 
-    req.user = user;
+    if (user.deletedAt) {
+      res.status(401).json({
+        success: false,
+        error: 'Account has been deleted',
+      });
+      return;
+    }
+
+    const payloadVersion = payload.tokenVersion ?? 0;
+    if (payloadVersion !== user.tokenVersion) {
+      res.status(401).json({
+        success: false,
+        error: 'Session has been invalidated. Please log in again.',
+      });
+      return;
+    }
+
+    const { tokenVersion: _tv, deletedAt: _da, ...publicUser } = user;
+    req.user = publicUser;
     next();
   } catch (error) {
     res.status(401).json({

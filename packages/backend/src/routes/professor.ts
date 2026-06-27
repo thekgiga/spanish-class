@@ -38,6 +38,24 @@ import {
 } from "../services/private-invitation.js";
 import type { Router as ExpressRouter } from "express";
 import type { AvailabilitySlot, UserPublic } from "@spanish-class/shared";
+import { createNotification } from "../services/notifications.js";
+import { applyRejectionSideEffects } from "../services/bookingRejection.js";
+import {
+  createStudentInvitation,
+  assignStudent,
+  unassignStudent,
+  createCover,
+  deleteCover,
+  listPendingInvitations,
+} from "../services/studentInvitation.js";
+import {
+  sendStudentInvitationEmail,
+} from "../services/email.js";
+import {
+  inviteStudentSchema,
+  assignStudentSchema,
+  createCoverSchema,
+} from "@spanish-class/shared";
 
 const router: ExpressRouter = Router();
 
@@ -1055,21 +1073,27 @@ router.get(
         limit: number;
       };
 
-      const [students, total] = await Promise.all([
-        prisma.user.findMany({
-          where: { isAdmin: false },
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            timezone: true,
-            createdAt: true,
-            _count: {
+      const professorId = req.user!.id;
+
+      const [assignments, total] = await Promise.all([
+        prisma.professorStudent.findMany({
+          where: { professorId },
+          include: {
+            student: {
               select: {
-                bookings: {
-                  where: {
-                    status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                timezone: true,
+                createdAt: true,
+                _count: {
+                  select: {
+                    bookings: {
+                      where: {
+                        status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
+                      },
+                    },
                   },
                 },
               },
@@ -1079,8 +1103,13 @@ router.get(
           skip: (page - 1) * limit,
           take: limit,
         }),
-        prisma.user.count({ where: { isAdmin: false } }),
+        prisma.professorStudent.count({ where: { professorId } }),
       ]);
+
+      const students = assignments.map((a) => ({
+        ...a.student,
+        assignmentId: a.id,
+      }));
 
       res.json({
         success: true,
@@ -1608,6 +1637,15 @@ router.post("/bookings/:id/approve", async (req, res, next) => {
       price: pricing?.priceRSD,
     });
 
+    // In-app notification to student
+    createNotification(
+      booking.studentId,
+      "booking_confirmed",
+      "Booking confirmed!",
+      `${booking.slot.professor.firstName} confirmed your booking for ${booking.slot.title || "Spanish Class"}.`,
+      "/dashboard/bookings",
+    ).catch(() => {});
+
     res.json({
       success: true,
       data: updatedBooking,
@@ -1686,6 +1724,15 @@ router.post("/bookings/:id/reject", async (req, res, next) => {
       professor: professorForEmail,
       reason,
     });
+
+    // B3: decrement slot participants and notify student (non-blocking)
+    applyRejectionSideEffects(
+      booking.studentId,
+      booking.slotId,
+      booking.slot.currentParticipants,
+      booking.slot.maxParticipants,
+      booking.slot.title ?? undefined,
+    ).catch((err: unknown) => console.error("[professor/reject] side-effects failed:", err));
 
     res.json({
       success: true,
@@ -1875,6 +1922,126 @@ router.get("/slots/:id/waitlist", async (req, res, next) => {
       },
     });
     res.json({ success: true, data: { waitlist: entries, count: entries.length } });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// ── Professor–Student Assignment Routes ──────────────────────────────────────
+
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+// POST /api/professor/invite-student — invite an unregistered student by email
+router.post("/invite-student", validate(inviteStudentSchema), async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const professorId = req.user!.id;
+
+    const result = await createStudentInvitation(professorId, email);
+
+    if ("alreadyRegistered" in result) {
+      // Student is already registered — assign directly
+      await assignStudent(professorId, result.userId, false);
+      res.json({ success: true, message: "Student assigned successfully (already registered)" });
+      return;
+    }
+
+    const inviteLink = `${FRONTEND_URL}/api/auth/accept-invitation?token=${result.tokenRaw}`;
+    await sendStudentInvitationEmail({
+      email,
+      professorFirstName: req.user!.firstName,
+      professorLastName: req.user!.lastName,
+      inviteLink,
+      expiresAt: result.expiresAt,
+    });
+
+    res.json({ success: true, message: "Invitation sent successfully" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/professor/assign-student — assign a registered student directly
+router.post("/assign-student", validate(assignStudentSchema), async (req, res, next) => {
+  try {
+    const { studentId, allowOverride } = req.body;
+    const professorId = req.user!.id;
+
+    // Verify student exists and is not admin
+    const student = await prisma.user.findFirst({
+      where: { id: studentId, isAdmin: false, deletedAt: null },
+      select: { id: true },
+    });
+    if (!student) throw new AppError(404, "Student not found");
+
+    await assignStudent(professorId, studentId, allowOverride);
+    res.json({ success: true, message: "Student assigned successfully" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/professor/students/:studentId — remove a student assignment
+router.delete("/students/:studentId", async (req, res, next) => {
+  try {
+    await unassignStudent(req.user!.id, req.params.studentId);
+    res.json({ success: true, message: "Student removed successfully" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/professor/covers — create cover period for students
+router.post("/covers", validate(createCoverSchema), async (req, res, next) => {
+  try {
+    const { coverProfessorId, studentIds, applyToAllStudents, startsAt, endsAt } = req.body;
+    const result = await createCover(
+      req.user!.id,
+      coverProfessorId,
+      studentIds,
+      applyToAllStudents,
+      new Date(startsAt),
+      new Date(endsAt),
+    );
+    res.json({ success: true, data: result, message: `Cover period created for ${result.count} student(s)` });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/professor/covers — list cover periods for this professor's students
+router.get("/covers", async (req, res, next) => {
+  try {
+    const professorId = req.user!.id;
+    const covers = await prisma.studentCover.findMany({
+      where: { student: { assignedProfessor: { professorId } } },
+      include: {
+        student: { select: { id: true, firstName: true, lastName: true, email: true } },
+        coverProfessor: { select: { id: true, firstName: true, lastName: true } },
+      },
+      orderBy: { startsAt: "desc" },
+    });
+    res.json({ success: true, data: covers });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// DELETE /api/professor/covers/:coverId — delete a cover period
+router.delete("/covers/:coverId", async (req, res, next) => {
+  try {
+    await deleteCover(req.params.coverId, req.user!.id);
+    res.json({ success: true, message: "Cover period deleted" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/professor/pending-invitations — list pending student invitations
+router.get("/pending-invitations", async (req, res, next) => {
+  try {
+    const invitations = await listPendingInvitations(req.user!.id);
+    res.json({ success: true, data: invitations });
   } catch (error) {
     next(error);
   }

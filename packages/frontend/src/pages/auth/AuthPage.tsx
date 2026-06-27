@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -13,6 +13,7 @@ import {
   Sparkles,
   ArrowRight,
   CheckCircle2,
+  ShieldCheck,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import {
@@ -25,17 +26,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PrimaryButton } from "@/components/ui/premium";
 import { useAuthStore } from "@/stores/auth";
+import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-type AuthMode = "login" | "register" | "register-success";
+type AuthMode = "login" | "register" | "register-success" | "totp";
 
 export function AuthPage() {
   const { t } = useTranslation("auth");
   const location = useLocation();
   const [mode, setMode] = useState<AuthMode>("login");
   const [showPassword, setShowPassword] = useState(false);
+  const [totpCode, setTotpCode] = useState("");
+  const [totpLoading, setTotpLoading] = useState(false);
+  const totpInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
-  const { login, register: registerUser } = useAuthStore();
+  const { login, register: registerUser, setUser } = useAuthStore();
 
   const from =
     (location.state as { from?: { pathname: string } })?.from?.pathname ||
@@ -58,8 +63,8 @@ export function AuthPage() {
     try {
       const result = await login(data.email, data.password);
       if (result?.totpRequired) {
-        // 2FA gate — leave on this page; backend has issued a short pre-auth cookie
-        toast("Please complete two-factor authentication.", { icon: "🔐" });
+        setMode("totp");
+        setTimeout(() => totpInputRef.current?.focus(), 100);
         return;
       }
       toast.success(t("login.success_message"));
@@ -68,10 +73,11 @@ export function AuthPage() {
       const err = error as {
         response?: { data?: { error?: string } };
         message?: string;
+        rateLimitMessage?: string;
       };
       console.error("Login error:", error);
       const errorMessage =
-        err.response?.data?.error || err.message || t("login.error_default");
+        err.rateLimitMessage || err.response?.data?.error || err.message || t("login.error_default");
       toast.error(errorMessage);
     }
   };
@@ -86,8 +92,29 @@ export function AuthPage() {
         navigate("/dashboard");
       }
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } };
-      toast.error(err.response?.data?.error || t("register.error_default"));
+      const err = error as { response?: { data?: { error?: string } }; rateLimitMessage?: string };
+      toast.error(err.rateLimitMessage || err.response?.data?.error || t("register.error_default"));
+    }
+  };
+
+  const onTotpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (totpCode.length !== 6) return;
+    setTotpLoading(true);
+    try {
+      const res = await api.post("/auth/2fa/verify", { code: totpCode });
+      const { user, token } = res.data?.data ?? {};
+      if (token) localStorage.setItem("token", token);
+      if (user) setUser({ ...user, twoFactorEnabled: true });
+      toast.success("Logged in successfully");
+      navigate(from, { replace: true });
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } }; rateLimitMessage?: string };
+      toast.error(err.rateLimitMessage || err.response?.data?.error || "Invalid code. Please try again.");
+      setTotpCode("");
+      totpInputRef.current?.focus();
+    } finally {
+      setTotpLoading(false);
     }
   };
 
@@ -482,6 +509,70 @@ export function AuthPage() {
                 >
                   Go to login
                 </button>
+              </motion.div>
+            )}
+
+            {mode === "totp" && (
+              <motion.div
+                key="totp"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="py-4"
+              >
+                <div className="text-center mb-6">
+                  <div className="w-16 h-16 bg-spanish-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <ShieldCheck className="h-8 w-8 text-spanish-teal-600" />
+                  </div>
+                  <h2 className="text-xl font-bold text-slate-900 mb-1">Two-Factor Authentication</h2>
+                  <p className="text-sm text-slate-500">Enter the 6-digit code from your authenticator app</p>
+                </div>
+
+                <form onSubmit={onTotpSubmit} className="space-y-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="totp-code" className="text-slate-700 font-medium">
+                      Authentication Code
+                    </Label>
+                    <Input
+                      id="totp-code"
+                      ref={totpInputRef}
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={6}
+                      placeholder="000000"
+                      value={totpCode}
+                      onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                      className="text-center text-2xl tracking-[0.5em] font-mono bg-white border-spanish-teal-200 focus:border-spanish-teal-500"
+                      autoComplete="one-time-code"
+                    />
+                  </div>
+
+                  <PrimaryButton
+                    type="submit"
+                    size="lg"
+                    className="w-full bg-gradient-to-r from-spanish-teal-500 to-spanish-teal-600 hover:from-spanish-teal-600 hover:to-spanish-teal-700 shadow-xl"
+                    disabled={totpLoading || totpCode.length !== 6}
+                  >
+                    {totpLoading ? "Verifying..." : (
+                      <>
+                        <ShieldCheck className="h-5 w-5" />
+                        Verify & Sign In
+                        <ArrowRight className="h-5 w-5" />
+                      </>
+                    )}
+                  </PrimaryButton>
+                </form>
+
+                <div className="mt-4 text-center">
+                  <button
+                    type="button"
+                    onClick={() => { setMode("login"); setTotpCode(""); }}
+                    className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                  >
+                    ← Back to login
+                  </button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

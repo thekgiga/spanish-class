@@ -19,6 +19,7 @@ import {
   UserCircle,
   Shield,
   Settings,
+  Gift,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -52,6 +53,7 @@ const studentNavItems: NavItem[] = [
     badge: "New",
   },
   { href: "/dashboard/bookings", label: "My Bookings", icon: BookOpen },
+  { href: "/dashboard/referrals", label: "Referrals", icon: Gift },
   { href: "/dashboard/profile", label: "My Profile", icon: UserCircle },
 ];
 

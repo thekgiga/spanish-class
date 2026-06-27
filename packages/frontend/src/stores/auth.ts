@@ -17,8 +17,11 @@ interface AuthState {
     firstName: string;
     lastName: string;
     timezone?: string;
+    referralCode?: string;
+    inviteToken?: string;
   }) => Promise<{ requiresEmailVerification: boolean }>;
   logout: () => Promise<void>;
+  logoutAll: () => Promise<void>;
   checkAuth: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string, confirmPassword: string) => Promise<void>;
@@ -27,6 +30,10 @@ interface AuthState {
   setup2FA: () => Promise<{ qrCodeDataUrl: string; recoveryCodes: string[] }>;
   confirm2FA: (code: string) => Promise<void>;
   disable2FA: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string, confirmPassword: string) => Promise<void>;
+  regenerateRecoveryCodes: (totpCode: string) => Promise<{ recoveryCodes: string[] }>;
+  changeEmail: (newEmail: string, currentPassword: string) => Promise<void>;
+  deleteAccount: (password: string, confirmation: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -39,7 +46,12 @@ export const useAuthStore = create<AuthState>()(
       twoFactorEnabled: false,
 
       setUser: (user) =>
-        set({ user, isAuthenticated: !!user, isLoading: false }),
+        set({
+          user,
+          isAuthenticated: !!user,
+          isLoading: false,
+          twoFactorEnabled: (user as (UserPublic & { twoFactorEnabled?: boolean }) | null)?.twoFactorEnabled ?? false,
+        }),
 
       login: async (email, password) => {
         const result = await authApi.login({ email, password });
@@ -59,8 +71,7 @@ export const useAuthStore = create<AuthState>()(
         const result = await authApi.register({
           ...data,
           timezone: data.timezone || 'Europe/Madrid',
-        });
-        // After register: not auto-logged-in (requires email verification)
+        });        // After register: not auto-logged-in (requires email verification)
         // result.requiresEmailVerification is true for new users
         return { requiresEmailVerification: result.requiresEmailVerification ?? false };
       },
@@ -130,6 +141,30 @@ export const useAuthStore = create<AuthState>()(
       disable2FA: async () => {
         await authApi.disable2FA();
         set({ twoFactorEnabled: false });
+      },
+
+      changePassword: async (currentPassword, newPassword, confirmPassword) => {
+        await authApi.changePassword(currentPassword, newPassword, confirmPassword);
+        // All sessions are invalidated — clear local auth state
+        set({ user: null, isAuthenticated: false, emailVerified: true, twoFactorEnabled: false });
+      },
+
+      logoutAll: async () => {
+        await authApi.logoutAll();
+        set({ user: null, isAuthenticated: false, emailVerified: true, twoFactorEnabled: false });
+      },
+
+      regenerateRecoveryCodes: async (totpCode) => {
+        return authApi.regenerateRecoveryCodes(totpCode);
+      },
+
+      changeEmail: async (newEmail, currentPassword) => {
+        await authApi.changeEmail(newEmail, currentPassword);
+      },
+
+      deleteAccount: async (password, confirmation) => {
+        await authApi.deleteAccount(password, confirmation);
+        set({ user: null, isAuthenticated: false, emailVerified: true, twoFactorEnabled: false });
       },
     }),
     {

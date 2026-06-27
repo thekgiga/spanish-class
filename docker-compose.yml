@@ -84,14 +84,13 @@ services:
       redis:
         condition: service_healthy
     mem_limit: 384m
-    # Override the image's default HTTP healthcheck — worker doesn't listen on
-    # a port. Just confirm node process is alive.
+    # Worker now exposes HTTP health endpoint on port 3001 (J7)
     healthcheck:
-      test: ["CMD","sh","-c","pgrep -f 'dist/jobs/worker.js' > /dev/null"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 20s
 
   mysql:
     image: mysql:8.0

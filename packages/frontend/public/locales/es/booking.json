@@ -68,7 +68,10 @@
     "cancel": "Cancelar",
     "cant_cancel": "No se puede cancelar dentro de 24 horas",
     "relative_time_in": "en",
-    "private_class": "Clase privada"
+    "private_class": "Clase privada",
+    "book_another_slot": "Reservar otro horario",
+    "confirmation_expires": "Confirmación expira {{time}}",
+    "spots_filled": "{{current}}/{{max}} plazas"
   },
   "cancel": {
     "button": "Cancelar reserva",

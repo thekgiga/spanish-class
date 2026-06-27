@@ -18,6 +18,8 @@ export const registerSchema = z.object({
   firstName: z.string().min(1, "First name is required").max(50),
   lastName: z.string().min(1, "Last name is required").max(50),
   timezone: z.string().default("Europe/Madrid"),
+  referralCode: z.string().min(1).max(50).optional(),
+  inviteToken: z.string().min(1).max(128).optional(),
 });
 
 // Slot Schemas
@@ -476,3 +478,59 @@ export const studentIdParamSchema = z.object({
 export type DateRangeQuery = z.infer<typeof dateRangeQuerySchema>;
 export type LanguagePreferenceInput = z.infer<typeof languagePreferenceSchema>;
 export type TrackReferralInput = z.infer<typeof trackReferralSchema>;
+
+// ── Auth Security Schemas (A2, A5, A9, A10) ────────────────────────────────────
+
+export const changeEmailSchema = z.object({
+  newEmail: z.string().email("Invalid email address"),
+  currentPassword: z.string().min(1, "Current password is required"),
+});
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+  confirmation: z.literal("DELETE", {
+    errorMap: () => ({ message: 'Type "DELETE" to confirm' }),
+  }),
+});
+
+export const regenRecoveryCodesSchema = z.object({
+  code: z
+    .string()
+    .length(6, "TOTP code must be 6 digits")
+    .regex(/^\d{6}$/, "TOTP code must contain only digits"),
+});
+
+export type ChangeEmailInput = z.infer<typeof changeEmailSchema>;
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;
+export type RegenRecoveryCodesInput = z.infer<typeof regenRecoveryCodesSchema>;
+
+// ── Professor–Student Assignment Schemas ──────────────────────────────────────
+
+export const inviteStudentSchema = z.object({
+  email: z.string().email("Valid email required"),
+});
+
+export const assignStudentSchema = z.object({
+  studentId: z.string().min(1, "Student ID is required"),
+  allowOverride: z.boolean().default(false),
+});
+
+export const createCoverSchema = z.object({
+  coverProfessorId: z.string().min(1, "Cover professor ID is required"),
+  studentIds: z.array(z.string().min(1)).optional(),
+  applyToAllStudents: z.boolean().default(false),
+  startsAt: z.string().datetime({ message: "Invalid ISO date for startsAt" }),
+  endsAt: z.string().datetime({ message: "Invalid ISO date for endsAt" }),
+}).refine(
+  (data) => data.applyToAllStudents || (data.studentIds && data.studentIds.length > 0),
+  { message: "Either applyToAllStudents or studentIds must be provided" },
+);
+
+export const selectProfessorSchema = z.object({
+  professorId: z.string().min(1, "Professor ID is required"),
+});
+
+export type InviteStudentInput = z.infer<typeof inviteStudentSchema>;
+export type AssignStudentInput = z.infer<typeof assignStudentSchema>;
+export type CreateCoverInput = z.infer<typeof createCoverSchema>;
+export type SelectProfessorInput = z.infer<typeof selectProfessorSchema>;

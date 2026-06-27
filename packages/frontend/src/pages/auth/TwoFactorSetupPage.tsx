@@ -25,6 +25,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useAuthStore } from "@/stores/auth";
+import { authApi } from "@/lib/api";
 
 const totpCodeSchema = z.object({
   code: z.string().length(6, "Code must be 6 digits").regex(/^\d{6}$/),
@@ -43,6 +44,10 @@ export default function TwoFactorSetupPage() {
   const [copiedCodes, setCopiedCodes] = useState(false);
   const [showDisableConfirm, setShowDisableConfirm] = useState(false);
   const [disabling, setDisabling] = useState(false);
+  const [showRegenSection, setShowRegenSection] = useState(false);
+  const [regenCode, setRegenCode] = useState("");
+  const [regenLoading, setRegenLoading] = useState(false);
+  const [newRecoveryCodes, setNewRecoveryCodes] = useState<string[] | null>(null);
 
   const {
     register,
@@ -96,6 +101,22 @@ export default function TwoFactorSetupPage() {
     setTimeout(() => setCopiedCodes(false), 2000);
   };
 
+  const handleRegenRecoveryCodes = async () => {
+    if (!regenCode || regenCode.length !== 6) return;
+    setRegenLoading(true);
+    try {
+      const result = await authApi.regenerateRecoveryCodes(regenCode);
+      setNewRecoveryCodes(result.recoveryCodes);
+      setRegenCode("");
+      toast.success("New recovery codes generated. Store them securely!");
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } }; rateLimitMessage?: string };
+      toast.error(err.rateLimitMessage || err.response?.data?.error || "Failed to regenerate codes. Check your TOTP code.");
+    } finally {
+      setRegenLoading(false);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="mb-8">
@@ -139,7 +160,72 @@ export default function TwoFactorSetupPage() {
                     </p>
                   </div>
                 </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => { setShowRegenSection(!showRegenSection); setNewRecoveryCodes(null); }}
+                  className="text-xs"
+                >
+                  Regenerate
+                </Button>
               </div>
+
+              {showRegenSection && (
+                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-amber-800">
+                      Regenerating codes will invalidate all existing recovery codes. Enter your
+                      authenticator code to confirm.
+                    </p>
+                  </div>
+                  {newRecoveryCodes ? (
+                    <div className="space-y-3">
+                      <p className="text-sm font-semibold text-slate-700">Your new recovery codes:</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {newRecoveryCodes.map((code) => (
+                          <code
+                            key={code}
+                            className="text-center bg-white border border-slate-200 rounded px-3 py-1.5 text-sm font-mono text-slate-700"
+                          >
+                            {code}
+                          </code>
+                        ))}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          navigator.clipboard.writeText(newRecoveryCodes.join("\n"));
+                          toast.success("Codes copied!");
+                        }}
+                      >
+                        <Copy className="w-4 h-4 mr-2" /> Copy all codes
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="6-digit code"
+                        value={regenCode}
+                        onChange={(e) => setRegenCode(e.target.value.replace(/\D/g, ""))}
+                        className="max-w-[140px] font-mono text-center"
+                      />
+                      <Button
+                        onClick={handleRegenRecoveryCodes}
+                        disabled={regenCode.length !== 6 || regenLoading}
+                        size="sm"
+                      >
+                        {regenLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="pt-2 border-t border-slate-100">
                 <Button
                   variant="outline"

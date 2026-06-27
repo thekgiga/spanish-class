@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,12 +20,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
 import { PrimaryButton } from "@/components/ui/premium";
+import { PasswordStrengthMeter } from "@/components/shared/PasswordStrengthMeter";
 
 export function RegisterPage() {
   const { t } = useTranslation("auth");
   const [showPassword, setShowPassword] = useState(false);
+  const [showReferralInput, setShowReferralInput] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { register: registerUser } = useAuthStore();
+
+  // Pre-fill from URL params (referral link or professor invitation)
+  const urlRefCode = searchParams.get("ref") ?? "";
+  const urlInviteToken = searchParams.get("invite") ?? "";
+  const urlEmail = searchParams.get("email") ?? "";
 
   const benefits = [
     t("register.benefit_1"),
@@ -37,13 +45,19 @@ export function RegisterPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      referralCode: urlRefCode || undefined,
+      inviteToken: urlInviteToken || undefined,
+      email: urlEmail || undefined,
     },
   });
+
+  const passwordValue = watch("password") ?? "";
 
   const onSubmit = async (data: RegisterInput) => {
     try {
@@ -51,8 +65,8 @@ export function RegisterPage() {
       toast.success(t("register.success_message"));
       navigate("/dashboard");
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } } };
-      toast.error(err.response?.data?.error || t("register.error_default"));
+      const err = error as { response?: { data?: { error?: string } }; rateLimitMessage?: string };
+      toast.error(err.rateLimitMessage || err.response?.data?.error || t("register.error_default"));
     }
   };
 
@@ -219,7 +233,45 @@ export function RegisterPage() {
                   {errors.password.message}
                 </p>
               )}
+              <PasswordStrengthMeter password={passwordValue} />
             </div>
+
+            {/* Hidden fields for referral code and invite token */}
+            <input type="hidden" {...register("referralCode")} />
+            <input type="hidden" {...register("inviteToken")} />
+            <input type="hidden" {...register("timezone")} />
+
+            {/* Optional visible referral code input (only shown when not pre-filled from URL) */}
+            {!urlRefCode && (
+              <div className="space-y-1">
+                <button
+                  type="button"
+                  className="text-xs text-slate-500 hover:text-spanish-teal-600 underline underline-offset-2"
+                  onClick={() => setShowReferralInput(!showReferralInput)}
+                >
+                  {t("register.have_referral_code")}
+                </button>
+                {showReferralInput && (
+                  <Input
+                    placeholder={t("register.referral_code_placeholder")}
+                    {...register("referralCode")}
+                    className="text-sm"
+                  />
+                )}
+              </div>
+            )}
+
+            {urlRefCode && (
+              <p className="text-xs text-spanish-teal-600">
+                ✓ Referral code applied
+              </p>
+            )}
+
+            {urlInviteToken && (
+              <p className="text-xs text-spanish-teal-600">
+                ✓ Professor invitation applied
+              </p>
+            )}
 
             <PrimaryButton
               type="submit"

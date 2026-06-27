@@ -68,7 +68,10 @@
     "cancel": "Cancel",
     "cant_cancel": "Can't cancel within 24 hours",
     "relative_time_in": "in",
-    "private_class": "Private Class"
+    "private_class": "Private Class",
+    "book_another_slot": "Book Another Slot",
+    "confirmation_expires": "Confirmation expires {{time}}",
+    "spots_filled": "{{current}}/{{max}} spots"
   },
   "cancel": {
     "button": "Cancel Booking",

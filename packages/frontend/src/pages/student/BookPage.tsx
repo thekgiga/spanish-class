@@ -106,10 +106,11 @@ export function BookPage() {
       }),
   });
 
-  // Fetch professor contact info for empty state message
-  const { data: professor } = useQuery({
-    queryKey: ["professor"],
+  // Fetch professor assignment info for context + unassigned guard
+  const { data: professorAssignment } = useQuery({
+    queryKey: ["student-professor"],
     queryFn: studentApi.getProfessor,
+    staleTime: 5 * 60 * 1000,
   });
 
   const bookMutation = useMutation({
@@ -182,6 +183,36 @@ export function BookPage() {
         noindex={true}
       />
       <div className="space-y-6">
+        {/* Unassigned professor guard */}
+        {professorAssignment && !professorAssignment.professor && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">
+            <p className="text-amber-800 text-sm font-medium">
+              Choose a professor before booking classes.
+            </p>
+            <a
+              href="/dashboard/choose-professor"
+              className="shrink-0 text-sm font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg"
+            >
+              Choose Professor
+            </a>
+          </div>
+        )}
+
+        {/* Professor context banner */}
+        {professorAssignment?.professor && (
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <span>Showing classes for</span>
+            <span className="font-medium text-slate-700">
+              Prof. {professorAssignment.professor.firstName} {professorAssignment.professor.lastName}
+            </span>
+            {professorAssignment.activeCovers.length > 0 && (
+              <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                + {professorAssignment.activeCovers.length} cover professor(s)
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -258,7 +289,7 @@ export function BookPage() {
             slotsByDate={slotsByDate}
             onSelectSlot={setSelectedSlot}
             forMeOnly={forMeOnly}
-            professor={professor}
+            professor={professorAssignment?.professor ?? undefined}
           />
         ) : (
           <CalendarView
@@ -273,7 +304,7 @@ export function BookPage() {
             onSelectSlot={setSelectedSlot}
             forMeOnly={forMeOnly}
             totalSlots={data?.data?.length || 0}
-            professor={professor}
+            professor={professorAssignment?.professor ?? undefined}
           />
         )}
 

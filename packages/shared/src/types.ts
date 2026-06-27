@@ -114,6 +114,10 @@ export interface Booking {
   rejectedAt?: Date | null;
   confirmationToken?: string | null;
   confirmationExpiresAt?: Date | null;
+  reminderSentAt?: Date | null;
+  secondReminderSentAt?: Date | null;
+  reminderSent24h?: Date | null;
+  reminderSent1h?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -452,3 +456,45 @@ export interface UserRatingsSummary {
 
 // Note: CreateSlotInput, BulkCreateSlotInput, CreateBookingInput, CancelBookingInput
 // are exported from schemas.ts as Zod-inferred types
+
+// ── Professor–Student Assignment Types ───────────────────────────────────────
+
+export interface ProfessorStudentRecord {
+  id: string;
+  professorId: string;
+  studentId: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface StudentCoverRecord {
+  id: string;
+  studentId: string;
+  coverProfessorId: string;
+  startsAt: Date;
+  endsAt: Date;
+  createdAt: Date;
+}
+
+export interface ActiveCoverInfo {
+  coverId: string;
+  coverProfessorId: string;
+  coverProfessor: UserPublic;
+  startsAt: Date;
+  endsAt: Date;
+}
+
+export interface StudentAssignmentResponse {
+  professor: UserPublic | null;
+  isAssigned: boolean;
+  activeCovers: ActiveCoverInfo[];
+}
+
+export interface StudentInvitationRecord {
+  id: string;
+  professorId: string;
+  email: string;
+  expiresAt: Date;
+  acceptedAt?: Date | null;
+  createdAt: Date;
+}

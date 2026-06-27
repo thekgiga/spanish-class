@@ -144,5 +144,15 @@
       "confirm_password": "Potvrdite lozinku",
       "update_button": "Ažurirajte lozinku"
     }
+  },
+  "professor": {
+    "no_professor_message": "Još niste dodeljeni profesoru. Izaberite jednog da biste počeli.",
+    "choose_professor_button": "Izaberite profesora",
+    "your_professor": "Vaš Profesor",
+    "cover_notice": "Prikazuju se i časovi zamjenskog profesora",
+    "choose_page_title": "Izaberite Profesora",
+    "choose_page_subtitle": "Izaberite profesora s kojim želite učiti",
+    "select_button": "Izaberi",
+    "selected_success": "Profesor je izabran! Sada možete zakazivati časove."
   }
 }

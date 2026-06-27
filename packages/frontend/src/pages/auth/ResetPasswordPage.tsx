@@ -59,8 +59,8 @@ export default function ResetPasswordPage() {
       toast.success("Password reset successfully! Welcome back.");
       navigate("/dashboard", { replace: true });
     } catch (error: unknown) {
-      const err = error as { response?: { data?: { error?: string } }; message?: string };
-      toast.error(err.response?.data?.error || err.message || "Failed to reset password. The link may have expired.");
+      const err = error as { response?: { data?: { error?: string } }; message?: string; rateLimitMessage?: string };
+      toast.error(err.rateLimitMessage || err.response?.data?.error || err.message || "Failed to reset password. The link may have expired.");
     }
   };
 

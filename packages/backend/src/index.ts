@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.js";
 import professorRoutes from "./routes/professor.js";
 import studentRoutes from "./routes/student.js";
 import notificationsRoutes from "./routes/notifications.js";
+import { prisma } from "./lib/prisma.js";
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
@@ -76,6 +77,22 @@ app.use("/api", (req, res, next) => {
 // ── Health (no auth, no rate limit — used by compose + UptimeRobot) ───────────
 app.get("/health", (_, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// ── Public endpoints (no auth required) ──────────────────────────────────────
+
+// List available professors — used by unassigned student "choose professor" flow
+app.get("/api/professors", async (req, res, next) => {
+  try {
+    const professors = await prisma.user.findMany({
+      where: { isAdmin: true, deletedAt: null },
+      select: { id: true, firstName: true, lastName: true },
+      orderBy: { firstName: "asc" },
+    });
+    res.json({ success: true, data: professors });
+  } catch (error) {
+    next(error);
+  }
 });
 
 // ── API routes ────────────────────────────────────────────────────────────────

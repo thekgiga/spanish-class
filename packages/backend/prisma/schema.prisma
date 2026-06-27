@@ -53,6 +53,20 @@ model User {
   emailVerificationToken     String?   @unique @map("email_verification_token") @db.VarChar(128)
   emailVerificationExpiresAt DateTime? @map("email_verification_expires_at")
 
+  // Session management & security
+  tokenVersion Int       @default(0) @map("token_version")
+  knownIps     String?   @db.Text @map("known_ips")
+  deletedAt    DateTime? @map("deleted_at")
+
+  emailChangeRequests EmailChangeRequest[]
+
+  // Professor–student assignment
+  assignedProfessor    ProfessorStudent?   @relation("AssignedProfessor")
+  primaryStudents      ProfessorStudent[]  @relation("PrimaryStudents")
+  coverAssignments     StudentCover[]      @relation("CoveredStudents")
+  coveringStudents     StudentCover[]      @relation("CoveringProfessor")
+  sentInvitations      StudentInvitation[]
+
   @@map("users")
 }
 
@@ -153,6 +167,9 @@ model Booking {
   confirmationToken       String?       @map("confirmation_token") @db.Text
   confirmationExpiresAt   DateTime?     @map("confirmation_expires_at")
   reminderSentAt          DateTime?     @map("reminder_sent_at")
+  secondReminderSentAt    DateTime?     @map("second_reminder_sent_at")
+  reminderSent24h         DateTime?     @map("reminder_sent_24h")
+  reminderSent1h          DateTime?     @map("reminder_sent_1h")
   createdAt               DateTime      @default(now()) @map("created_at")
   updatedAt               DateTime      @updatedAt @map("updated_at")
 
@@ -424,6 +441,20 @@ model PasswordResetToken {
   @@map("password_reset_tokens")
 }
 
+model EmailChangeRequest {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  newEmail  String   @map("new_email")
+  tokenHash String   @unique @map("token_hash") @db.VarChar(64)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("email_change_requests")
+}
+
 model ProfessorSettings {
   id                      String   @id @default(cuid())
   userId                  String   @unique @map("user_id")
@@ -472,4 +503,53 @@ model Notification {
   @@index([userId, readAt])
   @@index([userId, createdAt])
   @@map("notifications")
+}
+
+// ── Professor–Student Assignment ─────────────────────────────────────────────
+
+model ProfessorStudent {
+  id          String   @id @default(cuid())
+  professorId String   @map("professor_id")
+  studentId   String   @unique @map("student_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  professor User @relation("PrimaryStudents", fields: [professorId], references: [id])
+  student   User @relation("AssignedProfessor", fields: [studentId], references: [id])
+
+  @@index([professorId])
+  @@map("professor_students")
+}
+
+model StudentCover {
+  id               String   @id @default(cuid())
+  studentId        String   @map("student_id")
+  coverProfessorId String   @map("cover_professor_id")
+  startsAt         DateTime @map("starts_at")
+  endsAt           DateTime @map("ends_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  student        User @relation("CoveredStudents", fields: [studentId], references: [id], onDelete: Cascade)
+  coverProfessor User @relation("CoveringProfessor", fields: [coverProfessorId], references: [id])
+
+  @@index([studentId])
+  @@index([coverProfessorId])
+  @@index([startsAt, endsAt])
+  @@map("student_covers")
+}
+
+model StudentInvitation {
+  id          String    @id @default(cuid())
+  professorId String    @map("professor_id")
+  email       String
+  tokenHash   String    @unique @map("token_hash") @db.VarChar(64)
+  expiresAt   DateTime  @map("expires_at")
+  acceptedAt  DateTime? @map("accepted_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  professor User @relation(fields: [professorId], references: [id], onDelete: Cascade)
+
+  @@index([professorId])
+  @@index([email])
+  @@map("student_invitations")
 }

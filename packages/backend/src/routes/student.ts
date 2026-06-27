@@ -8,6 +8,7 @@ import {
   slotsQuerySchema,
   bookingsQuerySchema,
   updateStudentProfileSchema,
+  selectProfessorSchema,
 } from "@spanish-class/shared";
 import { AppError } from "../middleware/error.js";
 import { bookSlot, cancelBooking } from "../services/booking.js";
@@ -23,27 +24,75 @@ const router: ExpressRouter = Router();
 // All routes require authentication
 router.use(authenticate);
 
-// GET /api/student/professor - Get professor contact info
+// GET /api/student/professor — Get assigned professor info (or null if unassigned)
 router.get("/professor", async (req, res, next) => {
   try {
-    const professor = await prisma.user.findFirst({
-      where: { isAdmin: true },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-      },
-    });
+    const now = new Date();
+    const studentId = req.user!.id;
 
-    if (!professor) {
-      throw new AppError(404, "Professor not found");
-    }
+    const userPublicSelect = {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      isAdmin: true,
+      timezone: true,
+      createdAt: true,
+      updatedAt: true,
+    };
+
+    const [assignment, activeCovers] = await Promise.all([
+      prisma.professorStudent.findUnique({
+        where: { studentId },
+        include: { professor: { select: userPublicSelect } },
+      }),
+      prisma.studentCover.findMany({
+        where: {
+          studentId,
+          startsAt: { lte: now },
+          endsAt: { gt: now },
+        },
+        include: { coverProfessor: { select: userPublicSelect } },
+      }),
+    ]);
 
     res.json({
       success: true,
-      data: { professor },
+      data: {
+        professor: assignment?.professor ?? null,
+        isAssigned: !!assignment,
+        activeCovers: activeCovers.map((c) => ({
+          coverId: c.id,
+          coverProfessorId: c.coverProfessorId,
+          coverProfessor: c.coverProfessor,
+          startsAt: c.startsAt,
+          endsAt: c.endsAt,
+        })),
+      },
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/student/select-professor — Unassigned student picks their professor
+router.post("/select-professor", validate(selectProfessorSchema), async (req, res, next) => {
+  try {
+    const { professorId } = req.body;
+    const studentId = req.user!.id;
+
+    const professor = await prisma.user.findFirst({
+      where: { id: professorId, isAdmin: true, deletedAt: null },
+      select: { id: true, firstName: true, lastName: true },
+    });
+    if (!professor) throw new AppError(404, "Professor not found");
+
+    const existing = await prisma.professorStudent.findUnique({ where: { studentId } });
+    if (existing) throw new AppError(409, "You are already assigned to a professor");
+
+    await prisma.professorStudent.create({ data: { professorId, studentId } });
+
+    res.json({ success: true, data: { professor }, message: "Professor selected successfully" });
   } catch (error) {
     next(error);
   }
@@ -171,6 +220,32 @@ router.get(
       if (slotType) {
         where.slotType = slotType;
       }
+
+      // Scope slots to assigned professor(s) if student is assigned
+      const studentId = req.user!.id;
+      const assignment = await prisma.professorStudent.findUnique({
+        where: { studentId },
+        select: { professorId: true },
+      });
+
+      if (assignment) {
+        // Get all active cover professors for this student right now
+        const activeCovers = await prisma.studentCover.findMany({
+          where: {
+            studentId,
+            startsAt: { lte: now },
+            endsAt: { gt: now },
+          },
+          select: { coverProfessorId: true },
+        });
+
+        const professorIds = [
+          assignment.professorId,
+          ...activeCovers.map((c) => c.coverProfessorId),
+        ];
+        where.professorId = { in: professorIds };
+      }
+      // If no assignment: no professorId filter — student sees all public slots
 
       const [slots, total] = await Promise.all([
         prisma.availabilitySlot.findMany({

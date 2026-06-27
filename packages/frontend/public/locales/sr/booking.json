@@ -68,7 +68,10 @@
     "cancel": "Otkaži",
     "cant_cancel": "Nije moguće otkazati u roku od 24 sata",
     "relative_time_in": "za",
-    "private_class": "Privatni čas"
+    "private_class": "Privatni čas",
+    "book_another_slot": "Zakazati drugi termin",
+    "confirmation_expires": "Potvrda ističe {{time}}",
+    "spots_filled": "{{current}}/{{max}} mesta"
   },
   "cancel": {
     "button": "Otkažite zakazivanje",

@@ -23,7 +23,7 @@ import type {
   UpdateStudentProfileInput,
 } from "@spanish-class/shared";
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: "/api",
   withCredentials: true,
   headers: {
@@ -40,12 +40,32 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors
+// Handle auth errors and rate limits
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 429) {
+      const retryAfter = error.response.headers["retry-after"];
+      error.rateLimitMessage = retryAfter
+        ? `Too many attempts. Please wait ${retryAfter} seconds before trying again.`
+        : (error.response.data?.error ?? "Too many requests. Please try again later.");
+    }
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
+      // Clear Zustand auth state without importing the store (avoids circular deps)
+      try {
+        const stored = localStorage.getItem("auth-storage");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.state) {
+            parsed.state.user = null;
+            parsed.state.isAuthenticated = false;
+            localStorage.setItem("auth-storage", JSON.stringify(parsed));
+          }
+        }
+      } catch {
+        // ignore parse errors
+      }
       window.location.href = "/login";
     }
     return Promise.reject(error);
@@ -139,6 +159,39 @@ export const authApi = {
 
   disable2FA: async (): Promise<void> => {
     await api.post("/auth/2fa/disable");
+  },
+
+  logoutAll: async (): Promise<void> => {
+    await api.post("/auth/logout-all");
+    localStorage.removeItem("token");
+  },
+
+  changePassword: async (
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string,
+  ): Promise<void> => {
+    await api.post("/auth/change-password", { currentPassword, newPassword, confirmPassword });
+    localStorage.removeItem("token");
+  },
+
+  regenerateRecoveryCodes: async (code: string): Promise<{ recoveryCodes: string[] }> => {
+    const res = await api.post<{ data: { recoveryCodes: string[] } }>("/auth/2fa/regen-recovery", { code });
+    return res.data.data;
+  },
+
+  changeEmail: async (newEmail: string, currentPassword: string): Promise<void> => {
+    await api.post("/auth/change-email", { newEmail, currentPassword });
+  },
+
+  verifyEmailChange: async (token: string): Promise<void> => {
+    await api.get(`/auth/verify-email-change?token=${encodeURIComponent(token)}`);
+    localStorage.removeItem("token");
+  },
+
+  deleteAccount: async (password: string, confirmation: string): Promise<void> => {
+    await api.post("/auth/delete-account", { password, confirmation });
+    localStorage.removeItem("token");
   },
 };
 
@@ -327,6 +380,45 @@ export const professorApi = {
     const res = await api.post(`/professor/bookings/${bookingId}/no-show`);
     return res.data.data as { noShowCount: number; threshold: number; atThreshold: boolean };
   },
+
+  inviteStudent: async (email: string) => {
+    const res = await api.post("/professor/invite-student", { email });
+    return res.data;
+  },
+
+  assignStudent: async (studentId: string, allowOverride = false) => {
+    const res = await api.post("/professor/assign-student", { studentId, allowOverride });
+    return res.data;
+  },
+
+  removeStudent: async (studentId: string) => {
+    await api.delete(`/professor/students/${studentId}`);
+  },
+
+  createCover: async (data: {
+    coverProfessorId: string;
+    studentIds?: string[];
+    applyToAllStudents: boolean;
+    startsAt: string;
+    endsAt: string;
+  }) => {
+    const res = await api.post("/professor/covers", data);
+    return res.data;
+  },
+
+  listCovers: async () => {
+    const res = await api.get("/professor/covers");
+    return res.data.data;
+  },
+
+  deleteCover: async (coverId: string) => {
+    await api.delete(`/professor/covers/${coverId}`);
+  },
+
+  getPendingInvitations: async () => {
+    const res = await api.get("/professor/pending-invitations");
+    return res.data.data;
+  },
 };
 
 // Email Log type
@@ -346,13 +438,22 @@ export interface EmailLog {
 // Student API
 export const studentApi = {
   getProfessor: async (): Promise<{
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
+    professor: { id: string; firstName: string; lastName: string; email: string } | null;
+    isAssigned: boolean;
+    activeCovers: Array<{
+      coverId: string;
+      coverProfessorId: string;
+      coverProfessor: { id: string; firstName: string; lastName: string };
+      startsAt: string;
+      endsAt: string;
+    }>;
   }> => {
     const res = await api.get("/student/professor");
-    return res.data.data.professor;
+    return res.data.data;
+  },
+
+  selectProfessor: async (professorId: string): Promise<void> => {
+    await api.post("/student/select-professor", { professorId });
   },
 
   getDashboard: async (): Promise<{
@@ -570,4 +671,12 @@ export const getUserRatings = async (userId: string): Promise<any> => {
 export const getPendingRatings = async (): Promise<any> => {
   const response = await api.get("/ratings/pending");
   return response.data.data;
+};
+
+// Public endpoints (no auth required)
+export const getPublicProfessors = async (): Promise<
+  Array<{ id: string; firstName: string; lastName: string }>
+> => {
+  const res = await api.get("/professors");
+  return res.data.data;
 };

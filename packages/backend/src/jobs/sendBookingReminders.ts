@@ -58,5 +58,58 @@ export async function sendBookingReminders(): Promise<{ remindersSent: number }>
   }
 
   console.log(`[sendBookingReminders] Sent ${remindersSent}/${pendingBookings.length} reminders`);
+
+  // B4: Second reminder at ~24h before expiry (18–26h window)
+  const SECOND_REMINDER_LOWER_HOURS = 18;
+  const SECOND_REMINDER_UPPER_HOURS = 26;
+  const secondLow = new Date(now.getTime() + SECOND_REMINDER_LOWER_HOURS * 60 * 60 * 1000);
+  const secondHigh = new Date(now.getTime() + SECOND_REMINDER_UPPER_HOURS * 60 * 60 * 1000);
+
+  const pendingForSecondReminder = await prisma.booking.findMany({
+    where: {
+      status: "PENDING_CONFIRMATION",
+      secondReminderSentAt: null,
+      confirmationExpiresAt: {
+        gt: secondLow,
+        lte: secondHigh,
+      },
+    },
+    include: {
+      slot: { include: { professor: true } },
+      student: true,
+    },
+  });
+
+  let secondRemindersSent = 0;
+  for (const booking of pendingForSecondReminder) {
+    try {
+      if (!booking.confirmationToken || !booking.confirmationExpiresAt) continue;
+
+      await sendConfirmationRequestToProfessor(
+        {
+          slot: booking.slot as unknown as AvailabilitySlot,
+          professor: booking.slot.professor as unknown as UserPublic,
+          student: booking.student as unknown as UserPublic,
+          confirmationToken: booking.confirmationToken,
+          expiresAt: booking.confirmationExpiresAt,
+        },
+        { isReminder: true },
+      );
+
+      await prisma.booking.update({
+        where: { id: booking.id },
+        data: { secondReminderSentAt: now },
+      });
+
+      secondRemindersSent++;
+    } catch (err) {
+      console.error(`[sendBookingReminders] Second reminder failed for booking ${booking.id}:`, err);
+    }
+  }
+
+  if (secondRemindersSent > 0) {
+    console.log(`[sendBookingReminders] Sent ${secondRemindersSent} second (24h) reminders`);
+  }
+
   return { remindersSent };
 }

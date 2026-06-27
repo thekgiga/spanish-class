@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
+import { formatDistanceToNow } from "date-fns";
 import {
   Calendar,
   Clock,
@@ -12,6 +13,7 @@ import {
   User,
   AlertCircle,
   Lock,
+  Users,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -118,6 +120,15 @@ export function BookingsPage() {
                         Private Invitation
                       </Badge>
                     )}
+                    {/* B6: Countdown for pending confirmation */}
+                    {booking.status === "PENDING_CONFIRMATION" && booking.confirmationExpiresAt && (
+                      <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300 bg-amber-50">
+                        <Clock className="h-3 w-3" />
+                        {t("bookings.confirmation_expires", {
+                          time: formatDistanceToNow(new Date(booking.confirmationExpiresAt), { addSuffix: true }),
+                        })}
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-slate-600 mt-1">
                     {formatDate(booking.slot.startTime)}
@@ -133,11 +144,31 @@ export function BookingsPage() {
                       {booking.slot.professor?.firstName}{" "}
                       {booking.slot.professor?.lastName}
                     </span>
+                    {/* B9: Spots remaining for GROUP slots */}
+                    {booking.slot.slotType === "GROUP" && (
+                      <span className="flex items-center gap-1">
+                        <Users className="h-4 w-4" />
+                        {t("bookings.spots_filled", {
+                          current: booking.slot.currentParticipants,
+                          max: booking.slot.maxParticipants,
+                        })}
+                      </span>
+                    )}
                   </div>
                   {booking.cancelReason && (
                     <p className="text-sm text-destructive mt-2">
                       Reason: {booking.cancelReason}
                     </p>
+                  )}
+                  {/* B5: Re-book button for rejected/expired bookings */}
+                  {(booking.status === "REJECTED" || booking.status === "EXPIRED") && (
+                    <div className="mt-3">
+                      <Button variant="outline" size="sm" asChild>
+                        <Link to="/dashboard/book">
+                          {t("bookings.book_another_slot")}
+                        </Link>
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
