@@ -41,28 +41,29 @@ EOF
 NEVER use cached layers — stale Vite bundles and Docker layers cause missing UI features.**
 
 ```bash
-# 1. Stop everything and wipe ALL volumes (including frontend_dist, DB, Redis)
-docker compose down -v
+# 1. Stop containers (keep volumes — DB data is preserved)
+docker compose down
 
-# 2. Build ALL images with --no-cache (backend, frontend, no shortcuts)
+# 2. Remove ONLY the frontend_dist volume — Caddy serves static files from it;
+#    without wiping it the old JS bundles persist even after rebuilding the image.
+#    DB, Redis, and Caddy cert volumes are NOT touched.
+docker volume rm spanish-class_frontend_dist 2>/dev/null || true
+
+# 3. Build ALL images with --no-cache (backend + frontend, no stale layers)
 docker compose build --no-cache backend frontend
 
-# 3. Start fresh stack
+# 4. Start the stack — fresh frontend_dist volume is seeded from new image
 docker compose up -d
 
-# 4. Wait for healthy, then run Prisma migrations
-sleep 12
-docker compose exec backend /app/node_modules/.bin/prisma migrate deploy \
-  --schema=/app/packages/backend/prisma/schema.prisma
-
 # 5. Smoke test
+sleep 10
 curl -s http://localhost/api/ | head -c 80
 curl -s -o /dev/null -w "frontend: %{http_code}\n" http://localhost
 ```
 
-> **Why `--no-cache` and `-v` together?**
-> - `--no-cache` forces Docker to re-run every build step, including Vite — prevents stale JS bundles where new routes/components are missing from the output.
-> - `-v` removes named volumes, including `frontend_dist` — Caddy reads static files from this volume; without wiping it, the old frontend files persist even after rebuilding the image.
+> **Why `--no-cache` + remove only `frontend_dist`?**
+> - `--no-cache` forces Docker to re-run every build step including Vite — prevents stale JS bundles where new routes/components are missing.
+> - Only `frontend_dist` is removed — it's the volume Caddy reads static files from. DB data, Redis cache, and TLS certs are left untouched.
 
 ---
 
