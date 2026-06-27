@@ -98,13 +98,13 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: aquasecurity/trivy-action@0.20.0
+      - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.BACKEND_IMAGE }}:${{ needs.build.outputs.sha }}
           severity: HIGH,CRITICAL
           exit-code: '1'
           ignore-unfixed: true
-      - uses: aquasecurity/trivy-action@0.20.0
+      - uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.FRONTEND_IMAGE }}:${{ needs.build.outputs.sha }}
           severity: HIGH,CRITICAL
