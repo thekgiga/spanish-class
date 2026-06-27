@@ -1,8 +1,27 @@
 # Follow-up Work — Cloud Deployment Migration
 
-Generated 2026-06-23 after landing the infrastructure scaffolding for feature 012-cloud-deployment-docker. The local Docker stack works end-to-end (see [STARTHERE.md](../STARTHERE.md) §1 for the verification flow). What remains is split into three follow-up PRs plus the operator work that only the owner can do.
+Generated 2026-06-23 after landing the infrastructure scaffolding for feature 012-cloud-deployment-docker. The local Docker stack works end-to-end (see [STARTHERE.md](../../STARTHERE.md) §1 for the verification flow). What remains is split into follow-up PRs plus the operator work that only the owner can do.
 
-This doc is the source of truth for **what hasn't shipped yet**. The specs in [specs/012-cloud-deployment-docker/](../specs/012-cloud-deployment-docker/) describe the full feature; this doc tracks the delta.
+This doc is the source of truth for **what hasn't shipped yet**. The specs in [specs/012-cloud-deployment-docker/](../../specs/012-cloud-deployment-docker/) describe the full feature; this doc tracks the delta.
+
+## Status snapshot (2026-06-27)
+
+| Track | State |
+|---|---|
+| **PR-1** infrastructure scaffolding | ✅ merged |
+| **PR-2** code cleanups (worker, migration, Resend stub, docs) | ✅ merged |
+| **PR-3** application security hardening (helmet, rate-limit, CORS, 2FA backend, audit log, JWT/bcrypt) | ✅ merged |
+| **P0** password reset + email verification | ✅ merged |
+| **PR-5** admin 2FA frontend UI + booking reminder emails | ✅ merged |
+| **PR-6** configurable cancellation window + no-show marking | ✅ merged |
+| **PR-7/PR-8** waitlist, i18n, in-app notifications | ✅ merged |
+| **PR-17** Zod validation on remaining routes | ⏳ open PR |
+| **Operator work — VM bootstrap** | ✅ done (Ubuntu 26.04 quirks captured in [operator-gotchas.md](./operator-gotchas.md)) |
+| **Operator work — DNS / app deploy / monitoring / backups / restore drill** | 🔴 in progress |
+| **CSP enforce mode** (currently report-only) | 🟡 do after 1 week of clean prod telemetry |
+| **JWT refresh-token rotation** | 🟡 deferred — needs frontend changes too |
+
+The sections below describe each track in detail. Status markers above the section headings tell you whether to read it. Status ✅ items are kept for historical context.
 
 ---
 

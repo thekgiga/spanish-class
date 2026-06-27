@@ -5,10 +5,11 @@ Pin this. When something is on fire, read top-down.
 ## 0. First 60 seconds
 
 1. **Acknowledge it's real.** Open `https://<domain>/health` in a private window. If 200, it's a partial outage; if not, it's a full outage.
-2. **Check Cloudflare status.** [www.cloudflarestatus.com](https://www.cloudflarestatus.com). If they're degraded, it might not be us.
-3. **Check Hetzner status.** [status.hetzner.com](https://status.hetzner.com).
-4. **Glance at Sentry.** Any spike of new errors in the last hour?
-5. **Glance at UptimeRobot.** When did it go down? Same time as a recent deploy?
+2. **If you cannot SSH at all → Section H first.** No point diagnosing the app if you can't reach the box.
+3. **Check Cloudflare status.** [www.cloudflarestatus.com](https://www.cloudflarestatus.com). If they're degraded, it might not be us.
+4. **Check Hetzner status.** [status.hetzner.com](https://status.hetzner.com).
+5. **Glance at Sentry.** Any spike of new errors in the last hour?
+6. **Glance at UptimeRobot.** When did it go down? Same time as a recent deploy?
 
 ## A. Site is fully down
 
@@ -114,8 +115,46 @@ Check `dig <domain>` returns Cloudflare IPs (104.x or 172.67.x). If not, DNS is 
 - SSL/TLS mode must be **Full (strict)**.
 - Origin cert (Cloudflare Origin CA or Let's Encrypt) must match what Caddy serves.
 
+## H. I can't SSH to the VM at all
+
+The most common reason is your IP rotated and the Hetzner firewall no longer allows it. Quick decision tree:
+
+```
+ssh -p 2222 deploy@<vm-ip>  → "Connection refused" or "timed out"
+                                  │
+                                  ▼
+       Did my public IP change?  →  curl -s https://checkip.amazonaws.com
+                                  │
+        Match firewall rule?    ─────┐
+                                     ▼
+                              YES:  Different problem — check ssh.socket on the VM
+                                     via Hetzner web console (see below)
+                              NO:   Update Hetzner firewall rule with new IP
+                                    (Console → Firewalls → spanish-class-prod)
+```
+
+If updating the IP doesn't fix it, get into the VM via the **Hetzner web console** (Console → Servers → your server → Console button at top right). Log in as `thekgiga` with the password from your password manager. Then:
+
+```bash
+sudo -i
+# 1. What does the socket think it's listening on?
+ss -tlnp | grep ssh
+
+# 2. Is the socket unit healthy?
+systemctl status ssh.socket
+
+# 3. Did the listen.conf override survive?
+cat /etc/systemd/system/ssh.socket.d/listen.conf
+
+# 4. Is ufw blocking it?
+ufw status verbose
+```
+
+Full SSH-troubleshooting deep dive: [operator-gotchas.md §1-3](./operator-gotchas.md).
+
 ## What to do after — every time
 
 1. Write what happened in `docs/operations/postmortems/<date>-<slug>.md`.
 2. Add a row to the **Drills** section of [restore-runbook.md](./restore-runbook.md) if this taught you something.
 3. If the playbook missed a branch, add it.
+4. If you learned a new "wait, what?" — append it to [operator-gotchas.md](./operator-gotchas.md).
