@@ -1,11 +1,12 @@
 #!/bin/bash
 ###############################################################################
-# Remote Database Migration - Development
+# Remote Database Migration - Staging
 #
-# This script runs Prisma migrations against the REMOTE development database
-# from your local machine (cPanel memory limits prevent running migrations on server)
+# Runs Prisma migrations against the remote staging database from your local
+# machine via SSH tunnel. Use this when you need to apply migrations
+# independently of a container restart.
 #
-# Uses: packages/backend/.env.dev for database connection
+# Uses: config/dev/.env for database connection
 #
 # Usage: ./migrate-remote-dev.sh
 ###############################################################################

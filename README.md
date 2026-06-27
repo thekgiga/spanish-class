@@ -14,7 +14,6 @@ Online Spanish class booking platform with video conferencing, automated reminde
 - [Database Setup](#-database-setup)
 - [Testing](#-testing)
 - [Deployment](#-deployment)
-  - [Deployment Scripts](#deployment-scripts)
   - [Database Migrations](#database-migrations)
   - [Production Deployment Workflow](#production-deployment-workflow)
 - [Scripts Reference](#-scripts-reference)
@@ -255,9 +254,13 @@ git commit -m "feat: add new schema changes"
 
 ### Remote Database Setup
 
-For cPanel/remote databases, see [Database Migration Scripts](#database-migrations).
+For production / staging, migrations are applied automatically when the backend container starts (`prisma migrate deploy` in the entrypoint). To apply manually:
 
-**Important:** Never run Prisma CLI on cPanel directly (memory limits). Use migration scripts from local machine.
+```bash
+# Via Docker on the remote VM
+docker compose exec backend /app/node_modules/.bin/prisma migrate deploy \
+  --schema=/app/packages/backend/prisma/schema.prisma
+```
 
 ---
 
@@ -307,116 +310,38 @@ npx playwright show-report
 
 ## 🚢 Deployment
 
-### Deployment Scripts
-
-All deployment scripts are in `/scripts/` directory:
-
-```
-scripts/
-├── build/        - Build and packaging
-├── deploy/       - Deployment automation
-└── database/     - Database migrations
-```
-
-**Quick deployment:**
-
-```bash
-# Development environment
-./scripts/deploy/deploy-dev.sh
-
-# Production environment (with safety confirmations)
-./scripts/deploy/deploy-prod.sh
-```
-
-📖 **Detailed documentation:** See [`scripts/README.md`](scripts/README.md)
+Production runs on a Hetzner CX33 VM via Docker Compose, fronted by Cloudflare. See **[STARTHERE.md](STARTHERE.md)** for the initial setup runbook and **[docs/operations/](docs/operations/)** for day-to-day operations.
 
 ### Database Migrations
 
-**Development database:**
-```bash
-# Apply migrations to remote dev database
-./scripts/database/migrate-remote-dev.sh
+Migrations run automatically on container start. To apply manually to a remote VM:
 
-# Initialize/reset dev database (DESTRUCTIVE!)
-./scripts/database/init-remote-db-dev.sh
+```bash
+# On the VM (or via SSH)
+cd /opt/spanish-class
+docker compose exec backend /app/node_modules/.bin/prisma migrate deploy \
+  --schema=/app/packages/backend/prisma/schema.prisma
 ```
 
-**Production database:**
-```bash
-# Apply migrations to production (EXTREME CAUTION!)
-./scripts/database/migrate-remote-prod.sh
-```
+Use `scripts/database/migrate-remote-prod.sh` and `migrate-remote-dev.sh` to run migrations from your local machine via SSH tunnel.
 
-⚠️ **Always test in development first before migrating production!**
+⚠️ **Always test migrations in staging before applying to production.**
 
 ### Production Deployment Workflow
 
-**Complete production deployment:**
-
 ```bash
-# 1. Test everything in development FIRST
-./scripts/deploy/deploy-dev.sh
-./scripts/database/migrate-remote-dev.sh
-# Verify all features work in dev
-
-# 2. Create database backup (in cPanel)
-# cPanel → Backup → Download MySQL Database
-
-# 3. Deploy code to production
-./scripts/deploy/deploy-prod.sh
-
-# 4. Apply database migrations (with extreme caution)
-./scripts/database/migrate-remote-prod.sh
-
-# 5. Restart Node.js app in cPanel UI
-# cPanel → Setup Node.js App → spanish-class-prod → Restart
-
-# 6. Verify production
-# Test critical features manually
+# 1. Push to main — GitHub Actions builds images and auto-deploys to staging
+# 2. Verify staging at staging.<domain>
+# 3. Trigger manual production promotion via GitHub Actions workflow dispatch
 ```
 
-### Multi-Environment Setup
-
-The platform supports multiple environments on the same cPanel server:
-
-**Environments:**
-- **Development:** `dev.casovispanskog.rs` → `~/spanish-class-dev/`
-- **Production:** `casovispanskog.rs` → `~/spanish-class-prod/`
-
-**Configuration:**
-- Backend: Deployed to `~/spanish-class-{env}/`
-- Frontend: Deployed to `~/public_html/{env}/`
-- Databases: Separate for each environment
-- Node.js apps: Configured in cPanel NodeJS Selector
+Full details: [docs/operations/deployment.md](docs/operations/deployment.md)
 
 ### GitHub Actions (CI/CD)
 
-Automated deployment workflows:
+- **`.github/workflows/deploy.yml`** — build → Trivy scan → auto-deploy staging → gated manual production promotion
 
-- **`.github/workflows/deploy-dev.yml`** - Auto-deploy on push to `develop` branch
-- **`.github/workflows/deploy-prod.yml`** - Deploy on push to `main` (requires manual approval)
-
-**Required GitHub Secrets:**
-- `CPANEL_SSH_KEY` - SSH private key for deployment
-- `CPANEL_HOST` - Your domain (e.g., casovispanskog.rs)
-- `CPANEL_USERNAME` - Your cPanel username
-- `DEV_DATABASE_URL`, `PROD_DATABASE_URL`
-- `DEV_JWT_SECRET`, `PROD_JWT_SECRET`
-
-### cPanel Deployment Notes
-
-**Important considerations:**
-
-1. **Shared packages:** `node_modules` must be a symlink (managed by cPanel). Shared monorepo packages are placed in `_shared_lib/` with post-install symlinks.
-
-2. **Prisma client:** Pre-generated during build and included in deployment package (cPanel memory limits prevent generating on server).
-
-3. **Database migrations:** Must be run from local machine using scripts in `scripts/database/`.
-
-4. **After deployment:**
-   - Restart Node.js app in cPanel UI
-   - Verify application health
-   - Check logs for errors
+**Required GitHub Secrets:** `HETZNER_SSH_KEY`, `PROD_HOST`, `STAGING_HOST`, `PROD_ENV_FILE`, `STAGING_ENV_FILE`
 
 ---
 
@@ -429,8 +354,6 @@ All scripts are documented in [`scripts/README.md`](scripts/README.md).
 | Task | Script | Safety |
 |------|--------|--------|
 | Build deployment package | `./scripts/build/build-deploy-package.sh` | ✅ Safe |
-| Deploy to development | `./scripts/deploy/deploy-dev.sh` | ⚠️ Caution |
-| Deploy to production | `./scripts/deploy/deploy-prod.sh` | 🔴 Dangerous |
 | Migrate dev database | `./scripts/database/migrate-remote-dev.sh` | ⚠️ Caution |
 | Migrate prod database | `./scripts/database/migrate-remote-prod.sh` | 🔴 Extremely Dangerous |
 | Initialize dev database | `./scripts/database/init-remote-db-dev.sh` | 🔴 Destructive |
@@ -441,60 +364,22 @@ All scripts are documented in [`scripts/README.md`](scripts/README.md).
 
 ### Backend won't start
 
-**Symptoms:** Node.js app crashes or won't start in cPanel
+**Symptoms:** Container exits immediately or keeps restarting
 
 **Solutions:**
-1. Check Node.js version is 18+ in cPanel NodeJS Selector
+1. Check logs: `docker compose logs backend`
 2. Verify `.env` file exists and has correct values
-3. Check cPanel error logs: Setup Node.js App → View Logs
-4. Ensure database connection string is correct
-5. Verify all required environment variables are set
+3. Ensure database connection string is correct
+4. Verify all required environment variables are set
 
 ### Database connection fails
 
 **Symptoms:** "ECONNREFUSED" or "Access denied" errors
 
 **Solutions:**
-1. Verify DATABASE_URL includes cPanel username prefix:
-   - ❌ Wrong: `mysql://user:pass@localhost:3306/database`
-   - ✅ Right: `mysql://cpanel_user:pass@localhost:3306/cpanel_database`
+1. Verify `DATABASE_URL` is correct in your `.env`
 2. Check database user has ALL PRIVILEGES
-3. Confirm host is `localhost` (not domain name)
-4. Test connection string in cPanel → phpMyAdmin
-
-### "Cannot find module '@spanish-class/shared'"
-
-**Symptoms:** Backend crashes with module not found error
-
-**Cause:** Shared package symlink not created after npm install
-
-**Solution:**
-```bash
-cd ~/spanish-class-{env}
-bash setup-shared-package.sh
-```
-
-This is automatically run by the postinstall script, but may need manual execution if npm install fails.
-
-### "prisma: command not found" on server
-
-**Symptoms:** Prisma commands fail when run on cPanel
-
-**Cause:** Prisma CLI not included in production dependencies (by design)
-
-**Solution:** This is expected! Use database migration scripts from your **local machine**:
-```bash
-./scripts/database/migrate-remote-dev.sh
-./scripts/database/migrate-remote-prod.sh
-```
-
-### "WebAssembly out of memory" during migration
-
-**Symptoms:** Prisma commands fail with memory errors on cPanel
-
-**Cause:** cPanel shared hosting has memory limits (4GB) that prevent Prisma CLI from running
-
-**Solution:** Never run Prisma CLI directly on cPanel. Always use migration scripts from local machine (they connect remotely).
+3. For Docker: ensure `mysql` service is healthy before backend starts (`docker compose ps`)
 
 ### CORS errors in browser
 
@@ -510,17 +395,9 @@ This is automatically run by the postinstall script, but may need manual executi
 
 **Symptoms:** Direct URL access or refresh gives 404
 
-**Cause:** Missing or incorrect `.htaccess` configuration
+**Cause:** SPA fallback not configured on the reverse proxy
 
-**Solution:** Ensure `.htaccess` exists in `public_html/` with proper rewrite rules:
-```apache
-RewriteEngine On
-
-# Frontend routing (SPA)
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ /index.html [L]
-```
+**Solution:** Caddy handles this automatically via the `try_files` directive in [caddy/Caddyfile](caddy/Caddyfile). If running natively without Caddy, configure your reverse proxy to serve `index.html` for all unmatched routes.
 
 ### Build fails with TypeScript errors
 
@@ -532,24 +409,6 @@ RewriteRule ^ /index.html [L]
 3. Check TypeScript version matches project requirements
 4. Clear build cache: `rm -rf packages/*/dist packages/*/.turbo`
 5. Try clean install: `rm -rf node_modules package-lock.json && npm install`
-
-### Deployment package is missing files
-
-**Symptoms:** `deploy/` directory incomplete after build
-
-**Cause:** Build script failed or was interrupted
-
-**Solution:**
-```bash
-# Clean previous build
-rm -rf deploy/
-
-# Run build again
-./scripts/build/build-deploy-package.sh
-
-# Verify deploy/ contains backend/ and frontend/
-ls -la deploy/
-```
 
 ### Tests failing locally
 
@@ -566,10 +425,10 @@ ls -la deploy/
 
 ## 📖 Additional Documentation
 
-- **[`scripts/README.md`](scripts/README.md)** - Comprehensive scripts documentation with decision trees
-- **[`CLAUDE.md`](CLAUDE.md)** - Development guidelines and project structure (for AI agents)
-- **[`docs/specs/`](docs/specs/)** - Feature specifications and planning documents
-- **[`docs/.htaccess`](docs/.htaccess)** - Apache configuration reference
+- **[`STARTHERE.md`](STARTHERE.md)** — First-deploy runbook (Hetzner + Docker)
+- **[`docs/operations/`](docs/operations/)** — Day-to-day operations, incident response, restore procedures
+- **[`scripts/README.md`](scripts/README.md)** — Scripts documentation
+- **[`CLAUDE.md`](CLAUDE.md)** — Development guidelines and project structure (for AI agents)
 
 ---
 
@@ -588,14 +447,15 @@ spanish-class/
 │   └── shared/           - Shared types and utilities
 ├── scripts/              - All automation scripts
 │   ├── build/           - Build and packaging
-│   ├── deploy/          - Deployment automation
-│   └── database/        - Database migrations
+│   ├── database/        - Database migrations
+│   └── server/          - Server bootstrap and maintenance
 ├── docs/                - Documentation
-│   ├── specs/           - Feature specifications
+│   ├── operations/      - Runbooks and ops guides
 │   └── images/          - Screenshots and diagrams
+├── specs/               - Feature specifications
+├── caddy/               - Caddy reverse proxy config
 ├── e2e/                 - End-to-end tests (Playwright)
-├── .github/             - GitHub Actions workflows
-└── deploy/              - Generated deployment package (gitignored)
+└── .github/             - GitHub Actions workflows
 ```
 
 ---
@@ -631,14 +491,13 @@ This is a private project. For development guidelines, see [`CLAUDE.md`](CLAUDE.
 
 1. **Check troubleshooting section above**
 2. **Review scripts documentation:** [`scripts/README.md`](scripts/README.md)
-3. **Check deployment logs** in cPanel
+3. **Check container logs:** `docker compose logs -f backend`
 4. **Review error messages** in browser console and backend logs
 
 **For deployment issues:**
 - Verify all environment variables are set correctly
 - Check database connection string format
-- Ensure Node.js version is 18+ in cPanel
-- Review cPanel error logs for detailed error messages
+- See [docs/operations/incident-response.md](docs/operations/incident-response.md) for outage playbook
 
 **For development issues:**
 - Ensure all dependencies are installed: `npm install`

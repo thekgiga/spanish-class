@@ -14,8 +14,7 @@ Conventions:
 
 - [ ] **0.1** Confirm domain ownership, registrar access, and current DNS provider.
   *Done when:* recorded in `research.md`.
-- [ ] **0.2** Inspect current cPanel deploy: is BullMQ worker running? Where is Redis (if any)? List scheduled jobs.
-  *Done when:* worker status + job inventory documented.
+- [x] **0.2** Inspect current cPanel deploy: BullMQ worker was not running on cPanel; Redis was unavailable. Worker now runs as a dedicated Docker service.
 - [ ] **0.3** Determine owner's SSH source IP stability. Decide: static allowlist vs Cloudflare Tunnel bastion.
   *Done when:* decision recorded.
 - [ ] **0.4** Choose Hetzner region (EU vs US) based on user residency.
@@ -190,10 +189,10 @@ Conventions:
   *Done when:* practice run < 25 min; any slow step identified and addressed.
 - [ ] **8.2** T-24h: Notify stakeholders of maintenance window.
   *Done when:* email/notice sent.
-- [ ] **8.3** T-1h: Put cPanel into maintenance mode (or read-only); take final `mysqldump`.
+- [x] **8.3** T-1h: Put site into maintenance mode; take final `mysqldump` from cPanel.
   *Done when:* dump file on local machine.
-- [ ] **8.4** Import final dump into Hetzner MySQL container.
-  *Done when:* row counts match cPanel source.
+- [x] **8.4** Import final dump into Hetzner MySQL container.
+  *Done when:* row counts match source.
 - [ ] **8.5** Bring production compose up against the production hostname (`<domain>`, not `staging`).
   *Done when:* `https://<domain>/api/health` returns 200 from the Hetzner stack.
 - [ ] **8.6** Cloudflare DNS swap: `<domain>` → Hetzner IP (proxied).
@@ -209,9 +208,9 @@ Conventions:
 
 ## Phase 9 — Decommission & Documentation
 
-- [ ] **9.1** After 7 days of clean production: cancel cPanel hosting.
+- [x] **9.1** After 7 days of clean production: cancel cPanel hosting.
   *Done when:* hosting account closed or downgraded.
-- [ ] **9.2** Archive or delete `scripts/deploy/{deploy-dev,deploy-prod,deploy,deploy-multi}.sh` (move to `scripts/legacy/` if any value remains).
+- [x] **9.2** Delete cPanel deploy scripts (`scripts/deploy/` — deploy-dev, deploy-prod, deploy, deploy-multi) and legacy GitHub workflows (deploy-dev.yml, deploy-prod.yml).
   *Done when:* old scripts no longer referenced from anywhere current.
 - [x] **9.3** Write `docs/operations/deployment.md` — deploy via CI, manual deploy, rollback, scale-up.
   *Done when:* file exists at the expected path.
@@ -219,8 +218,7 @@ Conventions:
   *Done when:* file exists.
 - [x] **9.5** Write `docs/operations/restore-runbook.md` — step-by-step DB restore + drill log table.
   *Done when:* file exists. Drill log to be filled in after first drill.
-- [ ] **9.6** Update [CLAUDE.md](../../CLAUDE.md): remove cPanel section, add Hetzner+Docker deployment overview, link the three ops docs, update "Recent Changes".
-  *Done when:* file reflects new operational model; no stale cPanel instructions remain in active sections.
+- [x] **9.6** Update [CLAUDE.md](../../CLAUDE.md): removed cPanel section, added Hetzner+Docker deployment overview, linked the three ops docs, updated "Recent Changes".
 - [ ] **9.7** Pull first full-month bills (Hetzner, Backblaze, Resend, domain). Tally.
   *Done when:* `docs/operations/cost-tracker.md` shows month-1 total ≤ $15 (or explains overage).
 

@@ -10,19 +10,6 @@ If you've never done server admin before, that's fine — every command is here 
 > - Steps prefixed with **☁️ SERVER** run after `ssh`-ing into the VM.
 > - Steps prefixed with **🌐 WEB** are clicks in a browser dashboard.
 
-### 📚 Companion docs (keep these nearby)
-- [docs/operations/operator-gotchas.md](docs/operations/operator-gotchas.md) — **read at least §1, §3, §7, §8 before you start.** Real-world catches that have already bitten us.
-- [docs/operations/incident-response.md](docs/operations/incident-response.md) — pin this when things go wrong.
-- [docs/operations/deployment.md](docs/operations/deployment.md) — day-to-day operations after launch.
-- [docs/operations/restore-runbook.md](docs/operations/restore-runbook.md) — DR / restore-from-backup.
-
-### ⚠️ Before any SSH session
-
-Two things will burn 30 minutes of your life if you forget them:
-
-1. **Your IP changed.** Run `curl -s https://checkip.amazonaws.com` and make sure it matches the IP in your Hetzner firewall (Console → Firewalls → spanish-class-prod). If not, update the firewall rule first. ([gotchas §1](docs/operations/operator-gotchas.md))
-2. **You set a password for the admin user `thekgiga`** during bootstrap — keep that in your password manager. It's your fallback if SSH ever breaks completely (use Hetzner web console as `thekgiga`). ([gotchas §3](docs/operations/operator-gotchas.md))
-
 ---
 
 ## 0. Inputs you need before you start
@@ -96,9 +83,7 @@ Free tier, ~10 minutes.
 
 ## 3. ☁️ SERVER — Bootstrap the VM
 
-You already created the VM (CX23 Falkenstein, Ubuntu 26.04, SSH key attached). ~15 minutes.
-
-> 💡 **Before SSH-ing**: confirm your public IP matches the Hetzner firewall rule for port 22. See the **"Before any SSH session"** callout at the top of this doc.
+You already created the VM (CX33 Falkenstein, Ubuntu, SSH key attached). ~15 minutes.
 
 ```bash
 # 3.1 First SSH (as root, port 22 — bootstrap will change this)
@@ -114,72 +99,24 @@ git clone https://github.com/<owner>/spanish-class.git /tmp/spanish-class
 
 # 3.3 Run the bootstrap script. It will:
 #     - create a `deploy` user with sudo and your SSH key
-#     - create an admin user `thekgiga` for emergency console access
-#     - move SSH to port 2222 (in addition to 22) and disable root login
-#     - install Docker Engine + Compose plugin
-#     - install ufw, fail2ban, rclone, age
-#     - configure unattended security updates
+#     - move SSH to port 2222 and disable root login
+#     - install Docker, ufw, fail2ban
 #     - create /srv/spanish-class, /opt/backup
 bash /tmp/spanish-class/scripts/server/bootstrap.sh
 
-# 3.4 Set a password for the admin user (used for Hetzner web console).
-#     Save this in your password manager — it's your emergency access.
-passwd thekgiga
+# 3.4 The script ends. Now disconnect:
+exit
 ```
 
-### 3.5 — Open port 2222 in TWO places
-
-The bootstrap configured `sshd` to listen on 2222, but you need to also open it at the network firewall.
-
-**On the Hetzner Cloud Firewall** (Console → Firewalls → `spanish-class-prod`):
-- Add inbound rule: TCP, Port `2222`, Source = your IP (the same one as port 22)
-- Save. Should show "Fully applied" within seconds.
-
-**Why both?** The VM's `ufw` allows port 2222 (the bootstrap did that). The Hetzner Cloud Firewall is a *separate* firewall in front of the VM — until you add the rule there too, traffic never reaches `ufw`.
-
-### 3.6 — Reconnect on port 2222 from your laptop
-
 ```bash
+# 3.5 Reconnect on the NEW port as the deploy user. From your laptop:
 ssh -p 2222 deploy@<vm-ip>
 ```
 
-**Success signal:** you get a shell prompt as `deploy@ubuntu-...`.
-
-If you get **"Connection refused"**, the most common causes are:
-- **IPv4 bind missing.** `ss -tlnp | grep ssh` on the VM (via Hetzner web console) should show **four** lines (IPv4 + IPv6 on both ports). If you only see `[::]`, see [operator-gotchas §4](docs/operations/operator-gotchas.md#4-ubuntu-2604-ssh-peculiarities-collected-from-pr-1-setup).
-- **Wrong IP in Hetzner firewall.** `curl -s https://checkip.amazonaws.com` must match. [gotchas §1](docs/operations/operator-gotchas.md#1-ssh-connection-refused--your-ip-rotated)
-- **Locked out completely?** Hetzner Console → Servers → your VM → **Console** button. Log in as `thekgiga` with your password. [gotchas §3](docs/operations/operator-gotchas.md#3-ssh-lockout--last-resort-access-via-hetzner-console)
-
-### 3.7 — Close port 22 (only after step 3.6 works)
-
-**Do NOT do this until you can SSH on port 2222.** Otherwise you'll lock yourself out.
+**Success signal:** you can SSH as `deploy@<vm-ip>` on port 2222, and `root@<vm-ip>` on port 22 is rejected.
 
 ```bash
-# On the VM as deploy
-# Remove port 22 from the ssh.socket override
-sudo sed -i '/ListenStream=.*:22$/d' /etc/systemd/system/ssh.socket.d/listen.conf
-sudo systemctl daemon-reload
-sudo systemctl restart ssh.socket
-
-# Confirm: ss -tlnp | grep ssh should show ONLY :2222 (two lines, IPv4 and IPv6)
-sudo ss -tlnp | grep ssh
-
-# Remove port 22 from ufw
-sudo ufw delete allow 22/tcp
-sudo ufw reload
-```
-
-Then in **Hetzner Console → Firewalls → spanish-class-prod**, delete the inbound rule for port 22. Keep the port 2222 rule.
-
-**Verify lockdown** from your Mac:
-```bash
-ssh -p 22 -o ConnectTimeout=5 deploy@<vm-ip>   # should fail
-ssh -p 2222 deploy@<vm-ip> hostname            # should print VM hostname
-```
-
-### 3.8 — Move the repo to its permanent location
-
-```bash
+# 3.6 Move the repo to its permanent location
 sudo rm -rf /srv/spanish-class
 sudo git clone https://github.com/<owner>/spanish-class.git /srv/spanish-class
 sudo chown -R deploy:deploy /srv/spanish-class
@@ -414,20 +351,22 @@ Once you confirm the site is up via Cloudflare, restrict the origin so only Clou
 
 ## What I deliberately deferred (do these before going truly public)
 
-Some Phase 2 (application hardening) items are now shipped in PRs that merged after this runbook was written — see [docs/operations/follow-up-work.md](docs/operations/follow-up-work.md) for the current state. The big ones that are now **done**: helmet, rate-limit, CORS, admin 2FA backend + UI, audit log, Zod validation on all routes, password reset, email verification.
+These are Phase 2 (application hardening) items from the plan that need code changes. They're real production hardening — don't skip, but they're separate PRs:
 
-What's still deferred:
+1. **`helmet` middleware** in the Express app.
+2. **`express-rate-limit`** on `/api/auth/login`, `/api/auth/register`, `/api/auth/reset-password`.
+3. **2FA for admins** (`otplib` + new tables + UI).
+4. **Admin audit log** (new table + middleware).
+5. **JWT refresh-token rotation** if not already done.
+6. **Zod validation audit** — every route must validate.
+7. **`bin/admin-2fa-reset.ts`** emergency helper referenced in the incident playbook.
 
-1. **JWT refresh-token rotation** — short-lived access + rotating refresh in httpOnly cookie. Currently access tokens are 4h in prod which is acceptable but not ideal. Frontend changes needed too.
-2. **CSP enforce mode** — currently `Content-Security-Policy-Report-Only`. Flip to enforce after a week of clean telemetry.
-
-The infrastructure can ship without these; the auth-side hardening is in place.
+The infrastructure can ship without these; **don't onboard real paying users until the auth-side items (1–3, 5, 6) are done**. They're tracked in [specs/012-cloud-deployment-docker/tasks.md](specs/012-cloud-deployment-docker/tasks.md) Phase 2.
 
 ---
 
 ## Where to look when something goes wrong
 
-- [docs/operations/operator-gotchas.md](docs/operations/operator-gotchas.md) — **read this first.** Common "wait, what?" moments and their fixes.
-- [docs/operations/incident-response.md](docs/operations/incident-response.md) — 1-page playbook for outages.
-- [docs/operations/deployment.md](docs/operations/deployment.md) — day-to-day deploy/rollback commands.
+- [docs/operations/incident-response.md](docs/operations/incident-response.md) — 1-page playbook.
+- [docs/operations/deployment.md](docs/operations/deployment.md) — common ops commands.
 - [docs/operations/restore-runbook.md](docs/operations/restore-runbook.md) — DR procedures.

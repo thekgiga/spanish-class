@@ -174,11 +174,7 @@ git commit -m "refactor: deployment scripts auto-copy configs"
 rm -f packages/backend/.env
 rm -f packages/backend/.env.example
 rm -f scripts/deploy/sync-config.sh
-rm -f config/templates/.htaccess.dev.template
-rm -f config/templates/.htaccess.prod.template
-rm -f docs/.htaccess
-rm -f docs/.htaccess.template
-rm -f .htaccess
+# .htaccess files already removed — Caddy handles routing
 
 # Commit
 git add -A

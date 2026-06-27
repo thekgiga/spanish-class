@@ -4,10 +4,12 @@
 #
 # ⚠️  PRODUCTION DATABASE - USE WITH EXTREME CAUTION ⚠️
 #
-# This script runs Prisma migrations against the PRODUCTION database
-# from your local machine (cPanel memory limits prevent running migrations on server)
+# Runs Prisma migrations against the production database from your local
+# machine via SSH tunnel. In the normal deploy flow, migrations run
+# automatically on container start — only use this script when you need
+# to apply them independently.
 #
-# Uses: packages/backend/.env.production for database connection
+# Uses: config/prod/.env for database connection
 #
 # Usage: ./migrate-remote-prod.sh
 ###############################################################################

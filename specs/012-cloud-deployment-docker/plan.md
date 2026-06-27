@@ -4,7 +4,7 @@
 
 ## Summary
 
-Migrate from cPanel to a containerized **two-VM deployment** on Hetzner Cloud: a **CX23 (€5.49/mo) production host** and a **CX22 (€4.59/mo) staging host**, both running the same Docker Compose stack against their own hostnames (`<domain>` and `staging.<domain>`). Both fronted by Cloudflare. Containerize backend, frontend, MySQL, Redis, and Caddy via Docker Compose. Add Tier-1 security hardening (SSH lockdown, firewall, WAF, rate limits, 2FA, audit log). Automate encrypted off-box backups from production to Backblaze B2 with a tested restore drill. Wire monitoring (UptimeRobot, Sentry, Healthchecks). Add GitHub Actions CI/CD with auto-deploy to staging on every push to `main`, gated manual promotion to production, and auto-rollback on failure. Cut over with ≤ 30 min of downtime, keep cPanel as fallback for one week, then decommission. Target run cost ≤ $20/mo.
+Migrate from cPanel to a containerized **two-VM deployment** on Hetzner Cloud: a **CX33 (€8.49/mo) production host** and a **CX22 (€4.59/mo) staging host**, both running the same Docker Compose stack against their own hostnames (`<domain>` and `staging.<domain>`). Both fronted by Cloudflare. Containerize backend, frontend, MySQL, Redis, and Caddy via Docker Compose. Add Tier-1 security hardening (SSH lockdown, firewall, WAF, rate limits, 2FA, audit log). Automate encrypted off-box backups from production to Backblaze B2 with a tested restore drill. Wire monitoring (UptimeRobot, Sentry, Healthchecks). Add GitHub Actions CI/CD with auto-deploy to staging on every push to `main`, gated manual promotion to production, and auto-rollback on failure. Cut over with ≤ 30 min of downtime, keep cPanel as fallback for one week, then decommission. Target run cost ≤ $20/mo.
 
 ## Technical Context
 
@@ -39,7 +39,7 @@ Migrate from cPanel to a containerized **two-VM deployment** on Hetzner Cloud: a
 - Restore drill: documented manual procedure, recorded in `docs/operations/restore-runbook.md` with the most recent successful drill date.
 - Synthetic monitoring: UptimeRobot end-to-end.
 
-**Target Platform**: Linux amd64 (Intel) on Hetzner CX23 (prod) + CX22 (staging). Stack is portable to any Docker-capable host of either x86 or ARM architecture (rebuilding the image is enough).
+**Target Platform**: Linux amd64 (Intel) on Hetzner CX33 (prod) + CX22 (staging). Stack is portable to any Docker-capable host of either x86 or ARM architecture (rebuilding the image is enough).
 
 **Project Type**: Operational / infrastructure migration. Touches repo root (new `docker-compose.yml`, `Dockerfile`s, CI workflow, ops docs). Minimal application code changes (security middleware, 2FA, audit log).
 
@@ -69,8 +69,8 @@ Migrate from cPanel to a containerized **two-VM deployment** on Hetzner Cloud: a
 
 ✅ **No Breaking Changes** — App API surface unchanged. Auth flow gains a 2FA step for admins only; existing admin sessions get a forced re-login with enrollment.
 ✅ **Testing Strategy** — Existing tests continue to run in CI. Restore + rollback drills are documented and dated.
-✅ **Documentation** — Three new operational docs; [CLAUDE.md](../../CLAUDE.md) updated; old cPanel script docs archived.
-⚠️ **Reversibility** — cPanel hosting kept warm for 1 week post-cutover. DNS can be flipped back inside 5 min via Cloudflare during that window.
+✅ **Documentation** — Three new operational docs; [CLAUDE.md](../../CLAUDE.md) updated.
+✅ **Reversibility** — Migration complete; cPanel hosting decommissioned.
 ✅ **Cost** — Hard target ≤ $20/mo (prod + dev), verified from first month's bills before declaring done.
 ✅ **Security** — Threat model documented; Tier-1 controls implemented as acceptance criteria gates.
 ✅ **Vendor neutrality** — Pure Docker stack, no managed-service coupling. Migration to any other Docker host is ≤ 1 day of work.
@@ -83,7 +83,7 @@ Three environments, each running the **same compose stack** with environment-spe
 |---|---|---|---|---|---|
 | **local** | Developer laptop, Docker Desktop | `http://localhost` | Active development, schema changes, manual testing | Empty / seeded fake data | $0 |
 | **staging** | Hetzner CX22 VM (separate from prod) | `staging.<domain>` | Pre-prod validation, CI auto-deploys, integration testing, demos to stakeholders | A redacted copy of prod refreshed weekly | €4.59/mo |
-| **production** | Hetzner CX23 VM | `<domain>` | Real users | Real | €5.49/mo + €1.10 backups |
+| **production** | Hetzner CX33 VM | `<domain>` | Real users | Real | €8.49/mo + €1.70 backups |
 
 ### How environments differ
 
@@ -171,9 +171,9 @@ If €4.59/mo for staging hurts:
 
 Recommendation: **keep staging on, accept €4.59/mo**. The peace of mind on the first 6 months of real-user traffic is worth more than the cost.
 
-## Memory Budget (CX23 specific)
+## Memory Budget (CX33 specific)
 
-CX23 has 4 GB total RAM. Each container gets a hard `mem_limit:` so any one runaway process can't take down the whole VM. The OOM-killer then targets only the offending container, Docker restarts it (per `restart: unless-stopped`), and the rest of the stack stays healthy.
+CX33 has 8 GB total RAM. Each container gets a hard `mem_limit:` so any one runaway process can't take down the whole VM. The OOM-killer then targets only the offending container, Docker restarts it (per `restart: unless-stopped`), and the rest of the stack stays healthy.
 
 | Container | `mem_limit` | Key tuning |
 |---|---|---|
@@ -201,7 +201,7 @@ Same limits work on the CX22 staging box. If MySQL eventually outgrows its budge
                     allow 22 from owner IP only)
                                    │
               ┌────────────────────┴────────────────────┐
-              │   Hetzner CX23 prod (Ubuntu 24.04, 4 GB)│
+              │   Hetzner CX33 prod (Ubuntu 24.04, 8 GB)│
               │  ufw · fail2ban · unattended-upgrades   │
               │                                         │
               │   ┌─────────────────────────────────┐   │

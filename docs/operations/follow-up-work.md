@@ -1,27 +1,8 @@
 # Follow-up Work — Cloud Deployment Migration
 
-Generated 2026-06-23 after landing the infrastructure scaffolding for feature 012-cloud-deployment-docker. The local Docker stack works end-to-end (see [STARTHERE.md](../../STARTHERE.md) §1 for the verification flow). What remains is split into follow-up PRs plus the operator work that only the owner can do.
+Generated 2026-06-23 after landing the infrastructure scaffolding for feature 012-cloud-deployment-docker. The local Docker stack works end-to-end (see [STARTHERE.md](../STARTHERE.md) §1 for the verification flow). What remains is split into three follow-up PRs plus the operator work that only the owner can do.
 
-This doc is the source of truth for **what hasn't shipped yet**. The specs in [specs/012-cloud-deployment-docker/](../../specs/012-cloud-deployment-docker/) describe the full feature; this doc tracks the delta.
-
-## Status snapshot (2026-06-27)
-
-| Track | State |
-|---|---|
-| **PR-1** infrastructure scaffolding | ✅ merged |
-| **PR-2** code cleanups (worker, migration, Resend stub, docs) | ✅ merged |
-| **PR-3** application security hardening (helmet, rate-limit, CORS, 2FA backend, audit log, JWT/bcrypt) | ✅ merged |
-| **P0** password reset + email verification | ✅ merged |
-| **PR-5** admin 2FA frontend UI + booking reminder emails | ✅ merged |
-| **PR-6** configurable cancellation window + no-show marking | ✅ merged |
-| **PR-7/PR-8** waitlist, i18n, in-app notifications | ✅ merged |
-| **PR-17** Zod validation on remaining routes | ⏳ open PR |
-| **Operator work — VM bootstrap** | ✅ done (Ubuntu 26.04 quirks captured in [operator-gotchas.md](./operator-gotchas.md)) |
-| **Operator work — DNS / app deploy / monitoring / backups / restore drill** | 🔴 in progress |
-| **CSP enforce mode** (currently report-only) | 🟡 do after 1 week of clean prod telemetry |
-| **JWT refresh-token rotation** | 🟡 deferred — needs frontend changes too |
-
-The sections below describe each track in detail. Status markers above the section headings tell you whether to read it. Status ✅ items are kept for historical context.
+This doc is the source of truth for **what hasn't shipped yet**. The specs in [specs/012-cloud-deployment-docker/](../specs/012-cloud-deployment-docker/) describe the full feature; this doc tracks the delta.
 
 ---
 
@@ -54,9 +35,8 @@ Current behavior: missing `RESEND_API_KEY` crashes the backend at module load (t
 - Removes the placeholder requirement from [config/local/.env](../config/local/.env).
 
 ### CL-4 — Documentation updates
-- **CLAUDE.md**: remove the cPanel deployment section, add a "Production deployment (Hetzner + Docker)" section pointing at [STARTHERE.md](../STARTHERE.md) and [docs/operations/](../docs/operations/). Update "Recent Changes".
 - **Root README.md**: add a "Quick start with Docker" section near the top: the `docker compose up` flow and the seed user credentials.
-- **specs/012-cloud-deployment-docker/research.md** (new): record the actual decisions made — CX23 picked over CAX11 (multi-arch CI rejected), dev VM optional, MySQL kept, Phase 2 deferred. One short doc, decisions only.
+- **specs/012-cloud-deployment-docker/research.md** (new): record the actual decisions made — CX23 initially picked over CAX11 (multi-arch CI rejected), upgraded to CX33 on 2026-06-27, dev VM optional, MySQL kept, Phase 2 deferred. One short doc, decisions only.
 
 ### CL-5 — Caddy security tweaks
 Minor hardening discovered during local-up:
@@ -148,7 +128,7 @@ Nothing here is code. Tracked here so it doesn't get lost. Full step-by-step is 
 | **OP-9** | Tighten Hetzner firewall to Cloudflare IPs only + Cloudflare rate-limit rules + threat-score block. | STARTHERE §12 |
 | **OP-10** | First quarterly restore drill on a throwaway VM. Record date in [docs/operations/restore-runbook.md](../docs/operations/restore-runbook.md). | restore-runbook §"Drills log" |
 | **OP-11** | Verify first-month bill ≤ $20 target. Record actuals. | spec.md acceptance criteria |
-| **OP-12** | Decommission cPanel hosting after 7 days of clean prod. | tasks.md Phase 9 |
+| **OP-12** | ~~Decommission cPanel hosting~~ — Done. | tasks.md Phase 9 |
 
 ---
 

@@ -73,7 +73,6 @@ The deployment scripts will:
 
 ### Local Development (config/local/)
 - `.env` - Backend environment variables
-- No .htaccess needed (uses Vite dev server)
 - Loaded via `ENV=local` (default)
 
 ### Dev Server (config/dev/)

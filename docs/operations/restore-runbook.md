@@ -41,7 +41,7 @@ curl -fsS https://<domain>/health
 
 You're rebuilding from nothing. Estimated time: 30–60 minutes once you have a clean VM.
 
-1. **Provision a fresh Hetzner VM** matching the prod spec (CX23 or above). Take note of the new IP.
+1. **Provision a fresh Hetzner VM** matching the prod spec (CX33 or above). Take note of the new IP.
 2. **Run the bootstrap script** (`scripts/server/bootstrap.sh`) — installs Docker, hardens SSH, ufw, fail2ban, creates dirs.
 3. **Restore the age private key** to `/opt/backup/age-key.txt` (mode 600) from your 1Password / sealed-envelope escrow. **Without this you cannot decrypt backups.**
 4. **Restore rclone config** for B2 to `~/.config/rclone/rclone.conf`. The B2 application key + bucket name can also be re-issued in the B2 console.

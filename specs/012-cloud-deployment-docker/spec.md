@@ -8,39 +8,17 @@ Migrate the Spanish-class platform off the existing cPanel hosting to a containe
 
 The target architecture is a single Hetzner Cloud VM running the full stack via Docker Compose, fronted by Cloudflare for DDoS protection, WAF, and origin hiding. A second, smaller VM runs the same stack as a `staging` environment for pre-production validation. Backups are off-box (Backblaze B2). Monitoring is via free SaaS tiers (UptimeRobot, Sentry, Healthchecks.io). Total cost target: **≤ $20/month all-in** (raised from $15 to include the dev VM).
 
-**VM tier choice**: **Hetzner CX23 (Intel shared, 2 vCPU / 4 GB / 40 GB SSD, €5.49/mo)**. Selected after live availability check on 2026-06-23: CX33 (the 8 GB tier we preferred) was out of stock in all EU locations (Falkenstein, Nuremberg, Helsinki); the ARM alternatives (CAX11/CAX21) were eliminated because the operator preferred to stay on amd64 to avoid multi-arch CI. Region: **Falkenstein** (EU). The shape is tight on RAM — every container in the stack will have a `mem_limit:` to prevent any one service from triggering the OOM-killer (see "Memory Budget" in [plan.md](./plan.md)). Resize path: when CX33 returns to stock, an in-place upgrade is ~2 min of downtime.
+**VM tier choice**: **Hetzner CX33 (Intel shared, 4 vCPU / 8 GB / 80 GB SSD, €8.49/mo)**. Originally deployed on CX23 (4 GB) when CX33 was out of stock; upgraded to CX33 on 2026-06-27 as planned. Region: **Falkenstein** (EU).
 
-**Dev + prod environments**: a separate **CX22 (€4.59/mo) dev VM** runs the same Docker Compose stack against a `staging.<domain>` hostname. Same architecture, same scripts, smaller box, no Hetzner managed backups, simpler firewall. Lets us validate deploys before they touch production. Total infra: prod €5.49 + dev €4.59 + prod backups €1.10 = **~€11/mo (~$12)** for the hosting line.
+**Dev + prod environments**: a separate **CX22 (€4.59/mo) dev VM** runs the same Docker Compose stack against a `staging.<domain>` hostname. Same architecture, same scripts, smaller box, no Hetzner managed backups, simpler firewall. Lets us validate deploys before they touch production. Total infra: prod €8.49 + dev €4.59 + prod backups €1.70 = **~€15/mo (~$16)** for the hosting line.
 
 ## Problem Statement
 
-The current cPanel-based deployment is operationally complex (manual `node_modules` symlinks, pre-generated Prisma clients, per-environment `_shared_lib/` packaging, manual cPanel UI restarts). It works, but:
+The previous cPanel-based deployment was operationally complex (manual `node_modules` symlinks, pre-generated Prisma clients, per-environment `_shared_lib/` packaging, manual UI restarts, no CI/CD, no DDoS protection, no tested disaster recovery). The platform needed a deployment model where a deploy is one command, common attacks fail by default, and disaster recovery is measured in minutes.
 
-1. **Fragility** — multiple manual steps per deploy, easy to forget one.
-2. **Limited scalability headroom** — cPanel memory limits already block Prisma CLI on the server.
-3. **No clear security baseline** — no DDoS protection, no WAF, no centralized monitoring, no documented incident response.
-4. **No tested disaster recovery** — backups exist informally but no restore drill, no off-box copy guarantee.
-5. **No CI/CD parity** — local Docker dev would not match production cPanel behavior.
-
-The platform is going to production. It needs a deployment model where:
-- **A deploy is one command** that either succeeds atomically or rolls back.
-- **Common attacks fail by default** — automated scanners, credential stuffing, volumetric DDoS, SQLi/XSS.
-- **Disaster recovery is measured in minutes**, not days, and has been drilled.
-- **Cost is predictable and low** — no surprise managed-service bills, no per-request egress fees.
+The migration to Docker on Hetzner is complete. This spec documents what was built.
 
 ## Current State
-
-### Hosting
-- cPanel shared hosting, Node.js Selector for the backend, public_html for frontend.
-- Backend at `~/spanish-class-{env}/`, frontend at `~/public_html/{env}/`.
-- `node_modules` as symlink (managed by cPanel UI).
-- Shared `@spanish-class/shared` package linked via `_shared_lib/` symlinks.
-- MySQL on shared hosting database. Redis: presumed unavailable on cPanel (BullMQ workers may not be running, or run elsewhere — to be confirmed).
-- Deployment scripts under `scripts/deploy/` package and rsync to cPanel.
-
-### Codebase Touch Points
-- [packages/backend/](packages/backend/) — Express + Prisma + BullMQ + Redis + Resend + Jitsi SDK.
-- [packages/frontend/](packages/frontend/) — Vite + React static build.
 - [packages/shared/](packages/shared/) — shared types, consumed by both.
 - [packages/backend/prisma/schema.prisma](packages/backend/prisma/schema.prisma) — MySQL provider.
 - `config/{local,dev,prod}/.env` — environment-specific configs, git-ignored.
@@ -193,7 +171,7 @@ The platform is going to production. It needs a deployment model where:
 The migration is considered done when **all** of the following are true:
 
 - [ ] `docker compose up` from a fresh checkout brings the full stack up locally in ≤ 3 minutes.
-- [ ] Production runs on a Hetzner CX23 with the full stack via `docker compose`.
+- [ ] Production runs on a Hetzner CX33 with the full stack via `docker compose`.
 - [ ] A second `staging` VM (CX22) runs the same compose stack against `staging.<domain>`, reachable only over the public internet via HTTPS (no DB/Redis ports exposed).
 - [ ] Deploys land on `staging` automatically on every push to `main`; promotion to production is a one-command (or one-click) gated step.
 - [ ] DNS resolves through Cloudflare; origin IP is not reachable except from Cloudflare ranges and owner SSH.
@@ -228,9 +206,9 @@ The migration is considered done when **all** of the following are true:
 
 | Item | Cost |
 |---|---|
-| Hetzner CX23 production VM (Falkenstein, Intel 2 vCPU / 4 GB / 40 GB) | €5.49 (~$6.10) |
+| Hetzner CX33 production VM (Falkenstein, Intel 4 vCPU / 8 GB / 80 GB) | €8.49 (~$9.40) |
 | Hetzner CX22 dev VM (Falkenstein, Intel 2 vCPU / 4 GB / 40 GB) | €4.59 (~$5.10) |
-| Hetzner automated backups on production VM (20%) | ~€1.10 (~$1.22) |
+| Hetzner automated backups on production VM (20%) | ~€1.70 (~$1.89) |
 | ~~Cloud Volume~~ — not needed at this size; revisit when DB > 25 GB | €0 |
 | Backblaze B2 (≤ 50 GB stored) | < $0.30 |
 | Cloudflare (DNS, WAF, DDoS, Bot Fight) | $0 |

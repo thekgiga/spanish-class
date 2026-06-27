@@ -125,14 +125,12 @@ cp "$ENV_SOURCE" deploy/backend/.env
    ```bash
    rm packages/backend/.env*
    rm scripts/deploy/sync-config.sh
-   rm config/templates/.htaccess.*
-   rm docs/.htaccess*
-   rm .htaccess
    ```
+   *(`.htaccess` files already removed — Caddy handles routing)*
 
 7. Test:
    - Local: `npm run dev`
-   - Deploy: `./scripts/deploy/deploy-dev.sh`
+   - Deploy: push to `main` and verify GitHub Actions deploy workflow
 
 ## Workflows
 

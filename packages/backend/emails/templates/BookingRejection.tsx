@@ -18,7 +18,7 @@ export default function BookingRejection({
   professorName,
   classTime,
   reason,
-  browseSlotsUrl = "https://unlimited.rs/slots",
+  browseSlotsUrl = "https://casovispanskog.rs/slots",
   locale = "en",
 }: BookingRejectionProps) {
   const t = getTranslations(locale).bookingRejected;

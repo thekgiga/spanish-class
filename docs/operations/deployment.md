@@ -2,8 +2,6 @@
 
 Single source of truth for deploying the Spanish-class app. The current architecture is documented in [specs/012-cloud-deployment-docker/](../../specs/012-cloud-deployment-docker/).
 
-> 📚 **Related**: [operator-gotchas.md](./operator-gotchas.md) for the "wait, what?" catalogue (SSH lockouts, IP rotation, Ubuntu 26.04 quirks). Skim it once; come back when something feels off.
-
 ## TL;DR
 
 | You want to … | Run this |
@@ -24,7 +22,7 @@ A single VM runs `docker-compose.yml` with five services — Caddy (TLS + static
 
 - **local**  — `docker compose up` on your laptop. Uses `docker-compose.override.yml`.
 - **staging** — Hetzner CX22 VM. Hostname `staging.<domain>`. Auto-deployed on `main` push.
-- **production** — Hetzner CX23 VM. Hostname `<domain>`. Manual promotion via workflow dispatch.
+- **production** — Hetzner CX33 VM. Hostname `<domain>`. Manual promotion via workflow dispatch.
 
 Both staging and production run the **same `docker-compose.yml`** and **the same image SHA** after promotion. They differ only in `.env` values (DB password, JWT secret, SITE_ADDRESS, Sentry env tag).
 
@@ -128,7 +126,7 @@ FRONTEND_IMAGE=ghcr.io/<owner>/spanish-class-frontend:$PREV_SHA \
 docker compose pull && docker compose up -d
 ```
 
-## Scaling up (when CX23 isn't enough)
+## Scaling up (when CX33 isn't enough)
 
 - **Vertical resize** (Hetzner UI → server → Resize → bigger plan). ~2 min downtime. Verify `mem_limit` lines in `docker-compose.yml` still make sense — bump MySQL's pool size proportionally.
 - **Add a Cloud Volume** for MySQL data when the 40 GB root disk gets >50% full. Migration is: stop compose → `rsync /var/lib/docker/volumes/spanish-class_mysql_data → /mnt/volume/...` → mount → restart.
