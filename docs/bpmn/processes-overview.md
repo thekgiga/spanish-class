@@ -5,7 +5,7 @@
 >
 > Open in any Mermaid-compatible renderer (VS Code Mermaid extension, mermaid.live, etc.).
 >
-> **Last updated:** 2026-06-27 — v5 — Referrals (RF2/RF4) + Professor–Student Assignment implemented
+> **Last updated:** 2026-06-27 — v6 — Notifications gaps N1–N4 fixed (SSE reconnect, preferences, pagination)
 
 ---
 
@@ -832,9 +832,9 @@ flowchart LR
 ## 10. Notifications (In-App + Email)
 
 > **What this flow does**
-> The portal keeps users informed through two channels: emails for important events (see the email table in section 8) and a live in-app notification feed. The in-app feed updates in real time without needing a page refresh — the browser keeps an open connection to the server and receives new notifications as they happen. Users can click a notification to go straight to the relevant page, and can mark individual notifications (or all of them at once) as read.
+> The portal keeps users informed through two channels: emails for important events and a live in-app notification feed. The in-app feed updates in real time — the browser keeps an open SSE connection and receives new notifications as they happen. If the connection drops, the browser automatically retries with exponential backoff (up to 30 seconds). Users can click a notification to go straight to the relevant page, mark individual or all notifications as read, and load older notifications via pagination. Users can also opt out of specific notification types from their Settings page.
 > **Who is involved:** Student or Professor/Admin, System.
-> **Outcome:** Users are promptly informed of booking status changes without having to check manually.
+> **Outcome:** Users are promptly informed of events; live updates reconnect automatically on drop; preferences let users silence unwanted types.
 
 ```mermaid
 flowchart TD
@@ -844,26 +844,34 @@ flowchart TD
     LISTEN --> J1{New event?}
     J1 -->|Yes| C[Show notification badge/toast]
     J1 -->|Keepalive| LISTEN
+    J1 -->|Error/drop| RETRY[Exponential backoff retry\n1s → 2s → 4s … max 30s]
+    RETRY --> B
     C --> D[Click notification]
     D --> NAV[Navigate to href link]
     NAV --> E[PUT /api/notifications/:id/read\nMark as read]
     E --> LISTEN
     F[Mark all read] --> POST[POST /api/notifications/read-all]
+    G[Load more] --> PAGINATE[GET /api/notifications?page=N&limit=20]
+    H[Open Settings] --> PREFS[GET /api/notifications/preferences\nToggle per-type checkbox]
+    PREFS --> PUT_PREF[PUT /api/notifications/preferences\nbody: type + enabled]
   end
 
   subgraph System
     B --> SYS1[Register SSE connection\nfor userId]
-    SYS1 --> PING[Ping every 25s]
+    SYS1 --> PING[Ping every 25s\nkeeps connection alive]
     E --> SYS2[Update Notification.readAt=now]
     POST --> SYS3[Bulk update all unread\nfor userId]
+    PAGINATE --> SYS4[Return page N of notifications\nwith pagination metadata]
+    PUT_PREF --> SYS5[Upsert NotificationPreference\ntype + enabled flag]
+    SYS5 --> SYS6[createNotification checks pref\nbefore creating — silently skips if disabled]
   end
 ```
 
 **Gaps in this flow:**
-- ❌ SSE connection drops silently — no auto-reconnect logic visible in frontend store
-- ❌ Notifications older than 30 are not retrieved (last 30 only) — no pagination or history view
-- ❌ No push notifications (mobile/desktop browser notifications via Web Push API)
-- ❌ No notification preferences (user cannot opt out of specific notification types)
+- ✅ SSE connection drops silently — no auto-reconnect logic — Resolved 2026-06-27 (N1: exponential backoff retry in useNotifications.ts; WifiOff indicator in NotificationBell when disconnected)
+- ✅ No notification preferences / opt-out per type — Resolved 2026-06-27 (N2: NotificationPreference model; GET/PUT /api/notifications/preferences; Settings page preferences card; createNotification checks preference before inserting)
+- ❌ No browser push notifications (Web Push API) — skipped (N3: low priority)
+- ✅ Notifications not paginated — only last 30 visible — Resolved 2026-06-27 (N4: GET /notifications now accepts ?page=&limit=; useNotifications hook exposes loadMore(); NotificationBell shows "Load more" button)
 
 ---
 
@@ -1075,10 +1083,10 @@ This section summarises all identified gaps by category. Each gap is tagged with
 
 | # | Gap | Severity | Type |
 |---|-----|----------|------|
-| N1 | SSE connection drops — no auto-reconnect in frontend | 🟠 High | Missing resilience |
-| N2 | No notification preferences / opt-out per type | 🟡 Medium | Missing feature |
-| N3 | No browser push notifications (Web Push API) | 🔵 Low | Missing feature |
-| N4 | Notifications not paginated — only last 30 visible | 🔵 Low | Missing feature |
+| N1 | ✅ SSE connection drops — no auto-reconnect in frontend — Resolved 2026-06-27 (exponential backoff retry 1s→30s in useNotifications.ts; WifiOff indicator in NotificationBell) | 🟠 High | Missing resilience |
+| N2 | ✅ No notification preferences / opt-out per type — Resolved 2026-06-27 (NotificationPreference DB table; GET/PUT /api/notifications/preferences; Settings page card; createNotification checks before inserting) | 🟡 Medium | Missing feature |
+| N3 | No browser push notifications (Web Push API) — skipped, low priority | 🔵 Low | Missing feature |
+| N4 | ✅ Notifications not paginated — only last 30 visible — Resolved 2026-06-27 (?page=&limit= on GET /notifications; loadMore() in hook; "Load more" button in NotificationBell) | 🔵 Low | Missing feature |
 
 ---
 
@@ -1102,11 +1110,12 @@ This section summarises all identified gaps by category. Each gap is tagged with
 | Severity | Count | Top Items |
 |----------|-------|-----------|
 | 🔴 Critical | 3 | AN2-AN3 (student/platform stats not populated), R1 (no rating UI), RF1 (referral reward — intentional) |
-| 🟠 High | 5 | S2-S3 (pattern management), N1 (SSE reconnect), M2 (meeting notes UI), M3 (post-class rating prompt) |
-| 🟡 Medium | 8 | S5 (timezone display), M1 (meeting time-gate) |
-| 🔵 Low | 7 | B8 (reschedule proposal), M4 (recording), N3 (push notifications) |
+| 🟠 High | 4 | S2-S3 (pattern management), M2 (meeting notes UI), M3 (post-class rating prompt) |
+| 🟡 Medium | 7 | S5 (timezone display), M1 (meeting time-gate) |
+| 🔵 Low | 6 | B8 (reschedule proposal), M4 (recording), N3 (push notifications — skipped) |
 | ✅ Resolved (Auth) | 11 | A1–A3, A5–A13 |
 | ✅ Resolved (Booking) | 9 | B1–B6, B9–B11 |
 | ✅ Resolved (Jobs) | 8 | J1–J8 |
 | ✅ Resolved (Referrals+Assignment) | 9 | RF2–RF4, PS1–PS6 |
-| **Total open** | **23** | |
+| ✅ Resolved (Notifications) | 3 | N1, N2, N4 |
+| **Total open** | **20** | |

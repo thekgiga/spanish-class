@@ -1,7 +1,12 @@
 import { Router } from "express";
 import { authenticate } from "../middleware/auth.js";
+import { validate, validateQuery } from "../middleware/validate.js";
 import { AppError } from "../middleware/error.js";
-import { notificationIdParamSchema } from "@spanish-class/shared";
+import {
+  notificationIdParamSchema,
+  paginationSchema,
+  updateNotificationPreferenceSchema,
+} from "@spanish-class/shared";
 import {
   addSSEConnection,
   removeSSEConnection,
@@ -9,20 +14,73 @@ import {
   markAllRead,
   getNotifications,
 } from "../services/notifications.js";
+import { NOTIFICATION_TYPES } from "../lib/notificationTypes.js";
+import { prisma } from "../lib/prisma.js";
 
 const router = Router();
 
 router.use(authenticate);
 
-// GET /api/notifications — list last 30 notifications
-router.get("/", async (req, res, next) => {
+// GET /api/notifications — paginated list of notifications (N4)
+router.get("/", validateQuery(paginationSchema), async (req, res, next) => {
   try {
-    const notifications = await getNotifications(req.user!.id);
-    res.json({ success: true, data: { notifications } });
+    const { page, limit } = req.query as unknown as { page: number; limit: number };
+    const { notifications, total } = await getNotifications(req.user!.id, page, limit);
+    res.json({
+      success: true,
+      data: { notifications },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     next(error);
   }
 });
+
+// GET /api/notifications/preferences — list per-type preferences (N2)
+router.get("/preferences", async (req, res, next) => {
+  try {
+    const userId = req.user!.id;
+    const prefs = await prisma.notificationPreference.findMany({
+      where: { userId },
+    });
+    const prefMap = new Map(prefs.map((p) => [p.type, p.enabled]));
+    const result = NOTIFICATION_TYPES.map((t) => ({
+      type: t.type,
+      label: t.label,
+      enabled: prefMap.get(t.type) ?? true, // default = enabled
+    }));
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/notifications/preferences — update a single preference (N2)
+router.put(
+  "/preferences",
+  validate(updateNotificationPreferenceSchema),
+  async (req, res, next) => {
+    try {
+      const { type, enabled } = req.body;
+      const userId = req.user!.id;
+
+      await prisma.notificationPreference.upsert({
+        where: { userId_type: { userId, type } },
+        update: { enabled },
+        create: { userId, type, enabled },
+      });
+
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // PUT /api/notifications/:id/read — mark one as read
 router.put("/:id/read", async (req, res, next) => {

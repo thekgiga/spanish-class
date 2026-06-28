@@ -67,6 +67,8 @@ model User {
   coveringStudents     StudentCover[]      @relation("CoveringProfessor")
   sentInvitations      StudentInvitation[]
 
+  notificationPreferences NotificationPreference[]
+
   @@map("users")
 }
 
@@ -552,4 +554,21 @@ model StudentInvitation {
   @@index([professorId])
   @@index([email])
   @@map("student_invitations")
+}
+
+// ── Notification Preferences ──────────────────────────────────────────────────
+
+model NotificationPreference {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  type      String   @db.VarChar(50)
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@map("notification_preferences")
 }

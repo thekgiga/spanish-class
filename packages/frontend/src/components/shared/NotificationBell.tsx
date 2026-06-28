@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Bell, BellDot, Check, CheckCheck, X } from "lucide-react";
+import { Bell, BellDot, Check, CheckCheck, X, Loader2, WifiOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
@@ -16,7 +16,8 @@ function timeAgo(dateStr: string): string {
 }
 
 export function NotificationBell() {
-  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const { notifications, unreadCount, connected, hasMore, loadingMore, markRead, markAllRead, loadMore } =
+    useNotifications();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -42,12 +43,16 @@ export function NotificationBell() {
         {unreadCount > 0 ? (
           <BellDot className="w-5 h-5 text-spanish-teal-600" />
         ) : (
-          <Bell className="w-5 h-5" />
+          <Bell className={cn("w-5 h-5", !connected && "text-amber-500")} />
         )}
         {unreadCount > 0 && (
           <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
+        )}
+        {/* N1: subtle offline indicator dot */}
+        {!connected && unreadCount === 0 && (
+          <span className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full" />
         )}
       </button>
 
@@ -90,6 +95,14 @@ export function NotificationBell() {
                 </button>
               </div>
             </div>
+
+            {/* N1: Reconnecting banner */}
+            {!connected && (
+              <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-100 text-amber-700 text-xs">
+                <WifiOff className="w-3 h-3 flex-shrink-0" />
+                Reconnecting to live updates…
+              </div>
+            )}
 
             {/* List */}
             <div className="max-h-80 overflow-y-auto">
@@ -143,6 +156,24 @@ export function NotificationBell() {
                 ))
               )}
             </div>
+
+            {/* N4: Load more */}
+            {hasMore && (
+              <div className="border-t border-slate-100 px-4 py-2 text-center">
+                <button
+                  type="button"
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  className="text-xs text-spanish-teal-600 hover:text-spanish-teal-700 font-medium disabled:opacity-50 flex items-center gap-1 mx-auto"
+                >
+                  {loadingMore ? (
+                    <><Loader2 className="w-3 h-3 animate-spin" /> Loading…</>
+                  ) : (
+                    "Load more"
+                  )}
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

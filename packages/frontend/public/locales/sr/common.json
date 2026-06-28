@@ -1,4 +1,23 @@
 {
+  "notifications": {
+    "title": "Obaveštenja",
+    "empty": "Još nema obaveštenja",
+    "mark_all_read": "Označi sva kao pročitana",
+    "load_more": "Učitaj još",
+    "reconnecting": "Ponovo se povezuje na ažuriranja uživo…",
+    "preferences_title": "Podešavanja obaveštenja",
+    "preferences_description": "Izaberite koja obaveštenja primate u aplikaciji",
+    "types": {
+      "booking_pending": "Zakazivanje čeka potvrdu",
+      "booking_request": "Nov zahtev za zakazivanje",
+      "booking_confirmed": "Zakazivanje potvrđeno",
+      "booking_rejected": "Zakazivanje odbijeno",
+      "booking_expired": "Zahtev za zakazivanje istekao",
+      "booking_expired_professor": "Zakazivanje studenta isteklo",
+      "class_reminder_24h": "Čas počinje za 24 sata",
+      "class_reminder_1h": "Čas počinje za 1 sat"
+    }
+  },
   "actions": {
     "save": "Sačuvaj",
     "cancel": "Otkaži",

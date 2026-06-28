@@ -3,7 +3,8 @@ import { useForm, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
-import { User, Lock, Mail, Shield, AlertTriangle, Eye, EyeOff, Loader2 } from "lucide-react";
+import { User, Lock, Mail, Shield, AlertTriangle, Eye, EyeOff, Loader2, Bell } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -22,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuthStore } from "@/stores/auth";
-import { authApi } from "@/lib/api";
+import { authApi, notificationApi } from "@/lib/api";
 import { PasswordStrengthMeter } from "@/components/shared/PasswordStrengthMeter";
 import { DeleteAccountDialog } from "@/components/shared/DeleteAccountDialog";
 
@@ -72,6 +74,19 @@ export function SettingsPage() {
   const [isLogoutAllLoading, setIsLogoutAllLoading] = useState(false);
   const [isEmailChangePending, setIsEmailChangePending] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // Notification preferences (N2)
+  const queryClient = useQueryClient();
+  const { data: notifPrefs } = useQuery({
+    queryKey: ["notification-preferences"],
+    queryFn: notificationApi.getPreferences,
+  });
+  const togglePrefMutation = useMutation({
+    mutationFn: ({ type, enabled }: { type: string; enabled: boolean }) =>
+      notificationApi.updatePreference(type, enabled),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notification-preferences"] }),
+    onError: () => toast.error("Failed to update preference"),
+  });
 
   // Profile form
   const {
@@ -423,6 +438,44 @@ export function SettingsPage() {
               )}
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Notification Preferences (N2) */}
+      <Card className="border-2 border-slate-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Notification Preferences
+          </CardTitle>
+          <CardDescription>Choose which notifications you receive in-app.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {notifPrefs && notifPrefs.length > 0 ? (
+            <div className="divide-y divide-slate-100">
+              {notifPrefs.map((pref) => (
+                <div key={pref.type} className="flex items-center justify-between py-2.5">
+                  <label
+                    htmlFor={`notif-${pref.type}`}
+                    className="text-sm text-slate-700 cursor-pointer select-none"
+                  >
+                    {pref.label}
+                  </label>
+                  <Checkbox
+                    id={`notif-${pref.type}`}
+                    checked={pref.enabled}
+                    onCheckedChange={(checked) =>
+                      togglePrefMutation.mutate({ type: pref.type, enabled: !!checked })
+                    }
+                    disabled={togglePrefMutation.isPending}
+                    className="h-4 w-4"
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">Loading preferences…</p>
+          )}
         </CardContent>
       </Card>
 

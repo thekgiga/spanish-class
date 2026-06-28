@@ -1,4 +1,23 @@
 {
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "mark_all_read": "Mark all read",
+    "load_more": "Load more",
+    "reconnecting": "Reconnecting to live updates…",
+    "preferences_title": "Notification Preferences",
+    "preferences_description": "Choose which notifications you receive in-app",
+    "types": {
+      "booking_pending": "Booking awaiting confirmation",
+      "booking_request": "New booking request",
+      "booking_confirmed": "Booking confirmed",
+      "booking_rejected": "Booking declined",
+      "booking_expired": "Booking request expired",
+      "booking_expired_professor": "Student booking expired",
+      "class_reminder_24h": "Class starts in 24 hours",
+      "class_reminder_1h": "Class starts in 1 hour"
+    }
+  },
   "actions": {
     "save": "Save",
     "cancel": "Cancel",

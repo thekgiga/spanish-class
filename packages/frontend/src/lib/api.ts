@@ -680,3 +680,39 @@ export const getPublicProfessors = async (): Promise<
   const res = await api.get("/professors");
   return res.data.data;
 };
+
+// Notification API (N1, N2, N4)
+export const notificationApi = {
+  getNotifications: async (
+    page = 1,
+    limit = 20,
+  ): Promise<{
+    data: { notifications: Array<{
+      id: string; type: string; title: string; body: string;
+      href?: string | null; readAt?: string | null; createdAt: string;
+    }> };
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }> => {
+    const res = await api.get(`/notifications?page=${page}&limit=${limit}`);
+    return res.data;
+  },
+
+  markRead: async (id: string): Promise<void> => {
+    await api.put(`/notifications/${id}/read`);
+  },
+
+  markAllRead: async (): Promise<void> => {
+    await api.post("/notifications/read-all");
+  },
+
+  getPreferences: async (): Promise<
+    Array<{ type: string; label: string; enabled: boolean }>
+  > => {
+    const res = await api.get("/notifications/preferences");
+    return res.data.data;
+  },
+
+  updatePreference: async (type: string, enabled: boolean): Promise<void> => {
+    await api.put("/notifications/preferences", { type, enabled });
+  },
+};

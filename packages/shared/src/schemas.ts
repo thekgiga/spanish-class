@@ -534,3 +534,12 @@ export type InviteStudentInput = z.infer<typeof inviteStudentSchema>;
 export type AssignStudentInput = z.infer<typeof assignStudentSchema>;
 export type CreateCoverInput = z.infer<typeof createCoverSchema>;
 export type SelectProfessorInput = z.infer<typeof selectProfessorSchema>;
+
+// ── Notification Preference Schema ───────────────────────────────────────────
+
+export const updateNotificationPreferenceSchema = z.object({
+  type: z.string().min(1, "Notification type is required"),
+  enabled: z.boolean(),
+});
+
+export type UpdateNotificationPreferenceInput = z.infer<typeof updateNotificationPreferenceSchema>;

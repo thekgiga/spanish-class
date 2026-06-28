@@ -34,6 +34,12 @@ export async function createNotification(
   body: string,
   href?: string,
 ): Promise<void> {
+  // N2: Check if user has disabled this notification type
+  const pref = await prisma.notificationPreference.findUnique({
+    where: { userId_type: { userId, type } },
+  });
+  if (pref && !pref.enabled) return;
+
   const notification = await prisma.notification.create({
     data: { userId, type, title, body, href: href ?? null },
   });
@@ -54,10 +60,20 @@ export async function markAllRead(userId: string): Promise<void> {
   });
 }
 
-export async function getNotifications(userId: string, limit = 30) {
-  return prisma.notification.findMany({
-    where: { userId },
-    orderBy: [{ readAt: "asc" }, { createdAt: "desc" }],
-    take: limit,
-  });
+// N4: Support pagination
+export async function getNotifications(
+  userId: string,
+  page = 1,
+  limit = 20,
+): Promise<{ notifications: unknown[]; total: number }> {
+  const [notifications, total] = await Promise.all([
+    prisma.notification.findMany({
+      where: { userId },
+      orderBy: [{ readAt: "asc" }, { createdAt: "desc" }],
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.notification.count({ where: { userId } }),
+  ]);
+  return { notifications, total };
 }
