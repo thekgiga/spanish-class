@@ -155,3 +155,68 @@ export async function getBookingFeedback(bookingId: string) {
     },
   });
 }
+
+/**
+ * Export all session feedback as CSV rows (admin only, SF4).
+ */
+export async function exportFeedbackCsv(
+  professorId?: string,
+  startDate?: Date,
+  endDate?: Date,
+): Promise<string> {
+  const where: Record<string, unknown> = {};
+  if (professorId) where.professorId = professorId;
+  if (startDate || endDate) {
+    where.createdAt = {
+      ...(startDate ? { gte: startDate } : {}),
+      ...(endDate ? { lte: endDate } : {}),
+    };
+  }
+
+  const rows = await prisma.sessionFeedback.findMany({
+    where,
+    include: {
+      student: { select: { firstName: true, lastName: true, email: true } },
+      professor: { select: { firstName: true, lastName: true } },
+      booking: { include: { slot: { select: { title: true, startTime: true } } } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  const escape = (v: string | null | undefined) =>
+    v ? `"${v.replace(/"/g, '""')}"` : '""';
+
+  const lines = [
+    "Date,Professor,Student,Session,Rating,What Was Good,Could Be Improved,Professor Response",
+    ...rows.map((r) => [
+      new Date(r.createdAt).toISOString().split("T")[0],
+      escape(`${r.professor.firstName} ${r.professor.lastName}`),
+      escape(`${r.student.firstName} ${r.student.lastName}`),
+      escape(r.booking?.slot?.title || "Spanish Class"),
+      r.rating.toString(),
+      escape(r.whatWasGood),
+      escape(r.whatCouldBeImproved),
+      escape(r.professorResponse),
+    ].join(",")),
+  ];
+
+  return lines.join("\n");
+}
+
+/**
+ * Add or update a professor's response to a piece of feedback (SF5).
+ */
+export async function respondToFeedback(
+  feedbackId: string,
+  professorId: string,
+  response: string,
+) {
+  const feedback = await prisma.sessionFeedback.findUnique({ where: { id: feedbackId } });
+  if (!feedback) throw new AppError(404, "Feedback not found");
+  if (feedback.professorId !== professorId) throw new AppError(403, "Not your feedback to respond to");
+
+  return prisma.sessionFeedback.update({
+    where: { id: feedbackId },
+    data: { professorResponse: response.trim(), respondedAt: new Date() },
+  });
+}

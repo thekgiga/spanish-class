@@ -147,13 +147,21 @@
   },
   "professor": {
     "no_professor_message": "You haven't been assigned a professor yet. Choose one to get started.",
+    "no_professor_title": "You haven't been assigned a professor yet",
+    "no_professor_subtitle": "Choose your professor to start booking classes.",
     "choose_professor_button": "Choose Your Professor",
+    "choose_professor_link": "Choose Professor",
+    "choose_before_booking": "Choose a professor before booking classes.",
+    "showing_classes_for": "Showing classes for",
+    "cover_count": "+ {{count}} cover professor(s)",
     "your_professor": "Your Professor",
     "cover_notice": "Also showing classes from cover professor(s)",
     "choose_page_title": "Choose Your Professor",
     "choose_page_subtitle": "Select the professor you'd like to study with",
     "select_button": "Select",
-    "selected_success": "Professor selected! You can now book classes."
+    "selected_success": "Professor selected! You can now book classes.",
+    "spanish_teacher_label": "Spanish Teacher",
+    "no_professors_yet": "No professors available yet."
   },
   "feedback": {
     "page_title": "Session Feedback",

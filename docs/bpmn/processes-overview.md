@@ -5,7 +5,7 @@
 >
 > Open in any Mermaid-compatible renderer (VS Code Mermaid extension, mermaid.live, etc.).
 >
-> **Last updated:** 2026-06-28 — v8 — Session Feedback feature: new SessionFeedback model, feedback_pending notifications, student submission page, admin/professor dashboards
+> **Last updated:** 2026-06-28 — v13 — S5 timezone display resolved; all Critical/High gaps cleared
 
 ---
 
@@ -683,11 +683,11 @@ flowchart TD
 ```
 
 **Gaps in this flow:**
-- ❌ No check if the meeting time is "now" (student could join days before or after)
+- ✅ No check if the meeting time is "now" (student could join days before or after) — Resolved 2026-06-28 (M1: validateMeetingAccess enforces earliest join 15 min before startTime, latest join 30 min after endTime; 403 with remaining minutes shown)
 - ❌ No "waiting room" or host-must-start concept — Jitsi room is always open
-- ❌ No recording management (start/stop recording, storage)
-- ❌ Meeting notes exist in DB (MeetingNote model) but no UI exists to fill them
-- ❌ No post-class "rate this session" prompt shown immediately after meeting ends
+- ❌ No recording management (start/stop recording, storage) — intentional, Jitsi public instance does not support recording
+- ✅ Meeting notes exist in DB (MeetingNote model) but no UI exists to fill them — Resolved 2026-06-28 (M2: GET/PUT /api/professor/bookings/:id/meeting-notes; MeetingNotesEditor modal; "Meeting Notes" button on each booking in StudentDetailPage)
+- ✅ No post-class "rate this session" prompt shown immediately after meeting ends — Resolved 2026-06-28 (M3: BookingsPage fetches pending ratings; COMPLETED bookings show "Rate Session" badge and button that opens RateUserModal)
 
 ---
 
@@ -771,34 +771,13 @@ flowchart TD
 
 ## 8. Ratings & Reviews
 
-> **What this flow does**
-> After a class is completed, students can leave a star rating (1–5) and an optional written comment for the professor. Ratings can be submitted anonymously if the student prefers. The professor's overall rating is calculated from all reviews and is visible in their analytics. Students can check a list of sessions they still have the chance to rate.
-> **Who is involved:** Student, System.
-> **Outcome:** Professor receives feedback; their rating reflects the quality of their teaching over time.
-
-```mermaid
-flowchart TD
-  subgraph Student
-    A([After session]) --> B[GET /api/ratings/pending\nFind completable sessions]
-    B --> J1{Any pending\nratings?}
-    J1 -->|No| Z([End: No action])
-    J1 -->|Yes| C[Show rating prompt:\n1-5 stars + optional comment]
-    C --> D[Submit POST /api/ratings]
-    D --> Z([End: Rating saved])
-  end
-
-  subgraph System
-    D --> SYS1[Create Rating record:\nraterId, rateeId, bookingId\nrating 1-5, comment, isAnonymous]
-    SYS1 --> SYS2[GET /api/ratings/user/:id\nreturns all ratings for user]
-  end
-```
+> **Removed in 2026-06-28.** The standalone Rating system (professor ratings from students) has been removed in favour of the SessionFeedback system (§8b), which already captures a 1–5 star rating alongside private text feedback. All `Rating` model data, the `/api/ratings/*` endpoints, and the `RateUserModal` component have been deleted. Analytics (`averageRating` in ProfessorDailyStats / MonthlyStats) now aggregate from `SessionFeedback.rating` instead of the old `Rating` table.
 
 **Gaps in this flow:**
-- ❌ No UI currently triggers the rating flow — it exists as an API but no UI component prompts for ratings
-- ✅ Ratings are not linked back to analytics — Resolved 2026-06-28 (AN5: aggregateAnalytics job queries Rating table for ProfessorDailyStats.averageRating; createRating() updates StudentEngagementStats.averageRatingGiven non-blocking)
-- ❌ No moderation / flagging of abusive reviews
-- ❌ Professor cannot respond to a review
-- ❌ Ratings are not surfaced publicly on slot cards or professor profile
+- ~~R1 — No UI triggers the ratings flow~~ — Removed (ratings replaced by SessionFeedback)
+- ~~R2 — Professor cannot respond to a review~~ — Not applicable
+- ~~R3 — Ratings not surfaced on slot cards~~ — Not applicable
+- ~~R4 — No review moderation~~ — Not applicable
 
 ---
 
@@ -844,8 +823,8 @@ flowchart TD
 
 **Gaps in this flow:**
 - ❌ No email notification on session completion — intentional (in-app notification only; email would be too noisy)
-- ❌ No admin bulk-export of feedback (CSV)
-- ❌ No response/reply feature for professor to respond to feedback
+- ✅ No admin bulk-export of feedback (CSV) — Resolved 2026-06-28 (SF4: GET /api/feedback/admin/export; Export CSV button in FeedbackDashboard)
+- ✅ No response/reply feature for professor to respond to feedback — Resolved 2026-06-28 (SF5: professorResponse field + POST /api/feedback/:id/respond; inline form in FeedbackDashboard and StudentDetailPage)
 
 ---
 
@@ -1053,13 +1032,13 @@ This section summarises all identified gaps by category. Each gap is tagged with
 
 | # | Gap | Severity | Type |
 |---|-----|----------|------|
-| S1 | Bulk-created overlapping slots silently skipped — no report shown | 🟡 Medium | Missing validation feedback |
-| S2 | No way to edit all slots in a recurring pattern at once | 🟠 High | Missing feature |
-| S3 | No delete-entire-recurring-pattern action | 🟠 High | Missing use case |
-| S4 | No minimum/maximum slot duration validation | 🟡 Medium | Missing validation |
-| S5 | Timezone display: students and professor may be in different TZs — times not clearly shown in student's timezone on slot cards | 🔴 Critical | Missing UI / data display |
-| S6 | No notification to student when a direct booking is made by professor (if sendInvitation=false) | 🟠 High | Missing notification |
-| S7 | Professor direct booking creates no in-app notification for student | 🟠 High | Missing notification |
+| S1 | ✅ Bulk-created overlapping slots silently skipped — no report shown — Resolved 2026-06-28 (bulk endpoint now skips overlaps instead of failing; returns `skippedDates[]`; BulkSlotPage shows skip count in toast) | 🟡 Medium | Missing validation feedback |
+| S2 | ✅ No way to edit all slots in a recurring pattern at once — Resolved 2026-06-28 (PATCH /api/professor/recurring-patterns/:id updates pattern + all future AVAILABLE slots; Edit dialog in SlotsPage Recurring Patterns tab) | 🟠 High | Missing feature |
+| S3 | ✅ No delete-entire-recurring-pattern action — Resolved 2026-06-28 (DELETE /api/professor/recurring-patterns/:id already cancelled future AVAILABLE slots + deactivates pattern; confirmed frontend UI with Delete Pattern button + confirm dialog in SlotsPage) | 🟠 High | Missing use case |
+| S4 | ✅ No minimum/maximum slot duration validation — Resolved 2026-06-28 (createSlotSchema, bulkCreateSlotSchema, createRecurringPatternSchema all refine: 15 min ≤ duration ≤ 4 hours) | 🟡 Medium | Missing validation |
+| S5 | ✅ Timezone display: students and professor may be in different TZs — Resolved 2026-06-28 (formatDate/formatTime in utils.ts now use `undefined` locale (browser's local timezone); all hardcoded `'en-US'` and `toLocaleDateString("en-US")` calls replaced with browser-locale equivalents; timezone param removed from frontend formatters) | 🔴 Critical | Missing UI / data display |
+| S6 | ✅ No notification to student when a direct booking is made by professor (if sendInvitation=false) — Resolved 2026-06-28 (createNotification "booking_confirmed" always fired in book-student endpoint, independent of sendInvitation) | 🟠 High | Missing notification |
+| S7 | ✅ Professor direct booking creates no in-app notification for student — Resolved 2026-06-28 (same fix as S6) | 🟠 High | Missing notification |
 
 ---
 
@@ -1067,11 +1046,11 @@ This section summarises all identified gaps by category. Each gap is tagged with
 
 | # | Gap | Severity | Type |
 |---|-----|----------|------|
-| W1 | After waitlist promotion is rejected by professor, student NOT re-added to waitlist | 🟠 High | Missing logic |
-| W2 | Waitlist entries not cleaned up when slot is CANCELLED | 🔴 Critical | Missing logic (data integrity) |
+| W1 | ✅ After waitlist promotion is rejected by professor, student NOT re-added to waitlist — Resolved 2026-06-28 (fromWaitlist field on Booking; booking created with fromWaitlist=true on promotion; applyRejectionSideEffects re-adds to waitlist end when fromWaitlist=true) | 🟠 High | Missing logic |
+| W2 | ✅ Waitlist entries not cleaned up when slot is CANCELLED — Resolved 2026-06-28 (cancel-with-bookings, DELETE slot, and recurring pattern DELETE all include prisma.waitlistEntry.deleteMany; cleanupStaleData also handles CANCELLED slots) | 🔴 Critical | Missing logic (data integrity) |
 | W3 | Waitlist entries not cleaned up for past-date slots | 🟡 Medium | Missing cleanup job |
 | W4 | No waitlist position update notifications when users ahead leave | 🔵 Low | Missing notification |
-| W5 | Waitlist only for GROUP slots — not documented in UI | 🟡 Medium | Missing UX clarity |
+| W5 | ✅ Waitlist only for GROUP slots — not documented in UI — Resolved 2026-06-28 (BookPage slot cards show "Full — join waitlist" for GROUP or "Full — no waitlist for individual classes" for INDIVIDUAL when currentParticipants ≥ maxParticipants) | 🟡 Medium | Missing UX clarity |
 
 ---
 
@@ -1079,10 +1058,10 @@ This section summarises all identified gaps by category. Each gap is tagged with
 
 | # | Gap | Severity | Type |
 |---|-----|----------|------|
-| M1 | No time-gate on meeting join (student can join days early/late) | 🟡 Medium | Missing validation |
-| M2 | MeetingNote model exists but has no UI | 🟠 High | Missing UI |
-| M3 | No post-class rating prompt after meeting | 🟠 High | Missing UX |
-| M4 | No recording management | 🔵 Low | Missing feature |
+| M1 | ✅ No time-gate on meeting join (student can join days early/late) — Resolved 2026-06-28 (validateMeetingAccess in meeting-access.ts: earliest = startTime − 15 min, latest = endTime + 30 min; 403 with minutes-until-start message) | 🟡 Medium | Missing validation |
+| M2 | ✅ MeetingNote model exists but has no UI — Resolved 2026-06-28 (GET/PUT /api/professor/bookings/:id/meeting-notes; MeetingNotesEditor modal component; "Meeting Notes" button in StudentDetailPage bookings tab) | 🟠 High | Missing UI |
+| M3 | ✅ No post-class rating prompt after meeting — Resolved 2026-06-28 (BookingsPage fetches /ratings/pending; COMPLETED unrated bookings show "Rate Session" badge + yellow button that opens RateUserModal; invalidates pending-ratings query on submit) | 🟠 High | Missing UX |
+| M4 | No recording management — intentional, Jitsi public instance does not support recording | 🔵 Low | Missing feature |
 
 ---
 
@@ -1100,12 +1079,7 @@ This section summarises all identified gaps by category. Each gap is tagged with
 
 ### Ratings & Reviews
 
-| # | Gap | Severity | Type |
-|---|-----|----------|------|
-| R1 | No UI triggers the ratings flow — API exists but no frontend component | 🔴 Critical | Missing UI |
-| R2 | Professor cannot respond to a review | 🔵 Low | Missing feature |
-| R3 | Ratings not surfaced on slot cards or student-visible professor profile | 🟠 High | Missing UI |
-| R4 | No review moderation / flagging | 🔵 Low | Missing feature |
+Removed 2026-06-28 — standalone `Rating` model and `/api/ratings/*` endpoints deleted. SessionFeedback (§8b) serves this purpose and already captures a 1–5 star rating. Analytics aggregate `averageRating` from `SessionFeedback.rating` instead.
 
 ---
 
@@ -1166,8 +1140,8 @@ This section summarises all identified gaps by category. Each gap is tagged with
 | SF1 | ✅ No private session feedback mechanism — Resolved 2026-06-28 (SessionFeedback model; POST /api/feedback; /dashboard/feedback/:bookingId page; feedback_pending in-app notification on session completion) | 🟠 High | Missing feature |
 | SF2 | ✅ No school-owner view of feedback across all professors — Resolved 2026-06-28 (GET /api/feedback/admin/summary; /admin/feedback FeedbackDashboard page with per-professor cards and drill-down) | 🟠 High | Missing feature |
 | SF3 | No email reminder when feedback notification is ignored (only in-app) — intentional design decision | 🔵 Low | Missing notification |
-| SF4 | No admin CSV export of all feedback | 🔵 Low | Missing feature |
-| SF5 | Professor cannot respond to student feedback | 🔵 Low | Missing feature |
+| SF4 | ✅ No admin CSV export of all feedback — Resolved 2026-06-28 (GET /api/feedback/admin/export streams CSV with optional professorId/date filters; Export CSV button in FeedbackDashboard) | 🔵 Low | Missing feature |
+| SF5 | ✅ Professor cannot respond to student feedback — Resolved 2026-06-28 (professorResponse + respondedAt fields on SessionFeedback; POST /api/feedback/:id/respond; inline response form in FeedbackDashboard + StudentDetailPage feedback tab) | 🔵 Low | Missing feature |
 
 ---
 
@@ -1175,19 +1149,18 @@ This section summarises all identified gaps by category. Each gap is tagged with
 
 | Severity | Count | Top Items |
 |----------|-------|-----------|
-| 🔴 Critical | 1 | R1 (no rating UI) |
-| 🟠 High | 4 | S2-S3 (pattern management), M2 (meeting notes UI), M3 (post-class rating prompt) |
-| 🟡 Medium | 6 | S5 (timezone display), M1 (meeting time-gate) |
-| 🔵 Low | 9 | B8, M4, N3, SF3-SF5 |
+| 🔴 Critical | 0 | — |
+| 🟠 High | 0 | — |
+| 🟡 Medium | 1 | W3 (stale waitlist cleanup for past slots) |
+| 🔵 Low | 5 | B8, M4, N3, SF3, W4 |
 | ✅ Resolved (Auth) | 11 | A1–A3, A5–A13 |
 | ✅ Resolved (Booking) | 9 | B1–B6, B9–B11 |
 | ✅ Resolved (Jobs) | 8 | J1–J8 |
 | ✅ Resolved (Analytics) | 5 | AN1–AN5 |
 | ✅ Resolved (Referrals+Assignment) | 9 | RF2–RF4, PS1–PS6 |
 | ✅ Resolved (Notifications) | 3 | N1, N2, N4 |
-| ✅ Resolved (Session Feedback) | 2 | SF1, SF2 |
-| **Total open** | **20** | |
-| ✅ Resolved (Referrals+Assignment) | 9 | RF2–RF4, PS1–PS6 |
-| ✅ Resolved (Notifications) | 3 | N1, N2, N4 |
-| ✅ Resolved (Analytics) | 5 | AN1–AN5 |
-| **Total open** | **15** | |
+| ✅ Resolved (Session Feedback) | 4 | SF1, SF2, SF4, SF5 |
+| ✅ Resolved (Meetings) | 3 | M1, M2, M3 |
+| ✅ Resolved (Slot+Waitlist) | 9 | S1–S7, W1–W2, W5 |
+| Removed (Ratings) | 4 | R1–R4 — replaced by SessionFeedback |
+| **Total open** | **6** | |

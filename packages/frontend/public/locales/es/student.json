@@ -147,13 +147,21 @@
   },
   "professor": {
     "no_professor_message": "Aún no tienes un profesor asignado. Elige uno para comenzar.",
+    "no_professor_title": "Aún no tienes un profesor asignado",
+    "no_professor_subtitle": "Elige tu profesor para empezar a reservar clases.",
     "choose_professor_button": "Elige tu profesor",
+    "choose_professor_link": "Elegir Profesor",
+    "choose_before_booking": "Elige un profesor antes de reservar clases.",
+    "showing_classes_for": "Mostrando clases de",
+    "cover_count": "+ {{count}} profesor(es) sustituto(s)",
     "your_professor": "Tu Profesor",
     "cover_notice": "También mostrando clases del profesor sustituto",
     "choose_page_title": "Elige tu Profesor",
     "choose_page_subtitle": "Selecciona el profesor con quien deseas estudiar",
     "select_button": "Seleccionar",
-    "selected_success": "¡Profesor seleccionado! Ya puedes reservar clases."
+    "selected_success": "¡Profesor seleccionado! Ya puedes reservar clases.",
+    "spanish_teacher_label": "Profesor de español",
+    "no_professors_yet": "Aún no hay profesores disponibles."
   },
   "feedback": {
     "page_title": "Comentarios de la sesión",

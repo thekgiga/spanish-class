@@ -91,5 +91,40 @@
     "cancel_invitation": "Otkaži pozivnicu",
     "cancel_invitation_confirm": "Otkaži pozivnicu",
     "student_label": "Student"
+  },
+  "invite_student_modal": {
+    "title": "Pozovi studenta",
+    "description": "Unesite email adresu studenta. Ako još nisu registrovani, dobiti će link za pozivnicu. Ako su već registrovani, biće direktno dodeljeni vama.",
+    "email_label": "Email studenta",
+    "email_placeholder": "student@example.com",
+    "cancel_button": "Otkaži",
+    "submit_button": "Pošalji pozivnicu",
+    "submit_loading": "Slanje…"
+  },
+  "create_cover_modal": {
+    "title": "Kreiraj period zamene",
+    "description": "Dodelite zamjenskog profesora za vaše studente tokom određenog perioda (npr. odmor). Studenti će videti slotove tog profesora + vaše tokom tog perioda.",
+    "cover_professor_label": "Zamjenski profesor",
+    "cover_professor_placeholder": "Izaberite profesora",
+    "starts_at_label": "Početak",
+    "ends_at_label": "Kraj",
+    "apply_to_all_label": "Primeni na sve moje studente",
+    "select_students_label": "Izaberite studente",
+    "cancel_button": "Otkaži",
+    "submit_button": "Kreiraj zamenu",
+    "submit_loading": "Kreiranje…"
+  },
+  "meeting_notes": {
+    "title": "Beleške sa sastanka",
+    "agenda_label": "Agenda / Beleške pre časa",
+    "agenda_placeholder": "Šta planirate da obradite na ovoj sesiji?",
+    "session_label": "Beleške sa sesije",
+    "session_placeholder": "Kako je prošla sesija? Ključne tačke, napredak studenta, sledeći koraci…",
+    "save": "Sačuvaj beleške",
+    "saving": "Čuvanje…",
+    "cancel": "Otkaži",
+    "saved": "Beleške sačuvane",
+    "save_error": "Greška pri čuvanju beleški",
+    "open_button": "Beleške sa sastanka"
   }
 }

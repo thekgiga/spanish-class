@@ -19,7 +19,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { professorApi } from "@/lib/api";
-import { formatTime } from "@/lib/utils";
+import { formatTime, formatDate } from "@/lib/utils";
 
 export function PendingApprovalsPage() {
   const { t } = useTranslation("admin");
@@ -132,9 +132,7 @@ export function PendingApprovalsPage() {
                             {t("approvals.card.class_time")}
                           </span>
                           <span className="font-medium">
-                            {new Date(
-                              booking.slot.startTime,
-                            ).toLocaleDateString()}{" "}
+                            {formatDate(booking.slot.startTime, { weekday: undefined, year: undefined, month: 'short', day: 'numeric' })}{" "}
                             {t("approvals.card.at")}{" "}
                             {formatTime(booking.slot.startTime)}
                           </span>

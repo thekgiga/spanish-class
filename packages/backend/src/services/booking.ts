@@ -425,6 +425,7 @@ export async function cancelBooking(
       },
     });
 
+    let promotedBookingId: string | null = null;
     if (nextWaiting) {
       await tx.waitlistEntry.delete({ where: { id: nextWaiting.id } });
       // Resequence remaining entries
@@ -432,9 +433,19 @@ export async function cancelBooking(
       for (let i = 0; i < remaining.length; i++) {
         await tx.waitlistEntry.update({ where: { id: remaining[i].id }, data: { position: i + 1 } });
       }
+      // W1: Create a PENDING_CONFIRMATION booking for the promoted student (fromWaitlist=true)
+      const promoted = await tx.booking.create({
+        data: {
+          slotId: booking.slotId,
+          studentId: nextWaiting.userId,
+          status: "PENDING_CONFIRMATION",
+          fromWaitlist: true,
+        },
+      });
+      promotedBookingId = promoted.id;
     }
 
-    return { booking, cancelledBy, promotedWaitlistEntry: nextWaiting || null };
+    return { booking, cancelledBy, promotedWaitlistEntry: nextWaiting || null, promotedBookingId };
   });
 
   const { booking, cancelledBy, promotedWaitlistEntry } = result;

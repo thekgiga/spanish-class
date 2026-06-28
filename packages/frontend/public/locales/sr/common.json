@@ -180,15 +180,6 @@
     "try_again": "Pokušaj ponovo",
     "refresh_page": "Osveži stranicu"
   },
-  "rating": {
-    "title": "Ocenite {{name}}",
-    "description": "Kakvo je bilo vaše iskustvo? Vaše mišljenje pomaže u unapređenju platforme.",
-    "rating_label": "Ocena",
-    "comment_label": "Komentar (opciono)",
-    "comment_placeholder": "Podelite svoje mišljenje...",
-    "anonymous": "Pošalji anonimno",
-    "submit": "Pošalji ocenu"
-  },
   "referral": {
     "title": "Vaš link za preporuku",
     "description": "Podelite ovaj link sa prijateljima da zaradite nagrade kada se registruju!",

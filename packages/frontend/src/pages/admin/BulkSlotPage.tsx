@@ -65,8 +65,18 @@ export function BulkSlotPage() {
 
   const createMutation = useMutation({
     mutationFn: professorApi.createBulkSlots,
-    onSuccess: (data) => {
-      toast.success(t("slots.bulk_page.success", { count: data.length }));
+    onSuccess: (result) => {
+      if (result.skippedDates.length > 0) {
+        toast.success(
+          t("slots.bulk_page.success_with_skips", {
+            count: result.slots.length,
+            skipped: result.skippedDates.length,
+          }),
+          { duration: 6000 },
+        );
+      } else {
+        toast.success(t("slots.bulk_page.success", { count: result.slots.length }));
+      }
       navigate("/admin/slots");
     },
     onError: (error: any) => {

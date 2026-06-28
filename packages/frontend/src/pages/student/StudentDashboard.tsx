@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -15,6 +15,8 @@ import {
   Flame,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+import { toast } from "react-hot-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,6 +38,14 @@ import { MessageSquare } from "lucide-react";
 export function StudentDashboard() {
   const { t } = useTranslation("student");
   const { user } = useAuthStore();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("professor_assigned") === "1") {
+      toast.success(t("professor.selected_success"));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const { data, isLoading } = useQuery({
     queryKey: ["student-dashboard"],
     queryFn: studentApi.getDashboard,
@@ -124,14 +134,14 @@ export function StudentDashboard() {
         {professorData && !professorData.professor && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">
             <div>
-              <p className="font-semibold text-amber-800 text-sm">You haven't been assigned a professor yet</p>
-              <p className="text-amber-700 text-xs mt-0.5">Choose your professor to start booking classes.</p>
+              <p className="font-semibold text-amber-800 text-sm">{t("professor.no_professor_title")}</p>
+              <p className="text-amber-700 text-xs mt-0.5">{t("professor.no_professor_subtitle")}</p>
             </div>
             <Link
               to="/dashboard/choose-professor"
               className="shrink-0 text-sm font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
             >
-              Choose Professor
+              {t("professor.choose_professor_link")}
             </Link>
           </div>
         )}

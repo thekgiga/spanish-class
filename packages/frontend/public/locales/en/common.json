@@ -180,15 +180,6 @@
     "try_again": "Try Again",
     "refresh_page": "Refresh Page"
   },
-  "rating": {
-    "title": "Rate {{name}}",
-    "description": "How was your experience? Your feedback helps improve the platform.",
-    "rating_label": "Rating",
-    "comment_label": "Comment (Optional)",
-    "comment_placeholder": "Share your thoughts...",
-    "anonymous": "Submit anonymously",
-    "submit": "Submit Rating"
-  },
   "referral": {
     "title": "Your Referral Link",
     "description": "Share this link with friends to earn rewards when they sign up!",

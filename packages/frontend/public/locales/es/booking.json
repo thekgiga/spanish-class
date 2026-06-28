@@ -123,7 +123,9 @@
     "already_booked": "Ya reservado",
     "book_now": "Reservar ahora",
     "booked": "Reservado",
-    "private_invitation": "Invitación privada"
+    "private_invitation": "Invitación privada",
+    "waitlist_available": "Completo — únete a la lista de espera",
+    "no_waitlist": "Completo — no hay lista de espera para clases individuales"
   },
   "confirmation": {
     "title": "Confirmación de reserva",

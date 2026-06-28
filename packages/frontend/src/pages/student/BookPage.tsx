@@ -60,6 +60,7 @@ type SlotWithBookedFlag = AvailabilitySlot & { isBookedByMe: boolean };
 
 export function BookPage() {
   const { t } = useTranslation("booking");
+  const { t: ts } = useTranslation("student");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [filter, setFilter] = useState<string>("all");
   const [forMeOnly, setForMeOnly] = useState(false);
@@ -187,13 +188,13 @@ export function BookPage() {
         {professorAssignment && !professorAssignment.professor && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">
             <p className="text-amber-800 text-sm font-medium">
-              Choose a professor before booking classes.
+              {ts("professor.choose_before_booking")}
             </p>
             <a
               href="/dashboard/choose-professor"
               className="shrink-0 text-sm font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg"
             >
-              Choose Professor
+              {ts("professor.choose_professor_link")}
             </a>
           </div>
         )}
@@ -201,13 +202,13 @@ export function BookPage() {
         {/* Professor context banner */}
         {professorAssignment?.professor && (
           <div className="flex items-center gap-2 text-sm text-slate-500">
-            <span>Showing classes for</span>
+            <span>{ts("professor.showing_classes_for")}</span>
             <span className="font-medium text-slate-700">
               Prof. {professorAssignment.professor.firstName} {professorAssignment.professor.lastName}
             </span>
             {professorAssignment.activeCovers.length > 0 && (
               <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                + {professorAssignment.activeCovers.length} cover professor(s)
+                {ts("professor.cover_count", { count: professorAssignment.activeCovers.length })}
               </span>
             )}
           </div>
@@ -858,12 +859,22 @@ function SlotCard({
           )}
 
           <div className="flex items-center justify-between mt-auto pt-3 border-t">
-            <span className="text-sm text-slate-600">
-              {t("slot.spots_filled", {
-                current: slot.currentParticipants,
-                max: slot.maxParticipants,
-              })}
-            </span>
+            <div>
+              <span className="text-sm text-slate-600">
+                {t("slot.spots_filled", {
+                  current: slot.currentParticipants,
+                  max: slot.maxParticipants,
+                })}
+              </span>
+              {/* W5: Waitlist availability hint */}
+              {slot.currentParticipants >= slot.maxParticipants && (
+                <p className="text-xs mt-0.5">
+                  {slot.slotType === "GROUP"
+                    ? <span className="text-amber-600">{t("slot.waitlist_available")}</span>
+                    : <span className="text-slate-400">{t("slot.no_waitlist")}</span>}
+                </p>
+              )}
+            </div>
             <Button
               size="sm"
               variant={slot.isBookedByMe ? "outline" : "primary"}

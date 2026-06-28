@@ -43,7 +43,7 @@ export function StudentsPage() {
     mutationFn: (studentId: string) => professorApi.removeStudent(studentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["professor-students"] });
-      toast.success("Student removed");
+      toast.success(t("students.assignment.student_removed"));
     },
     onError: (error: any) => toast.error(error.response?.data?.error || "Failed to remove student"),
   });
@@ -52,7 +52,7 @@ export function StudentsPage() {
     mutationFn: (coverId: string) => professorApi.deleteCover(coverId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["professor-covers"] });
-      toast.success("Cover period deleted");
+      toast.success(t("students.assignment.cover_deleted"));
     },
     onError: (error: any) => toast.error(error.response?.data?.error || "Failed to delete cover"),
   });
@@ -79,11 +79,11 @@ export function StudentsPage() {
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setShowCoverModal(true)}>
             <Clock className="h-4 w-4 mr-2" />
-            Set Cover Period
+            {t("students.assignment.cover_button")}
           </Button>
           <Button onClick={() => setShowInviteModal(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Invite Student
+            {t("students.assignment.invite_button")}
           </Button>
         </div>
       </div>
@@ -92,21 +92,21 @@ export function StudentsPage() {
         <TabsList>
           <TabsTrigger value="students">
             <Users className="h-4 w-4 mr-2" />
-            Assigned Students
+            {t("students.assignment.tab_assigned")}
             {data?.pagination.total ? (
               <Badge variant="neutral" className="ml-2 text-xs">{data.pagination.total}</Badge>
             ) : null}
           </TabsTrigger>
           <TabsTrigger value="covers">
             <Clock className="h-4 w-4 mr-2" />
-            Cover Periods
+            {t("students.assignment.tab_covers")}
             {covers?.length ? (
               <Badge variant="neutral" className="ml-2 text-xs">{covers.length}</Badge>
             ) : null}
           </TabsTrigger>
           <TabsTrigger value="invitations">
             <Mail className="h-4 w-4 mr-2" />
-            Pending Invitations
+            {t("students.assignment.tab_invitations")}
             {invitations?.length ? (
               <Badge className="ml-2 text-xs bg-amber-500">{invitations.length}</Badge>
             ) : null}
@@ -158,7 +158,7 @@ export function StudentsPage() {
                           size="sm"
                           className="text-red-500 hover:text-red-700 hover:bg-red-50 p-1"
                           onClick={() => {
-                            if (confirm("Remove this student from your list?")) {
+                            if (confirm(t("students.assignment.remove_student_confirm"))) {
                               removeStudentMutation.mutate(student.id);
                             }
                           }}
@@ -181,12 +181,12 @@ export function StudentsPage() {
               <CardContent className="py-12 text-center">
                 <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                 <p className="text-muted-foreground mb-4">
-                  {search ? t("students.page.no_search_results") : "No students assigned yet. Invite or assign students to get started."}
+                  {search ? t("students.page.no_search_results") : t("students.assignment.no_assigned")}
                 </p>
                 {!search && (
                   <Button onClick={() => setShowInviteModal(true)}>
                     <UserPlus className="h-4 w-4 mr-2" />
-                    Invite Your First Student
+                    {t("students.assignment.invite_first_button")}
                   </Button>
                 )}
               </CardContent>
@@ -200,10 +200,10 @@ export function StudentsPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground mb-4">No cover periods set up.</p>
+                <p className="text-muted-foreground mb-4">{t("students.assignment.no_covers")}</p>
                 <Button onClick={() => setShowCoverModal(true)}>
                   <Clock className="h-4 w-4 mr-2" />
-                  Create Cover Period
+                  {t("students.assignment.cover_create_button")}
                 </Button>
               </CardContent>
             </Card>
@@ -221,12 +221,12 @@ export function StudentsPage() {
                         </span>
                       </p>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        {new Date(cover.startsAt).toLocaleDateString()} – {new Date(cover.endsAt).toLocaleDateString()}
+                        {new Date(cover.startsAt).toLocaleDateString(undefined)} – {new Date(cover.endsAt).toLocaleDateString(undefined)}
                         {new Date(cover.endsAt) < new Date() && (
-                          <Badge variant="neutral" className="ml-2 text-xs">Expired</Badge>
+                          <Badge variant="neutral" className="ml-2 text-xs">{t("students.assignment.cover_expired")}</Badge>
                         )}
                         {new Date(cover.startsAt) <= new Date() && new Date(cover.endsAt) >= new Date() && (
-                          <Badge className="ml-2 text-xs bg-green-500">Active</Badge>
+                          <Badge className="ml-2 text-xs bg-green-500">{t("students.assignment.cover_active")}</Badge>
                         )}
                       </p>
                     </div>
@@ -251,7 +251,7 @@ export function StudentsPage() {
             <Card>
               <CardContent className="py-12 text-center">
                 <Mail className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground">No pending invitations.</p>
+                <p className="text-muted-foreground">{t("students.assignment.no_invitations")}</p>
               </CardContent>
             </Card>
           ) : (
@@ -267,7 +267,7 @@ export function StudentsPage() {
                     </div>
                     <Badge variant="neutral" className="text-xs">
                       <Clock className="h-3 w-3 mr-1" />
-                      Pending
+                      {t("students.assignment.cover_pending")}
                     </Badge>
                   </CardContent>
                 </Card>

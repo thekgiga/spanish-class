@@ -1,5 +1,5 @@
-import { useState, useRef } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,7 +34,10 @@ type AuthMode = "login" | "register" | "register-success" | "totp";
 export function AuthPage() {
   const { t } = useTranslation("auth");
   const location = useLocation();
-  const [mode, setMode] = useState<AuthMode>("login");
+  const [searchParams] = useSearchParams();
+  const [mode, setMode] = useState<AuthMode>(() =>
+    searchParams.get("tab") === "register" ? "register" : "login",
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [totpCode, setTotpCode] = useState("");
   const [totpLoading, setTotpLoading] = useState(false);
@@ -46,16 +49,29 @@ export function AuthPage() {
     (location.state as { from?: { pathname: string } })?.from?.pathname ||
     "/dashboard";
 
+  // Show invitation feedback toasts from backend redirects
+  useEffect(() => {
+    if (searchParams.get("invitation_expired") === "1") {
+      toast.error(t("invitation.expired"));
+    } else if (searchParams.get("invitation_already_accepted") === "1") {
+      toast(t("invitation.already_accepted"));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Login form
   const loginForm = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
   });
 
-  // Register form
+  // Register form — pre-fill from invitation URL params
+  const urlEmail = searchParams.get("email") ?? "";
+  const urlInviteToken = searchParams.get("invite") ?? "";
   const registerForm = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      email: urlEmail || undefined,
+      inviteToken: urlInviteToken || undefined,
     },
   });
 
@@ -332,6 +348,12 @@ export function AuthPage() {
                       </p>
                     )}
                   </div>
+
+                  {urlInviteToken && (
+                    <p className="text-xs text-spanish-teal-600">
+                      ✓ {t("invitation.applied")}
+                    </p>
+                  )}
 
                   <PrimaryButton
                     type="submit"

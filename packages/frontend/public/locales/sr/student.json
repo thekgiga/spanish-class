@@ -147,13 +147,21 @@
   },
   "professor": {
     "no_professor_message": "Još niste dodeljeni profesoru. Izaberite jednog da biste počeli.",
+    "no_professor_title": "Još niste dodeljeni profesoru",
+    "no_professor_subtitle": "Izaberite profesora da biste počeli zakazivati časove.",
     "choose_professor_button": "Izaberite profesora",
+    "choose_professor_link": "Izaberi Profesora",
+    "choose_before_booking": "Izaberite profesora pre zakazivanja časova.",
+    "showing_classes_for": "Prikazuju se časovi za",
+    "cover_count": "+ {{count}} zamjenski profesor(i)",
     "your_professor": "Vaš Profesor",
     "cover_notice": "Prikazuju se i časovi zamjenskog profesora",
     "choose_page_title": "Izaberite Profesora",
     "choose_page_subtitle": "Izaberite profesora s kojim želite učiti",
     "select_button": "Izaberi",
-    "selected_success": "Profesor je izabran! Sada možete zakazivati časove."
+    "selected_success": "Profesor je izabran! Sada možete zakazivati časove.",
+    "spanish_teacher_label": "Nastavnik španskog",
+    "no_professors_yet": "Još nema dostupnih profesora."
   },
   "feedback": {
     "page_title": "Povratne informacije o sesiji",

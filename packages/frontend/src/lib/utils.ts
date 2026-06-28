@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOptions): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(undefined, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -16,24 +16,22 @@ export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOpt
   }).format(d);
 }
 
-export function formatTime(date: Date | string, timezone?: string): string {
+export function formatTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(undefined, {
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: timezone,
   }).format(d);
 }
 
-export function formatDateTime(date: Date | string, timezone?: string): string {
+export function formatDateTime(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: timezone,
   }).format(d);
 }
 

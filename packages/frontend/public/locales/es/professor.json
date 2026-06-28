@@ -91,5 +91,40 @@
     "cancel_invitation": "Cancelar invitación",
     "cancel_invitation_confirm": "Cancelar invitación",
     "student_label": "Estudiante"
+  },
+  "invite_student_modal": {
+    "title": "Invitar estudiante",
+    "description": "Ingresa la dirección de correo del estudiante. Si aún no está registrado, recibirá un enlace de invitación. Si ya está registrado, se le asignará directamente.",
+    "email_label": "Correo del estudiante",
+    "email_placeholder": "estudiante@ejemplo.com",
+    "cancel_button": "Cancelar",
+    "submit_button": "Enviar invitación",
+    "submit_loading": "Enviando…"
+  },
+  "create_cover_modal": {
+    "title": "Crear período de sustitución",
+    "description": "Asigna un profesor sustituto para tus estudiantes durante un período específico (ej. vacaciones). Los estudiantes verán los horarios de ese profesor + los tuyos durante ese tiempo.",
+    "cover_professor_label": "Profesor sustituto",
+    "cover_professor_placeholder": "Selecciona un profesor",
+    "starts_at_label": "Comienza el",
+    "ends_at_label": "Termina el",
+    "apply_to_all_label": "Aplicar a todos mis estudiantes",
+    "select_students_label": "Seleccionar estudiantes",
+    "cancel_button": "Cancelar",
+    "submit_button": "Crear sustitución",
+    "submit_loading": "Creando…"
+  },
+  "meeting_notes": {
+    "title": "Notas de la sesión",
+    "agenda_label": "Agenda / Notas previas a la clase",
+    "agenda_placeholder": "¿Qué planeas cubrir en esta sesión?",
+    "session_label": "Notas de la sesión",
+    "session_placeholder": "¿Cómo fue la sesión? Puntos clave, progreso del estudiante, próximos pasos…",
+    "save": "Guardar notas",
+    "saving": "Guardando…",
+    "cancel": "Cancelar",
+    "saved": "Notas guardadas",
+    "save_error": "Error al guardar notas",
+    "open_button": "Notas de sesión"
   }
 }

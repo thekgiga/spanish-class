@@ -103,17 +103,17 @@ async function aggregateDailyForProfessor(
     },
   });
 
-  // Average rating received on this day
-  const ratings = await prisma.rating.findMany({
+  // Average feedback rating received on this day (from SessionFeedback)
+  const feedbacks = await prisma.sessionFeedback.findMany({
     where: {
-      rateeId: professorId,
+      professorId,
       createdAt: { gte: dayStart, lte: dayEnd },
     },
     select: { rating: true },
   });
   const averageRating =
-    ratings.length > 0
-      ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+    feedbacks.length > 0
+      ? feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length
       : null;
 
   await prisma.professorDailyStats.upsert({
@@ -192,17 +192,17 @@ async function aggregateMonthlyForProfessor(
     retentionRate = Math.round((returningStudents / uniqueStudents) * 100) / 100;
   }
 
-  // Average rating for the month
-  const ratings = await prisma.rating.findMany({
+  // Average feedback rating for the month (from SessionFeedback)
+  const feedbacks = await prisma.sessionFeedback.findMany({
     where: {
-      rateeId: professorId,
+      professorId,
       createdAt: { gte: monthStart, lte: monthEnd },
     },
     select: { rating: true },
   });
   const averageRating =
-    ratings.length > 0
-      ? Math.round((ratings.reduce((s, r) => s + r.rating, 0) / ratings.length) * 10) / 10
+    feedbacks.length > 0
+      ? Math.round((feedbacks.reduce((s, f) => s + f.rating, 0) / feedbacks.length) * 10) / 10
       : null;
 
   await prisma.professorMonthlyStats.upsert({

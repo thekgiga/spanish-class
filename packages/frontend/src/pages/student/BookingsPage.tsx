@@ -35,9 +35,7 @@ import type { BookingWithSlot } from "@spanish-class/shared";
 
 export function BookingsPage() {
   const { t } = useTranslation("booking");
-  const [cancelBooking, setCancelBooking] = useState<BookingWithSlot | null>(
-    null,
-  );
+  const [cancelBooking, setCancelBooking] = useState<BookingWithSlot | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const queryClient = useQueryClient();
 

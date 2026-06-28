@@ -43,6 +43,7 @@
       "create_button": "Crear espacios",
       "creating": "Creando...",
       "success": "¡Se crearon {{count}} espacios con éxito!",
+      "success_with_skips": "Se crearon {{count}} espacio(s). {{skipped}} fecha(s) se omitieron por superposición con espacios existentes.",
       "error": "Error al crear espacios"
     },
     "filters": {
@@ -73,6 +74,30 @@
     "update_success": "Espacio actualizado con éxito",
     "delete_success": "Espacio eliminado con éxito",
     "recurring_success": "{{count}} espacios recurrentes creados",
+    "patterns": {
+      "tab_label": "Patrones recurrentes",
+      "untitled": "Patrón sin título",
+      "inactive": "Inactivo",
+      "max_participants": "Máx. {{count}} participantes",
+      "edit_button": "Editar",
+      "delete_button": "Eliminar patrón",
+      "empty": "Aún no hay patrones recurrentes. Usa la creación masiva para configurar uno.",
+      "edit_title": "Editar patrón recurrente",
+      "edit_description": "Los cambios se aplican a este patrón y a todos los espacios futuros disponibles.",
+      "title_label": "Título",
+      "title_placeholder": "ej. Español matutino",
+      "description_label": "Descripción (opcional)",
+      "description_placeholder": "¿Qué se cubrirá en estas sesiones?",
+      "max_participants_label": "Participantes máx.",
+      "save_button": "Guardar cambios",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "update_success": "Patrón y espacios futuros actualizados",
+      "delete_success": "Patrón desactivado y espacios futuros cancelados",
+      "confirm_delete_title": "Eliminar patrón recurrente",
+      "confirm_delete_description": "Esto cancelará todos los espacios futuros disponibles en este patrón. Los estudiantes con reservas confirmadas no se verán afectados.",
+      "confirm_delete_button": "Eliminar patrón"
+    },
     "form": {
       "mode": {
         "single": "Individual",
@@ -203,6 +228,23 @@
       "no_search_results": "No se encontraron estudiantes que coincidan con tu búsqueda",
       "no_students_yet": "Aún no hay estudiantes registrados"
     },
+    "assignment": {
+      "remove_student_confirm": "¿Eliminar a este estudiante de tu lista?",
+      "cover_button": "Establecer período de sustitución",
+      "tab_assigned": "Estudiantes asignados",
+      "tab_covers": "Períodos de sustitución",
+      "tab_invitations": "Invitaciones pendientes",
+      "no_assigned": "Aún no hay estudiantes asignados. Invita o asigna estudiantes para comenzar.",
+      "invite_first_button": "Invita a tu primer estudiante",
+      "student_removed": "Estudiante eliminado",
+      "cover_deleted": "Período de sustitución eliminado",
+      "no_covers": "No hay períodos de sustitución configurados.",
+      "cover_create_button": "Crear período de sustitución",
+      "no_invitations": "No hay invitaciones pendientes.",
+      "cover_active": "Activo",
+      "cover_expired": "Expirado",
+      "cover_pending": "Pendiente"
+    },
     "detail": {
       "title": "Perfil del estudiante",
       "joined": "Se unió",
@@ -233,7 +275,8 @@
       },
       "bookings_tab": {
         "spanish_class": "Clase de español",
-        "no_bookings": "Aún no hay reservas"
+        "no_bookings": "Aún no hay reservas",
+        "meeting_notes": "Notas de sesión"
       },
       "notes_tab": {
         "add_note": "Agregar nota",
@@ -354,6 +397,16 @@
     "what_was_good": "Qué fue bueno",
     "what_could_improve": "Qué podría mejorar",
     "student_label": "Estudiante",
-    "session_date": "Fecha de sesión"
+    "session_date": "Fecha de sesión",
+    "export_csv": "Exportar CSV",
+    "exporting": "Exportando…",
+    "professor_response_label": "Respuesta del profesor",
+    "add_response_button": "Agregar respuesta",
+    "edit_response_button": "Editar respuesta",
+    "response_placeholder": "Escribe tu respuesta a este comentario…",
+    "submit_response": "Guardar respuesta",
+    "submitting_response": "Guardando…",
+    "response_saved": "Respuesta guardada",
+    "cancel": "Cancelar"
   }
 }

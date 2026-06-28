@@ -15,7 +15,6 @@ export async function incrementEngagementStat(
     ...(lastBookingDate ? { lastBookingDate } : {}),
   };
 
-  // Build create data with only the incremented field set to 1
   const createBase = {
     studentId,
     totalClassesBooked: 0,
@@ -43,30 +42,4 @@ export async function incrementEngagementStat(
       create: { ...createBase, totalClassesCancelled: 1 },
     });
   }
-}
-
-/**
- * Recompute and store the average rating given by a student across all their ratings.
- * Called non-blocking after a student submits a new rating.
- */
-export async function updateAverageRatingGiven(studentId: string): Promise<void> {
-  const agg = await prisma.rating.aggregate({
-    where: { raterId: studentId },
-    _avg: { rating: true },
-  });
-
-  const avg = agg._avg.rating ?? null;
-
-  await prisma.studentEngagementStats.upsert({
-    where: { studentId },
-    update: { averageRatingGiven: avg },
-    create: {
-      studentId,
-      totalClassesBooked: 0,
-      totalClassesAttended: 0,
-      totalClassesCancelled: 0,
-      noShowCount: 0,
-      averageRatingGiven: avg,
-    },
-  });
 }

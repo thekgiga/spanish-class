@@ -16,6 +16,8 @@ import {
   BookOpen,
   Target,
   MessageSquare,
+  Reply,
+  Loader2,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +35,109 @@ import {
 } from "@/components/ui/dialog";
 import { professorApi, feedbackApi } from "@/lib/api";
 import { getInitials, formatDate, formatTime } from "@/lib/utils";
+import { MeetingNotesEditor } from "@/components/professor/MeetingNotesEditor";
+
+function FeedbackCard({ fb, studentId }: { fb: any; studentId: string }) {
+  const { t } = useTranslation("admin");
+  const queryClient = useQueryClient();
+  const [showResponseForm, setShowResponseForm] = useState(false);
+  const [responseText, setResponseText] = useState(fb.professorResponse ?? "");
+
+  const responseMutation = useMutation({
+    mutationFn: (response: string) => feedbackApi.respondToFeedback(fb.id, response),
+    onSuccess: () => {
+      toast.success(t("feedback.response_saved"));
+      queryClient.invalidateQueries({ queryKey: ["student-feedback", studentId] });
+      setShowResponseForm(false);
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error || "Failed to save response"),
+  });
+
+  return (
+    <Card className="border border-slate-100">
+      <CardContent className="p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <span key={s} className={`text-lg ${s <= fb.rating ? "text-yellow-400" : "text-slate-200"}`}>★</span>
+            ))}
+          </div>
+          <span className="text-xs text-slate-400">
+            {fb.booking?.slot?.startTime ? formatDate(fb.booking.slot.startTime) : ""}
+          </span>
+        </div>
+        {fb.booking?.slot?.title && (
+          <p className="text-xs text-slate-500 font-medium">{fb.booking.slot.title}</p>
+        )}
+        {fb.whatWasGood && (
+          <div className="bg-green-50 rounded-lg px-3 py-2">
+            <p className="text-xs font-medium text-green-700 mb-0.5">{t("feedback.what_was_good")}</p>
+            <p className="text-sm text-slate-700">{fb.whatWasGood}</p>
+          </div>
+        )}
+        {fb.whatCouldBeImproved && (
+          <div className="bg-amber-50 rounded-lg px-3 py-2">
+            <p className="text-xs font-medium text-amber-700 mb-0.5">{t("feedback.what_could_improve")}</p>
+            <p className="text-sm text-slate-700">{fb.whatCouldBeImproved}</p>
+          </div>
+        )}
+
+        {/* SF5: Professor response */}
+        {fb.professorResponse && !showResponseForm && (
+          <div className="bg-spanish-teal-50 border border-spanish-teal-200 rounded-lg px-3 py-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-spanish-teal-700">{t("feedback.professor_response_label")}</span>
+              <button
+                type="button"
+                onClick={() => { setResponseText(fb.professorResponse ?? ""); setShowResponseForm(true); }}
+                className="text-xs text-spanish-teal-600 hover:text-spanish-teal-800 underline"
+              >
+                {t("feedback.edit_response_button")}
+              </button>
+            </div>
+            <p className="text-xs text-slate-700">{fb.professorResponse}</p>
+          </div>
+        )}
+
+        {showResponseForm ? (
+          <div className="space-y-2 pt-1">
+            <Textarea
+              value={responseText}
+              onChange={(e) => setResponseText(e.target.value)}
+              placeholder={t("feedback.response_placeholder")}
+              rows={3}
+              className="text-sm"
+            />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className="bg-spanish-teal-600 hover:bg-spanish-teal-700"
+                disabled={!responseText.trim() || responseMutation.isPending}
+                onClick={() => responseMutation.mutate(responseText.trim())}
+              >
+                {responseMutation.isPending
+                  ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />{t("feedback.submitting_response")}</>
+                  : t("feedback.submit_response")}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setShowResponseForm(false)} disabled={responseMutation.isPending}>
+                {t("feedback.cancel")}
+              </Button>
+            </div>
+          </div>
+        ) : !fb.professorResponse ? (
+          <button
+            type="button"
+            onClick={() => { setResponseText(""); setShowResponseForm(true); }}
+            className="flex items-center gap-1 text-xs text-spanish-teal-600 hover:text-spanish-teal-800"
+          >
+            <Reply className="h-3 w-3" />
+            {t("feedback.add_response_button")}
+          </button>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
 
 export function StudentDetailPage() {
   const { t } = useTranslation("admin");
@@ -42,6 +147,8 @@ export function StudentDetailPage() {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<any>(null);
   const [noteContent, setNoteContent] = useState("");
+  const [meetingNotesBookingId, setMeetingNotesBookingId] = useState<string | null>(null);
+  const [meetingNotesTitle, setMeetingNotesTitle] = useState<string | undefined>();
 
   const { data: student, isLoading } = useQuery({
     queryKey: ["student", id],
@@ -414,6 +521,16 @@ export function StudentDetailPage() {
                           Mark No-Show
                         </button>
                       )}
+                    <button
+                      type="button"
+                      className="text-xs px-2 py-1 rounded border border-spanish-teal-300 text-spanish-teal-700 hover:bg-spanish-teal-50 transition-colors"
+                      onClick={() => {
+                        setMeetingNotesBookingId(booking.id);
+                        setMeetingNotesTitle(booking.slot?.title || undefined);
+                      }}
+                    >
+                      {t("students.detail.bookings_tab.meeting_notes")}
+                    </button>
                   </div>
                 </CardContent>
               </Card>
@@ -483,35 +600,7 @@ export function StudentDetailPage() {
         <TabsContent value="feedback" className="mt-6 space-y-4">
           {feedbackData?.data?.feedback?.length > 0 ? (
             feedbackData.data.feedback.map((fb: any) => (
-              <Card key={fb.id} className="border border-slate-100">
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex gap-0.5">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <span key={s} className={`text-lg ${s <= fb.rating ? "text-yellow-400" : "text-slate-200"}`}>★</span>
-                      ))}
-                    </div>
-                    <span className="text-xs text-slate-400">
-                      {fb.booking?.slot?.startTime ? formatDate(fb.booking.slot.startTime) : ""}
-                    </span>
-                  </div>
-                  {fb.booking?.slot?.title && (
-                    <p className="text-xs text-slate-500 font-medium">{fb.booking.slot.title}</p>
-                  )}
-                  {fb.whatWasGood && (
-                    <div className="bg-green-50 rounded-lg px-3 py-2">
-                      <p className="text-xs font-medium text-green-700 mb-0.5">What was good</p>
-                      <p className="text-sm text-slate-700">{fb.whatWasGood}</p>
-                    </div>
-                  )}
-                  {fb.whatCouldBeImproved && (
-                    <div className="bg-amber-50 rounded-lg px-3 py-2">
-                      <p className="text-xs font-medium text-amber-700 mb-0.5">Could be improved</p>
-                      <p className="text-sm text-slate-700">{fb.whatCouldBeImproved}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              <FeedbackCard key={fb.id} fb={fb} studentId={id!} />
             ))
           ) : (
             <Card>
@@ -558,6 +647,15 @@ export function StudentDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {meetingNotesBookingId && (
+        <MeetingNotesEditor
+          open={!!meetingNotesBookingId}
+          onOpenChange={(open) => { if (!open) setMeetingNotesBookingId(null); }}
+          bookingId={meetingNotesBookingId}
+          sessionTitle={meetingNotesTitle}
+        />
+      )}
     </div>
   );
 }

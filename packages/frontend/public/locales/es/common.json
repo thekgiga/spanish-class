@@ -180,15 +180,6 @@
     "try_again": "Intentar de nuevo",
     "refresh_page": "Actualizar página"
   },
-  "rating": {
-    "title": "Calificar a {{name}}",
-    "description": "¿Cómo fue tu experiencia? Tus comentarios ayudan a mejorar la plataforma.",
-    "rating_label": "Calificación",
-    "comment_label": "Comentario (Opcional)",
-    "comment_placeholder": "Comparte tu opinión...",
-    "anonymous": "Enviar de forma anónima",
-    "submit": "Enviar calificación"
-  },
   "referral": {
     "title": "Tu enlace de referido",
     "description": "¡Comparte este enlace con amigos para ganar recompensas cuando se registren!",

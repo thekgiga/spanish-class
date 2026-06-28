@@ -123,7 +123,9 @@
     "already_booked": "Već zakazano",
     "book_now": "Zakažite sada",
     "booked": "Zakazano",
-    "private_invitation": "Privatna pozivnica"
+    "private_invitation": "Privatna pozivnica",
+    "waitlist_available": "Popunjeno — pridružite se listi čekanja",
+    "no_waitlist": "Popunjeno — lista čekanja nije dostupna za individualne časove"
   },
   "confirmation": {
     "title": "Potvrda zakazivanja",

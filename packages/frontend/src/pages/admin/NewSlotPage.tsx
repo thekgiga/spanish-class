@@ -559,7 +559,7 @@ export function NewSlotPage() {
                   <ChevronLeft className="h-5 w-5" />
                 </button>
                 <h3 className="font-semibold">
-                  {calendarMonth.toLocaleDateString("en-US", {
+                  {calendarMonth.toLocaleDateString(undefined, {
                     month: "long",
                     year: "numeric",
                   })}
@@ -621,7 +621,7 @@ export function NewSlotPage() {
               <div className="mt-4 p-3 bg-muted rounded-lg text-center">
                 <p className="text-sm text-muted-foreground">Selected</p>
                 <p className="font-semibold text-navy-800">
-                  {selectedDate.toLocaleDateString("en-US", {
+                  {selectedDate.toLocaleDateString(undefined, {
                     weekday: "long",
                     month: "long",
                     day: "numeric",
@@ -736,7 +736,7 @@ export function NewSlotPage() {
                 </CardTitle>
                 <CardDescription>
                   {t("slots.form.existing_slots.subtitle", {
-                    date: selectedDate.toLocaleDateString("en-US", {
+                    date: selectedDate.toLocaleDateString(undefined, {
                       weekday: "short",
                       month: "short",
                       day: "numeric",

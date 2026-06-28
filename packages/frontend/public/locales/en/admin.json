@@ -43,6 +43,7 @@
       "create_button": "Create Slots",
       "creating": "Creating...",
       "success": "Created {{count}} slots successfully!",
+      "success_with_skips": "Created {{count}} slot(s). {{skipped}} date(s) were skipped due to overlap with existing slots.",
       "error": "Failed to create slots"
     },
     "filters": {
@@ -73,6 +74,30 @@
     "update_success": "Slot updated successfully",
     "delete_success": "Slot deleted successfully",
     "recurring_success": "{{count}} recurring slots created",
+    "patterns": {
+      "tab_label": "Recurring Patterns",
+      "untitled": "Untitled pattern",
+      "inactive": "Inactive",
+      "max_participants": "Max {{count}} participants",
+      "edit_button": "Edit",
+      "delete_button": "Delete Pattern",
+      "empty": "No recurring patterns yet. Use Bulk Create to set one up.",
+      "edit_title": "Edit Recurring Pattern",
+      "edit_description": "Changes apply to this pattern and all future available slots.",
+      "title_label": "Title",
+      "title_placeholder": "e.g. Morning Spanish",
+      "description_label": "Description (optional)",
+      "description_placeholder": "What will these sessions cover?",
+      "max_participants_label": "Max Participants",
+      "save_button": "Save Changes",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "update_success": "Pattern and future slots updated",
+      "delete_success": "Pattern deactivated and future slots cancelled",
+      "confirm_delete_title": "Delete Recurring Pattern",
+      "confirm_delete_description": "This will cancel all future available slots in this pattern. Students with confirmed bookings will not be affected.",
+      "confirm_delete_button": "Delete Pattern"
+    },
     "form": {
       "mode": {
         "single": "Single",
@@ -203,6 +228,23 @@
       "no_search_results": "No students found matching your search",
       "no_students_yet": "No students registered yet"
     },
+    "assignment": {
+      "remove_student_confirm": "Remove this student from your list?",
+      "cover_button": "Set Cover Period",
+      "tab_assigned": "Assigned Students",
+      "tab_covers": "Cover Periods",
+      "tab_invitations": "Pending Invitations",
+      "no_assigned": "No students assigned yet. Invite or assign students to get started.",
+      "invite_first_button": "Invite Your First Student",
+      "student_removed": "Student removed",
+      "cover_deleted": "Cover period deleted",
+      "no_covers": "No cover periods set up.",
+      "cover_create_button": "Create Cover Period",
+      "no_invitations": "No pending invitations.",
+      "cover_active": "Active",
+      "cover_expired": "Expired",
+      "cover_pending": "Pending"
+    },
     "detail": {
       "title": "Student Profile",
       "joined": "Joined",
@@ -233,7 +275,8 @@
       },
       "bookings_tab": {
         "spanish_class": "Spanish Class",
-        "no_bookings": "No bookings yet"
+        "no_bookings": "No bookings yet",
+        "meeting_notes": "Meeting Notes"
       },
       "notes_tab": {
         "add_note": "Add Note",
@@ -354,6 +397,16 @@
     "what_was_good": "What was good",
     "what_could_improve": "What could improve",
     "student_label": "Student",
-    "session_date": "Session Date"
+    "session_date": "Session Date",
+    "export_csv": "Export CSV",
+    "exporting": "Exporting…",
+    "professor_response_label": "Professor's Response",
+    "add_response_button": "Add Response",
+    "edit_response_button": "Edit Response",
+    "response_placeholder": "Write your response to this feedback…",
+    "submit_response": "Save Response",
+    "submitting_response": "Saving…",
+    "response_saved": "Response saved",
+    "cancel": "Cancel"
   }
 }

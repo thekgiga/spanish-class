@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
-import { Star, MessageSquare, ChevronDown, ChevronUp, Users } from "lucide-react";
+import { Star, MessageSquare, ChevronDown, ChevronUp, Users, Download, Loader2, Reply } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
 import { feedbackApi } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 
@@ -22,9 +25,26 @@ function StarRating({ rating }: { rating: number }) {
   );
 }
 
-function FeedbackEntry({ entry }: { entry: any }) {
+function FeedbackEntry({ entry, canRespond }: { entry: any; canRespond?: boolean }) {
+  const { t } = useTranslation("admin");
+  const queryClient = useQueryClient();
+  const [showResponseForm, setShowResponseForm] = useState(false);
+  const [responseText, setResponseText] = useState(entry.professorResponse ?? "");
+
+  const responseMutation = useMutation({
+    mutationFn: (response: string) => feedbackApi.respondToFeedback(entry.id, response),
+    onSuccess: () => {
+      toast.success(t("feedback.response_saved"));
+      queryClient.invalidateQueries({ queryKey: ["professor-feedback"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-feedback-summary"] });
+      queryClient.invalidateQueries({ queryKey: ["student-feedback"] });
+      setShowResponseForm(false);
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error || "Failed to save response"),
+  });
+
   return (
-    <div className="border-b border-slate-100 last:border-0 py-3 space-y-1.5">
+    <div className="border-b border-slate-100 last:border-0 py-3 space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-slate-700">
@@ -41,15 +61,74 @@ function FeedbackEntry({ entry }: { entry: any }) {
       )}
       {entry.whatWasGood && (
         <div>
-          <span className="text-xs font-medium text-green-700">What was good: </span>
+          <span className="text-xs font-medium text-green-700">{t("feedback.what_was_good")}: </span>
           <span className="text-xs text-slate-600">{entry.whatWasGood}</span>
         </div>
       )}
       {entry.whatCouldBeImproved && (
         <div>
-          <span className="text-xs font-medium text-amber-700">Could improve: </span>
+          <span className="text-xs font-medium text-amber-700">{t("feedback.what_could_improve")}: </span>
           <span className="text-xs text-slate-600">{entry.whatCouldBeImproved}</span>
         </div>
+      )}
+
+      {/* SF5: Professor response display */}
+      {entry.professorResponse && !showResponseForm && (
+        <div className="bg-spanish-teal-50 border border-spanish-teal-200 rounded-lg px-3 py-2">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-xs font-medium text-spanish-teal-700">{t("feedback.professor_response_label")}</span>
+            {canRespond && (
+              <button
+                type="button"
+                onClick={() => { setResponseText(entry.professorResponse ?? ""); setShowResponseForm(true); }}
+                className="text-xs text-spanish-teal-600 hover:text-spanish-teal-800 underline"
+              >
+                {t("feedback.edit_response_button")}
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-slate-700">{entry.professorResponse}</p>
+        </div>
+      )}
+
+      {/* SF5: Add/edit response form */}
+      {canRespond && showResponseForm && (
+        <div className="space-y-2 pt-1">
+          <Textarea
+            value={responseText}
+            onChange={(e) => setResponseText(e.target.value)}
+            placeholder={t("feedback.response_placeholder")}
+            rows={3}
+            className="text-sm"
+          />
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              className="bg-spanish-teal-600 hover:bg-spanish-teal-700"
+              disabled={!responseText.trim() || responseMutation.isPending}
+              onClick={() => responseMutation.mutate(responseText.trim())}
+            >
+              {responseMutation.isPending
+                ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />{t("feedback.submitting_response")}</>
+                : t("feedback.submit_response")}
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setShowResponseForm(false)} disabled={responseMutation.isPending}>
+              {t("feedback.cancel")}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* SF5: Add response button (when no response yet) */}
+      {canRespond && !entry.professorResponse && !showResponseForm && (
+        <button
+          type="button"
+          onClick={() => { setResponseText(""); setShowResponseForm(true); }}
+          className="flex items-center gap-1 text-xs text-spanish-teal-600 hover:text-spanish-teal-800"
+        >
+          <Reply className="h-3 w-3" />
+          {t("feedback.add_response_button")}
+        </button>
       )}
     </div>
   );
@@ -105,7 +184,7 @@ function ProfessorFeedbackCard({ summary }: { summary: any }) {
           {fullFeedback?.data?.feedback?.length > 0 ? (
             <div>
               {fullFeedback.data.feedback.map((entry: any) => (
-                <FeedbackEntry key={entry.id} entry={entry} />
+                <FeedbackEntry key={entry.id} entry={entry} canRespond />
               ))}
             </div>
           ) : (
@@ -136,6 +215,7 @@ function ProfessorFeedbackCard({ summary }: { summary: any }) {
 
 export function FeedbackDashboard() {
   const { t } = useTranslation("admin");
+  const [exporting, setExporting] = useState(false);
 
   const { data: summary, isLoading } = useQuery({
     queryKey: ["admin-feedback-summary"],
@@ -148,13 +228,38 @@ export function FeedbackDashboard() {
       ? summary.reduce((s: number, p: any) => s + (p.avgRating ?? 0), 0) / summary.filter((p: any) => p.avgRating !== null).length
       : null;
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const blob = await feedbackApi.exportCsv();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "feedback-export.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Export failed");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-display font-bold text-navy-800">
-          {t("feedback.dashboard_title")}
-        </h1>
-        <p className="text-muted-foreground">{t("feedback.dashboard_subtitle")}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-bold text-navy-800">
+            {t("feedback.dashboard_title")}
+          </h1>
+          <p className="text-muted-foreground">{t("feedback.dashboard_subtitle")}</p>
+        </div>
+        {/* SF4: Export CSV button */}
+        <Button variant="outline" size="sm" onClick={handleExport} disabled={exporting || totalFeedback === 0}>
+          {exporting
+            ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />{t("feedback.exporting")}</>
+            : <><Download className="h-4 w-4 mr-2" />{t("feedback.export_csv")}</>}
+        </Button>
       </div>
 
       {/* Summary stats */}

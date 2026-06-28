@@ -41,6 +41,13 @@ export const createSlotSchema = z
     message: "End time must be after start time",
   })
   .refine(
+    (data) => {
+      const mins = (new Date(data.endTime).getTime() - new Date(data.startTime).getTime()) / 60000;
+      return mins >= 15 && mins <= 240;
+    },
+    { message: "Slot duration must be between 15 minutes and 4 hours" },
+  )
+  .refine(
     (data) =>
       !data.isPrivate ||
       (data.allowedStudentIds && data.allowedStudentIds.length > 0),
@@ -73,6 +80,15 @@ export const bulkCreateSlotSchema = z
   .refine((data) => data.endTime > data.startTime, {
     message: "End time must be after start time",
   })
+  .refine(
+    (data) => {
+      const [sh, sm] = data.startTime.split(":").map(Number);
+      const [eh, em] = data.endTime.split(":").map(Number);
+      const mins = (eh * 60 + em) - (sh * 60 + sm);
+      return mins >= 15 && mins <= 240;
+    },
+    { message: "Slot duration must be between 15 minutes and 4 hours" },
+  )
   .refine(
     (data) =>
       !data.isPrivate ||
@@ -107,6 +123,15 @@ export const createRecurringPatternSchema = z
   .refine((data) => data.endTime > data.startTime, {
     message: "End time must be after start time",
   })
+  .refine(
+    (data) => {
+      const [sh, sm] = data.startTime.split(":").map(Number);
+      const [eh, em] = data.endTime.split(":").map(Number);
+      const mins = (eh * 60 + em) - (sh * 60 + sm);
+      return mins >= 15 && mins <= 240;
+    },
+    { message: "Slot duration must be between 15 minutes and 4 hours" },
+  )
   .refine(
     (data) =>
       !data.isPrivate ||
@@ -372,21 +397,6 @@ export const updatePricingSchema = z.object({
 export type CreatePricingInput = z.infer<typeof createPricingSchema>;
 export type UpdatePricingInput = z.infer<typeof updatePricingSchema>;
 
-// Rating Schemas
-export const createRatingSchema = z.object({
-  rateeId: z.string().min(1, "Ratee ID is required"),
-  bookingId: z.string().optional(),
-  rating: z
-    .number()
-    .int()
-    .min(1, "Rating must be at least 1")
-    .max(5, "Rating must be at most 5"),
-  comment: z.string().max(1000).optional(),
-  isAnonymous: z.boolean().default(false),
-});
-
-export type CreateRatingInput = z.infer<typeof createRatingSchema>;
-
 // Booking Confirmation Schemas
 export const confirmBookingSchema = z.object({
   token: z.string().min(1, "Confirmation token is required"),
@@ -554,3 +564,30 @@ export const submitFeedbackSchema = z.object({
 });
 
 export type SubmitFeedbackInput = z.infer<typeof submitFeedbackSchema>;
+
+// ── Meeting Notes Schema ──────────────────────────────────────────────────────
+
+export const upsertMeetingNoteSchema = z.object({
+  agendaNotes: z.string().max(5000).optional(),
+  sessionNotes: z.string().max(5000).optional(),
+});
+
+export type UpsertMeetingNoteInput = z.infer<typeof upsertMeetingNoteSchema>;
+
+// ── Feedback Response Schema ──────────────────────────────────────────────────
+
+export const respondToFeedbackSchema = z.object({
+  response: z.string().min(1, "Response cannot be empty").max(2000),
+});
+
+export type RespondToFeedbackInput = z.infer<typeof respondToFeedbackSchema>;
+
+// ── Update Recurring Pattern Schema ──────────────────────────────────────────
+
+export const updateRecurringPatternSchema = z.object({
+  title: z.string().max(100).optional().nullable(),
+  description: z.string().max(500).optional().nullable(),
+  maxParticipants: z.number().int().min(1).max(20).optional(),
+});
+
+export type UpdateRecurringPatternInput = z.infer<typeof updateRecurringPatternSchema>;

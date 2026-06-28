@@ -337,7 +337,7 @@ export function StudentProfilePage() {
 
   const formatDateForDisplay = (dateString: string) => {
     if (!dateString) return "Not provided";
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString(undefined, {
       year: "numeric",
       month: "long",
       day: "numeric",

@@ -1,12 +1,14 @@
 import { Router } from "express";
 import { authenticate, requireAdmin, requireStudent } from "../middleware/auth.js";
 import { validate, validateQuery } from "../middleware/validate.js";
-import { submitFeedbackSchema, paginationSchema } from "@spanish-class/shared";
+import { submitFeedbackSchema, paginationSchema, respondToFeedbackSchema } from "@spanish-class/shared";
 import {
   submitFeedback,
   getProfessorFeedback,
   getAdminFeedbackSummary,
   getBookingFeedback,
+  exportFeedbackCsv,
+  respondToFeedback,
 } from "../services/sessionFeedback.js";
 import { AppError } from "../middleware/error.js";
 
@@ -77,6 +79,43 @@ router.get("/admin/summary", requireAdmin, async (req, res, next) => {
   try {
     const summary = await getAdminFeedbackSummary();
     res.json({ success: true, data: summary });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/feedback/admin/export — SF4: admin exports all feedback as CSV
+ * Query params: professorId? (filter by professor), startDate?, endDate?
+ */
+router.get("/admin/export", requireAdmin, async (req, res, next) => {
+  try {
+    const { professorId, startDate, endDate } = req.query as {
+      professorId?: string;
+      startDate?: string;
+      endDate?: string;
+    };
+    const csv = await exportFeedbackCsv(
+      professorId || undefined,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", `attachment; filename="feedback-export.csv"`);
+    res.send(csv);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/feedback/:id/respond — SF5: professor adds/updates response to feedback
+ */
+router.post("/:id/respond", requireAdmin, validate(respondToFeedbackSchema), async (req, res, next) => {
+  try {
+    const { response } = req.body;
+    const updated = await respondToFeedback(req.params.id, req.user!.id, response);
+    res.json({ success: true, data: updated });
   } catch (error) {
     next(error);
   }

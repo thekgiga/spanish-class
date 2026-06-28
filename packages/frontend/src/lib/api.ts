@@ -229,9 +229,9 @@ export const professorApi = {
 
   createBulkSlots: async (
     data: BulkCreateSlotInput,
-  ): Promise<AvailabilitySlot[]> => {
+  ): Promise<{ slots: AvailabilitySlot[]; skippedDates: string[]; message: string }> => {
     const res = await api.post("/professor/slots/bulk", data);
-    return res.data.data;
+    return { slots: res.data.data, skippedDates: res.data.skippedDates ?? [], message: res.data.message };
   },
 
   updateSlot: async (
@@ -316,6 +316,14 @@ export const professorApi = {
 
   deleteRecurringPattern: async (id: string): Promise<void> => {
     await api.delete(`/professor/recurring-patterns/${id}`);
+  },
+
+  updateRecurringPattern: async (
+    id: string,
+    data: { title?: string | null; description?: string | null; maxParticipants?: number },
+  ) => {
+    const res = await api.patch(`/professor/recurring-patterns/${id}`, data);
+    return res.data.data;
   },
 
   // Direct booking
@@ -417,6 +425,16 @@ export const professorApi = {
 
   getPendingInvitations: async () => {
     const res = await api.get("/professor/pending-invitations");
+    return res.data.data;
+  },
+
+  getMeetingNote: async (bookingId: string): Promise<{ agendaNotes?: string; sessionNotes?: string } | null> => {
+    const res = await api.get(`/professor/bookings/${bookingId}/meeting-notes`);
+    return res.data.data;
+  },
+
+  saveMeetingNote: async (bookingId: string, data: { agendaNotes?: string; sessionNotes?: string }) => {
+    const res = await api.put(`/professor/bookings/${bookingId}/meeting-notes`, data);
     return res.data.data;
   },
 };
@@ -645,34 +663,6 @@ export const getReferralStats = async (): Promise<any> => {
   return response.data.data;
 };
 
-// Rating APIs
-export const submitRating = async (
-  rateeId: string,
-  rating: number,
-  comment?: string,
-  bookingId?: string,
-  isAnonymous?: boolean,
-): Promise<any> => {
-  const response = await api.post("/ratings", {
-    rateeId,
-    rating,
-    comment,
-    bookingId,
-    isAnonymous,
-  });
-  return response.data.data;
-};
-
-export const getUserRatings = async (userId: string): Promise<any> => {
-  const response = await api.get(`/ratings/user/${userId}`);
-  return response.data.data;
-};
-
-export const getPendingRatings = async (): Promise<any> => {
-  const response = await api.get("/ratings/pending");
-  return response.data.data;
-};
-
 // Public endpoints (no auth required)
 export const getPublicProfessors = async (): Promise<
   Array<{ id: string; firstName: string; lastName: string }>
@@ -720,6 +710,20 @@ export const feedbackApi = {
 
   getBookingFeedback: async (bookingId: string) => {
     const res = await api.get(`/feedback/booking/${bookingId}`);
+    return res.data.data;
+  },
+
+  exportCsv: async (params?: { professorId?: string; startDate?: string; endDate?: string }): Promise<Blob> => {
+    const query = new URLSearchParams();
+    if (params?.professorId) query.set("professorId", params.professorId);
+    if (params?.startDate) query.set("startDate", params.startDate);
+    if (params?.endDate) query.set("endDate", params.endDate);
+    const res = await api.get(`/feedback/admin/export?${query}`, { responseType: "blob" });
+    return res.data;
+  },
+
+  respondToFeedback: async (feedbackId: string, response: string) => {
+    const res = await api.post(`/feedback/${feedbackId}/respond`, { response });
     return res.data.data;
   },
 };

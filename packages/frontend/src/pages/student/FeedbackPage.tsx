@@ -100,7 +100,7 @@ export function FeedbackPage() {
     ? `${booking.slot.professor.firstName} ${booking.slot.professor.lastName}`
     : "your professor";
   const sessionDate = booking?.slot?.startTime
-    ? new Date(booking.slot.startTime).toLocaleDateString("en", {
+    ? new Date(booking.slot.startTime).toLocaleDateString(undefined, {
         weekday: "long", month: "long", day: "numeric",
       })
     : "";

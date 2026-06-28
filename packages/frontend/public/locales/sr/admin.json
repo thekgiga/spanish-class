@@ -43,6 +43,7 @@
       "create_button": "Napravite termine",
       "creating": "Kreiranje...",
       "success": "Uspešno kreirano {{count}} termina!",
+      "success_with_skips": "Kreirano {{count}} termin(a). {{skipped}} datum(a) je preskočeno zbog preklapanja sa postojećim terminima.",
       "error": "Neuspelo kreiranje termina"
     },
     "filters": {
@@ -73,6 +74,30 @@
     "update_success": "Termin uspešno ažuriran",
     "delete_success": "Termin uspešno obrisan",
     "recurring_success": "{{count}} ponavljajućih termina kreirano",
+    "patterns": {
+      "tab_label": "Ponavljajući obrasci",
+      "untitled": "Obrazac bez naslova",
+      "inactive": "Neaktivan",
+      "max_participants": "Maks. {{count}} polaznika",
+      "edit_button": "Uredi",
+      "delete_button": "Obriši obrazac",
+      "empty": "Nema ponavljajućih obrazaca. Koristite skupno kreiranje za postavljanje.",
+      "edit_title": "Uredi ponavljajući obrazac",
+      "edit_description": "Promene se primenjuju na ovaj obrazac i sve buduće dostupne termine.",
+      "title_label": "Naslov",
+      "title_placeholder": "npr. Jutarnji španski",
+      "description_label": "Opis (opciono)",
+      "description_placeholder": "Šta će se obrađivati na ovim sesijama?",
+      "max_participants_label": "Maks. polaznika",
+      "save_button": "Sačuvaj izmene",
+      "saving": "Čuvanje…",
+      "cancel": "Otkaži",
+      "update_success": "Obrazac i budući termini ažurirani",
+      "delete_success": "Obrazac deaktiviran i budući termini otkazani",
+      "confirm_delete_title": "Brisanje ponavljajućeg obrasca",
+      "confirm_delete_description": "Ovo će otkazati sve buduće dostupne termine u ovom obrascu. Studenti sa potvrđenim zakazivanjima neće biti pogođeni.",
+      "confirm_delete_button": "Obriši obrazac"
+    },
     "form": {
       "mode": {
         "single": "Pojedinačni",
@@ -203,6 +228,23 @@
       "no_search_results": "Nema studenata koji odgovaraju vašoj pretrazi",
       "no_students_yet": "Još nema registrovanih studenata"
     },
+    "assignment": {
+      "remove_student_confirm": "Ukloniti ovog studenta sa vaše liste?",
+      "cover_button": "Postavi period zamene",
+      "tab_assigned": "Dodeljeni studenti",
+      "tab_covers": "Periodi zamene",
+      "tab_invitations": "Čekajući pozivi",
+      "no_assigned": "Još nema dodeljenih studenata. Pozovite ili dodelite studente da biste počeli.",
+      "invite_first_button": "Pozovite prvog studenta",
+      "student_removed": "Student uklonjen",
+      "cover_deleted": "Period zamene obrisan",
+      "no_covers": "Nema postavljenih perioda zamene.",
+      "cover_create_button": "Kreiraj period zamene",
+      "no_invitations": "Nema čekajućih poziva.",
+      "cover_active": "Aktivan",
+      "cover_expired": "Istekao",
+      "cover_pending": "Na čekanju"
+    },
     "detail": {
       "title": "Profil studenta",
       "joined": "Pridružen",
@@ -233,7 +275,8 @@
       },
       "bookings_tab": {
         "spanish_class": "Čas španskog",
-        "no_bookings": "Još nema zakazivanja"
+        "no_bookings": "Još nema zakazivanja",
+        "meeting_notes": "Beleške sa sastanka"
       },
       "notes_tab": {
         "add_note": "Dodajte belešku",
@@ -354,6 +397,16 @@
     "what_was_good": "Šta je bilo dobro",
     "what_could_improve": "Šta bi moglo biti bolje",
     "student_label": "Student",
-    "session_date": "Datum sesije"
+    "session_date": "Datum sesije",
+    "export_csv": "Izvezi CSV",
+    "exporting": "Izvoz…",
+    "professor_response_label": "Odgovor profesora",
+    "add_response_button": "Dodaj odgovor",
+    "edit_response_button": "Izmeni odgovor",
+    "response_placeholder": "Napišite vaš odgovor na ovu povratnu informaciju…",
+    "submit_response": "Sačuvaj odgovor",
+    "submitting_response": "Čuvanje…",
+    "response_saved": "Odgovor sačuvan",
+    "cancel": "Otkaži"
   }
 }

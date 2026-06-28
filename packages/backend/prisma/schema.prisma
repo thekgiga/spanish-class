@@ -39,8 +39,6 @@ model User {
   customPricing            StudentPricing[]   @relation("CustomPricing")
   referralsGiven           Referral[]         @relation("ReferralsGiven")
   referralsReceived        Referral[]         @relation("ReferralsReceived")
-  ratingsGiven             Rating[]           @relation("RatingsGiven")
-  ratingsReceived          Rating[]           @relation("RatingsReceived")
   twoFactor                UserTwoFactor?
   auditLogsActed           AdminAuditLog[]    @relation("AuditLogsActed")
   passwordResetTokens      PasswordResetToken[]
@@ -164,6 +162,7 @@ model Booking {
   slotId                  String        @map("slot_id")
   studentId               String        @map("student_id")
   status                  BookingStatus @default(PENDING_CONFIRMATION)
+  fromWaitlist            Boolean       @default(false) @map("from_waitlist")
   bookedAt                DateTime      @default(now()) @map("booked_at")
   cancelledAt             DateTime?     @map("cancelled_at")
   cancelReason            String?       @map("cancel_reason")
@@ -334,7 +333,6 @@ model StudentEngagementStats {
   totalClassesCancelled Int      @default(0) @map("total_classes_cancelled")
   noShowCount           Int      @default(0) @map("no_show_count")
   lastBookingDate       DateTime? @map("last_booking_date")
-  averageRatingGiven    Float?   @map("average_rating_given")
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @updatedAt @map("updated_at")
 
@@ -376,26 +374,6 @@ model Referral {
   @@index([referredId])
   @@index([referralCode])
   @@map("referrals")
-}
-
-model Rating {
-  id          String   @id @default(cuid())
-  raterId     String   @map("rater_id")
-  rateeId     String   @map("ratee_id")
-  bookingId   String?  @map("booking_id") // Optional link to specific booking
-  rating      Int      // 1-5 stars
-  comment     String?  @db.Text
-  isAnonymous Boolean  @default(false) @map("is_anonymous")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  rater User @relation("RatingsGiven", fields: [raterId], references: [id])
-  ratee User @relation("RatingsReceived", fields: [rateeId], references: [id])
-
-  @@index([raterId])
-  @@index([rateeId])
-  @@index([bookingId])
-  @@map("ratings")
 }
 
 // ── Security models (PR-3) ────────────────────────────────────────────────────
@@ -587,6 +565,8 @@ model SessionFeedback {
   rating                Int
   whatWasGood           String?  @db.Text @map("what_was_good")
   whatCouldBeImproved   String?  @db.Text @map("what_could_be_improved")
+  professorResponse     String?  @db.Text @map("professor_response")
+  respondedAt           DateTime? @map("responded_at")
   createdAt             DateTime @default(now()) @map("created_at")
 
   booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
