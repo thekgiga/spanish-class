@@ -5,7 +5,7 @@
 >
 > Open in any Mermaid-compatible renderer (VS Code Mermaid extension, mermaid.live, etc.).
 >
-> **Last updated:** 2026-06-28 — v13 — S5 timezone display resolved; all Critical/High gaps cleared
+> **Last updated:** 2026-06-28 — v14 — Sync all inline gap markers with §13 gap table; fix stale Rating references; update PS section
 
 ---
 
@@ -300,7 +300,7 @@ flowchart TD
 - ❌ No visible countdown timer for the 48-hour confirmation window shown to student
 - ❌ Student cannot see who else is in a GROUP class before booking
 - ❌ No pre-booking check: student's email must be verified (this IS enforced but the error message is unclear)
-- ❌ If the same student tries to re-book after REJECTED, there's no explicit re-booking path
+- ✅ If the same student tries to re-book after REJECTED, there's no explicit re-booking path — Resolved 2026-06-27 (B5: "Book Another Slot" button shown for REJECTED/EXPIRED bookings in BookingsPage)
 
 ---
 
@@ -531,8 +531,8 @@ flowchart TD
 
 **Gaps in this flow:**
 - ❌ No conflict check across recurring patterns (only checks existing concrete slots)
-- ❌ No duration validation (e.g., max slot length or minimum 30 min)
-- ❌ No timezone display/conversion — professor sees times in their timezone; students may see wrong time if timezones differ
+- ✅ No duration validation (e.g., max slot length or minimum 30 min) — Resolved 2026-06-28 (S4: createSlotSchema refine enforces 15 min ≤ duration ≤ 4 hours)
+- ✅ No timezone display/conversion — professor sees times in their timezone; students may see wrong time — Resolved 2026-06-28 (S5: formatDate/formatTime use browser locale; all toLocaleDateString("en-US") calls replaced)
 
 ---
 
@@ -565,9 +565,9 @@ flowchart TD
 ```
 
 **Gaps in this flow:**
-- ❌ Overlapping slots in bulk creation are silently skipped — no clear report to professor which were skipped
-- ❌ No way to edit all slots in a recurring pattern at once (only individual slots via PUT)
-- ❌ No deletion of an entire recurring pattern + its future slots in one action
+- ✅ Overlapping slots in bulk creation are silently skipped — no clear report — Resolved 2026-06-28 (S1: bulk endpoint skips overlaps, returns skippedDates[]; BulkSlotPage shows skip count in toast)
+- ✅ No way to edit all slots in a recurring pattern at once — Resolved 2026-06-28 (S2: PATCH /api/professor/recurring-patterns/:id updates pattern + all future AVAILABLE slots; Edit dialog in SlotsPage)
+- ✅ No deletion of an entire recurring pattern + its future slots — Resolved 2026-06-28 (S3: DELETE endpoint cancels future AVAILABLE slots + deactivates pattern; Delete Pattern button + confirm dialog in SlotsPage)
 
 ---
 
@@ -602,7 +602,7 @@ flowchart TD
 
 **Gaps in this flow:**
 - ❌ Default is `sendInvitation: false` — easy to forget to notify student
-- ❌ No in-app notification is created for the student when professor directly books them
+- ✅ No in-app notification is created for the student when professor directly books them — Resolved 2026-06-28 (S6/S7: createNotification "booking_confirmed" always fired in book-student endpoint, independent of sendInvitation)
 - ❌ Student has no way to decline a professor-initiated direct booking
 
 ---
@@ -646,11 +646,11 @@ flowchart TD
 ```
 
 **Gaps in this flow:**
-- ❌ After promotion and rejection by professor, student is NOT automatically re-added to waitlist
-- ❌ Waitlist does NOT work for INDIVIDUAL slots (intentional?) — not documented in UI
+- ✅ After promotion and rejection by professor, student is NOT automatically re-added to waitlist — Resolved 2026-06-28 (W1: fromWaitlist flag on Booking; applyRejectionSideEffects re-queues student when fromWaitlist=true)
+- ✅ Waitlist only for GROUP slots — not documented in UI — Resolved 2026-06-28 (W5: BookPage slot cards show "Full — join waitlist" for GROUP or "Full — no waitlist" for INDIVIDUAL)
 - ❌ No waitlist position update emails when others leave the waitlist
 - ❌ No expiry on waitlist entries — student could be waitlisted forever on a past-date slot
-- ❌ Waitlist entries NOT cleaned up when slot is CANCELLED by professor
+- ✅ Waitlist entries NOT cleaned up when slot is CANCELLED by professor — Resolved 2026-06-28 (W2: cancel-with-bookings, DELETE slot, and pattern delete all call waitlistEntry.deleteMany)
 
 ---
 
@@ -687,7 +687,7 @@ flowchart TD
 - ❌ No "waiting room" or host-must-start concept — Jitsi room is always open
 - ❌ No recording management (start/stop recording, storage) — intentional, Jitsi public instance does not support recording
 - ✅ Meeting notes exist in DB (MeetingNote model) but no UI exists to fill them — Resolved 2026-06-28 (M2: GET/PUT /api/professor/bookings/:id/meeting-notes; MeetingNotesEditor modal; "Meeting Notes" button on each booking in StudentDetailPage)
-- ✅ No post-class "rate this session" prompt shown immediately after meeting ends — Resolved 2026-06-28 (M3: BookingsPage fetches pending ratings; COMPLETED bookings show "Rate Session" badge and button that opens RateUserModal)
+- ✅ No post-class "rate this session" prompt shown immediately after meeting ends — Resolved 2026-06-28 (M3: post-session feedback handled by SessionFeedback flow — feedback_pending notification sent on session completion; standalone rating system removed)
 
 ---
 
@@ -724,10 +724,10 @@ flowchart LR
 ```
 
 **Gaps in this flow:**
-- ✅ Analytics stats (ProfessorDailyStats, MonthlyStats) have no visible update mechanism — Resolved 2026-06-27 (J2: aggregateAnalytics job runs daily at 01:00, computes from Rating + Booking tables; AN1 resolved)
+- ✅ Analytics stats (ProfessorDailyStats, MonthlyStats) have no visible update mechanism — Resolved 2026-06-27 (J2: aggregateAnalytics job runs daily at 01:00, computes from SessionFeedback + Booking tables; AN1 resolved)
 - ✅ No completion marking flow (how does a CONFIRMED booking become COMPLETED?) — Resolved 2026-06-27 (B10: autoCompleteBookings job; AN3 resolved)
 - ✅ No earnings export (CSV/PDF) — Resolved 2026-06-28 (AN4: GET /api/analytics/professor/export returns CSV; date-range picker + Export CSV button in dashboard)
-- ✅ Rating/review data not flowing into analytics aggregates — Resolved 2026-06-28 (AN5: aggregateAnalytics queries Rating table for averageRating in daily/monthly stats; StudentEngagementStats.averageRatingGiven updated via ratings service)
+- ✅ Feedback/rating data not flowing into analytics aggregates — Resolved 2026-06-28 (AN5: aggregateAnalytics queries SessionFeedback.rating for averageRating in daily/monthly stats; standalone Rating system removed)
 - ❌ No calendar view-based booking management (slots view exists but not a drag-to-reschedule calendar)
 
 ---
@@ -978,7 +978,7 @@ flowchart TD
 - ✅ No job for auto-completing past CONFIRMED bookings — Resolved 2026-06-27 (B10: autoCompleteBookings runs hourly at :30)
 - ✅ No health/monitoring endpoint for worker process — Resolved 2026-06-27 (J7: HTTP :3001/health in worker.ts, docker-compose healthcheck updated)
 - ✅ No dead letter queue or retry logic for failed emails — Resolved 2026-06-27 (J8: BullMQ emailQueue Worker in worker.ts; logEmail enqueues on failure with 3-attempt exponential backoff)
-- ❌ No cleanup job for expired waitlist entries (past-date slots) — ✅ Resolved 2026-06-27 (J5: cleanupStaleData deletes WaitlistEntries for past slots)
+- ✅ No cleanup job for expired waitlist entries (past-date slots) — Resolved 2026-06-27 (J5: cleanupStaleData deletes WaitlistEntries for past slots and CANCELLED slots)
 
 ---
 
@@ -1070,10 +1070,10 @@ This section summarises all identified gaps by category. Each gap is tagged with
 | # | Gap | Severity | Type |
 |---|-----|----------|------|
 | AN1 | ✅ ProfessorDailyStats / MonthlyStats have no population mechanism — Resolved 2026-06-27 (J2: aggregateAnalytics job, daily at 01:00, computes from Booking + Rating tables; upserts both tables) | 🔴 Critical | Missing logic |
-| AN2 | ✅ StudentEngagementStats never updated on booking lifecycle — Resolved 2026-06-28 (incrementEngagementStat called in bookSlot/cancelBooking/autoCompleteBookings; updateAverageRatingGiven called after createRating) | 🔴 Critical | Missing logic |
+| AN2 | ✅ StudentEngagementStats never updated on booking lifecycle — Resolved 2026-06-28 (incrementEngagementStat called in bookSlot/cancelBooking/autoCompleteBookings) | 🔴 Critical | Missing logic |
 | AN3 | ✅ PlatformDailyStats never populated — Resolved 2026-06-28 (aggregatePlatformStats added to aggregateAnalytics job: totalBookings, completedBookings, cancelledBookings, activeStudents, activeProfessors, newRegistrations, totalRevenueRSD) | 🔴 Critical | Missing logic |
 | AN4 | ✅ No earnings export (CSV/PDF) — Resolved 2026-06-28 (GET /api/analytics/professor/export returns CSV with date range; Export CSV button + date picker in ProfessorAnalyticsDashboard) | 🟡 Medium | Missing feature |
-| AN5 | ✅ Rating/review data not flowing into analytics aggregates — Resolved 2026-06-28 (aggregateAnalytics queries Rating table for averageRating in daily/monthly stats; createRating updates StudentEngagementStats.averageRatingGiven) | 🟠 High | Missing logic |
+| AN5 | ✅ Rating/review data not flowing into analytics aggregates — Resolved 2026-06-28 (aggregateAnalytics queries SessionFeedback.rating for averageRating in daily/monthly stats; standalone Rating system removed) | 🟠 High | Missing logic |
 
 ---
 
@@ -1098,12 +1098,12 @@ Removed 2026-06-28 — standalone `Rating` model and `/api/ratings/*` endpoints 
 
 | # | Gap | Severity | Type |
 |---|-----|----------|------|
-| PS1 | Professor dashboard shows ALL students instead of only assigned ones — Resolved 2026-06-27 (GET /professor/students now filters by ProfessorStudent.professorId) | 🔴 Critical | Data integrity |
-| PS2 | Student slot browser shows ALL professors' slots — Resolved 2026-06-27 (GET /student/slots scoped to assigned professor + active cover professors) | 🔴 Critical | UX / data scope |
-| PS3 | No professor–student assignment model — Resolved 2026-06-27 (ProfessorStudent + StudentCover + StudentInvitation tables added) | 🔴 Critical | Missing model |
-| PS4 | Professor cannot invite unregistered students — Resolved 2026-06-27 (POST /professor/invite-student + sendStudentInvitationEmail + GET /auth/accept-invitation redirect) | 🟠 High | Missing feature |
-| PS5 | Unassigned students have no way to choose a professor — Resolved 2026-06-27 (/dashboard/choose-professor page + POST /student/select-professor) | 🟠 High | Missing UX |
-| PS6 | No cover/substitute professor support during vacations — Resolved 2026-06-27 (StudentCover model + POST /professor/covers + students see cover professor slots) | 🟠 High | Missing feature |
+| PS1 | ✅ Professor dashboard shows ALL students instead of only assigned ones — Resolved 2026-06-27 (GET /professor/students now filters by ProfessorStudent.professorId) | 🔴 Critical | Data integrity |
+| PS2 | ✅ Student slot browser shows ALL professors' slots — Resolved 2026-06-27 (GET /student/slots scoped to assigned professor + active cover professors) | 🔴 Critical | UX / data scope |
+| PS3 | ✅ No professor–student assignment model — Resolved 2026-06-27 (ProfessorStudent + StudentCover + StudentInvitation tables added) | 🔴 Critical | Missing model |
+| PS4 | ✅ Professor cannot invite unregistered students — Resolved 2026-06-27 (POST /professor/invite-student + sendStudentInvitationEmail + GET /auth/accept-invitation redirect; AuthPage reads ?tab=register&email=&invite= URL params) | 🟠 High | Missing feature |
+| PS5 | ✅ Unassigned students have no way to choose a professor — Resolved 2026-06-27 (/dashboard/choose-professor page + POST /student/select-professor) | 🟠 High | Missing UX |
+| PS6 | ✅ No cover/substitute professor support during vacations — Resolved 2026-06-27 (StudentCover model + POST /professor/covers + students see cover professor slots during active cover periods) | 🟠 High | Missing feature |
 
 ---
 
