@@ -743,7 +743,7 @@ flowchart LR
 flowchart TD
   subgraph Student
     A([Open /student/dashboard]) --> B[View stats\nnext session\nquick actions]
-    B --> J1{Profile < 100%?}
+    B --> J1{"Profile < 100%?"}
     J1 -->|Yes| C[ProfileCompletionCard shown\nPrompt to fill profile]
     J1 -->|No| D[Full dashboard view]
     C --> PROF[Open /student/profile]
