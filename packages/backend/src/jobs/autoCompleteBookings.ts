@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import type { BookingStatus } from "@prisma/client";
+import { incrementEngagementStat } from "../services/studentEngagement.js";
 
 const TERMINAL_STATUSES: BookingStatus[] = [
   "COMPLETED",
@@ -24,7 +25,7 @@ export async function autoCompleteBookings(): Promise<{ completedCount: number }
         status: "CONFIRMED",
         slot: { endTime: { lt: now } },
       },
-      select: { id: true, slotId: true },
+      select: { id: true, slotId: true, studentId: true },
     });
 
     if (bookingsToComplete.length === 0) {
@@ -36,6 +37,12 @@ export async function autoCompleteBookings(): Promise<{ completedCount: number }
       where: { id: { in: bookingsToComplete.map((b) => b.id) } },
       data: { status: "COMPLETED" },
     });
+
+    // AN2: Update StudentEngagementStats.totalClassesAttended for each completed student (non-blocking)
+    const studentIds = [...new Set(bookingsToComplete.map((b) => b.studentId).filter(Boolean))];
+    for (const studentId of studentIds) {
+      incrementEngagementStat(studentId, "totalClassesAttended").catch(() => {});
+    }
 
     // Mark slot as COMPLETED if no remaining active bookings
     const uniqueSlotIds = [...new Set(bookingsToComplete.map((b) => b.slotId))];

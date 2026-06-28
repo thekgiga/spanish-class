@@ -5,7 +5,7 @@
 >
 > Open in any Mermaid-compatible renderer (VS Code Mermaid extension, mermaid.live, etc.).
 >
-> **Last updated:** 2026-06-27 — v6 — Notifications gaps N1–N4 fixed (SSE reconnect, preferences, pagination)
+> **Last updated:** 2026-06-28 — v7 — Analytics & Stats gaps AN1–AN5 resolved
 
 ---
 
@@ -694,9 +694,9 @@ flowchart TD
 ## 6. Professor Dashboard & Analytics
 
 > **What this flow does**
-> The professor's dashboard gives an at-a-glance summary of their teaching activity: how many students they have, how many classes are coming up, and what is happening today. The analytics section goes deeper — it shows completed classes, earnings, how many students are returning, and average ratings, all filterable by date range. From the student list, the professor can open any student's profile to see their booking history and add private notes about their progress.
-> **Who is involved:** Professor/Admin, System.
-> **Outcome:** Professor has a clear picture of their schedule, performance, and student engagement.
+> The professor's dashboard gives an at-a-glance summary of teaching activity. The analytics section shows completed classes, earnings, student retention, and average ratings for a chosen date range. Stats are pre-aggregated nightly so the dashboard loads instantly. The professor can export earnings as a CSV file for tax or accounting purposes.
+> **Who is involved:** Professor/Admin, System, Worker (Cron).
+> **Outcome:** Professor has real-time visibility into performance metrics and can export earnings data.
 
 ```mermaid
 flowchart LR
@@ -708,19 +708,26 @@ flowchart LR
 
     A2([Open /admin/analytics]) --> F[Set date range\nView metrics]
     F --> G[Classes completed\nEarnings\nRetention rate\nAvg rating]
+    G --> EXP[Download CSV\nGET /analytics/professor/export]
   end
 
   subgraph System
     A --> SYS1[GET /api/professor/dashboard:\n- totalStudents\n- confirmedBookings\n- upcomingSlots\n- todaySessions\n- completedThisMonth\n- todaySlots with bookings]
     A2 --> SYS2[GET /api/analytics/professor:\nQuery ProfessorDailyStats\nProfessorMonthlyStats\nfor date range]
+    EXP --> SYS3[Stream CSV of COMPLETED bookings\nwith StudentPricing lookup\nContent-Disposition: attachment]
+  end
+
+  subgraph Worker[Worker - Daily 01:00]
+    W1([aggregateAnalytics job]) --> W2[For each professor:\nUpsert ProfessorDailyStats\nUpsert ProfessorMonthlyStats\nfrom Rating + Booking tables]
+    W1 --> W3[Upsert PlatformDailyStats\nfrom all booking + user activity]
   end
 ```
 
 **Gaps in this flow:**
-- ❌ Analytics stats (ProfessorDailyStats, MonthlyStats) have no visible update mechanism — unclear when/how they are populated
-- ❌ No completion marking flow (how does a CONFIRMED booking become COMPLETED?)
-- ❌ No earnings export (CSV/PDF) for tax purposes
-- ❌ Rating/review data shown in analytics has no visible input path from student side
+- ✅ Analytics stats (ProfessorDailyStats, MonthlyStats) have no visible update mechanism — Resolved 2026-06-27 (J2: aggregateAnalytics job runs daily at 01:00, computes from Rating + Booking tables; AN1 resolved)
+- ✅ No completion marking flow (how does a CONFIRMED booking become COMPLETED?) — Resolved 2026-06-27 (B10: autoCompleteBookings job; AN3 resolved)
+- ✅ No earnings export (CSV/PDF) — Resolved 2026-06-28 (AN4: GET /api/analytics/professor/export returns CSV; date-range picker + Export CSV button in dashboard)
+- ✅ Rating/review data not flowing into analytics aggregates — Resolved 2026-06-28 (AN5: aggregateAnalytics queries Rating table for averageRating in daily/monthly stats; StudentEngagementStats.averageRatingGiven updated via ratings service)
 - ❌ No calendar view-based booking management (slots view exists but not a drag-to-reschedule calendar)
 
 ---
@@ -788,7 +795,7 @@ flowchart TD
 
 **Gaps in this flow:**
 - ❌ No UI currently triggers the rating flow — it exists as an API but no UI component prompts for ratings
-- ❌ Ratings are not linked back to analytics (ProfessorDailyStats has avgRating field but unclear how it's updated)
+- ✅ Ratings are not linked back to analytics — Resolved 2026-06-28 (AN5: aggregateAnalytics job queries Rating table for ProfessorDailyStats.averageRating; createRating() updates StudentEngagementStats.averageRatingGiven non-blocking)
 - ❌ No moderation / flagging of abusive reviews
 - ❌ Professor cannot respond to a review
 - ❌ Ratings are not surfaced publicly on slot cards or professor profile
@@ -1036,11 +1043,11 @@ This section summarises all identified gaps by category. Each gap is tagged with
 
 | # | Gap | Severity | Type |
 |---|-----|----------|------|
-| AN1 | ProfessorDailyStats / MonthlyStats have no population mechanism (no job, no trigger) | 🔴 Critical | Missing logic |
-| AN2 | StudentEngagementStats has no automatic update on booking lifecycle events | 🔴 Critical | Missing logic |
-| AN3 | Booking status never reaches COMPLETED so "completedSessions" stat will always be 0 | 🔴 Critical | Missing logic |
-| AN4 | No earnings export (CSV/PDF) | 🟡 Medium | Missing feature |
-| AN5 | Rating/review data not flowing into analytics aggregates | 🟠 High | Missing logic |
+| AN1 | ✅ ProfessorDailyStats / MonthlyStats have no population mechanism — Resolved 2026-06-27 (J2: aggregateAnalytics job, daily at 01:00, computes from Booking + Rating tables; upserts both tables) | 🔴 Critical | Missing logic |
+| AN2 | ✅ StudentEngagementStats never updated on booking lifecycle — Resolved 2026-06-28 (incrementEngagementStat called in bookSlot/cancelBooking/autoCompleteBookings; updateAverageRatingGiven called after createRating) | 🔴 Critical | Missing logic |
+| AN3 | ✅ PlatformDailyStats never populated — Resolved 2026-06-28 (aggregatePlatformStats added to aggregateAnalytics job: totalBookings, completedBookings, cancelledBookings, activeStudents, activeProfessors, newRegistrations, totalRevenueRSD) | 🔴 Critical | Missing logic |
+| AN4 | ✅ No earnings export (CSV/PDF) — Resolved 2026-06-28 (GET /api/analytics/professor/export returns CSV with date range; Export CSV button + date picker in ProfessorAnalyticsDashboard) | 🟡 Medium | Missing feature |
+| AN5 | ✅ Rating/review data not flowing into analytics aggregates — Resolved 2026-06-28 (aggregateAnalytics queries Rating table for averageRating in daily/monthly stats; createRating updates StudentEngagementStats.averageRatingGiven) | 🟠 High | Missing logic |
 
 ---
 
@@ -1109,13 +1116,14 @@ This section summarises all identified gaps by category. Each gap is tagged with
 
 | Severity | Count | Top Items |
 |----------|-------|-----------|
-| 🔴 Critical | 3 | AN2-AN3 (student/platform stats not populated), R1 (no rating UI), RF1 (referral reward — intentional) |
+| 🔴 Critical | 1 | R1 (no rating UI), RF1 (referral reward — intentional, not a gap) |
 | 🟠 High | 4 | S2-S3 (pattern management), M2 (meeting notes UI), M3 (post-class rating prompt) |
-| 🟡 Medium | 7 | S5 (timezone display), M1 (meeting time-gate) |
-| 🔵 Low | 6 | B8 (reschedule proposal), M4 (recording), N3 (push notifications — skipped) |
+| 🟡 Medium | 7 | S5 (timezone display), M1 (meeting time-gate), AN4 resolved |
+| 🔵 Low | 6 | B8, M4 (recording), N3 (push notifications — skipped) |
 | ✅ Resolved (Auth) | 11 | A1–A3, A5–A13 |
 | ✅ Resolved (Booking) | 9 | B1–B6, B9–B11 |
 | ✅ Resolved (Jobs) | 8 | J1–J8 |
 | ✅ Resolved (Referrals+Assignment) | 9 | RF2–RF4, PS1–PS6 |
 | ✅ Resolved (Notifications) | 3 | N1, N2, N4 |
-| **Total open** | **20** | |
+| ✅ Resolved (Analytics) | 5 | AN1–AN5 |
+| **Total open** | **15** | |

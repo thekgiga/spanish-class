@@ -1,6 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import { AppError } from "../middleware/error.js";
 import type { Rating, UserRatingsSummary } from "@spanish-class/shared";
+import { updateAverageRatingGiven } from "./studentEngagement.js";
 
 /**
  * Create a rating (T112)
@@ -66,6 +67,9 @@ export async function createRating(
       isAnonymous,
     },
   });
+
+  // AN2/AN5: Update student's averageRatingGiven stat (non-blocking, only for student raters)
+  updateAverageRatingGiven(raterId).catch(() => {});
 
   return newRating as unknown as Rating;
 }
