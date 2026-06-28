@@ -31,7 +31,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { professorApi } from "@/lib/api";
+import { professorApi, feedbackApi } from "@/lib/api";
 import { getInitials, formatDate, formatTime } from "@/lib/utils";
 
 export function StudentDetailPage() {
@@ -46,6 +46,13 @@ export function StudentDetailPage() {
   const { data: student, isLoading } = useQuery({
     queryKey: ["student", id],
     queryFn: () => professorApi.getStudent(id!),
+    enabled: !!id,
+  });
+
+  // Fetch feedback for this student (professor viewing their own student's feedback)
+  const { data: feedbackData } = useQuery({
+    queryKey: ["student-feedback", id],
+    queryFn: () => feedbackApi.getMyFeedbackAsProf(1, id),
     enabled: !!id,
   });
 
@@ -214,6 +221,9 @@ export function StudentDetailPage() {
           </TabsTrigger>
           <TabsTrigger value="notes">
             {t("students.detail.tabs.notes")} ({student.notes?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="feedback">
+            Feedback ({feedbackData?.data?.total || 0})
           </TabsTrigger>
         </TabsList>
 
@@ -464,6 +474,50 @@ export function StudentDetailPage() {
             <Card>
               <CardContent className="py-8 text-center text-muted-foreground">
                 {t("students.detail.notes_tab.no_notes")}
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Feedback Tab */}
+        <TabsContent value="feedback" className="mt-6 space-y-4">
+          {feedbackData?.data?.feedback?.length > 0 ? (
+            feedbackData.data.feedback.map((fb: any) => (
+              <Card key={fb.id} className="border border-slate-100">
+                <CardContent className="p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <span key={s} className={`text-lg ${s <= fb.rating ? "text-yellow-400" : "text-slate-200"}`}>★</span>
+                      ))}
+                    </div>
+                    <span className="text-xs text-slate-400">
+                      {fb.booking?.slot?.startTime ? formatDate(fb.booking.slot.startTime) : ""}
+                    </span>
+                  </div>
+                  {fb.booking?.slot?.title && (
+                    <p className="text-xs text-slate-500 font-medium">{fb.booking.slot.title}</p>
+                  )}
+                  {fb.whatWasGood && (
+                    <div className="bg-green-50 rounded-lg px-3 py-2">
+                      <p className="text-xs font-medium text-green-700 mb-0.5">What was good</p>
+                      <p className="text-sm text-slate-700">{fb.whatWasGood}</p>
+                    </div>
+                  )}
+                  {fb.whatCouldBeImproved && (
+                    <div className="bg-amber-50 rounded-lg px-3 py-2">
+                      <p className="text-xs font-medium text-amber-700 mb-0.5">Could be improved</p>
+                      <p className="text-sm text-slate-700">{fb.whatCouldBeImproved}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))
+          ) : (
+            <Card>
+              <CardContent className="py-10 text-center">
+                <MessageSquare className="h-10 w-10 mx-auto mb-3 text-slate-300" />
+                <p className="text-slate-400 text-sm">No feedback submitted yet for this student's sessions.</p>
               </CardContent>
             </Card>
           )}

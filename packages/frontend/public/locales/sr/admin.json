@@ -343,5 +343,17 @@
     "bookings": "Zakazivanja",
     "students": "Studenti",
     "sessions": "Sesije"
+  },
+  "feedback": {
+    "nav_label": "Povratne informacije",
+    "dashboard_title": "Povratne informacije studenata",
+    "dashboard_subtitle": "Povratne informacije od studenata za sve profesore",
+    "avg_rating": "Prosečna ocena",
+    "total_feedback": "Ukupno povratnih inf.",
+    "no_feedback": "Još nema povratnih informacija",
+    "what_was_good": "Šta je bilo dobro",
+    "what_could_improve": "Šta bi moglo biti bolje",
+    "student_label": "Student",
+    "session_date": "Datum sesije"
   }
 }

@@ -69,6 +69,9 @@ model User {
 
   notificationPreferences NotificationPreference[]
 
+  feedbackGiven     SessionFeedback[] @relation("FeedbackGiven")
+  feedbackReceived  SessionFeedback[] @relation("FeedbackReceived")
+
   @@map("users")
 }
 
@@ -178,6 +181,7 @@ model Booking {
   slot        AvailabilitySlot @relation(fields: [slotId], references: [id])
   student     User             @relation(fields: [studentId], references: [id])
   meetingNote MeetingNote?
+  sessionFeedback SessionFeedback?
 
   @@unique([slotId, studentId])
   @@index([studentId])
@@ -571,4 +575,25 @@ model NotificationPreference {
   @@unique([userId, type])
   @@index([userId])
   @@map("notification_preferences")
+}
+
+// ── Session Feedback ──────────────────────────────────────────────────────────
+
+model SessionFeedback {
+  id                    String   @id @default(cuid())
+  bookingId             String   @unique @map("booking_id")
+  studentId             String   @map("student_id")
+  professorId           String   @map("professor_id")
+  rating                Int
+  whatWasGood           String?  @db.Text @map("what_was_good")
+  whatCouldBeImproved   String?  @db.Text @map("what_could_be_improved")
+  createdAt             DateTime @default(now()) @map("created_at")
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  student   User    @relation("FeedbackGiven", fields: [studentId], references: [id])
+  professor User    @relation("FeedbackReceived", fields: [professorId], references: [id])
+
+  @@index([professorId])
+  @@index([studentId])
+  @@map("session_feedback")
 }

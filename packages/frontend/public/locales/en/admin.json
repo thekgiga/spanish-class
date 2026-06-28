@@ -343,5 +343,17 @@
     "bookings": "Bookings",
     "students": "Students",
     "sessions": "Sessions"
+  },
+  "feedback": {
+    "nav_label": "Feedback",
+    "dashboard_title": "Student Feedback",
+    "dashboard_subtitle": "Feedback received from students across all professors",
+    "avg_rating": "Avg Rating",
+    "total_feedback": "Total Feedback",
+    "no_feedback": "No feedback received yet",
+    "what_was_good": "What was good",
+    "what_could_improve": "What could improve",
+    "student_label": "Student",
+    "session_date": "Session Date"
   }
 }

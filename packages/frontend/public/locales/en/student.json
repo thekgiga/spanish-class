@@ -154,5 +154,18 @@
     "choose_page_subtitle": "Select the professor you'd like to study with",
     "select_button": "Select",
     "selected_success": "Professor selected! You can now book classes."
+  },
+  "feedback": {
+    "page_title": "Session Feedback",
+    "already_submitted": "You've already submitted feedback for this session. Thank you!",
+    "rating_label": "How would you rate this session?",
+    "what_was_good_label": "What was good about this session?",
+    "what_was_good_placeholder": "The explanation was clear, the pace was good...",
+    "what_could_improve_label": "What could be improved?",
+    "what_could_improve_placeholder": "I'd like more practice exercises, slower pace...",
+    "submit_button": "Submit Feedback",
+    "success": "Thank you for your feedback!",
+    "pending_banner_title": "Session feedback pending",
+    "pending_banner_body": "You have {{count}} session(s) waiting for your feedback."
   }
 }

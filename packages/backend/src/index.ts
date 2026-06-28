@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.js";
 import professorRoutes from "./routes/professor.js";
 import studentRoutes from "./routes/student.js";
 import notificationsRoutes from "./routes/notifications.js";
+import feedbackRoutes from "./routes/feedback.js";
 import { prisma } from "./lib/prisma.js";
 
 const app: Express = express();
@@ -100,6 +101,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/professor", professorRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/notifications", notificationsRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 // ── Error handling ────────────────────────────────────────────────────────────
 app.use(notFoundHandler);

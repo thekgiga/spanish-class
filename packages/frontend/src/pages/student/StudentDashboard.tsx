@@ -30,6 +30,8 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import BookingStatusBadge from "@/components/booking/BookingStatusBadge";
 import { ProfileCompletionCard } from "@/components/student/ProfileCompletionCard";
+import { useNotifications } from "@/hooks/useNotifications";
+import { MessageSquare } from "lucide-react";
 
 export function StudentDashboard() {
   const { t } = useTranslation("student");
@@ -51,6 +53,12 @@ export function StudentDashboard() {
     queryFn: studentApi.getProfessor,
     staleTime: 5 * 60 * 1000,
   });
+
+  // Pending feedback notifications from the in-app feed
+  const { notifications } = useNotifications();
+  const pendingFeedback = notifications.filter(
+    (n) => n.type === "feedback_pending" && !n.readAt,
+  );
 
   // Vibrant Spanish Colors - Student Dashboard
   const stats = [
@@ -124,6 +132,33 @@ export function StudentDashboard() {
               className="shrink-0 text-sm font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
             >
               Choose Professor
+            </Link>
+          </div>
+        )}
+
+        {/* Pending feedback banner */}
+        {pendingFeedback.length > 0 && (
+          <div className="bg-spanish-teal-50 border border-spanish-teal-200 rounded-xl p-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-spanish-teal-100 flex items-center justify-center flex-shrink-0">
+                <MessageSquare className="h-4 w-4 text-spanish-teal-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-spanish-teal-800 text-sm">
+                  {pendingFeedback.length === 1
+                    ? "1 session is waiting for your feedback"
+                    : `${pendingFeedback.length} sessions are waiting for your feedback`}
+                </p>
+                <p className="text-spanish-teal-700 text-xs mt-0.5">
+                  Share your thoughts — it only takes a minute.
+                </p>
+              </div>
+            </div>
+            <Link
+              to={pendingFeedback[0].href ?? "/dashboard/bookings"}
+              className="shrink-0 text-sm font-semibold text-spanish-teal-800 bg-spanish-teal-100 hover:bg-spanish-teal-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+            >
+              Give Feedback
             </Link>
           </div>
         )}

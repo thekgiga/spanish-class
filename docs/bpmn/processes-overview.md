@@ -5,7 +5,7 @@
 >
 > Open in any Mermaid-compatible renderer (VS Code Mermaid extension, mermaid.live, etc.).
 >
-> **Last updated:** 2026-06-28 — v7 — Analytics & Stats gaps AN1–AN5 resolved
+> **Last updated:** 2026-06-28 — v8 — Session Feedback feature: new SessionFeedback model, feedback_pending notifications, student submission page, admin/professor dashboards
 
 ---
 
@@ -802,6 +802,53 @@ flowchart TD
 
 ---
 
+## 8b. Session Feedback (Private)
+
+> **What this flow does**
+> After a class auto-completes, the student receives an in-app notification prompting them to share private feedback. If they haven't submitted feedback by the next login, the notification persists as an unread badge. The student can rate the session 1–5 stars and optionally fill in two text fields: "What was good?" and "What could be improved?". Feedback is visible only to the professor who taught the session and to the school admin — never to other students.
+> **Who is involved:** Student, Professor/Admin, System, Worker (Cron).
+> **Outcome:** Professor receives actionable private feedback; admin has a school-wide feedback dashboard.
+
+```mermaid
+flowchart TD
+  subgraph Worker[Worker — hourly at :30]
+    W([autoCompleteBookings runs]) --> WC[Mark CONFIRMED bookings COMPLETED]
+    WC --> WN{Feedback already\nsubmitted?}
+    WN -->|No| NOTIF[createNotification:\ntype=feedback_pending\nhref=/dashboard/feedback/bookingId]
+    WN -->|Yes| SKIP([Skip])
+  end
+
+  subgraph Student
+    A([Logs in → sees unread bell badge\nor dashboard banner]) --> B[Click notification\nor banner]
+    B --> C[Open /dashboard/feedback/:bookingId]
+    C --> D{Already\nsubmitted?}
+    D -->|Yes| DONE([Show: Thank you!])
+    D -->|No| E[Choose 1-5 stars\nFill What was good?\nFill What could be improved?]
+    E --> F[Submit POST /api/feedback]
+    F --> G[Feedback stored\nNotification marked read]
+    G --> Z([End: Navigate to /dashboard/bookings])
+  end
+
+  subgraph Professor
+    P1([Open /admin/students/:id → Feedback tab]) --> P2[See all feedback from that student]
+    P3([Open /admin/feedback]) --> P4[School-wide summary:\navg rating per professor\nrecent entries per professor]
+    P4 --> P5[Click professor → drill down\nto all individual feedback]
+  end
+
+  subgraph System
+    F --> SYS1[Validate: booking exists\nbookingId belongs to student\nstatus=COMPLETED\nnot already submitted]
+    SYS1 --> SYS2[Create SessionFeedback record\nMark feedback_pending notification read]
+    SYS2 --> SYS3[GET /api/feedback/professor\nGET /api/feedback/admin/summary]
+  end
+```
+
+**Gaps in this flow:**
+- ❌ No email notification on session completion — intentional (in-app notification only; email would be too noisy)
+- ❌ No admin bulk-export of feedback (CSV)
+- ❌ No response/reply feature for professor to respond to feedback
+
+---
+
 ## 9. Referrals
 
 > **What this flow does**
@@ -930,7 +977,7 @@ flowchart TD
 
     J1 --> SYS1[Find PENDING bookings expired\nBatch → EXPIRED\nDecrement participants\nEmail + notify student]
     J2 --> SYS2[Find bookings ≤6h to expiry\nSend reminder to professor\nSecond pass: 18-26h window]
-    J3 --> SYS3[Find CONFIRMED bookings\nwhere slot.endTime past\nBatch → COMPLETED]
+    J3 --> SYS3[Find CONFIRMED bookings\nwhere slot.endTime past\nBatch → COMPLETED\nSend feedback_pending notification\nif no feedback submitted yet]
     J4 --> SYS4[Find CONFIRMED bookings\n23-25h before start → 24h email\n45-75min before start → 1h email]
     J5 --> SYS5[For each professor:\nCompute daily stats from bookings\nUpsert ProfessorDailyStats\nUpsert ProfessorMonthlyStats]
     J6 --> SYS6[Delete WaitlistEntries\nfor past slots\nDelete read Notifications\n>30 days old]
@@ -1112,17 +1159,34 @@ This section summarises all identified gaps by category. Each gap is tagged with
 
 ---
 
+### Session Feedback (new in v8)
+
+| # | Gap | Severity | Type |
+|---|-----|----------|------|
+| SF1 | ✅ No private session feedback mechanism — Resolved 2026-06-28 (SessionFeedback model; POST /api/feedback; /dashboard/feedback/:bookingId page; feedback_pending in-app notification on session completion) | 🟠 High | Missing feature |
+| SF2 | ✅ No school-owner view of feedback across all professors — Resolved 2026-06-28 (GET /api/feedback/admin/summary; /admin/feedback FeedbackDashboard page with per-professor cards and drill-down) | 🟠 High | Missing feature |
+| SF3 | No email reminder when feedback notification is ignored (only in-app) — intentional design decision | 🔵 Low | Missing notification |
+| SF4 | No admin CSV export of all feedback | 🔵 Low | Missing feature |
+| SF5 | Professor cannot respond to student feedback | 🔵 Low | Missing feature |
+
+---
+
 ### Priority Summary
 
 | Severity | Count | Top Items |
 |----------|-------|-----------|
-| 🔴 Critical | 1 | R1 (no rating UI), RF1 (referral reward — intentional, not a gap) |
+| 🔴 Critical | 1 | R1 (no rating UI) |
 | 🟠 High | 4 | S2-S3 (pattern management), M2 (meeting notes UI), M3 (post-class rating prompt) |
-| 🟡 Medium | 7 | S5 (timezone display), M1 (meeting time-gate), AN4 resolved |
-| 🔵 Low | 6 | B8, M4 (recording), N3 (push notifications — skipped) |
+| 🟡 Medium | 6 | S5 (timezone display), M1 (meeting time-gate) |
+| 🔵 Low | 9 | B8, M4, N3, SF3-SF5 |
 | ✅ Resolved (Auth) | 11 | A1–A3, A5–A13 |
 | ✅ Resolved (Booking) | 9 | B1–B6, B9–B11 |
 | ✅ Resolved (Jobs) | 8 | J1–J8 |
+| ✅ Resolved (Analytics) | 5 | AN1–AN5 |
+| ✅ Resolved (Referrals+Assignment) | 9 | RF2–RF4, PS1–PS6 |
+| ✅ Resolved (Notifications) | 3 | N1, N2, N4 |
+| ✅ Resolved (Session Feedback) | 2 | SF1, SF2 |
+| **Total open** | **20** | |
 | ✅ Resolved (Referrals+Assignment) | 9 | RF2–RF4, PS1–PS6 |
 | ✅ Resolved (Notifications) | 3 | N1, N2, N4 |
 | ✅ Resolved (Analytics) | 5 | AN1–AN5 |

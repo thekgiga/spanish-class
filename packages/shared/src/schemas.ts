@@ -543,3 +543,14 @@ export const updateNotificationPreferenceSchema = z.object({
 });
 
 export type UpdateNotificationPreferenceInput = z.infer<typeof updateNotificationPreferenceSchema>;
+
+// ── Session Feedback Schema ───────────────────────────────────────────────────
+
+export const submitFeedbackSchema = z.object({
+  bookingId: z.string().min(1, "Booking ID is required"),
+  rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
+  whatWasGood: z.string().max(2000).optional(),
+  whatCouldBeImproved: z.string().max(2000).optional(),
+});
+
+export type SubmitFeedbackInput = z.infer<typeof submitFeedbackSchema>;

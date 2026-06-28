@@ -154,5 +154,18 @@
     "choose_page_subtitle": "Izaberite profesora s kojim želite učiti",
     "select_button": "Izaberi",
     "selected_success": "Profesor je izabran! Sada možete zakazivati časove."
+  },
+  "feedback": {
+    "page_title": "Povratne informacije o sesiji",
+    "already_submitted": "Već ste poslali povratne informacije za ovu sesiju. Hvala!",
+    "rating_label": "Kako biste ocenili ovu sesiju?",
+    "what_was_good_label": "Šta je bilo dobro na ovoj sesiji?",
+    "what_was_good_placeholder": "Objašnjenje je bilo jasno, tempo je bio dobar...",
+    "what_could_improve_label": "Šta bi moglo biti bolje?",
+    "what_could_improve_placeholder": "Voleo/la bih više vežbi...",
+    "submit_button": "Pošalji povratne informacije",
+    "success": "Hvala na povratnim informacijama!",
+    "pending_banner_title": "Povratne informacije čekaju",
+    "pending_banner_body": "Imate {{count}} sesiju/a koje čekaju vaše povratne informacije."
   }
 }

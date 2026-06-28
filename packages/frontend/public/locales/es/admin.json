@@ -343,5 +343,17 @@
     "bookings": "Reservas",
     "students": "Estudiantes",
     "sessions": "Sesiones"
+  },
+  "feedback": {
+    "nav_label": "Comentarios",
+    "dashboard_title": "Comentarios de estudiantes",
+    "dashboard_subtitle": "Comentarios recibidos de estudiantes por todos los profesores",
+    "avg_rating": "Calificación prom.",
+    "total_feedback": "Total de comentarios",
+    "no_feedback": "Aún no se han recibido comentarios",
+    "what_was_good": "Qué fue bueno",
+    "what_could_improve": "Qué podría mejorar",
+    "student_label": "Estudiante",
+    "session_date": "Fecha de sesión"
   }
 }

@@ -681,6 +681,49 @@ export const getPublicProfessors = async (): Promise<
   return res.data.data;
 };
 
+// Session Feedback API
+export const feedbackApi = {
+  submit: async (data: {
+    bookingId: string;
+    rating: number;
+    whatWasGood?: string;
+    whatCouldBeImproved?: string;
+  }) => {
+    const res = await api.post("/feedback", data);
+    return res.data.data;
+  },
+
+  getMyFeedbackAsProf: async (page = 1, studentId?: string) => {
+    const params = new URLSearchParams({ page: String(page), limit: "20" });
+    if (studentId) params.set("studentId", studentId);
+    const res = await api.get(`/feedback/professor?${params}`);
+    return res.data;
+  },
+
+  getProfessorFeedback: async (professorId: string, page = 1, studentId?: string) => {
+    const params = new URLSearchParams({ page: String(page), limit: "20" });
+    if (studentId) params.set("studentId", studentId);
+    const res = await api.get(`/feedback/professor/${professorId}?${params}`);
+    return res.data;
+  },
+
+  getAdminSummary: async () => {
+    const res = await api.get("/feedback/admin/summary");
+    return res.data.data as Array<{
+      professorId: string;
+      professorName: string;
+      totalFeedback: number;
+      avgRating: number | null;
+      recentFeedback: any[];
+    }>;
+  },
+
+  getBookingFeedback: async (bookingId: string) => {
+    const res = await api.get(`/feedback/booking/${bookingId}`);
+    return res.data.data;
+  },
+};
+
 // Notification API (N1, N2, N4)
 export const notificationApi = {
   getNotifications: async (
