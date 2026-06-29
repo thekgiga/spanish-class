@@ -147,12 +147,76 @@
   },
   "professor": {
     "no_professor_message": "Aún no tienes un profesor asignado. Elige uno para comenzar.",
+    "no_professor_title": "Aún no tienes un profesor asignado",
+    "no_professor_subtitle": "Elige tu profesor para empezar a reservar clases.",
     "choose_professor_button": "Elige tu profesor",
+    "choose_professor_link": "Elegir Profesor",
+    "choose_before_booking": "Elige un profesor antes de reservar clases.",
+    "showing_classes_for": "Mostrando clases de",
+    "cover_count": "+ {{count}} profesor(es) sustituto(s)",
     "your_professor": "Tu Profesor",
     "cover_notice": "También mostrando clases del profesor sustituto",
     "choose_page_title": "Elige tu Profesor",
     "choose_page_subtitle": "Selecciona el profesor con quien deseas estudiar",
     "select_button": "Seleccionar",
-    "selected_success": "¡Profesor seleccionado! Ya puedes reservar clases."
+    "selected_success": "¡Profesor seleccionado! Ya puedes reservar clases.",
+    "spanish_teacher_label": "Profesor de español",
+    "no_professors_yet": "Aún no hay profesores disponibles."
+  },
+  "drawer": {
+    "title": "Detalles de la clase",
+    "default_title": "Clase de español",
+    "close": "Cerrar",
+    "group": "Grupo",
+    "individual": "Individual",
+    "spots": "plazas",
+    "private": "Sesión privada",
+    "already_booked": "Ya reservado",
+    "cancel_booking": "Cancelar reserva",
+    "book_now": "Reservar ahora",
+    "join_waitlist": "Unirse a la lista de espera",
+    "waitlist_position": "Estás en el puesto #{{position}} en la lista de espera",
+    "error": "Algo salió mal. Inténtalo de nuevo."
+  },
+  "calendar": {
+    "toolbar": {
+      "today": "Hoy",
+      "prev": "Semana anterior",
+      "next": "Semana siguiente",
+      "filter": "Filtrar"
+    },
+    "filter": {
+      "all": "Todas las clases",
+      "individual": "Individual",
+      "group": "Grupo"
+    },
+    "drawer": {
+      "book_now": "Reservar ahora",
+      "already_booked": "Ya reservado",
+      "join_waitlist": "Unirse a la lista de espera",
+      "waitlisted": "¡Te has añadido a la lista de espera!",
+      "booked_success": "¡Reserva confirmada!",
+      "spots_left_one": "{{count}} plaza disponible",
+      "spots_left_other": "{{count}} plazas disponibles"
+    },
+    "empty": {
+      "title": "No hay clases disponibles esta semana.",
+      "subtitle": "Vuelve pronto o contacta a tu profesor.",
+      "no_slots_day": "Sin espacios disponibles"
+    },
+    "slot_title_default": "Clase de español"
+  },
+  "feedback": {
+    "page_title": "Comentarios de la sesión",
+    "already_submitted": "Ya enviaste comentarios para esta sesión. ¡Gracias!",
+    "rating_label": "¿Cómo calificarías esta sesión?",
+    "what_was_good_label": "¿Qué fue bueno en esta sesión?",
+    "what_was_good_placeholder": "La explicación fue clara, el ritmo fue bueno...",
+    "what_could_improve_label": "¿Qué podría mejorar?",
+    "what_could_improve_placeholder": "Me gustarían más ejercicios de práctica...",
+    "submit_button": "Enviar comentarios",
+    "success": "¡Gracias por tus comentarios!",
+    "pending_banner_title": "Comentarios de sesión pendientes",
+    "pending_banner_body": "Tienes {{count}} sesión(es) esperando tus comentarios."
   }
 }

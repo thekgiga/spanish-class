@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   Calendar,
@@ -11,10 +11,10 @@ import {
   GraduationCap,
   TrendingUp,
   Plus,
-  Trophy,
-  Flame,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useEffect } from "react";
+import { toast } from "react-hot-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,10 +30,20 @@ import {
 import { useAuthStore } from "@/stores/auth";
 import BookingStatusBadge from "@/components/booking/BookingStatusBadge";
 import { ProfileCompletionCard } from "@/components/student/ProfileCompletionCard";
+import { useNotifications } from "@/hooks/useNotifications";
+import { MessageSquare } from "lucide-react";
 
 export function StudentDashboard() {
   const { t } = useTranslation("student");
   const { user } = useAuthStore();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get("professor_assigned") === "1") {
+      toast.success(t("professor.selected_success"));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   const { data, isLoading } = useQuery({
     queryKey: ["student-dashboard"],
     queryFn: studentApi.getDashboard,
@@ -52,6 +62,12 @@ export function StudentDashboard() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // Pending feedback notifications from the in-app feed
+  const { notifications } = useNotifications();
+  const pendingFeedback = notifications.filter(
+    (n) => n.type === "feedback_pending" && !n.readAt,
+  );
+
   // Vibrant Spanish Colors - Student Dashboard
   const stats = [
     {
@@ -68,47 +84,24 @@ export function StudentDashboard() {
       trend: "+3",
       trendUp: true,
     },
-    {
-      labelKey: "dashboard.stats.total_hours",
-      value: "24",
-      icon: Clock,
-      gradient: "from-spanish-sunshine-500 to-spanish-sunshine-600",
-      trend: "+5",
-      trendUp: true,
-    },
-    {
-      labelKey: "dashboard.stats.day_streak",
-      value: 7,
-      icon: Flame,
-      gradient: "from-spanish-orange-500 to-spanish-orange-600",
-      trend: "🔥",
-      trendUp: false,
-    },
+
   ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-spanish-teal-50 via-white to-spanish-coral-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Welcome Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-slate-900">
-                {t("dashboard.welcome_greeting", { name: user?.firstName })}
-              </h1>
-              <Badge className="bg-spanish-coral-500/20 text-spanish-coral-600 border-spanish-coral-500/30 px-3 py-1">
-                <GraduationCap className="h-4 w-4 mr-1" />
-                {t("dashboard.student_badge")}
-              </Badge>
-            </div>
-            <p className="text-slate-700 text-lg">{t("dashboard.subtitle")}</p>
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-slate-900">
+              {t("dashboard.welcome_greeting", { name: user?.firstName })}
+            </h1>
+            <Badge className="bg-spanish-coral-500/20 text-spanish-coral-600 border-spanish-coral-500/30 px-3 py-1">
+              <GraduationCap className="h-4 w-4 mr-1" />
+              {t("dashboard.student_badge")}
+            </Badge>
           </div>
-          <PrimaryButton size="lg" asChild>
-            <Link to="/dashboard/book">
-              <Plus className="mr-2 h-5 w-5" />
-              {t("dashboard.book_class_button")}
-            </Link>
-          </PrimaryButton>
+          <p className="text-slate-700 text-lg">{t("dashboard.subtitle")}</p>
         </div>
 
         {/* Stats Grid - Modern Card Design */}
@@ -116,20 +109,47 @@ export function StudentDashboard() {
         {professorData && !professorData.professor && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between gap-4">
             <div>
-              <p className="font-semibold text-amber-800 text-sm">You haven't been assigned a professor yet</p>
-              <p className="text-amber-700 text-xs mt-0.5">Choose your professor to start booking classes.</p>
+              <p className="font-semibold text-amber-800 text-sm">{t("professor.no_professor_title")}</p>
+              <p className="text-amber-700 text-xs mt-0.5">{t("professor.no_professor_subtitle")}</p>
             </div>
             <Link
               to="/dashboard/choose-professor"
               className="shrink-0 text-sm font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
             >
-              Choose Professor
+              {t("professor.choose_professor_link")}
+            </Link>
+          </div>
+        )}
+
+        {/* Pending feedback banner */}
+        {pendingFeedback.length > 0 && (
+          <div className="bg-spanish-teal-50 border border-spanish-teal-200 rounded-xl p-4 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-spanish-teal-100 flex items-center justify-center flex-shrink-0">
+                <MessageSquare className="h-4 w-4 text-spanish-teal-600" />
+              </div>
+              <div>
+                <p className="font-semibold text-spanish-teal-800 text-sm">
+                  {pendingFeedback.length === 1
+                    ? "1 session is waiting for your feedback"
+                    : `${pendingFeedback.length} sessions are waiting for your feedback`}
+                </p>
+                <p className="text-spanish-teal-700 text-xs mt-0.5">
+                  Share your thoughts — it only takes a minute.
+                </p>
+              </div>
+            </div>
+            <Link
+              to={pendingFeedback[0].href ?? "/dashboard/bookings"}
+              className="shrink-0 text-sm font-semibold text-spanish-teal-800 bg-spanish-teal-100 hover:bg-spanish-teal-200 px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap"
+            >
+              Give Feedback
             </Link>
           </div>
         )}
 
         {/* Stats Grid - Modern Card Design */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-3">
           {stats.map((stat, index) => (
             <motion.div
               key={stat.labelKey}
@@ -176,6 +196,27 @@ export function StudentDashboard() {
               </div>
             </motion.div>
           ))}
+
+          <Link to="/dashboard/book">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: stats.length * 0.1 }}
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-spanish-teal-200 hover:border-spanish-teal-400 h-full"
+            >
+              <div className="flex items-start gap-4">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 shadow-lg flex-shrink-0">
+                  <Calendar className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-600 mb-1">Browse Available Classes</p>
+                  <p className="text-sm text-slate-500">Find and book your next session</p>
+                  <ArrowRight className="h-5 w-5 text-spanish-teal-500 mt-3" />
+                </div>
+              </div>
+            </motion.div>
+          </Link>
         </div>
 
         {/* Profile Completion - Show if < 100% */}
@@ -187,91 +228,6 @@ export function StudentDashboard() {
             <ProfileCompletionCard completion={profileData.completion} />
           </motion.div>
         )}
-
-        {/* Learning Progress */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-spanish-teal-200"
-        >
-          <div className="px-6 py-5 border-b border-spanish-teal-100 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-spanish-coral-500 to-spanish-coral-600 shadow-lg">
-                <Trophy className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-slate-900">
-                  {t("dashboard.learning_progress.title")}
-                </h2>
-                <p className="text-sm text-slate-600">
-                  {t("dashboard.learning_progress.subtitle")}
-                </p>
-              </div>
-            </div>
-            <Badge className="bg-spanish-teal-500/20 text-spanish-teal-600 border-spanish-teal-500/30">
-              {t("dashboard.learning_progress.complete_badge", {
-                percentage: profileData?.completion?.percentage || 60,
-              })}
-            </Badge>
-          </div>
-
-          <div className="p-6 space-y-6">
-            {/* Conversation Skills */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-slate-700">
-                  {t("dashboard.learning_progress.conversation_skills")}
-                </p>
-                <p className="text-sm font-bold text-spanish-coral-600">
-                  {profileData?.completion?.percentage || 75}%
-                </p>
-              </div>
-              <div className="h-2 bg-spanish-coral-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-spanish-coral-600 to-spanish-coral-500 transition-all duration-500"
-                  style={{
-                    width: `${profileData?.completion?.percentage || 75}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Grammar Mastery */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-slate-700">
-                  {t("dashboard.learning_progress.grammar_mastery")}
-                </p>
-                <p className="text-sm font-bold text-spanish-teal-600">60%</p>
-              </div>
-              <div className="h-2 bg-spanish-teal-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-spanish-teal-600 to-spanish-teal-500 transition-all duration-500"
-                  style={{ width: "60%" }}
-                />
-              </div>
-            </div>
-
-            {/* Vocabulary */}
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium text-slate-700">
-                  {t("dashboard.learning_progress.vocabulary")}
-                </p>
-                <p className="text-sm font-bold text-spanish-sunshine-600">
-                  90%
-                </p>
-              </div>
-              <div className="h-2 bg-spanish-sunshine-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-spanish-sunshine-600 to-spanish-sunshine-500 transition-all duration-500"
-                  style={{ width: "90%" }}
-                />
-              </div>
-            </div>
-          </div>
-        </motion.div>
 
         {/* Next Session */}
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-spanish-coral-200">
@@ -386,52 +342,6 @@ export function StudentDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Link to="/dashboard/book">
-            <motion.div
-              whileHover={{ scale: 1.02, y: -4 }}
-              className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-spanish-teal-200 hover:border-spanish-teal-400"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 shadow-lg">
-                  <Calendar className="h-7 w-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1">
-                    Browse Available Classes
-                  </h3>
-                  <p className="text-sm text-slate-600">
-                    Find and book your next session
-                  </p>
-                  <ArrowRight className="h-5 w-5 text-spanish-teal-500 group-hover:translate-x-1 transition-all mt-3" />
-                </div>
-              </div>
-            </motion.div>
-          </Link>
-
-          <Link to="/dashboard/bookings">
-            <motion.div
-              whileHover={{ scale: 1.02, y: -4 }}
-              className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer border-2 border-spanish-coral-200 hover:border-spanish-coral-400"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-spanish-coral-500 to-spanish-coral-600 shadow-lg">
-                  <BookOpen className="h-7 w-7 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-slate-900 mb-1">
-                    My Bookings
-                  </h3>
-                  <p className="text-sm text-slate-600">
-                    View and manage your sessions
-                  </p>
-                  <ArrowRight className="h-5 w-5 text-spanish-coral-500 group-hover:translate-x-1 transition-all mt-3" />
-                </div>
-              </div>
-            </motion.div>
-          </Link>
-        </div>
       </div>
     </div>
   );

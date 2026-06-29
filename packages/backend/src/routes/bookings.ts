@@ -208,12 +208,14 @@ router.post("/reject-booking", validate(rejectBookingSchema), async (req, res, n
     });
 
     // B3: decrement slot participants and notify student (non-blocking)
+    // W1: pass fromWaitlist so student is re-queued if their promoted booking was rejected
     applyRejectionSideEffects(
       booking.studentId,
       booking.slotId,
       booking.slot.currentParticipants,
       booking.slot.maxParticipants,
       booking.slot.title ?? undefined,
+      booking.fromWaitlist,
     ).catch((err: unknown) => console.error("[reject-booking] side-effects failed:", err));
 
     res.json({

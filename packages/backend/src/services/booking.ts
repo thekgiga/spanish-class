@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma.js";
 import type { Prisma } from "@prisma/client";
 import { AppError } from "../middleware/error.js";
 import type { UserPublic } from "@spanish-class/shared";
+import { incrementEngagementStat } from "./studentEngagement.js";
 import {
   sendBookingConfirmationToStudent,
   sendBookingNotificationToProfessor,
@@ -282,6 +283,9 @@ export async function bookSlot(
       createNotification(student.id, "booking_pending", "Booking pending confirmation", `Your booking for ${slotTitle} on ${classDate} is awaiting professor confirmation.`, "/dashboard/bookings").catch(() => {});
       createNotification(slot.professor.id, "booking_request", "New booking request", `${student.firstName} ${student.lastName} has requested to book ${slotTitle} on ${classDate}.`, "/admin").catch(() => {});
 
+      // AN2: Track booking in StudentEngagementStats (non-blocking)
+      incrementEngagementStat(student.id, "totalClassesBooked", new Date()).catch(() => {});
+
       return {
         bookingId: booking.id,
         slot: {
@@ -421,6 +425,7 @@ export async function cancelBooking(
       },
     });
 
+    let promotedBookingId: string | null = null;
     if (nextWaiting) {
       await tx.waitlistEntry.delete({ where: { id: nextWaiting.id } });
       // Resequence remaining entries
@@ -428,12 +433,27 @@ export async function cancelBooking(
       for (let i = 0; i < remaining.length; i++) {
         await tx.waitlistEntry.update({ where: { id: remaining[i].id }, data: { position: i + 1 } });
       }
+      // W1: Create a PENDING_CONFIRMATION booking for the promoted student (fromWaitlist=true)
+      const promoted = await tx.booking.create({
+        data: {
+          slotId: booking.slotId,
+          studentId: nextWaiting.userId,
+          status: "PENDING_CONFIRMATION",
+          fromWaitlist: true,
+        },
+      });
+      promotedBookingId = promoted.id;
     }
 
-    return { booking, cancelledBy, promotedWaitlistEntry: nextWaiting || null };
+    return { booking, cancelledBy, promotedWaitlistEntry: nextWaiting || null, promotedBookingId };
   });
 
   const { booking, cancelledBy, promotedWaitlistEntry } = result;
+
+  // AN2: Track student cancellation in StudentEngagementStats (non-blocking)
+  if (cancelledBy === "student") {
+    incrementEngagementStat(booking.studentId, "totalClassesCancelled").catch(() => {});
+  }
 
   // Send cancellation emails
   // Cast slot to fix Prisma enum vs shared enum type mismatch

@@ -91,5 +91,40 @@
     "cancel_invitation": "Cancel Invitation",
     "cancel_invitation_confirm": "Cancel Invitation",
     "student_label": "Student"
+  },
+  "invite_student_modal": {
+    "title": "Invite Student",
+    "description": "Enter the student's email address. If they're not registered yet, they'll receive an invitation link. If they're already registered, they'll be assigned to you directly.",
+    "email_label": "Student Email",
+    "email_placeholder": "student@example.com",
+    "cancel_button": "Cancel",
+    "submit_button": "Send Invitation",
+    "submit_loading": "Sending…"
+  },
+  "create_cover_modal": {
+    "title": "Create Cover Period",
+    "description": "Assign a cover professor for your students during a specific time period (e.g. vacation). Students will see that professor's slots + yours during this time.",
+    "cover_professor_label": "Cover Professor",
+    "cover_professor_placeholder": "Select a professor",
+    "starts_at_label": "Starts At",
+    "ends_at_label": "Ends At",
+    "apply_to_all_label": "Apply to all my students",
+    "select_students_label": "Select students",
+    "cancel_button": "Cancel",
+    "submit_button": "Create Cover",
+    "submit_loading": "Creating…"
+  },
+  "meeting_notes": {
+    "title": "Meeting Notes",
+    "agenda_label": "Agenda / Pre-class Notes",
+    "agenda_placeholder": "What do you plan to cover in this session?",
+    "session_label": "Post-class Notes",
+    "session_placeholder": "How did the session go? Key points, student progress, next steps…",
+    "save": "Save Notes",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "saved": "Notes saved",
+    "save_error": "Failed to save notes",
+    "open_button": "Meeting Notes"
   }
 }

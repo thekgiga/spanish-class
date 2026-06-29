@@ -147,12 +147,76 @@
   },
   "professor": {
     "no_professor_message": "Još niste dodeljeni profesoru. Izaberite jednog da biste počeli.",
+    "no_professor_title": "Još niste dodeljeni profesoru",
+    "no_professor_subtitle": "Izaberite profesora da biste počeli zakazivati časove.",
     "choose_professor_button": "Izaberite profesora",
+    "choose_professor_link": "Izaberi Profesora",
+    "choose_before_booking": "Izaberite profesora pre zakazivanja časova.",
+    "showing_classes_for": "Prikazuju se časovi za",
+    "cover_count": "+ {{count}} zamjenski profesor(i)",
     "your_professor": "Vaš Profesor",
     "cover_notice": "Prikazuju se i časovi zamjenskog profesora",
     "choose_page_title": "Izaberite Profesora",
     "choose_page_subtitle": "Izaberite profesora s kojim želite učiti",
     "select_button": "Izaberi",
-    "selected_success": "Profesor je izabran! Sada možete zakazivati časove."
+    "selected_success": "Profesor je izabran! Sada možete zakazivati časove.",
+    "spanish_teacher_label": "Nastavnik španskog",
+    "no_professors_yet": "Još nema dostupnih profesora."
+  },
+  "drawer": {
+    "title": "Detalji časa",
+    "default_title": "Čas španskog",
+    "close": "Zatvori",
+    "group": "Grupni",
+    "individual": "Individualni",
+    "spots": "mesta",
+    "private": "Privatna sesija",
+    "already_booked": "Već zakazano",
+    "cancel_booking": "Otkaži zakazivanje",
+    "book_now": "Zakaži odmah",
+    "join_waitlist": "Prijavi se na listu čekanja",
+    "waitlist_position": "Na listi čekanja ste #{{position}}",
+    "error": "Nešto nije uspelo. Pokušajte ponovo."
+  },
+  "calendar": {
+    "toolbar": {
+      "today": "Danas",
+      "prev": "Prethodna sedmica",
+      "next": "Sledeća sedmica",
+      "filter": "Filter"
+    },
+    "filter": {
+      "all": "Sve klase",
+      "individual": "Individualne",
+      "group": "Grupne"
+    },
+    "drawer": {
+      "book_now": "Zakaži odmah",
+      "already_booked": "Već zakazano",
+      "join_waitlist": "Prijavi se na listu čekanja",
+      "waitlisted": "Dodati ste na listu čekanja!",
+      "booked_success": "Termin potvrđen!",
+      "spots_left_one": "{{count}} mesto dostupno",
+      "spots_left_other": "{{count}} mesta dostupna"
+    },
+    "empty": {
+      "title": "Nema dostupnih lekcija ove sedmice.",
+      "subtitle": "Proverite ponovo uskoro ili kontaktirajte profesora.",
+      "no_slots_day": "Nema dostupnih termina"
+    },
+    "slot_title_default": "Čas španskog"
+  },
+  "feedback": {
+    "page_title": "Povratne informacije o sesiji",
+    "already_submitted": "Već ste poslali povratne informacije za ovu sesiju. Hvala!",
+    "rating_label": "Kako biste ocenili ovu sesiju?",
+    "what_was_good_label": "Šta je bilo dobro na ovoj sesiji?",
+    "what_was_good_placeholder": "Objašnjenje je bilo jasno, tempo je bio dobar...",
+    "what_could_improve_label": "Šta bi moglo biti bolje?",
+    "what_could_improve_placeholder": "Voleo/la bih više vežbi...",
+    "submit_button": "Pošalji povratne informacije",
+    "success": "Hvala na povratnim informacijama!",
+    "pending_banner_title": "Povratne informacije čekaju",
+    "pending_banner_body": "Imate {{count}} sesiju/a koje čekaju vaše povratne informacije."
   }
 }

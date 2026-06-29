@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { formatDate, formatTime } from "@/lib/utils";
 
 interface PendingBooking {
   id: string;
@@ -56,7 +57,7 @@ export default function PendingBookingsList({
                   {t("pending_list.class_time")}:
                 </span>
                 <span className="font-medium">
-                  {new Date(booking.classTime).toLocaleString()}
+                  {formatDate(booking.classTime, { weekday: undefined, year: undefined, month: 'short', day: 'numeric' })} {formatTime(booking.classTime)}
                 </span>
               </div>
               <div className="flex justify-between">

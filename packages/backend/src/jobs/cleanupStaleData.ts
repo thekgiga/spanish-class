@@ -14,10 +14,13 @@ export async function cleanupStaleData(): Promise<{
   try {
     const now = new Date();
 
-    // J5: Remove waitlist entries for slots whose startTime has passed
+    // J5: Remove waitlist entries for past slots OR cancelled slots (W2)
     const waitlistResult = await prisma.waitlistEntry.deleteMany({
       where: {
-        slot: { startTime: { lt: now } },
+        OR: [
+          { slot: { startTime: { lt: now } } },
+          { slot: { status: "CANCELLED" } },
+        ],
       },
     });
 

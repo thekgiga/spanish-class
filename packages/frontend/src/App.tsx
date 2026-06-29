@@ -44,6 +44,9 @@ const ReferralPage = lazy(() =>
 const ChooseProfessorPage = lazy(() =>
   import("@/pages/student/ChooseProfessorPage").then((m) => ({ default: m.ChooseProfessorPage })),
 );
+const FeedbackPage = lazy(() =>
+  import("@/pages/student/FeedbackPage").then((m) => ({ default: m.FeedbackPage })),
+);
 const DesignShowcase = lazy(() =>
   import("@/pages/DesignShowcase").then((m) => ({
     default: m.DesignShowcase,
@@ -97,6 +100,9 @@ const PendingApprovalsPage = lazy(() =>
   import("@/pages/admin/PendingApprovalsPage").then((m) => ({
     default: m.PendingApprovalsPage,
   })),
+);
+const FeedbackDashboard = lazy(() =>
+  import("@/pages/admin/FeedbackDashboard").then((m) => ({ default: m.FeedbackDashboard })),
 );
 
 // Lazy-loaded Student Pages
@@ -252,6 +258,7 @@ function AppRoutes() {
               element={<PendingApprovalsPage />}
             />
             <Route path="email-logs" element={<EmailLogsPage />} />
+            <Route path="feedback" element={<FeedbackDashboard />} />
             <Route path="settings/security" element={<SecuritySettingsPage />} />
             <Route path="settings" element={<ProfessorSettingsPage />} />
           </Route>
@@ -271,6 +278,7 @@ function AppRoutes() {
             <Route path="profile" element={<StudentProfilePage />} />
             <Route path="referrals" element={<ReferralPage />} />
             <Route path="choose-professor" element={<ChooseProfessorPage />} />
+            <Route path="feedback/:bookingId" element={<FeedbackPage />} />
           </Route>
 
           {/* 404 */}

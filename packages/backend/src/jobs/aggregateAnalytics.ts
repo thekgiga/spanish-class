@@ -29,6 +29,9 @@ export async function aggregateAnalytics(): Promise<{ professorsProcessed: numbe
       await aggregateMonthlyForProfessor(professorId, targetDate);
     }
 
+    // AN3: Aggregate platform-wide daily stats
+    await aggregatePlatformStats(targetDate, dayStart, dayEnd);
+
     console.log(
       `[aggregateAnalytics] Processed ${professors.length} professors for ${targetDate.toISOString().split("T")[0]}`,
     );
@@ -100,17 +103,17 @@ async function aggregateDailyForProfessor(
     },
   });
 
-  // Average rating received on this day
-  const ratings = await prisma.rating.findMany({
+  // Average feedback rating received on this day (from SessionFeedback)
+  const feedbacks = await prisma.sessionFeedback.findMany({
     where: {
-      rateeId: professorId,
+      professorId,
       createdAt: { gte: dayStart, lte: dayEnd },
     },
     select: { rating: true },
   });
   const averageRating =
-    ratings.length > 0
-      ? ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length
+    feedbacks.length > 0
+      ? feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length
       : null;
 
   await prisma.professorDailyStats.upsert({
@@ -189,17 +192,17 @@ async function aggregateMonthlyForProfessor(
     retentionRate = Math.round((returningStudents / uniqueStudents) * 100) / 100;
   }
 
-  // Average rating for the month
-  const ratings = await prisma.rating.findMany({
+  // Average feedback rating for the month (from SessionFeedback)
+  const feedbacks = await prisma.sessionFeedback.findMany({
     where: {
-      rateeId: professorId,
+      professorId,
       createdAt: { gte: monthStart, lte: monthEnd },
     },
     select: { rating: true },
   });
   const averageRating =
-    ratings.length > 0
-      ? Math.round((ratings.reduce((s, r) => s + r.rating, 0) / ratings.length) * 10) / 10
+    feedbacks.length > 0
+      ? Math.round((feedbacks.reduce((s, f) => s + f.rating, 0) / feedbacks.length) * 10) / 10
       : null;
 
   await prisma.professorMonthlyStats.upsert({
@@ -220,6 +223,112 @@ async function aggregateMonthlyForProfessor(
       uniqueStudents,
       retentionRate,
       averageRating,
+    },
+  });
+}
+
+// ── AN3: Platform-wide daily stats ────────────────────────────────────────────
+
+async function aggregatePlatformStats(
+  targetDate: Date,
+  dayStart: Date,
+  dayEnd: Date,
+): Promise<void> {
+  // Total bookings created on targetDate
+  const totalBookings = await prisma.booking.count({
+    where: { bookedAt: { gte: dayStart, lte: dayEnd } },
+  });
+
+  // Completed bookings whose slot ended on targetDate
+  const completedBookings = await prisma.booking.count({
+    where: {
+      status: "COMPLETED",
+      slot: { endTime: { gte: dayStart, lte: dayEnd } },
+    },
+  });
+
+  // Cancelled bookings on targetDate
+  const cancelledBookings = await prisma.booking.count({
+    where: {
+      status: { in: ["CANCELLED_BY_STUDENT", "CANCELLED_BY_PROFESSOR"] },
+      cancelledAt: { gte: dayStart, lte: dayEnd },
+    },
+  });
+
+  // Active students (distinct students with any booking activity on targetDate)
+  const activeStudentRows = await prisma.booking.findMany({
+    where: { bookedAt: { gte: dayStart, lte: dayEnd } },
+    distinct: ["studentId"],
+    select: { studentId: true },
+  });
+  const activeStudents = activeStudentRows.length;
+
+  // Active professors (distinct professors with at least one slot on targetDate)
+  const activeProfessorRows = await prisma.availabilitySlot.findMany({
+    where: { startTime: { gte: dayStart, lte: dayEnd } },
+    distinct: ["professorId"],
+    select: { professorId: true },
+  });
+  const activeProfessors = activeProfessorRows.length;
+
+  // New user registrations on targetDate
+  const newRegistrations = await prisma.user.count({
+    where: { createdAt: { gte: dayStart, lte: dayEnd } },
+  });
+
+  // Total revenue from completed bookings on targetDate (via StudentPricing)
+  const completedOnDay = await prisma.booking.findMany({
+    where: {
+      status: "COMPLETED",
+      slot: { endTime: { gte: dayStart, lte: dayEnd } },
+    },
+    select: { studentId: true, slot: { select: { professorId: true } } },
+  });
+
+  let totalRevenueRSD = 0;
+  if (completedOnDay.length > 0) {
+    const pricingKeys = completedOnDay.map((b) => ({
+      professorId: b.slot.professorId,
+      studentId: b.studentId,
+    }));
+    // Batch fetch pricings
+    const pricings = await prisma.studentPricing.findMany({
+      where: {
+        OR: pricingKeys.map((k) => ({
+          professorId: k.professorId,
+          studentId: k.studentId,
+        })),
+      },
+      select: { professorId: true, studentId: true, priceRSD: true },
+    });
+    const priceMap = new Map(
+      pricings.map((p) => [`${p.professorId}:${p.studentId}`, p.priceRSD]),
+    );
+    for (const b of completedOnDay) {
+      totalRevenueRSD += priceMap.get(`${b.slot.professorId}:${b.studentId}`) ?? 0;
+    }
+  }
+
+  await prisma.platformDailyStats.upsert({
+    where: { date: targetDate },
+    create: {
+      date: targetDate,
+      totalBookings,
+      completedBookings,
+      cancelledBookings,
+      activeStudents,
+      activeProfessors,
+      newRegistrations,
+      totalRevenueRSD,
+    },
+    update: {
+      totalBookings,
+      completedBookings,
+      cancelledBookings,
+      activeStudents,
+      activeProfessors,
+      newRegistrations,
+      totalRevenueRSD,
     },
   });
 }

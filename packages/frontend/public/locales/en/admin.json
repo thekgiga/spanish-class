@@ -43,6 +43,7 @@
       "create_button": "Create Slots",
       "creating": "Creating...",
       "success": "Created {{count}} slots successfully!",
+      "success_with_skips": "Created {{count}} slot(s). {{skipped}} date(s) were skipped due to overlap with existing slots.",
       "error": "Failed to create slots"
     },
     "filters": {
@@ -73,6 +74,30 @@
     "update_success": "Slot updated successfully",
     "delete_success": "Slot deleted successfully",
     "recurring_success": "{{count}} recurring slots created",
+    "patterns": {
+      "tab_label": "Recurring Patterns",
+      "untitled": "Untitled pattern",
+      "inactive": "Inactive",
+      "max_participants": "Max {{count}} participants",
+      "edit_button": "Edit",
+      "delete_button": "Delete Pattern",
+      "empty": "No recurring patterns yet. Use Bulk Create to set one up.",
+      "edit_title": "Edit Recurring Pattern",
+      "edit_description": "Changes apply to this pattern and all future available slots.",
+      "title_label": "Title",
+      "title_placeholder": "e.g. Morning Spanish",
+      "description_label": "Description (optional)",
+      "description_placeholder": "What will these sessions cover?",
+      "max_participants_label": "Max Participants",
+      "save_button": "Save Changes",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "update_success": "Pattern and future slots updated",
+      "delete_success": "Pattern deactivated and future slots cancelled",
+      "confirm_delete_title": "Delete Recurring Pattern",
+      "confirm_delete_description": "This will cancel all future available slots in this pattern. Students with confirmed bookings will not be affected.",
+      "confirm_delete_button": "Delete Pattern"
+    },
     "form": {
       "mode": {
         "single": "Single",
@@ -203,6 +228,23 @@
       "no_search_results": "No students found matching your search",
       "no_students_yet": "No students registered yet"
     },
+    "assignment": {
+      "remove_student_confirm": "Remove this student from your list?",
+      "cover_button": "Set Cover Period",
+      "tab_assigned": "Assigned Students",
+      "tab_covers": "Cover Periods",
+      "tab_invitations": "Pending Invitations",
+      "no_assigned": "No students assigned yet. Invite or assign students to get started.",
+      "invite_first_button": "Invite Your First Student",
+      "student_removed": "Student removed",
+      "cover_deleted": "Cover period deleted",
+      "no_covers": "No cover periods set up.",
+      "cover_create_button": "Create Cover Period",
+      "no_invitations": "No pending invitations.",
+      "cover_active": "Active",
+      "cover_expired": "Expired",
+      "cover_pending": "Pending"
+    },
     "detail": {
       "title": "Student Profile",
       "joined": "Joined",
@@ -233,7 +275,8 @@
       },
       "bookings_tab": {
         "spanish_class": "Spanish Class",
-        "no_bookings": "No bookings yet"
+        "no_bookings": "No bookings yet",
+        "meeting_notes": "Meeting Notes"
       },
       "notes_tab": {
         "add_note": "Add Note",
@@ -242,7 +285,15 @@
         "save": "Save",
         "update": "Update",
         "cancel": "Cancel",
-        "note_placeholder": "Write your note here..."
+        "note_placeholder": "Write your note here...",
+        "generic_notes": "Generic Notes",
+        "booking_notes": "Booking / Class Notes",
+        "no_generic_notes": "No general notes yet. Use the Add Note button to record observations about this student.",
+        "no_booking_notes": "No session notes recorded yet.",
+        "agenda_notes": "Agenda",
+        "session_notes": "Session Notes",
+        "load_more": "Load More",
+        "loading": "Loading..."
       }
     }
   },
@@ -273,7 +324,85 @@
     },
     "no_slots": "No slots on this day",
     "create_slot": "Create Slot",
-    "click_to_see": "Click on a date to see slots"
+    "click_to_see": "Click on a date to see slots",
+    "toolbar": {
+      "today": "Today",
+      "prev": "Previous week",
+      "next": "Next week",
+      "new": "New",
+      "search_placeholder": "Search lessons…",
+      "view_week": "Week",
+      "view_day": "Day"
+    },
+    "sidebar": {
+      "nav_schedule": "Schedule",
+      "nav_students": "Students",
+      "nav_settings": "Settings",
+      "todays_lessons": "Today's Lessons",
+      "pending_approvals": "Pending Approvals",
+      "upcoming": "Upcoming",
+      "lessons_this_week": "lessons this week",
+      "no_lessons_today": "No lessons today"
+    },
+    "empty": {
+      "title": "No lessons scheduled for this week.",
+      "subtitle": "Drag on the calendar or click New to add a slot.",
+      "cta": "Create Available Slot"
+    },
+    "drawer": {
+      "title": "Slot Details",
+      "close": "Close",
+      "student_section": "Student",
+      "actions": "Actions",
+      "approve": "Approve",
+      "reject": "Reject",
+      "reject_reason_placeholder": "Reason for rejection (optional)",
+      "cancel_reject": "Cancel",
+      "confirm_reject": "Confirm Reject",
+      "notes": "Meeting Notes",
+      "cancel_lesson": "Cancel Lesson",
+      "cancel_confirm": "Cancel this lesson?",
+      "no": "No",
+      "yes_cancel": "Yes, Cancel",
+      "error": "An error occurred. Try again.",
+      "group": "Group",
+      "individual": "Individual",
+      "blocked": "Blocked",
+      "edit_slot": "Edit Slot",
+      "editing": "Edit Slot",
+      "edit_title": "Title",
+      "edit_title_placeholder": "e.g. Conversation Practice",
+      "edit_start": "Start time",
+      "edit_end": "End time",
+      "cancel_edit": "Cancel",
+      "save_changes": "Save Changes",
+      "delete_slot": "Delete Slot",
+      "delete_confirm": "Permanently delete this slot? This cannot be undone.",
+      "deleting": "Delete Slot",
+      "confirm_delete": "Delete",
+      "cancel_booking_btn": "Cancel Booking & Notify Student",
+      "cancel_booking_desc": "The student will be notified by email.",
+      "cancel_booking_desc_label": "Reason (optional)",
+      "cancelling_booking": "Cancel Booking",
+      "confirm_cancel_booking": "Cancel & Notify",
+      "cancel_reason_placeholder": "Reason (optional)",
+      "cancel_lesson_confirm": "This will cancel the slot permanently.",
+      "cancelling": "Cancel Slot"
+    },
+    "popover": {
+      "back": "Back",
+      "close": "Close",
+      "available_slot": "Available Slot",
+      "available_slot_desc": "Open for students to book",
+      "booking_request": "Booking Request",
+      "booking_request_desc": "Assign to a specific student",
+      "blocked_time": "Blocked Time",
+      "blocked_time_desc": "Unavailable / personal time",
+      "approve_later": "Approve later",
+      "save": "Save",
+      "created": "Slot created!",
+      "error": "Failed to create slot. Try again."
+    }
   },
   "approvals": {
     "title": "Pending Approvals",
@@ -343,5 +472,27 @@
     "bookings": "Bookings",
     "students": "Students",
     "sessions": "Sessions"
+  },
+  "feedback": {
+    "nav_label": "Feedback",
+    "dashboard_title": "Student Feedback",
+    "dashboard_subtitle": "Feedback received from students across all professors",
+    "avg_rating": "Avg Rating",
+    "total_feedback": "Total Feedback",
+    "no_feedback": "No feedback received yet",
+    "what_was_good": "What was good",
+    "what_could_improve": "What could improve",
+    "student_label": "Student",
+    "session_date": "Session Date",
+    "export_csv": "Export CSV",
+    "exporting": "Exporting…",
+    "professor_response_label": "Professor's Response",
+    "add_response_button": "Add Response",
+    "edit_response_button": "Edit Response",
+    "response_placeholder": "Write your response to this feedback…",
+    "submit_response": "Save Response",
+    "submitting_response": "Saving…",
+    "response_saved": "Response saved",
+    "cancel": "Cancel"
   }
 }

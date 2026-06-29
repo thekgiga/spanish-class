@@ -1,5 +1,7 @@
 import { prisma } from "../lib/prisma.js";
 import type { BookingStatus } from "@prisma/client";
+import { incrementEngagementStat } from "../services/studentEngagement.js";
+import { createNotification } from "../services/notifications.js";
 
 const TERMINAL_STATUSES: BookingStatus[] = [
   "COMPLETED",
@@ -13,6 +15,8 @@ const TERMINAL_STATUSES: BookingStatus[] = [
 /**
  * Auto-complete CONFIRMED bookings whose slot has ended (B10).
  * Runs hourly. Also marks slots as COMPLETED when all bookings are terminal.
+ * Triggers a feedback_pending notification for each completed booking
+ * if the student hasn't already submitted feedback.
  */
 export async function autoCompleteBookings(): Promise<{ completedCount: number }> {
   try {
@@ -24,7 +28,18 @@ export async function autoCompleteBookings(): Promise<{ completedCount: number }
         status: "CONFIRMED",
         slot: { endTime: { lt: now } },
       },
-      select: { id: true, slotId: true },
+      select: {
+        id: true,
+        slotId: true,
+        studentId: true,
+        slot: {
+          select: {
+            title: true,
+            startTime: true,
+            professorId: true,
+          },
+        },
+      },
     });
 
     if (bookingsToComplete.length === 0) {
@@ -36,6 +51,34 @@ export async function autoCompleteBookings(): Promise<{ completedCount: number }
       where: { id: { in: bookingsToComplete.map((b) => b.id) } },
       data: { status: "COMPLETED" },
     });
+
+    // AN2: Update StudentEngagementStats.totalClassesAttended (non-blocking)
+    const studentIds = [...new Set(bookingsToComplete.map((b) => b.studentId).filter(Boolean))];
+    for (const studentId of studentIds) {
+      incrementEngagementStat(studentId, "totalClassesAttended").catch(() => {});
+    }
+
+    // Trigger feedback_pending notification for each booking (non-blocking)
+    for (const booking of bookingsToComplete) {
+      // Check if feedback already submitted
+      const feedbackExists = await prisma.sessionFeedback.findUnique({
+        where: { bookingId: booking.id },
+      }).catch(() => null);
+
+      if (!feedbackExists) {
+        const sessionDate = new Date(booking.slot.startTime).toLocaleDateString("en", {
+          month: "short", day: "numeric",
+        });
+        const classTitle = booking.slot.title || "Spanish Class";
+        createNotification(
+          booking.studentId,
+          "feedback_pending",
+          "How was your class?",
+          `Share feedback for "${classTitle}" on ${sessionDate}. It only takes a minute and helps your professor improve.`,
+          `/dashboard/feedback/${booking.id}`,
+        ).catch(() => {});
+      }
+    }
 
     // Mark slot as COMPLETED if no remaining active bookings
     const uniqueSlotIds = [...new Set(bookingsToComplete.map((b) => b.slotId))];

@@ -51,22 +51,26 @@ api.interceptors.response.use(
         : (error.response.data?.error ?? "Too many requests. Please try again later.");
     }
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      // Clear Zustand auth state without importing the store (avoids circular deps)
-      try {
-        const stored = localStorage.getItem("auth-storage");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed?.state) {
-            parsed.state.user = null;
-            parsed.state.isAuthenticated = false;
-            localStorage.setItem("auth-storage", JSON.stringify(parsed));
+      const url: string = error.config?.url ?? "";
+      const isAuthEndpoint = /\/auth\/(login|register)/.test(url);
+      if (!isAuthEndpoint) {
+        localStorage.removeItem("token");
+        // Clear Zustand auth state without importing the store (avoids circular deps)
+        try {
+          const stored = localStorage.getItem("auth-storage");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed?.state) {
+              parsed.state.user = null;
+              parsed.state.isAuthenticated = false;
+              localStorage.setItem("auth-storage", JSON.stringify(parsed));
+            }
           }
+        } catch {
+          // ignore parse errors
         }
-      } catch {
-        // ignore parse errors
+        window.location.href = "/login";
       }
-      window.location.href = "/login";
     }
     return Promise.reject(error);
   },
@@ -229,9 +233,9 @@ export const professorApi = {
 
   createBulkSlots: async (
     data: BulkCreateSlotInput,
-  ): Promise<AvailabilitySlot[]> => {
+  ): Promise<{ slots: AvailabilitySlot[]; skippedDates: string[]; message: string }> => {
     const res = await api.post("/professor/slots/bulk", data);
-    return res.data.data;
+    return { slots: res.data.data, skippedDates: res.data.skippedDates ?? [], message: res.data.message };
   },
 
   updateSlot: async (
@@ -297,6 +301,31 @@ export const professorApi = {
     return res.data.data;
   },
 
+  getStudentBookingNotes: async (
+    studentId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<{
+    data: Array<{
+      id: string;
+      bookingId: string;
+      agendaNotes?: string;
+      sessionNotes?: string;
+      createdAt: string;
+      updatedAt: string;
+      booking: {
+        id: string;
+        slot?: { id: string; title?: string; startTime: string; endTime: string } | null;
+      };
+    }>;
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }> => {
+    const res = await api.get(`/professor/students/${studentId}/booking-notes`, {
+      params: { page, limit },
+    });
+    return res.data;
+  },
+
   deleteNote: async (studentId: string, noteId: string): Promise<void> => {
     await api.delete(`/professor/students/${studentId}/notes/${noteId}`);
   },
@@ -316,6 +345,14 @@ export const professorApi = {
 
   deleteRecurringPattern: async (id: string): Promise<void> => {
     await api.delete(`/professor/recurring-patterns/${id}`);
+  },
+
+  updateRecurringPattern: async (
+    id: string,
+    data: { title?: string | null; description?: string | null; maxParticipants?: number },
+  ) => {
+    const res = await api.patch(`/professor/recurring-patterns/${id}`, data);
+    return res.data.data;
   },
 
   // Direct booking
@@ -417,6 +454,16 @@ export const professorApi = {
 
   getPendingInvitations: async () => {
     const res = await api.get("/professor/pending-invitations");
+    return res.data.data;
+  },
+
+  getMeetingNote: async (bookingId: string): Promise<{ agendaNotes?: string; sessionNotes?: string } | null> => {
+    const res = await api.get(`/professor/bookings/${bookingId}/meeting-notes`);
+    return res.data.data;
+  },
+
+  saveMeetingNote: async (bookingId: string, data: { agendaNotes?: string; sessionNotes?: string }) => {
+    const res = await api.put(`/professor/bookings/${bookingId}/meeting-notes`, data);
     return res.data.data;
   },
 };
@@ -645,40 +692,69 @@ export const getReferralStats = async (): Promise<any> => {
   return response.data.data;
 };
 
-// Rating APIs
-export const submitRating = async (
-  rateeId: string,
-  rating: number,
-  comment?: string,
-  bookingId?: string,
-  isAnonymous?: boolean,
-): Promise<any> => {
-  const response = await api.post("/ratings", {
-    rateeId,
-    rating,
-    comment,
-    bookingId,
-    isAnonymous,
-  });
-  return response.data.data;
-};
-
-export const getUserRatings = async (userId: string): Promise<any> => {
-  const response = await api.get(`/ratings/user/${userId}`);
-  return response.data.data;
-};
-
-export const getPendingRatings = async (): Promise<any> => {
-  const response = await api.get("/ratings/pending");
-  return response.data.data;
-};
-
 // Public endpoints (no auth required)
 export const getPublicProfessors = async (): Promise<
   Array<{ id: string; firstName: string; lastName: string }>
 > => {
   const res = await api.get("/professors");
   return res.data.data;
+};
+
+// Session Feedback API
+export const feedbackApi = {
+  submit: async (data: {
+    bookingId: string;
+    rating: number;
+    whatWasGood?: string;
+    whatCouldBeImproved?: string;
+  }) => {
+    const res = await api.post("/feedback", data);
+    return res.data.data;
+  },
+
+  getMyFeedbackAsProf: async (page = 1, studentId?: string) => {
+    const params = new URLSearchParams({ page: String(page), limit: "20" });
+    if (studentId) params.set("studentId", studentId);
+    const res = await api.get(`/feedback/professor?${params}`);
+    return res.data;
+  },
+
+  getProfessorFeedback: async (professorId: string, page = 1, studentId?: string) => {
+    const params = new URLSearchParams({ page: String(page), limit: "20" });
+    if (studentId) params.set("studentId", studentId);
+    const res = await api.get(`/feedback/professor/${professorId}?${params}`);
+    return res.data;
+  },
+
+  getAdminSummary: async () => {
+    const res = await api.get("/feedback/admin/summary");
+    return res.data.data as Array<{
+      professorId: string;
+      professorName: string;
+      totalFeedback: number;
+      avgRating: number | null;
+      recentFeedback: any[];
+    }>;
+  },
+
+  getBookingFeedback: async (bookingId: string) => {
+    const res = await api.get(`/feedback/booking/${bookingId}`);
+    return res.data.data;
+  },
+
+  exportCsv: async (params?: { professorId?: string; startDate?: string; endDate?: string }): Promise<Blob> => {
+    const query = new URLSearchParams();
+    if (params?.professorId) query.set("professorId", params.professorId);
+    if (params?.startDate) query.set("startDate", params.startDate);
+    if (params?.endDate) query.set("endDate", params.endDate);
+    const res = await api.get(`/feedback/admin/export?${query}`, { responseType: "blob" });
+    return res.data;
+  },
+
+  respondToFeedback: async (feedbackId: string, response: string) => {
+    const res = await api.post(`/feedback/${feedbackId}/respond`, { response });
+    return res.data.data;
+  },
 };
 
 // Notification API (N1, N2, N4)

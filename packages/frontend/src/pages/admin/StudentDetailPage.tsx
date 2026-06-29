@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -16,6 +16,10 @@ import {
   BookOpen,
   Target,
   MessageSquare,
+  Reply,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,8 +35,111 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { professorApi } from "@/lib/api";
+import { professorApi, feedbackApi } from "@/lib/api";
 import { getInitials, formatDate, formatTime } from "@/lib/utils";
+import { MeetingNotesEditor } from "@/components/professor/MeetingNotesEditor";
+
+function FeedbackCard({ fb, studentId }: { fb: any; studentId: string }) {
+  const { t } = useTranslation("admin");
+  const queryClient = useQueryClient();
+  const [showResponseForm, setShowResponseForm] = useState(false);
+  const [responseText, setResponseText] = useState(fb.professorResponse ?? "");
+
+  const responseMutation = useMutation({
+    mutationFn: (response: string) => feedbackApi.respondToFeedback(fb.id, response),
+    onSuccess: () => {
+      toast.success(t("feedback.response_saved"));
+      queryClient.invalidateQueries({ queryKey: ["student-feedback", studentId] });
+      setShowResponseForm(false);
+    },
+    onError: (err: any) => toast.error(err?.response?.data?.error || "Failed to save response"),
+  });
+
+  return (
+    <Card className="border border-slate-100">
+      <CardContent className="p-4 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex gap-0.5">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <span key={s} className={`text-lg ${s <= fb.rating ? "text-yellow-400" : "text-slate-200"}`}>★</span>
+            ))}
+          </div>
+          <span className="text-xs text-slate-400">
+            {fb.booking?.slot?.startTime ? formatDate(fb.booking.slot.startTime) : ""}
+          </span>
+        </div>
+        {fb.booking?.slot?.title && (
+          <p className="text-xs text-slate-500 font-medium">{fb.booking.slot.title}</p>
+        )}
+        {fb.whatWasGood && (
+          <div className="bg-green-50 rounded-lg px-3 py-2">
+            <p className="text-xs font-medium text-green-700 mb-0.5">{t("feedback.what_was_good")}</p>
+            <p className="text-sm text-slate-700">{fb.whatWasGood}</p>
+          </div>
+        )}
+        {fb.whatCouldBeImproved && (
+          <div className="bg-amber-50 rounded-lg px-3 py-2">
+            <p className="text-xs font-medium text-amber-700 mb-0.5">{t("feedback.what_could_improve")}</p>
+            <p className="text-sm text-slate-700">{fb.whatCouldBeImproved}</p>
+          </div>
+        )}
+
+        {/* SF5: Professor response */}
+        {fb.professorResponse && !showResponseForm && (
+          <div className="bg-spanish-teal-50 border border-spanish-teal-200 rounded-lg px-3 py-2">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-spanish-teal-700">{t("feedback.professor_response_label")}</span>
+              <button
+                type="button"
+                onClick={() => { setResponseText(fb.professorResponse ?? ""); setShowResponseForm(true); }}
+                className="text-xs text-spanish-teal-600 hover:text-spanish-teal-800 underline"
+              >
+                {t("feedback.edit_response_button")}
+              </button>
+            </div>
+            <p className="text-xs text-slate-700">{fb.professorResponse}</p>
+          </div>
+        )}
+
+        {showResponseForm ? (
+          <div className="space-y-2 pt-1">
+            <Textarea
+              value={responseText}
+              onChange={(e) => setResponseText(e.target.value)}
+              placeholder={t("feedback.response_placeholder")}
+              rows={3}
+              className="text-sm"
+            />
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className="bg-spanish-teal-600 hover:bg-spanish-teal-700"
+                disabled={!responseText.trim() || responseMutation.isPending}
+                onClick={() => responseMutation.mutate(responseText.trim())}
+              >
+                {responseMutation.isPending
+                  ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />{t("feedback.submitting_response")}</>
+                  : t("feedback.submit_response")}
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setShowResponseForm(false)} disabled={responseMutation.isPending}>
+                {t("feedback.cancel")}
+              </Button>
+            </div>
+          </div>
+        ) : !fb.professorResponse ? (
+          <button
+            type="button"
+            onClick={() => { setResponseText(""); setShowResponseForm(true); }}
+            className="flex items-center gap-1 text-xs text-spanish-teal-600 hover:text-spanish-teal-800"
+          >
+            <Reply className="h-3 w-3" />
+            {t("feedback.add_response_button")}
+          </button>
+        ) : null}
+      </CardContent>
+    </Card>
+  );
+}
 
 export function StudentDetailPage() {
   const { t } = useTranslation("admin");
@@ -42,12 +149,52 @@ export function StudentDetailPage() {
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<any>(null);
   const [noteContent, setNoteContent] = useState("");
+  const [meetingNotesBookingId, setMeetingNotesBookingId] = useState<string | null>(null);
+  const [meetingNotesTitle, setMeetingNotesTitle] = useState<string | undefined>();
+  const [genericOpen, setGenericOpen] = useState(true);
+  const [bookingNotesOpen, setBookingNotesOpen] = useState(true);
+  const [bookingNotesPage, setBookingNotesPage] = useState(1);
+  const [allBookingNotes, setAllBookingNotes] = useState<any[]>([]);
 
   const { data: student, isLoading } = useQuery({
     queryKey: ["student", id],
     queryFn: () => professorApi.getStudent(id!),
     enabled: !!id,
   });
+
+  // Fetch feedback for this student (professor viewing their own student's feedback)
+  const { data: feedbackData } = useQuery({
+    queryKey: ["student-feedback", id],
+    queryFn: () => feedbackApi.getMyFeedbackAsProf(1, id),
+    enabled: !!id,
+  });
+
+  const { data: bookingNotesData, isFetching: bookingNotesFetching } = useQuery({
+    queryKey: ["student-booking-notes", id, bookingNotesPage],
+    queryFn: () => professorApi.getStudentBookingNotes(id!, bookingNotesPage, 10),
+    enabled: !!id,
+    placeholderData: (prev) => prev,
+  });
+
+  useEffect(() => {
+    if (bookingNotesData?.data) {
+      if (bookingNotesPage === 1) {
+        setAllBookingNotes(bookingNotesData.data);
+      } else {
+        setAllBookingNotes((prev) => {
+          const existingIds = new Set(prev.map((n: any) => n.id));
+          const fresh = bookingNotesData.data.filter((n: any) => !existingIds.has(n.id));
+          return [...prev, ...fresh];
+        });
+      }
+    }
+  }, [bookingNotesData, bookingNotesPage]);
+
+  // Accumulate booking notes across pages
+  const prevBookingPageRef = { current: 0 };
+  if (bookingNotesData && bookingNotesData.pagination.page > prevBookingPageRef.current) {
+    prevBookingPageRef.current = bookingNotesData.pagination.page;
+  }
 
   const createNoteMutation = useMutation({
     mutationFn: (content: string) => professorApi.createNote(id!, content),
@@ -214,6 +361,9 @@ export function StudentDetailPage() {
           </TabsTrigger>
           <TabsTrigger value="notes">
             {t("students.detail.tabs.notes")} ({student.notes?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="feedback">
+            Feedback ({feedbackData?.data?.total || 0})
           </TabsTrigger>
         </TabsList>
 
@@ -404,6 +554,16 @@ export function StudentDetailPage() {
                           Mark No-Show
                         </button>
                       )}
+                    <button
+                      type="button"
+                      className="text-xs px-2 py-1 rounded border border-spanish-teal-300 text-spanish-teal-700 hover:bg-spanish-teal-50 transition-colors"
+                      onClick={() => {
+                        setMeetingNotesBookingId(booking.id);
+                        setMeetingNotesTitle(booking.slot?.title || undefined);
+                      }}
+                    >
+                      {t("students.detail.bookings_tab.meeting_notes")}
+                    </button>
                   </div>
                 </CardContent>
               </Card>
@@ -417,7 +577,7 @@ export function StudentDetailPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="notes" className="mt-6 space-y-4">
+        <TabsContent value="notes" className="mt-6 space-y-3">
           <div className="flex justify-end">
             <Button variant="primary" onClick={openNewNote}>
               <Plus className="mr-2 h-4 w-4" />
@@ -425,45 +585,194 @@ export function StudentDetailPage() {
             </Button>
           </div>
 
-          {student.notes && student.notes.length > 0 ? (
-            student.notes.map((note: any) => (
-              <Card key={note.id}>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <p className="text-sm text-muted-foreground">
-                      {formatDate(note.createdAt, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditNote(note)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteNoteMutation.mutate(note.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+          {/* Generic Notes Accordion — amber accent */}
+          <div className="border-2 border-amber-200 rounded-lg overflow-hidden">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-4 py-3 bg-amber-50 hover:bg-amber-100 transition-colors text-left"
+              onClick={() => setGenericOpen((v) => !v)}
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-amber-600" />
+                <span className="font-semibold text-amber-900 text-sm">
+                  {t("students.detail.notes_tab.generic_notes")}
+                </span>
+                <span className="text-xs bg-amber-200 text-amber-800 rounded-full px-2 py-0.5 font-medium">
+                  {student.notes?.length || 0}
+                </span>
+              </div>
+              {genericOpen ? (
+                <ChevronDown className="h-4 w-4 text-amber-600" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-amber-600" />
+              )}
+            </button>
+            {genericOpen && (
+              <div className="p-4 space-y-3 bg-white">
+                {student.notes && student.notes.length > 0 ? (
+                  student.notes.map((note: any) => (
+                    <div key={note.id} className="border border-amber-100 rounded-lg p-4 bg-amber-50/40">
+                      <div className="flex justify-between items-start">
+                        <p className="text-xs text-amber-700">
+                          {formatDate(note.createdAt, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditNote(note)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteNoteMutation.mutate(note.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-sm whitespace-pre-wrap text-slate-700">{note.content}</p>
                     </div>
-                  </div>
-                  <p className="mt-2 whitespace-pre-wrap">{note.content}</p>
-                </CardContent>
-              </Card>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t("students.detail.notes_tab.no_generic_notes")}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Booking/Class Notes Accordion — teal accent */}
+          <div className="border-2 border-spanish-teal-200 rounded-lg overflow-hidden">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-4 py-3 bg-spanish-teal-50 hover:bg-spanish-teal-100 transition-colors text-left"
+              onClick={() => setBookingNotesOpen((v) => !v)}
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-spanish-teal-600" />
+                <span className="font-semibold text-spanish-teal-900 text-sm">
+                  {t("students.detail.notes_tab.booking_notes")}
+                </span>
+                <span className="text-xs bg-spanish-teal-200 text-spanish-teal-800 rounded-full px-2 py-0.5 font-medium">
+                  {bookingNotesData?.pagination.total ?? 0}
+                </span>
+              </div>
+              {bookingNotesOpen ? (
+                <ChevronDown className="h-4 w-4 text-spanish-teal-600" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-spanish-teal-600" />
+              )}
+            </button>
+            {bookingNotesOpen && (
+              <div className="p-4 space-y-3 bg-white">
+                {allBookingNotes.length > 0 ? (
+                  <>
+                    {allBookingNotes.map((note: any) => (
+                      <div key={note.id} className="border border-spanish-teal-100 rounded-lg overflow-hidden">
+                        {/* Clickable header — opens Meeting Notes modal for this booking */}
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between px-4 py-3 bg-spanish-teal-50/60 hover:bg-spanish-teal-100/70 transition-colors text-left"
+                          onClick={() => {
+                            setMeetingNotesBookingId(note.bookingId);
+                            setMeetingNotesTitle(note.booking?.slot?.title || undefined);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-spanish-teal-500 shrink-0" />
+                            <span className="text-sm font-semibold text-spanish-teal-900">
+                              {note.booking?.slot?.title || t("students.detail.bookings_tab.spanish_class")}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {note.booking?.slot?.startTime && (
+                              <div className="text-right">
+                                <p className="text-xs font-medium text-spanish-teal-800">
+                                  {formatDate(note.booking.slot.startTime, {
+                                    weekday: "short",
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })}
+                                </p>
+                                <p className="text-xs text-spanish-teal-600">
+                                  {formatTime(note.booking.slot.startTime)}
+                                  {note.booking.slot.endTime ? ` – ${formatTime(note.booking.slot.endTime)}` : ""}
+                                </p>
+                              </div>
+                            )}
+                            <Edit className="h-3.5 w-3.5 text-spanish-teal-400 shrink-0" />
+                          </div>
+                        </button>
+                        {/* Note content */}
+                        <div className="px-4 py-3 space-y-2">
+                          {note.agendaNotes && (
+                            <div className="bg-blue-50 rounded-lg px-3 py-2">
+                              <p className="text-xs font-medium text-blue-700 mb-0.5">
+                                {t("students.detail.notes_tab.agenda_notes")}
+                              </p>
+                              <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.agendaNotes}</p>
+                            </div>
+                          )}
+                          {note.sessionNotes && (
+                            <div className="bg-green-50 rounded-lg px-3 py-2">
+                              <p className="text-xs font-medium text-green-700 mb-0.5">
+                                {t("students.detail.notes_tab.session_notes")}
+                              </p>
+                              <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.sessionNotes}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {bookingNotesData && allBookingNotes.length < bookingNotesData.pagination.total && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={bookingNotesFetching}
+                          onClick={() => setBookingNotesPage((p) => p + 1)}
+                        >
+                          {bookingNotesFetching ? (
+                            <><Loader2 className="h-3 w-3 mr-2 animate-spin" />{t("students.detail.notes_tab.loading")}</>
+                          ) : (
+                            t("students.detail.notes_tab.load_more")
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t("students.detail.notes_tab.no_booking_notes")}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Feedback Tab */}
+        <TabsContent value="feedback" className="mt-6 space-y-4">
+          {feedbackData?.data?.feedback?.length > 0 ? (
+            feedbackData.data.feedback.map((fb: any) => (
+              <FeedbackCard key={fb.id} fb={fb} studentId={id!} />
             ))
           ) : (
             <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                {t("students.detail.notes_tab.no_notes")}
+              <CardContent className="py-10 text-center">
+                <MessageSquare className="h-10 w-10 mx-auto mb-3 text-slate-300" />
+                <p className="text-slate-400 text-sm">No feedback submitted yet for this student's sessions.</p>
               </CardContent>
             </Card>
           )}
@@ -504,6 +813,15 @@ export function StudentDetailPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {meetingNotesBookingId && (
+        <MeetingNotesEditor
+          open={!!meetingNotesBookingId}
+          onOpenChange={(open) => { if (!open) setMeetingNotesBookingId(null); }}
+          bookingId={meetingNotesBookingId}
+          sessionTitle={meetingNotesTitle}
+        />
+      )}
     </div>
   );
 }

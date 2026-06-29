@@ -15,6 +15,7 @@ import {
   createPrivateInvitationSchema,
   cancelPrivateInvitationSchema,
   cancelSlotWithBookingsSchema,
+  upsertMeetingNoteSchema,
 } from "@spanish-class/shared";
 import { AppError } from "../middleware/error.js";
 import {
@@ -55,7 +56,9 @@ import {
   inviteStudentSchema,
   assignStudentSchema,
   createCoverSchema,
+  updateRecurringPatternSchema,
 } from "@spanish-class/shared";
+import { getMeetingNote, upsertMeetingNote } from "../services/meetingNotes.js";
 
 const router: ExpressRouter = Router();
 
@@ -433,7 +436,10 @@ router.post(
         current.setDate(current.getDate() + 1);
       }
 
-      // Check for any overlaps
+      // S1: Check for overlaps per slot — skip overlapping ones instead of failing the whole batch
+      const skippedDates: string[] = [];
+      const slotsToCreate: Array<{ startTime: Date; endTime: Date }> = [];
+
       for (const s of slots) {
         const overlap = await prisma.availabilitySlot.findFirst({
           where: {
@@ -449,16 +455,15 @@ router.post(
         });
 
         if (overlap) {
-          throw new AppError(
-            400,
-            `Time slot on ${s.startTime.toDateString()} overlaps with an existing slot`,
-          );
+          skippedDates.push(s.startTime.toISOString().split("T")[0]);
+        } else {
+          slotsToCreate.push(s);
         }
       }
 
-      // Create all slots
+      // Create all non-overlapping slots
       const createdSlots = await Promise.all(
-        slots.map(async (s) => {
+        slotsToCreate.map(async (s) => {
           const slot = await prisma.availabilitySlot.create({
             data: {
               professorId: req.user!.id,
@@ -494,7 +499,10 @@ router.post(
       res.status(201).json({
         success: true,
         data: createdSlots,
-        message: `Created ${createdSlots.length} slots`,
+        skippedDates,
+        message: skippedDates.length > 0
+          ? `Created ${createdSlots.length} slot(s). Skipped ${skippedDates.length} date(s) due to overlap.`
+          : `Created ${createdSlots.length} slot(s)`,
       });
     } catch (error) {
       next(error);
@@ -686,14 +694,25 @@ router.delete("/recurring-patterns/:id", async (req, res, next) => {
     }
 
     // Cancel all future slots from this pattern
-    const updateResult = await prisma.availabilitySlot.updateMany({
+    const cancelledSlots = await prisma.availabilitySlot.findMany({
       where: {
         recurringPatternId: pattern.id,
         startTime: { gt: new Date() },
         status: "AVAILABLE",
       },
+      select: { id: true },
+    });
+    const cancelledSlotIds = cancelledSlots.map((s) => s.id);
+
+    await prisma.availabilitySlot.updateMany({
+      where: { id: { in: cancelledSlotIds } },
       data: { status: "CANCELLED" },
     });
+
+    // W2: Remove waitlist entries for all cancelled slots
+    if (cancelledSlotIds.length > 0) {
+      await prisma.waitlistEntry.deleteMany({ where: { slotId: { in: cancelledSlotIds } } });
+    }
 
     // Deactivate the pattern
     await prisma.recurringPattern.update({
@@ -703,12 +722,61 @@ router.delete("/recurring-patterns/:id", async (req, res, next) => {
 
     res.json({
       success: true,
-      message: `Deactivated recurring pattern and cancelled ${updateResult.count} future slots`,
+      message: `Deactivated recurring pattern and cancelled ${cancelledSlotIds.length} future slots`,
     });
   } catch (error) {
     next(error);
   }
 });
+
+// PATCH /api/professor/recurring-patterns/:id — S2: bulk-update title/description/maxParticipants for all future slots
+router.patch(
+  "/recurring-patterns/:id",
+  validate(updateRecurringPatternSchema),
+  async (req, res, next) => {
+    try {
+      const pattern = await prisma.recurringPattern.findFirst({
+        where: { id: req.params.id, professorId: req.user!.id },
+      });
+
+      if (!pattern) throw new AppError(404, "Recurring pattern not found");
+
+      const { title, description, maxParticipants } = req.body;
+
+      // Update pattern metadata
+      const updatedPattern = await prisma.recurringPattern.update({
+        where: { id: pattern.id },
+        data: {
+          ...(title !== undefined ? { title } : {}),
+          ...(description !== undefined ? { description } : {}),
+          ...(maxParticipants !== undefined ? { maxParticipants } : {}),
+        },
+      });
+
+      // Bulk-update all future AVAILABLE slots from this pattern
+      const updateCount = await prisma.availabilitySlot.updateMany({
+        where: {
+          recurringPatternId: pattern.id,
+          startTime: { gt: new Date() },
+          status: "AVAILABLE",
+        },
+        data: {
+          ...(title !== undefined ? { title } : {}),
+          ...(description !== undefined ? { description } : {}),
+          ...(maxParticipants !== undefined ? { maxParticipants } : {}),
+        },
+      });
+
+      res.json({
+        success: true,
+        data: updatedPattern,
+        message: `Updated pattern and ${updateCount.count} future slot(s)`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 // POST /api/professor/book-student - Professor directly books a student
 router.post(
@@ -810,6 +878,15 @@ router.post(
           meetLink: meetingUrl,
         }).catch(console.error);
       }
+
+      // S6/S7: Create in-app notification for student (always, regardless of sendInvitation)
+      createNotification(
+        student.id,
+        "booking_confirmed",
+        "You've been booked into a class",
+        `${req.user!.firstName} ${req.user!.lastName} has booked you into ${slot.title || "Spanish Class"}.`,
+        "/dashboard/bookings",
+      ).catch(console.error);
 
       res.status(201).json({
         success: true,
@@ -949,18 +1026,29 @@ router.delete("/slots/:id", async (req, res, next) => {
     if (slot.bookings.length > 0) {
       throw new AppError(
         400,
-        "Cannot delete a slot with active bookings. Cancel the bookings first.",
+        "This slot has active bookings. Use 'Cancel Booking & Notify Student' first, then delete.",
       );
     }
 
-    await prisma.availabilitySlot.update({
-      where: { id: slot.id },
-      data: { status: "CANCELLED" },
-    });
+    // Hard-delete in dependency order:
+    // 1. Session feedback linked via bookings
+    // 2. Meeting notes linked via bookings
+    // 3. All bookings (historical: COMPLETED, CANCELLED, REJECTED, EXPIRED, NO_SHOW)
+    // 4. Waitlist entries
+    // 5. Slot allowed students
+    // 6. The slot itself
+    await prisma.$transaction([
+      prisma.sessionFeedback.deleteMany({ where: { booking: { slotId: slot.id } } }),
+      prisma.meetingNote.deleteMany({ where: { booking: { slotId: slot.id } } }),
+      prisma.booking.deleteMany({ where: { slotId: slot.id } }),
+      prisma.waitlistEntry.deleteMany({ where: { slotId: slot.id } }),
+      prisma.slotAllowedStudent.deleteMany({ where: { slotId: slot.id } }),
+      prisma.availabilitySlot.delete({ where: { id: slot.id } }),
+    ]);
 
     res.json({
       success: true,
-      message: "Slot cancelled successfully",
+      message: "Slot deleted successfully",
     });
   } catch (error) {
     next(error);
@@ -1020,6 +1108,8 @@ router.post("/slots/:id/cancel-with-bookings", validate(cancelSlotWithBookingsSc
           cancelReason: reason || null,
         },
       }),
+      // W2: Remove all waitlist entries for this slot
+      prisma.waitlistEntry.deleteMany({ where: { slotId: slot.id } }),
       // Cancel the slot
       prisma.availabilitySlot.update({
         where: { id: slot.id },
@@ -1726,12 +1816,14 @@ router.post("/bookings/:id/reject", async (req, res, next) => {
     });
 
     // B3: decrement slot participants and notify student (non-blocking)
+    // W1: pass fromWaitlist so student is re-queued if their promoted booking was rejected
     applyRejectionSideEffects(
       booking.studentId,
       booking.slotId,
       booking.slot.currentParticipants,
       booking.slot.maxParticipants,
       booking.slot.title ?? undefined,
+      booking.fromWaitlist,
     ).catch((err: unknown) => console.error("[professor/reject] side-effects failed:", err));
 
     res.json({
@@ -2046,5 +2138,81 @@ router.get("/pending-invitations", async (req, res, next) => {
     next(error);
   }
 });
+
+// GET /api/professor/students/:id/booking-notes — paginated meeting notes for a student
+router.get("/students/:id/booking-notes", async (req, res, next) => {
+  try {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
+    const skip = (page - 1) * limit;
+
+    const where = {
+      professorId: req.user!.id,
+      booking: { studentId: req.params.id },
+    };
+
+    const [notes, total] = await Promise.all([
+      prisma.meetingNote.findMany({
+        where,
+        include: {
+          booking: {
+            include: {
+              slot: {
+                select: { id: true, title: true, startTime: true, endTime: true },
+              },
+            },
+          },
+        },
+        orderBy: { booking: { slot: { startTime: "desc" } } },
+        skip,
+        take: limit,
+      }),
+      prisma.meetingNote.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: notes,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/professor/bookings/:id/meeting-notes — get meeting notes for a booking (M2)
+router.get("/bookings/:id/meeting-notes", async (req, res, next) => {
+  try {
+    const note = await getMeetingNote(req.params.id, req.user!.id);
+    res.json({ success: true, data: note });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/professor/bookings/:id/meeting-notes — create or update meeting notes (M2)
+router.put(
+  "/bookings/:id/meeting-notes",
+  validate(upsertMeetingNoteSchema),
+  async (req, res, next) => {
+    try {
+      const { agendaNotes, sessionNotes } = req.body;
+      const note = await upsertMeetingNote(
+        req.params.id,
+        req.user!.id,
+        agendaNotes,
+        sessionNotes,
+      );
+      res.json({ success: true, data: note });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 export default router;

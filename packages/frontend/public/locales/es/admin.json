@@ -43,6 +43,7 @@
       "create_button": "Crear espacios",
       "creating": "Creando...",
       "success": "¡Se crearon {{count}} espacios con éxito!",
+      "success_with_skips": "Se crearon {{count}} espacio(s). {{skipped}} fecha(s) se omitieron por superposición con espacios existentes.",
       "error": "Error al crear espacios"
     },
     "filters": {
@@ -73,6 +74,30 @@
     "update_success": "Espacio actualizado con éxito",
     "delete_success": "Espacio eliminado con éxito",
     "recurring_success": "{{count}} espacios recurrentes creados",
+    "patterns": {
+      "tab_label": "Patrones recurrentes",
+      "untitled": "Patrón sin título",
+      "inactive": "Inactivo",
+      "max_participants": "Máx. {{count}} participantes",
+      "edit_button": "Editar",
+      "delete_button": "Eliminar patrón",
+      "empty": "Aún no hay patrones recurrentes. Usa la creación masiva para configurar uno.",
+      "edit_title": "Editar patrón recurrente",
+      "edit_description": "Los cambios se aplican a este patrón y a todos los espacios futuros disponibles.",
+      "title_label": "Título",
+      "title_placeholder": "ej. Español matutino",
+      "description_label": "Descripción (opcional)",
+      "description_placeholder": "¿Qué se cubrirá en estas sesiones?",
+      "max_participants_label": "Participantes máx.",
+      "save_button": "Guardar cambios",
+      "saving": "Guardando…",
+      "cancel": "Cancelar",
+      "update_success": "Patrón y espacios futuros actualizados",
+      "delete_success": "Patrón desactivado y espacios futuros cancelados",
+      "confirm_delete_title": "Eliminar patrón recurrente",
+      "confirm_delete_description": "Esto cancelará todos los espacios futuros disponibles en este patrón. Los estudiantes con reservas confirmadas no se verán afectados.",
+      "confirm_delete_button": "Eliminar patrón"
+    },
     "form": {
       "mode": {
         "single": "Individual",
@@ -203,6 +228,23 @@
       "no_search_results": "No se encontraron estudiantes que coincidan con tu búsqueda",
       "no_students_yet": "Aún no hay estudiantes registrados"
     },
+    "assignment": {
+      "remove_student_confirm": "¿Eliminar a este estudiante de tu lista?",
+      "cover_button": "Establecer período de sustitución",
+      "tab_assigned": "Estudiantes asignados",
+      "tab_covers": "Períodos de sustitución",
+      "tab_invitations": "Invitaciones pendientes",
+      "no_assigned": "Aún no hay estudiantes asignados. Invita o asigna estudiantes para comenzar.",
+      "invite_first_button": "Invita a tu primer estudiante",
+      "student_removed": "Estudiante eliminado",
+      "cover_deleted": "Período de sustitución eliminado",
+      "no_covers": "No hay períodos de sustitución configurados.",
+      "cover_create_button": "Crear período de sustitución",
+      "no_invitations": "No hay invitaciones pendientes.",
+      "cover_active": "Activo",
+      "cover_expired": "Expirado",
+      "cover_pending": "Pendiente"
+    },
     "detail": {
       "title": "Perfil del estudiante",
       "joined": "Se unió",
@@ -233,7 +275,8 @@
       },
       "bookings_tab": {
         "spanish_class": "Clase de español",
-        "no_bookings": "Aún no hay reservas"
+        "no_bookings": "Aún no hay reservas",
+        "meeting_notes": "Notas de sesión"
       },
       "notes_tab": {
         "add_note": "Agregar nota",
@@ -242,7 +285,15 @@
         "save": "Guardar",
         "update": "Actualizar",
         "cancel": "Cancelar",
-        "note_placeholder": "Escribe tu nota aquí..."
+        "note_placeholder": "Escribe tu nota aquí...",
+        "generic_notes": "Notas generales",
+        "booking_notes": "Notas de clases",
+        "no_generic_notes": "Aún no hay notas generales. Usa el botón Agregar nota.",
+        "no_booking_notes": "Aún no hay notas de clases.",
+        "agenda_notes": "Agenda",
+        "session_notes": "Notas de sesión",
+        "load_more": "Cargar más",
+        "loading": "Cargando..."
       }
     }
   },
@@ -273,7 +324,84 @@
     },
     "no_slots": "No hay espacios en este día",
     "create_slot": "Crear espacio",
-    "click_to_see": "Haz clic en una fecha para ver los espacios"
+    "click_to_see": "Haz clic en una fecha para ver los espacios",
+    "toolbar": {
+      "today": "Hoy",
+      "prev": "Semana anterior",
+      "next": "Semana siguiente",
+      "new": "Nuevo",
+      "search_placeholder": "Buscar clases…",
+      "view_week": "Semana",
+      "view_day": "Día"
+    },
+    "sidebar": {
+      "nav_schedule": "Horario",
+      "nav_students": "Estudiantes",
+      "nav_settings": "Configuración",
+      "todays_lessons": "Clases de hoy",
+      "pending_approvals": "Aprobaciones pendientes",
+      "upcoming": "Próximas",
+      "lessons_this_week": "clases esta semana",
+      "no_lessons_today": "Sin clases hoy"
+    },
+    "empty": {
+      "title": "No hay clases programadas esta semana.",
+      "subtitle": "Arrastra el calendario o haz clic en Nuevo para añadir un espacio.",
+      "cta": "Crear espacio disponible"
+    },
+    "drawer": {
+      "title": "Detalles del espacio",
+      "close": "Cerrar",
+      "student_section": "Estudiante",
+      "actions": "Acciones",
+      "approve": "Aprobar",
+      "reject": "Rechazar",
+      "reject_reason_placeholder": "Razón de rechazo (opcional)",
+      "cancel_reject": "Cancelar",
+      "confirm_reject": "Confirmar rechazo",
+      "notes": "Notas de la reunión",
+      "cancel_lesson": "Cancelar clase",
+      "cancel_confirm": "¿Cancelar esta clase?",
+      "no": "No",
+      "yes_cancel": "Sí, cancelar",
+      "error": "Ha ocurrido un error. Inténtalo de nuevo.",
+      "group": "Grupo",
+      "individual": "Individual",
+      "blocked": "Bloqueado",
+      "edit_slot": "Editar espacio",
+      "editing": "Editar espacio",
+      "edit_title": "Título",
+      "edit_title_placeholder": "p.ej. Práctica de conversación",
+      "edit_start": "Hora de inicio",
+      "edit_end": "Hora de fin",
+      "cancel_edit": "Cancelar",
+      "save_changes": "Guardar cambios",
+      "delete_slot": "Eliminar espacio",
+      "delete_confirm": "¿Eliminar este espacio permanentemente? No se puede deshacer.",
+      "deleting": "Eliminar espacio",
+      "confirm_delete": "Eliminar",
+      "cancel_booking_btn": "Cancelar reserva y notificar al estudiante",
+      "cancel_booking_desc": "El estudiante será notificado por correo.",
+      "cancelling_booking": "Cancelar reserva",
+      "confirm_cancel_booking": "Cancelar y notificar",
+      "cancel_reason_placeholder": "Motivo (opcional)",
+      "cancel_lesson_confirm": "Esto cancelará el espacio permanentemente.",
+      "cancelling": "Cancelar espacio"
+    },
+    "popover": {
+      "back": "Atrás",
+      "close": "Cerrar",
+      "available_slot": "Espacio disponible",
+      "available_slot_desc": "Abierto para que los estudiantes reserven",
+      "booking_request": "Solicitud de reserva",
+      "booking_request_desc": "Asignar a un estudiante específico",
+      "blocked_time": "Tiempo bloqueado",
+      "blocked_time_desc": "No disponible / tiempo personal",
+      "approve_later": "Aprobar más tarde",
+      "save": "Guardar",
+      "created": "¡Espacio creado!",
+      "error": "Error al crear el espacio. Inténtalo de nuevo."
+    }
   },
   "approvals": {
     "title": "Aprobaciones pendientes",
@@ -343,5 +471,27 @@
     "bookings": "Reservas",
     "students": "Estudiantes",
     "sessions": "Sesiones"
+  },
+  "feedback": {
+    "nav_label": "Comentarios",
+    "dashboard_title": "Comentarios de estudiantes",
+    "dashboard_subtitle": "Comentarios recibidos de estudiantes por todos los profesores",
+    "avg_rating": "Calificación prom.",
+    "total_feedback": "Total de comentarios",
+    "no_feedback": "Aún no se han recibido comentarios",
+    "what_was_good": "Qué fue bueno",
+    "what_could_improve": "Qué podría mejorar",
+    "student_label": "Estudiante",
+    "session_date": "Fecha de sesión",
+    "export_csv": "Exportar CSV",
+    "exporting": "Exportando…",
+    "professor_response_label": "Respuesta del profesor",
+    "add_response_button": "Agregar respuesta",
+    "edit_response_button": "Editar respuesta",
+    "response_placeholder": "Escribe tu respuesta a este comentario…",
+    "submit_response": "Guardar respuesta",
+    "submitting_response": "Guardando…",
+    "response_saved": "Respuesta guardada",
+    "cancel": "Cancelar"
   }
 }

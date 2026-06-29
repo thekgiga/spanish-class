@@ -35,9 +35,7 @@ import type { BookingWithSlot } from "@spanish-class/shared";
 
 export function BookingsPage() {
   const { t } = useTranslation("booking");
-  const [cancelBooking, setCancelBooking] = useState<BookingWithSlot | null>(
-    null,
-  );
+  const [cancelBooking, setCancelBooking] = useState<BookingWithSlot | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const queryClient = useQueryClient();
 
@@ -68,7 +66,7 @@ export function BookingsPage() {
   });
 
   const pastBookings = historyData?.data?.filter(
-    (b) => b.status !== "CONFIRMED" || new Date(b.slot.startTime) < new Date(),
+    (b) => new Date(b.slot.startTime) < new Date(),
   );
 
   const renderBookingCard = (booking: BookingWithSlot, showCancel = false) => {

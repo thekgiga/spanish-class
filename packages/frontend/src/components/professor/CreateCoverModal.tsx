@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-hot-toast";
 import { Clock, Loader2 } from "lucide-react";
 import {
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function CreateCoverModal({ open, onOpenChange, students }: Props) {
+  const { t } = useTranslation("professor");
   const queryClient = useQueryClient();
   const [coverProfessorId, setCoverProfessorId] = useState("");
   const [applyToAll, setApplyToAll] = useState(true);
@@ -54,7 +56,7 @@ export function CreateCoverModal({ open, onOpenChange, students }: Props) {
         startsAt: new Date(startsAt).toISOString(),
         endsAt: new Date(endsAt).toISOString(),
       });
-      toast.success(result.message || "Cover period created");
+      toast.success(result.message || t("create_cover_modal.submit_button"));
       queryClient.invalidateQueries({ queryKey: ["professor-covers"] });
       onOpenChange(false);
     } catch (error: unknown) {
@@ -71,19 +73,19 @@ export function CreateCoverModal({ open, onOpenChange, students }: Props) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5 text-spanish-teal-600" />
-            Create Cover Period
+            {t("create_cover_modal.title")}
           </DialogTitle>
           <DialogDescription>
-            Assign a cover professor for your students during a specific time period (e.g. vacation). Students will see that professor's slots + yours during this time.
+            {t("create_cover_modal.description")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="space-y-1.5">
-            <Label>Cover Professor</Label>
+            <Label>{t("create_cover_modal.cover_professor_label")}</Label>
             <Select value={coverProfessorId} onValueChange={setCoverProfessorId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a professor" />
+                <SelectValue placeholder={t("create_cover_modal.cover_professor_placeholder")} />
               </SelectTrigger>
               <SelectContent>
                 {allProfessors?.map((p) => (
@@ -97,23 +99,23 @@ export function CreateCoverModal({ open, onOpenChange, students }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="cover-starts">Starts At</Label>
+              <Label htmlFor="cover-starts">{t("create_cover_modal.starts_at_label")}</Label>
               <Input id="cover-starts" type="datetime-local" value={startsAt} onChange={(e) => setStartsAt(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="cover-ends">Ends At</Label>
+              <Label htmlFor="cover-ends">{t("create_cover_modal.ends_at_label")}</Label>
               <Input id="cover-ends" type="datetime-local" value={endsAt} onChange={(e) => setEndsAt(e.target.value)} />
             </div>
           </div>
 
           <div className="flex items-center gap-2">
             <Checkbox id="apply-all" checked={applyToAll} onCheckedChange={(v) => setApplyToAll(!!v)} />
-            <Label htmlFor="apply-all" className="cursor-pointer">Apply to all my students</Label>
+            <Label htmlFor="apply-all" className="cursor-pointer">{t("create_cover_modal.apply_to_all_label")}</Label>
           </div>
 
           {!applyToAll && (
             <div className="space-y-2">
-              <Label>Select students</Label>
+              <Label>{t("create_cover_modal.select_students_label")}</Label>
               <div className="space-y-1 max-h-40 overflow-y-auto border rounded-lg p-2">
                 {students.map((s) => (
                   <div key={s.id} className="flex items-center gap-2">
@@ -137,14 +139,16 @@ export function CreateCoverModal({ open, onOpenChange, students }: Props) {
 
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={loading}>
-              Cancel
+              {t("create_cover_modal.cancel_button")}
             </Button>
             <Button
               type="submit"
               disabled={!coverProfessorId || !startsAt || !endsAt || (!applyToAll && !selectedStudentIds.length) || loading}
               className="flex-1 bg-spanish-teal-600 hover:bg-spanish-teal-700"
             >
-              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating…</> : "Create Cover"}
+              {loading
+                ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("create_cover_modal.submit_loading")}</>
+                : t("create_cover_modal.submit_button")}
             </Button>
           </div>
         </form>

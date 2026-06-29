@@ -31,6 +31,7 @@ export type UserPublic = Omit<User, "passwordHash"> & {
 export enum SlotType {
   INDIVIDUAL = "INDIVIDUAL",
   GROUP = "GROUP",
+  BLOCKED = "BLOCKED",
 }
 
 export enum SlotStatus {
@@ -359,7 +360,6 @@ export interface StudentEngagementStats {
   totalClassesCancelled: number;
   noShowCount: number;
   lastBookingDate?: Date | null;
-  averageRatingGiven?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -421,37 +421,6 @@ export interface ReferralStats {
 export interface CreateReferralRequest {
   referredEmail: string;
   referralCode: string;
-}
-
-// Rating Types
-export interface Rating {
-  id: string;
-  raterId: string;
-  rateeId: string;
-  bookingId?: string | null;
-  rating: number;
-  comment?: string | null;
-  isAnonymous: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreateRatingRequest {
-  rateeId: string;
-  bookingId?: string;
-  rating: number;
-  comment?: string;
-  isAnonymous?: boolean;
-}
-
-export interface RatingWithRater extends Rating {
-  rater: UserPublic;
-}
-
-export interface UserRatingsSummary {
-  averageRating: number;
-  totalRatings: number;
-  ratings: RatingWithRater[];
 }
 
 // Note: CreateSlotInput, BulkCreateSlotInput, CreateBookingInput, CancelBookingInput

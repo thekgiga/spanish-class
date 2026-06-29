@@ -67,7 +67,7 @@ export function ChooseProfessorPage() {
                       <p className="font-semibold text-slate-900">
                         {professor.firstName} {professor.lastName}
                       </p>
-                      <p className="text-xs text-slate-500">Spanish Teacher</p>
+                      <p className="text-xs text-slate-500">{t("professor.spanish_teacher_label")}</p>
                     </div>
                   </div>
                   <Button
@@ -90,7 +90,7 @@ export function ChooseProfessorPage() {
             </motion.div>
           ))}
           {professors?.length === 0 && (
-            <p className="text-center text-slate-500 py-8">No professors available yet.</p>
+            <p className="text-center text-slate-500 py-8">{t("professor.no_professors_yet")}</p>
           )}
         </div>
       )}

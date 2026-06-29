@@ -1,290 +1,253 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import {
-  format,
-  startOfMonth,
-  endOfMonth,
+  addDays,
+  addWeeks,
+  subWeeks,
   startOfWeek,
   endOfWeek,
-  addMonths,
-  subMonths,
-  eachDayOfInterval,
-  isSameMonth,
-  isSameDay,
-  isToday,
+  format,
 } from "date-fns";
 import {
   ChevronLeft,
   ChevronRight,
+  LayoutGrid,
+  LayoutList,
   Plus,
-  Clock,
-  Users,
-  User,
-  Video,
-  UserPlus,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { cn, formatTime } from "@/lib/utils";
+import { AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { professorApi } from "@/lib/api";
-import type { AvailabilitySlot } from "@spanish-class/shared";
-import { PrivateInvitationModal } from "@/components/professor/PrivateInvitationModal";
-import { PrivateInvitationBadge } from "@/components/professor/PrivateInvitationBadge";
+import {
+  WeeklyCalendar,
+  SlotDrawer,
+  CreateSlotPopover,
+} from "@/components/calendar";
+import type { CalendarSlot } from "@/components/calendar/EventCard";
 
 export function CalendarPage() {
   const { t } = useTranslation("admin");
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
-  const [showPrivateInvitationModal, setShowPrivateInvitationModal] =
-    useState(false);
+  const queryClient = useQueryClient();
 
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+  // ── View state ────────────────────────────────────────────────────────────
+  const [view, setView] = useState<"week" | "day">("week");
+  const [weekStart, setWeekStart] = useState<Date>(() =>
+    startOfWeek(new Date(), { weekStartsOn: 1 })
+  );
+  const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
 
-  const { data } = useQuery({
-    queryKey: ["professor-slots", format(currentMonth, "yyyy-MM")],
+  // ── Slot drawer ───────────────────────────────────────────────────────────
+  const [drawerSlot, setDrawerSlot] = useState<CalendarSlot | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // ── Create-slot popover ───────────────────────────────────────────────────
+  const [popoverOpen, setPopoverOpen] = useState(false);
+  const [popoverStart, setPopoverStart] = useState<Date | null>(null);
+  const [popoverEnd, setPopoverEnd] = useState<Date | null>(null);
+  const [popoverAnchor, setPopoverAnchor] = useState<React.CSSProperties>({});
+
+  // ── Data ──────────────────────────────────────────────────────────────────
+  const { data: slotsData, isLoading } = useQuery({
+    queryKey: ["professor-slots", weekStart.toISOString()],
     queryFn: () =>
       professorApi.getSlots({
-        startDate: calendarStart.toISOString(),
-        endDate: calendarEnd.toISOString(),
+        startDate: weekStart.toISOString(),
+        endDate: addDays(weekEnd, 1).toISOString(),
         limit: 100,
       }),
+    staleTime: 30_000,
   });
 
-  const days = useMemo(() => {
-    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  }, [calendarStart, calendarEnd]);
+  const slots: CalendarSlot[] = (slotsData?.data ?? []).map((s: any) => ({
+    ...s,
+    startTime: typeof s.startTime === 'string' ? s.startTime : s.startTime.toISOString(),
+    endTime: typeof s.endTime === 'string' ? s.endTime : s.endTime.toISOString(),
+  })) as CalendarSlot[];
 
-  const getSlotsByDate = (date: Date): AvailabilitySlot[] => {
-    return (
-      data?.data?.filter((slot) => isSameDay(new Date(slot.startTime), date)) ||
-      []
-    );
+  // ── Handlers ──────────────────────────────────────────────────────────────
+  const goToToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
+  const goPrev = () => setWeekStart((w) => subWeeks(w, 1));
+  const goNext = () => setWeekStart((w) => addWeeks(w, 1));
+
+  const handleSlotClick = useCallback((slot: CalendarSlot) => {
+    setDrawerSlot(slot);
+    setDrawerOpen(true);
+  }, []);
+
+  const handleDragComplete = useCallback(
+    (start: Date, end: Date, _dayDate: Date) => {
+      setPopoverStart(start);
+      setPopoverEnd(end);
+      setPopoverAnchor({
+        top: window.innerHeight * 0.35,
+        left: "50%",
+        transform: "translateX(-50%)",
+      });
+      setPopoverOpen(true);
+    },
+    []
+  );
+
+  const handleCreated = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["professor-slots"] });
+  }, [queryClient]);
+
+  const handleDrawerMutation = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ["professor-slots"] });
+    queryClient.invalidateQueries({ queryKey: ["professor-pending-bookings-count"] });
+    setDrawerOpen(false);
+  }, [queryClient]);
+
+  // ── Week title ────────────────────────────────────────────────────────────
+  const weekTitle = `${format(weekStart, "MMM d")} – ${format(weekEnd, "MMM d, yyyy")}`;
+
+  const openNewSlotPopover = () => {
+    // Default to tomorrow at 9am–10am to avoid overlapping today's slots
+    const tomorrow = addDays(new Date(), 1);
+    tomorrow.setHours(9, 0, 0, 0);
+    const end = new Date(tomorrow);
+    end.setHours(10, 0, 0, 0);
+    setPopoverStart(tomorrow);
+    setPopoverEnd(end);
+    setPopoverAnchor({ top: 80, right: 20 });
+    setPopoverOpen(true);
   };
 
-  const selectedDateSlots = selectedDate ? getSlotsByDate(selectedDate) : [];
-
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-navy-800">
-            {t("calendar.title")}
+    <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-[#FAFAFA]">
+      {/* ── Main Content ──────────────────────────────────────────────────── */}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        {/* Toolbar */}
+        <header className="flex-none flex items-center gap-3 px-4 py-3 border-b border-slate-200 bg-white">
+          <div className="flex items-center gap-1">
+            <button
+              onClick={goPrev}
+              className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500"
+              aria-label={t("calendar.toolbar.prev", "Previous week")}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={goToToday}
+              className="px-3 py-1.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
+            >
+              {t("calendar.toolbar.today", "Today")}
+            </button>
+            <button
+              onClick={goNext}
+              className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500"
+              aria-label={t("calendar.toolbar.next", "Next week")}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+
+          <h1 className="text-lg font-semibold text-slate-900 flex-none">
+            {weekTitle}
           </h1>
-          <p className="text-muted-foreground">{t("calendar.subtitle")}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowPrivateInvitationModal(true)}
+
+          <div className="flex-1" />
+
+          <div className="flex items-center gap-0.5 bg-slate-100 rounded-lg p-1">
+            <button
+              onClick={() => setView("week")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                view === "week"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              {t("calendar.toolbar.view_week", "Week")}
+            </button>
+            <button
+              onClick={() => setView("day")}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+                view === "day"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              <LayoutList className="h-3.5 w-3.5" />
+              {t("calendar.toolbar.view_day", "Day")}
+            </button>
+          </div>
+
+          <button
+            onClick={openNewSlotPopover}
+            className="flex items-center gap-2 px-4 py-2 bg-edu-blue-600 hover:bg-edu-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
           >
-            <UserPlus className="mr-2 h-4 w-4" />
-            {t("calendar.subtitle")}
-          </Button>
-          <Button variant="primary" asChild>
-            <Link to="/admin/slots/new">
-              <Plus className="mr-2 h-4 w-4" />
-              {t("slots.create_button")}
-            </Link>
-          </Button>
+            <Plus className="h-4 w-4" />
+            {t("calendar.toolbar.new", "New")}
+          </button>
+        </header>
+
+        {/* Calendar */}
+        <div className="flex-1 overflow-hidden relative">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="w-8 h-8 border-2 border-edu-blue-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : slots.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+              <span className="text-5xl">📅</span>
+              <div>
+                <p className="text-lg font-semibold text-slate-700">
+                  {t("calendar.empty.title", "No lessons scheduled for this week.")}
+                </p>
+                <p className="text-sm text-slate-400 mt-1">
+                  {t("calendar.empty.subtitle", "Drag on the calendar or click New to add a slot.")}
+                </p>
+              </div>
+              <button
+                onClick={openNewSlotPopover}
+                className="flex items-center gap-2 px-5 py-2.5 bg-edu-blue-600 hover:bg-edu-blue-700 text-white text-sm font-semibold rounded-xl transition-colors shadow-sm"
+              >
+                <Plus className="h-4 w-4" />
+                {t("calendar.empty.cta", "Create Available Slot")}
+              </button>
+            </div>
+          ) : (
+            <WeeklyCalendar
+              slots={slots}
+              view={view}
+              weekStart={weekStart}
+              onSlotClick={handleSlotClick}
+              onDragComplete={handleDragComplete}
+              className="h-full"
+            />
+          )}
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Calendar */}
-        <Card className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>{format(currentMonth, "MMMM yyyy")}</CardTitle>
-            <div className="flex gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCurrentMonth(new Date())}
-              >
-                {t("calendar.today")}
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Weekday headers */}
-            <div className="grid grid-cols-7 mb-2">
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                <div
-                  key={day}
-                  className="text-center text-sm font-medium text-muted-foreground py-2"
-                >
-                  {t(`calendar.views.${day.toLowerCase()}`)}
-                </div>
-              ))}
-            </div>
+      {/* ── Slot Drawer ───────────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <SlotDrawer
+            key="slot-drawer"
+            slot={drawerSlot}
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            onApproved={handleDrawerMutation}
+            onRejected={handleDrawerMutation}
+            onCancelled={handleDrawerMutation}
+            onDeleted={handleDrawerMutation}
+            onUpdated={() => queryClient.invalidateQueries({ queryKey: ["professor-slots"] })}
+          />
+        )}
+      </AnimatePresence>
 
-            {/* Calendar grid */}
-            <div className="grid grid-cols-7 gap-1">
-              {days.map((day) => {
-                const daySlots = getSlotsByDate(day);
-                const isSelected = selectedDate && isSameDay(day, selectedDate);
-                const hasSlots = daySlots.length > 0;
-
-                return (
-                  <button
-                    key={day.toISOString()}
-                    onClick={() => setSelectedDate(day)}
-                    className={cn(
-                      "aspect-square p-1 rounded-lg text-sm transition-colors relative",
-                      !isSameMonth(day, currentMonth) &&
-                        "text-muted-foreground/50",
-                      isToday(day) && "font-bold",
-                      isSelected
-                        ? "bg-navy-800 text-white"
-                        : "hover:bg-gray-100",
-                      hasSlots && !isSelected && "bg-gold-50",
-                    )}
-                  >
-                    <span className="block">{format(day, "d")}</span>
-                    {hasSlots && (
-                      <span
-                        className={cn(
-                          "absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full",
-                          isSelected ? "bg-gold-400" : "bg-gold-500",
-                        )}
-                      />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Selected day slots */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {selectedDate
-                ? format(selectedDate, "EEEE, MMM d")
-                : t("calendar.selected_date")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {selectedDate ? (
-              selectedDateSlots.length > 0 ? (
-                <div className="space-y-3">
-                  {selectedDateSlots.map((slot) => (
-                    <div
-                      key={slot.id}
-                      className="p-3 rounded-lg border hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {formatTime(slot.startTime)} -{" "}
-                            {formatTime(slot.endTime)}
-                          </span>
-                        </div>
-                        <Badge
-                          variant={
-                            slot.status === "AVAILABLE"
-                              ? "success"
-                              : slot.status === "FULLY_BOOKED"
-                                ? "warning"
-                                : "neutral"
-                          }
-                          className="text-xs"
-                        >
-                          {slot.status === "FULLY_BOOKED"
-                            ? t("calendar.slot_card.full")
-                            : slot.status}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Link to={`/admin/slots/${slot.id}`}>
-                          <p className="text-sm text-navy-800 hover:underline">
-                            {slot.title ||
-                              t("calendar.slot_card.spanish_class")}
-                          </p>
-                        </Link>
-                        {slot.isPrivate && <PrivateInvitationBadge size="sm" />}
-                      </div>
-                      <div className="flex items-center justify-between mt-2">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {slot.slotType === "GROUP" ? (
-                            <Users className="h-3 w-3" />
-                          ) : (
-                            <User className="h-3 w-3" />
-                          )}
-                          {slot.currentParticipants}/{slot.maxParticipants}{" "}
-                          {t("calendar.slot_card.booked")}
-                        </div>
-                        {slot.meetLink &&
-                          new Date(slot.startTime) > new Date() &&
-                          slot.status !== "CANCELLED" && (
-                            <Button
-                              size="sm"
-                              variant="primary"
-                              className="h-7 text-xs"
-                              asChild
-                            >
-                              <a
-                                href={slot.meetLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                              >
-                                <Video className="mr-1 h-3 w-3" />
-                                {t("calendar.slot_card.join")}
-                              </a>
-                            </Button>
-                          )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    {t("calendar.no_slots")}
-                  </p>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to="/admin/slots/new">
-                      {t("calendar.create_slot")}
-                    </Link>
-                  </Button>
-                </div>
-              )
-            ) : (
-              <p className="text-muted-foreground text-center py-8">
-                {t("calendar.click_to_see")}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* T019: Private Invitation Modal */}
-      <PrivateInvitationModal
-        isOpen={showPrivateInvitationModal}
-        onClose={() => setShowPrivateInvitationModal(false)}
-        defaultDate={selectedDate || undefined}
+      {/* ── Create Popover ────────────────────────────────────────────────── */}
+      <CreateSlotPopover
+        open={popoverOpen}
+        onClose={() => setPopoverOpen(false)}
+        startTime={popoverStart}
+        endTime={popoverEnd}
+        anchorStyle={popoverAnchor}
+        onCreated={handleCreated}
       />
     </div>
   );

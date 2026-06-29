@@ -43,6 +43,7 @@
       "create_button": "Napravite termine",
       "creating": "Kreiranje...",
       "success": "Uspešno kreirano {{count}} termina!",
+      "success_with_skips": "Kreirano {{count}} termin(a). {{skipped}} datum(a) je preskočeno zbog preklapanja sa postojećim terminima.",
       "error": "Neuspelo kreiranje termina"
     },
     "filters": {
@@ -73,6 +74,30 @@
     "update_success": "Termin uspešno ažuriran",
     "delete_success": "Termin uspešno obrisan",
     "recurring_success": "{{count}} ponavljajućih termina kreirano",
+    "patterns": {
+      "tab_label": "Ponavljajući obrasci",
+      "untitled": "Obrazac bez naslova",
+      "inactive": "Neaktivan",
+      "max_participants": "Maks. {{count}} polaznika",
+      "edit_button": "Uredi",
+      "delete_button": "Obriši obrazac",
+      "empty": "Nema ponavljajućih obrazaca. Koristite skupno kreiranje za postavljanje.",
+      "edit_title": "Uredi ponavljajući obrazac",
+      "edit_description": "Promene se primenjuju na ovaj obrazac i sve buduće dostupne termine.",
+      "title_label": "Naslov",
+      "title_placeholder": "npr. Jutarnji španski",
+      "description_label": "Opis (opciono)",
+      "description_placeholder": "Šta će se obrađivati na ovim sesijama?",
+      "max_participants_label": "Maks. polaznika",
+      "save_button": "Sačuvaj izmene",
+      "saving": "Čuvanje…",
+      "cancel": "Otkaži",
+      "update_success": "Obrazac i budući termini ažurirani",
+      "delete_success": "Obrazac deaktiviran i budući termini otkazani",
+      "confirm_delete_title": "Brisanje ponavljajućeg obrasca",
+      "confirm_delete_description": "Ovo će otkazati sve buduće dostupne termine u ovom obrascu. Studenti sa potvrđenim zakazivanjima neće biti pogođeni.",
+      "confirm_delete_button": "Obriši obrazac"
+    },
     "form": {
       "mode": {
         "single": "Pojedinačni",
@@ -203,6 +228,23 @@
       "no_search_results": "Nema studenata koji odgovaraju vašoj pretrazi",
       "no_students_yet": "Još nema registrovanih studenata"
     },
+    "assignment": {
+      "remove_student_confirm": "Ukloniti ovog studenta sa vaše liste?",
+      "cover_button": "Postavi period zamene",
+      "tab_assigned": "Dodeljeni studenti",
+      "tab_covers": "Periodi zamene",
+      "tab_invitations": "Čekajući pozivi",
+      "no_assigned": "Još nema dodeljenih studenata. Pozovite ili dodelite studente da biste počeli.",
+      "invite_first_button": "Pozovite prvog studenta",
+      "student_removed": "Student uklonjen",
+      "cover_deleted": "Period zamene obrisan",
+      "no_covers": "Nema postavljenih perioda zamene.",
+      "cover_create_button": "Kreiraj period zamene",
+      "no_invitations": "Nema čekajućih poziva.",
+      "cover_active": "Aktivan",
+      "cover_expired": "Istekao",
+      "cover_pending": "Na čekanju"
+    },
     "detail": {
       "title": "Profil studenta",
       "joined": "Pridružen",
@@ -233,7 +275,8 @@
       },
       "bookings_tab": {
         "spanish_class": "Čas španskog",
-        "no_bookings": "Još nema zakazivanja"
+        "no_bookings": "Još nema zakazivanja",
+        "meeting_notes": "Beleške sa sastanka"
       },
       "notes_tab": {
         "add_note": "Dodajte belešku",
@@ -242,7 +285,15 @@
         "save": "Sačuvaj",
         "update": "Ažuriraj",
         "cancel": "Otkaži",
-        "note_placeholder": "Napišite vašu belešku ovde..."
+        "note_placeholder": "Napišite vašu belešku ovde...",
+        "generic_notes": "Opšte beleške",
+        "booking_notes": "Beleške sa časova",
+        "no_generic_notes": "Još nema opštih beleški. Koristite dugme Dodaj belešku.",
+        "no_booking_notes": "Još nema beleški sa časova.",
+        "agenda_notes": "Agenda",
+        "session_notes": "Beleške sa časa",
+        "load_more": "Učitaj još",
+        "loading": "Učitavanje..."
       }
     }
   },
@@ -273,7 +324,84 @@
     },
     "no_slots": "Nema termina ovog dana",
     "create_slot": "Napravite termin",
-    "click_to_see": "Kliknite na datum da vidite termine"
+    "click_to_see": "Kliknite na datum da vidite termine",
+    "toolbar": {
+      "today": "Danas",
+      "prev": "Prethodna sedmica",
+      "next": "Sledeća sedmica",
+      "new": "Novo",
+      "search_placeholder": "Pretraži lekcije…",
+      "view_week": "Sedmica",
+      "view_day": "Dan"
+    },
+    "sidebar": {
+      "nav_schedule": "Raspored",
+      "nav_students": "Studenti",
+      "nav_settings": "Podešavanja",
+      "todays_lessons": "Današnje lekcije",
+      "pending_approvals": "Na čekanju",
+      "upcoming": "Predstojeće",
+      "lessons_this_week": "lekcija ove sedmice",
+      "no_lessons_today": "Nema lekcija danas"
+    },
+    "empty": {
+      "title": "Nema zakazanih lekcija ove sedmice.",
+      "subtitle": "Prevucite po kalendaru ili kliknite Novo da dodate termin.",
+      "cta": "Kreirajte dostupan termin"
+    },
+    "drawer": {
+      "title": "Detalji termina",
+      "close": "Zatvori",
+      "student_section": "Student",
+      "actions": "Akcije",
+      "approve": "Odobri",
+      "reject": "Odbij",
+      "reject_reason_placeholder": "Razlog odbijanja (opciono)",
+      "cancel_reject": "Otkaži",
+      "confirm_reject": "Potvrdi odbijanje",
+      "notes": "Beleške sa sastanka",
+      "cancel_lesson": "Otkaži čas",
+      "cancel_confirm": "Otkazati ovaj čas?",
+      "no": "Ne",
+      "yes_cancel": "Da, otkaži",
+      "error": "Došlo je do greške. Pokušajte ponovo.",
+      "group": "Grupni",
+      "individual": "Individualni",
+      "blocked": "Blokiran",
+      "edit_slot": "Uredi termin",
+      "editing": "Uredi termin",
+      "edit_title": "Naziv",
+      "edit_title_placeholder": "npr. Konverzacijska praksa",
+      "edit_start": "Vreme početka",
+      "edit_end": "Vreme kraja",
+      "cancel_edit": "Otkaži",
+      "save_changes": "Sačuvaj izmene",
+      "delete_slot": "Obriši termin",
+      "delete_confirm": "Trajno obrisati ovaj termin? Ovo se ne može poništiti.",
+      "deleting": "Obriši termin",
+      "confirm_delete": "Obriši",
+      "cancel_booking_btn": "Otkaži rezervaciju i obavesti studenta",
+      "cancel_booking_desc": "Student će biti obavešten emailom.",
+      "cancelling_booking": "Otkaži rezervaciju",
+      "confirm_cancel_booking": "Otkaži i obavesti",
+      "cancel_reason_placeholder": "Razlog (opciono)",
+      "cancel_lesson_confirm": "Ovo će trajno otkazati termin.",
+      "cancelling": "Otkaži termin"
+    },
+    "popover": {
+      "back": "Nazad",
+      "close": "Zatvori",
+      "available_slot": "Dostupan termin",
+      "available_slot_desc": "Otvoreno za studente da zakažu",
+      "booking_request": "Zahtev za zakazivanje",
+      "booking_request_desc": "Dodeli određenom studentu",
+      "blocked_time": "Blokirano vreme",
+      "blocked_time_desc": "Nedostupno / lično vreme",
+      "approve_later": "Odobri kasnije",
+      "save": "Sačuvaj",
+      "created": "Termin kreiran!",
+      "error": "Neuspelo kreiranje termina. Pokušajte ponovo."
+    }
   },
   "approvals": {
     "title": "Odobrenja na čekanju",
@@ -343,5 +471,27 @@
     "bookings": "Zakazivanja",
     "students": "Studenti",
     "sessions": "Sesije"
+  },
+  "feedback": {
+    "nav_label": "Povratne informacije",
+    "dashboard_title": "Povratne informacije studenata",
+    "dashboard_subtitle": "Povratne informacije od studenata za sve profesore",
+    "avg_rating": "Prosečna ocena",
+    "total_feedback": "Ukupno povratnih inf.",
+    "no_feedback": "Još nema povratnih informacija",
+    "what_was_good": "Šta je bilo dobro",
+    "what_could_improve": "Šta bi moglo biti bolje",
+    "student_label": "Student",
+    "session_date": "Datum sesije",
+    "export_csv": "Izvezi CSV",
+    "exporting": "Izvoz…",
+    "professor_response_label": "Odgovor profesora",
+    "add_response_button": "Dodaj odgovor",
+    "edit_response_button": "Izmeni odgovor",
+    "response_placeholder": "Napišite vaš odgovor na ovu povratnu informaciju…",
+    "submit_response": "Sačuvaj odgovor",
+    "submitting_response": "Čuvanje…",
+    "response_saved": "Odgovor sačuvan",
+    "cancel": "Otkaži"
   }
 }

@@ -123,7 +123,9 @@
     "already_booked": "Already Booked",
     "book_now": "Book Now",
     "booked": "Booked",
-    "private_invitation": "Private Invitation"
+    "private_invitation": "Private Invitation",
+    "waitlist_available": "Full — join waitlist",
+    "no_waitlist": "Full — no waitlist for individual classes"
   },
   "confirmation": {
     "title": "Booking Confirmation",

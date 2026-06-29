@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-hot-toast";
 import { Mail, Loader2 } from "lucide-react";
 import {
@@ -20,6 +21,7 @@ interface Props {
 }
 
 export function InviteStudentModal({ open, onOpenChange }: Props) {
+  const { t } = useTranslation("professor");
   const queryClient = useQueryClient();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -30,7 +32,7 @@ export function InviteStudentModal({ open, onOpenChange }: Props) {
     setLoading(true);
     try {
       const result = await professorApi.inviteStudent(email.trim());
-      toast.success(result.message || "Invitation sent successfully");
+      toast.success(result.message || t("invite_student_modal.submit_button"));
       queryClient.invalidateQueries({ queryKey: ["professor-students"] });
       queryClient.invalidateQueries({ queryKey: ["professor-pending-invitations"] });
       setEmail("");
@@ -49,22 +51,22 @@ export function InviteStudentModal({ open, onOpenChange }: Props) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Mail className="h-5 w-5 text-spanish-teal-600" />
-            Invite Student
+            {t("invite_student_modal.title")}
           </DialogTitle>
           <DialogDescription>
-            Enter the student's email address. If they're not registered yet, they'll receive an invitation link. If they're already registered, they'll be assigned to you directly.
+            {t("invite_student_modal.description")}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div className="space-y-1.5">
-            <Label htmlFor="invite-email">Student Email</Label>
+            <Label htmlFor="invite-email">{t("invite_student_modal.email_label")}</Label>
             <Input
               id="invite-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="student@example.com"
+              placeholder={t("invite_student_modal.email_placeholder")}
               autoComplete="email"
               autoFocus
             />
@@ -72,10 +74,12 @@ export function InviteStudentModal({ open, onOpenChange }: Props) {
 
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="outline" className="flex-1" onClick={() => onOpenChange(false)} disabled={loading}>
-              Cancel
+              {t("invite_student_modal.cancel_button")}
             </Button>
             <Button type="submit" disabled={!email.trim() || loading} className="flex-1 bg-spanish-teal-600 hover:bg-spanish-teal-700">
-              {loading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Sending…</> : "Send Invitation"}
+              {loading
+                ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> {t("invite_student_modal.submit_loading")}</>
+                : t("invite_student_modal.submit_button")}
             </Button>
           </div>
         </form>
