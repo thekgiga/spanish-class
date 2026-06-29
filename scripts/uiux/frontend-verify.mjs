@@ -37,7 +37,7 @@ if (!fs.existsSync(path.join(root, 'node_modules'))) {
   process.exit(1);
 }
 
-run('Changed-line UI/UX guardrails', process.execPath, ['scripts/uiux/check-frontend-guardrails.mjs']);
+run('UI-system integrity and changed-line guardrails', process.execPath, ['scripts/uiux/check-ui-system.mjs']);
 run('Frontend typecheck', 'npm', ['--prefix', 'packages/frontend', 'run', 'typecheck']);
 run('Frontend lint', 'npm', ['--prefix', 'packages/frontend', 'run', 'lint']);
 run('Frontend build', 'npm', ['--prefix', 'packages/frontend', 'run', 'build']);

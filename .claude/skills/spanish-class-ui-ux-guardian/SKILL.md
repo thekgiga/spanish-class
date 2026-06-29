@@ -20,8 +20,9 @@ Read only what is relevant, but always load:
 1. `docs/redesign/current-phase.md`
 2. `docs/redesign/implementation-matrix.csv`
 3. affected sections of `docs/product/processes-overview.md`
-4. `docs/redesign/03-visual-language.md`
-5. `docs/redesign/07-frontend-definition-of-done.md`
+4. `docs/ui-system/README.md` and relevant UI-system files
+5. `docs/ui-system/design-tokens.json`
+6. `docs/ui-system/13-frontend-definition-of-done.md`
 
 Use the generic `ui-ux-pro-max` skill only as optional inspiration. It must never override the project-specific visual language, interaction model, or tokens.
 
@@ -58,7 +59,7 @@ Inspect the code before proposing a new component. Search `components/ui`, `comp
 ## Verification sequence
 
 1. Run targeted tests while implementing.
-2. Run `node scripts/uiux/check-frontend-guardrails.mjs`.
+2. Run `node scripts/uiux/check-ui-system.mjs`.
 3. Run `node scripts/uiux/frontend-verify.mjs`.
 4. Launch and inspect the affected flow using the repository run workflow or Claude Code `/run` and `/verify`; do not rely only on static checks.
 5. Capture evidence using `docs/redesign/evidence/TEMPLATE.md`.

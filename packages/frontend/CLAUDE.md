@@ -7,9 +7,10 @@ This file applies whenever work enters `packages/frontend/`.
 1. `docs/product/processes-overview.md`
 2. `docs/redesign/current-phase.md`
 3. `docs/redesign/implementation-matrix.csv`
-4. `docs/redesign/03-visual-language.md`
-5. `docs/redesign/04-design-system-architecture.md`
-6. `docs/redesign/07-frontend-definition-of-done.md`
+4. `docs/ui-system/README.md`
+5. `docs/ui-system/design-tokens.json`
+6. relevant component/domain/page blueprint files in `docs/ui-system/`
+7. `docs/ui-system/13-frontend-definition-of-done.md`
 
 The root `CLAUDE.md` remains authoritative for repository commands, deployment, and general engineering conventions.
 
@@ -41,7 +42,7 @@ Preserve the existing architecture unless the current redesign phase explicitly 
 
 For every user-facing change:
 
-1. Activate `spanish-class-ui-ux-guardian`.
+1. Activate `spanish-class-ui-ux-guardian` and `spanish-class-ui-system`.
 2. Identify affected role, journey, BPMN section, and requirement IDs.
 3. Inspect existing components before proposing new ones.
 4. Write a short implementation plan before editing.
@@ -51,15 +52,17 @@ For every user-facing change:
 8. Verify 390px, 768px, 1280px, and 1440px layouts.
 9. Add or update tests and visual evidence.
 10. Update `docs/redesign/implementation-matrix.csv`.
-11. Run the independent `ui-ux-reviewer` agent.
-12. Run `node scripts/uiux/frontend-verify.mjs`.
+11. Run the independent `ui-ux-reviewer` and `visual-design-reviewer` agents.
+12. Run `node scripts/uiux/check-ui-system.mjs`.
+13. Run `node scripts/uiux/frontend-verify.mjs`.
 
 Never report completion while a blocking check or reviewer issue remains.
 
 ## Architecture rules
 
 - Pages compose; they do not invent primitives.
-- Feature code must not introduce raw color values or arbitrary Tailwind values.
+- Feature code must not introduce raw color values, direct palette classes, legacy `edu-*`/Spanish red-gold tokens, or arbitrary Tailwind values.
+- Migrated UI must use the Editorial Teaching Studio semantic system; do not invent local visual variants.
 - Use semantic status mapping instead of styling booking states independently.
 - Do not expose enum values or translation keys.
 - Do not add a top-level route without updating the route architecture document.

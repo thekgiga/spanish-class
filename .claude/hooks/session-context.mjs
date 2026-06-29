@@ -9,3 +9,5 @@ if (fs.existsSync(phasePath)) {
   phase = text.split('\n').slice(0, 24).join('\n');
 }
 console.log(`Spanish Class UI/UX enforcement is active.\n\n${phase}\n\nFor frontend work, load the spanish-class-ui-ux-guardian skill and update the implementation matrix before completion.`);
+
+console.log('UI source of truth: docs/ui-system/README.md and design-tokens.json. Load spanish-class-ui-system for every frontend UI change.');

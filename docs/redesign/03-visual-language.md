@@ -1,40 +1,11 @@
-# Visual Language — Editorial Teaching Studio
+# Visual Language
 
-## Character
+The complete approved visual system is defined in `docs/ui-system/`.
 
-Calm, warm, precise, personal, cultured, and premium without looking exclusive or ornamental.
+## Direction
 
-## Foundation
+**Editorial Teaching Studio** — a warm, precise, modern teaching workspace using ivory neutral surfaces, deep ink-green operational primary, restrained terracotta accents, semantic lesson states, compact professional typography, and subtle depth.
 
-Target semantic colors:
+Do not use the previous generic education-blue/emerald/orange system or the older Spanish red/gold/clay system in migrated UI.
 
-- warm canvas;
-- white raised surface;
-- deep ink text;
-- muted secondary text;
-- soft neutral borders;
-- deep ink-green brand;
-- restrained terracotta accent;
-- sage available;
-- amber requested;
-- deep teal/ink confirmed;
-- stone blocked;
-- restrained red danger.
-
-The exact values live in token files. Feature code never imports raw values.
-
-## Type
-
-Use a highly legible modern sans-serif for the application. Numeric calendar data must scan clearly. Marketing may use a restrained editorial display face, but operational UI remains simple.
-
-## Shape and elevation
-
-- 8px small controls;
-- 12px cards;
-- 16px drawers/large surfaces;
-- borders and surface contrast before shadows;
-- pills only for statuses, filters, and choices.
-
-## Motion
-
-Use roughly 120ms micro transitions, 180ms standard transitions, and 240ms spatial overlays. Respect reduced motion. Motion explains change; it does not decorate inactivity.
+Open `docs/ui-system/reference-board.html` for the visual reference and `docs/ui-system/design-tokens.json` for the machine-readable source of truth.

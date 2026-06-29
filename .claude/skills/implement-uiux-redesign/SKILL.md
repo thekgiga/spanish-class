@@ -23,6 +23,7 @@ If an argument names a phase or requirement IDs, use it only when prerequisites 
 ## Phase behavior
 
 - Phase 0 produces the architecture audit and regression baseline before broad redesign.
+- Phase 1 installs and proves the complete Editorial Teaching Studio tokens and canonical components before page migration.
 - Later phases implement one complete vertical slice at a time.
 - Do not migrate multiple unrelated routes in one patch.
 - Do not begin a requirement whose dependencies are incomplete.
@@ -30,7 +31,7 @@ If an argument names a phase or requirement IDs, use it only when prerequisites 
 
 ## For each slice
 
-1. Invoke `spanish-class-ui-ux-guardian`.
+1. Invoke `spanish-class-ui-ux-guardian` and `spanish-class-ui-system`.
 2. Produce the mandatory preflight plan.
 3. Implement code, translations, tests, stories, and evidence.
 4. Run deterministic guardrails and the full frontend verification command.

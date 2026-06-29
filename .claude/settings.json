@@ -55,7 +55,7 @@
           },
           {
             "type": "agent",
-            "prompt": "If frontend source files changed, independently verify that the Spanish Class UI/UX guardian workflow was completed: affected requirement IDs are updated in the implementation matrix, verification passed, an evidence file exists, required states and responsive behavior are covered, and no blocking project rule is violated. Read the diff and return ok only when completion is justified. If no frontend source files changed, return ok.",
+            "prompt": "If frontend source files changed, independently verify both the UX guardian and complete Editorial Teaching Studio UI system: affected requirements and implementation matrix are updated; semantic tokens and canonical components are used; required states, localization, accessibility, responsive screenshots, Storybook/tests, and evidence exist; and both UI/UX and visual review have no blocking issue. Read the diff and rendered evidence. Return ok only when completion is justified. If no frontend source files changed, return ok.",
             "timeout": 240
           }
         ]

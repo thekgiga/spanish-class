@@ -47,6 +47,8 @@ const errors = [];
 const warnings = [];
 const tokenFiles = [
   'packages/frontend/src/styles/tokens.css',
+  'packages/frontend/src/styles/ui-system.tokens.css',
+  'docs/ui-system/design-tokens.json',
   'packages/frontend/tailwind.config.js',
   'packages/frontend/tailwind.config.ts'
 ];
@@ -54,6 +56,7 @@ const tokenFiles = [
 const paletteClass = /\b(?:bg|text|border|ring|from|via|to)-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\d{2,3}\b/;
 const arbitraryUtility = /\b[a-z][a-z0-9-]*-\[[^\]]+\]/i;
 const rawColor = /#[0-9a-fA-F]{3,8}\b|\b(?:rgb|rgba|hsl|hsla)\s*\(/;
+const legacyVisualToken = /\b(?:edu-(?:blue|emerald|orange|slate|amber|red)|spanish-(?:red|gold)|terracotta|clay)-(?:50|100|200|300|400|500|600|700|800|900|950)\b/;
 const nativeDialog = /\b(?:window\.)?(?:alert|confirm|prompt)\s*\(/;
 const rawStatus = /\b(?:PENDING_CONFIRMATION|FULLY_BOOKED|CANCELLED_BY_STUDENT|CANCELLED_BY_PROFESSOR)\b/;
 const leakedKey = /\b(?:spanish_levels|class_types|booking_status|notifications)\.[A-Za-z0-9_.-]+\b/;
@@ -64,6 +67,7 @@ for (const file of relevantFiles) {
     const location = `${file} (added line ${index + 1})`;
     if (!tokenFiles.includes(file) && rawColor.test(line)) errors.push(`${location}: raw color value; use a semantic token.`);
     if (!tokenFiles.includes(file) && paletteClass.test(line)) errors.push(`${location}: direct Tailwind palette class; use a semantic class/token.`);
+    if (!tokenFiles.includes(file) && legacyVisualToken.test(line)) errors.push(`${location}: legacy visual token in changed code; use the Editorial Teaching Studio semantic system.`);
     if (arbitraryUtility.test(line) && !line.includes('uiux-allow-arbitrary')) errors.push(`${location}: arbitrary Tailwind value; add or reuse a token.`);
     if (nativeDialog.test(line)) errors.push(`${location}: native alert/confirm/prompt is forbidden; use the shared feedback/dialog pattern.`);
     if (rawStatus.test(line) && !/status-map|statusMap|bookingStatus/i.test(file)) errors.push(`${location}: backend status must be mapped to user language centrally.`);
