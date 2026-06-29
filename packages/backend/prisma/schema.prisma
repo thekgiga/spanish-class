@@ -224,6 +224,7 @@ model MeetingNote {
 enum SlotType {
   INDIVIDUAL
   GROUP
+  BLOCKED
 }
 
 enum SlotStatus {

@@ -188,6 +188,7 @@ router.get(
       // forMeOnly=false/undefined: Show public slots OR private slots assigned to this student
       const where: Record<string, unknown> = {
         status: "AVAILABLE",
+        slotType: { not: "BLOCKED" },
         startTime: { gte: startDate ? new Date(startDate) : now },
         ...(forMeOnly === "true"
           ? {

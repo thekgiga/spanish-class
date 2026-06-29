@@ -163,6 +163,49 @@
     "spanish_teacher_label": "Profesor de español",
     "no_professors_yet": "Aún no hay profesores disponibles."
   },
+  "drawer": {
+    "title": "Detalles de la clase",
+    "default_title": "Clase de español",
+    "close": "Cerrar",
+    "group": "Grupo",
+    "individual": "Individual",
+    "spots": "plazas",
+    "private": "Sesión privada",
+    "already_booked": "Ya reservado",
+    "cancel_booking": "Cancelar reserva",
+    "book_now": "Reservar ahora",
+    "join_waitlist": "Unirse a la lista de espera",
+    "waitlist_position": "Estás en el puesto #{{position}} en la lista de espera",
+    "error": "Algo salió mal. Inténtalo de nuevo."
+  },
+  "calendar": {
+    "toolbar": {
+      "today": "Hoy",
+      "prev": "Semana anterior",
+      "next": "Semana siguiente",
+      "filter": "Filtrar"
+    },
+    "filter": {
+      "all": "Todas las clases",
+      "individual": "Individual",
+      "group": "Grupo"
+    },
+    "drawer": {
+      "book_now": "Reservar ahora",
+      "already_booked": "Ya reservado",
+      "join_waitlist": "Unirse a la lista de espera",
+      "waitlisted": "¡Te has añadido a la lista de espera!",
+      "booked_success": "¡Reserva confirmada!",
+      "spots_left_one": "{{count}} plaza disponible",
+      "spots_left_other": "{{count}} plazas disponibles"
+    },
+    "empty": {
+      "title": "No hay clases disponibles esta semana.",
+      "subtitle": "Vuelve pronto o contacta a tu profesor.",
+      "no_slots_day": "Sin espacios disponibles"
+    },
+    "slot_title_default": "Clase de español"
+  },
   "feedback": {
     "page_title": "Comentarios de la sesión",
     "already_submitted": "Ya enviaste comentarios para esta sesión. ¡Gracias!",

@@ -163,6 +163,49 @@
     "spanish_teacher_label": "Nastavnik španskog",
     "no_professors_yet": "Još nema dostupnih profesora."
   },
+  "drawer": {
+    "title": "Detalji časa",
+    "default_title": "Čas španskog",
+    "close": "Zatvori",
+    "group": "Grupni",
+    "individual": "Individualni",
+    "spots": "mesta",
+    "private": "Privatna sesija",
+    "already_booked": "Već zakazano",
+    "cancel_booking": "Otkaži zakazivanje",
+    "book_now": "Zakaži odmah",
+    "join_waitlist": "Prijavi se na listu čekanja",
+    "waitlist_position": "Na listi čekanja ste #{{position}}",
+    "error": "Nešto nije uspelo. Pokušajte ponovo."
+  },
+  "calendar": {
+    "toolbar": {
+      "today": "Danas",
+      "prev": "Prethodna sedmica",
+      "next": "Sledeća sedmica",
+      "filter": "Filter"
+    },
+    "filter": {
+      "all": "Sve klase",
+      "individual": "Individualne",
+      "group": "Grupne"
+    },
+    "drawer": {
+      "book_now": "Zakaži odmah",
+      "already_booked": "Već zakazano",
+      "join_waitlist": "Prijavi se na listu čekanja",
+      "waitlisted": "Dodati ste na listu čekanja!",
+      "booked_success": "Termin potvrđen!",
+      "spots_left_one": "{{count}} mesto dostupno",
+      "spots_left_other": "{{count}} mesta dostupna"
+    },
+    "empty": {
+      "title": "Nema dostupnih lekcija ove sedmice.",
+      "subtitle": "Proverite ponovo uskoro ili kontaktirajte profesora.",
+      "no_slots_day": "Nema dostupnih termina"
+    },
+    "slot_title_default": "Čas španskog"
+  },
   "feedback": {
     "page_title": "Povratne informacije o sesiji",
     "already_submitted": "Već ste poslali povratne informacije za ovu sesiju. Hvala!",

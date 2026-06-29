@@ -163,6 +163,49 @@
     "spanish_teacher_label": "Spanish Teacher",
     "no_professors_yet": "No professors available yet."
   },
+  "drawer": {
+    "title": "Class Details",
+    "default_title": "Spanish Class",
+    "close": "Close",
+    "group": "Group",
+    "individual": "Individual",
+    "spots": "spots",
+    "private": "Private session",
+    "already_booked": "Already Booked",
+    "cancel_booking": "Cancel Booking",
+    "book_now": "Book Now",
+    "join_waitlist": "Join Waitlist",
+    "waitlist_position": "You are #{{position}} on the waitlist",
+    "error": "Something went wrong. Try again."
+  },
+  "calendar": {
+    "toolbar": {
+      "today": "Today",
+      "prev": "Previous week",
+      "next": "Next week",
+      "filter": "Filter"
+    },
+    "filter": {
+      "all": "All Classes",
+      "individual": "Individual",
+      "group": "Group"
+    },
+    "drawer": {
+      "book_now": "Book Now",
+      "already_booked": "Already Booked",
+      "join_waitlist": "Join Waitlist",
+      "waitlisted": "You've been added to the waitlist!",
+      "booked_success": "Booking confirmed!",
+      "spots_left_one": "{{count}} spot left",
+      "spots_left_other": "{{count}} spots left"
+    },
+    "empty": {
+      "title": "No available lessons this week.",
+      "subtitle": "Check back soon or contact your professor.",
+      "no_slots_day": "No available slots"
+    },
+    "slot_title_default": "Spanish Class"
+  },
   "feedback": {
     "page_title": "Session Feedback",
     "already_submitted": "You've already submitted feedback for this session. Thank you!",

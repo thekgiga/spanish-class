@@ -1026,21 +1026,29 @@ router.delete("/slots/:id", async (req, res, next) => {
     if (slot.bookings.length > 0) {
       throw new AppError(
         400,
-        "Cannot delete a slot with active bookings. Cancel the bookings first.",
+        "This slot has active bookings. Use 'Cancel Booking & Notify Student' first, then delete.",
       );
     }
 
-    await prisma.availabilitySlot.update({
-      where: { id: slot.id },
-      data: { status: "CANCELLED" },
-    });
-
-    // W2: Remove any waitlist entries (defensive — simple delete has no bookings but may have waitlist)
-    await prisma.waitlistEntry.deleteMany({ where: { slotId: slot.id } });
+    // Hard-delete in dependency order:
+    // 1. Session feedback linked via bookings
+    // 2. Meeting notes linked via bookings
+    // 3. All bookings (historical: COMPLETED, CANCELLED, REJECTED, EXPIRED, NO_SHOW)
+    // 4. Waitlist entries
+    // 5. Slot allowed students
+    // 6. The slot itself
+    await prisma.$transaction([
+      prisma.sessionFeedback.deleteMany({ where: { booking: { slotId: slot.id } } }),
+      prisma.meetingNote.deleteMany({ where: { booking: { slotId: slot.id } } }),
+      prisma.booking.deleteMany({ where: { slotId: slot.id } }),
+      prisma.waitlistEntry.deleteMany({ where: { slotId: slot.id } }),
+      prisma.slotAllowedStudent.deleteMany({ where: { slotId: slot.id } }),
+      prisma.availabilitySlot.delete({ where: { id: slot.id } }),
+    ]);
 
     res.json({
       success: true,
-      message: "Slot cancelled successfully",
+      message: "Slot deleted successfully",
     });
   } catch (error) {
     next(error);

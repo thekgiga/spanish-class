@@ -31,6 +31,7 @@ export type UserPublic = Omit<User, "passwordHash"> & {
 export enum SlotType {
   INDIVIDUAL = "INDIVIDUAL",
   GROUP = "GROUP",
+  BLOCKED = "BLOCKED",
 }
 
 export enum SlotStatus {

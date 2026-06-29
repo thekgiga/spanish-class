@@ -23,7 +23,7 @@ export const registerSchema = z.object({
 });
 
 // Slot Schemas
-export const slotTypeEnum = z.enum(["INDIVIDUAL", "GROUP"]);
+export const slotTypeEnum = z.enum(["INDIVIDUAL", "GROUP", "BLOCKED"]);
 
 export const createSlotSchema = z
   .object({
@@ -49,6 +49,7 @@ export const createSlotSchema = z
   )
   .refine(
     (data) =>
+      data.slotType === "BLOCKED" ||
       !data.isPrivate ||
       (data.allowedStudentIds && data.allowedStudentIds.length > 0),
     { message: "Private slots must have at least one allowed student" },
