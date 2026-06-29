@@ -1,0 +1,156 @@
+/* Spanish Class UI System v2 — canonical semantic tokens.
+   Import once from the frontend global stylesheet before component layers. */
+
+:root,
+[data-theme="light"] {
+  --ui-canvas: 43 28% 95%;
+  --ui-canvas-subtle: 42 25% 92%;
+  --ui-surface: 0 0% 100%;
+  --ui-surface-raised: 45 40% 98%;
+  --ui-surface-muted: 50 19% 94%;
+  --ui-surface-inverse: 168 19% 11%;
+  --ui-fg-primary: 168 19% 11%;
+  --ui-fg-secondary: 160 5% 37%;
+  --ui-fg-tertiary: 153 4% 44%;
+  --ui-fg-inverse: 0 0% 100%;
+  --ui-border: 86 10% 87%;
+  --ui-border-strong: 105 7% 78%;
+  --ui-brand: 171 43% 21%;
+  --ui-brand-hover: 170 45% 16%;
+  --ui-brand-active: 170 49% 12%;
+  --ui-brand-contrast: 0 0% 100%;
+  --ui-accent: 17 52% 44%;
+  --ui-accent-hover: 15 54% 37%;
+  --ui-accent-soft: 22 53% 91%;
+  --ui-focus: 170 54% 31%;
+  --ui-success: 143 39% 30%;
+  --ui-warning: 39 100% 27%;
+  --ui-danger: 5 51% 48%;
+  --ui-info: 202 48% 33%;
+  --ui-available-surface: 132 28% 93%;
+  --ui-available-border: 134 16% 62%;
+  --ui-available-foreground: 134 31% 28%;
+  --ui-requested-surface: 41 100% 91%;
+  --ui-requested-border: 41 63% 55%;
+  --ui-requested-foreground: 38 100% 24%;
+  --ui-confirmed-surface: 169 31% 90%;
+  --ui-confirmed-border: 169 25% 49%;
+  --ui-confirmed-foreground: 170 51% 23%;
+  --ui-blocked-surface: 48 12% 92%;
+  --ui-blocked-border: 47 7% 76%;
+  --ui-blocked-foreground: 45 4% 35%;
+  --ui-completed-surface: 160 7% 92%;
+  --ui-completed-border: 158 6% 74%;
+  --ui-completed-foreground: 164 9% 34%;
+  --ui-cancelled-surface: 7 42% 93%;
+  --ui-cancelled-border: 7 41% 75%;
+  --ui-cancelled-foreground: 5 52% 36%;
+
+  --ui-font-sans: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
+  --ui-font-display: "Newsreader Variable", Newsreader, "Playfair Display", ui-serif, Georgia, serif;
+  --ui-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --ui-radius-xs: 6px;
+  --ui-radius-sm: 8px;
+  --ui-radius-md: 12px;
+  --ui-radius-lg: 16px;
+  --ui-radius-xl: 20px;
+  --ui-radius-full: 999px;
+
+  --ui-shadow-1: 0 1px 2px rgb(22 32 30 / 0.06), 0 1px 1px rgb(22 32 30 / 0.04);
+  --ui-shadow-2: 0 8px 24px rgb(22 32 30 / 0.10), 0 2px 6px rgb(22 32 30 / 0.06);
+  --ui-shadow-3: 0 20px 48px rgb(22 32 30 / 0.16), 0 4px 12px rgb(22 32 30 / 0.08);
+
+  --ui-duration-instant: 80ms;
+  --ui-duration-micro: 120ms;
+  --ui-duration-standard: 180ms;
+  --ui-duration-spatial: 240ms;
+  --ui-ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --ui-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ui-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  --ui-sidebar-width: 240px;
+  --ui-sidebar-collapsed: 72px;
+  --ui-topbar-height: 64px;
+  --ui-drawer-width: 420px;
+  --ui-drawer-wide: 520px;
+  --ui-control-compact: 32px;
+  --ui-control-default: 40px;
+  --ui-control-comfortable: 48px;
+  --ui-touch-minimum: 44px;
+}
+
+[data-theme="dark"] {
+  --ui-canvas: 160 15% 8%;
+  --ui-canvas-subtle: 160 14% 10%;
+  --ui-surface: 160 14% 12%;
+  --ui-surface-raised: 160 15% 14%;
+  --ui-surface-muted: 160 13% 17%;
+  --ui-surface-inverse: 43 28% 95%;
+  --ui-fg-primary: 60 10% 94%;
+  --ui-fg-secondary: 150 7% 73%;
+  --ui-fg-tertiary: 150 6% 62%;
+  --ui-fg-inverse: 168 19% 11%;
+  --ui-border: 155 12% 22%;
+  --ui-border-strong: 155 10% 31%;
+  --ui-brand: 169 34% 62%;
+  --ui-brand-hover: 169 39% 69%;
+  --ui-brand-active: 169 45% 76%;
+  --ui-brand-contrast: 170 49% 12%;
+  --ui-accent: 18 54% 63%;
+  --ui-accent-hover: 18 59% 70%;
+  --ui-accent-soft: 17 26% 19%;
+  --ui-focus: 169 49% 62%;
+  --ui-success: 142 36% 62%;
+  --ui-warning: 41 82% 66%;
+  --ui-danger: 5 64% 68%;
+  --ui-info: 201 55% 69%;
+  --ui-available-surface: 135 18% 16%;
+  --ui-available-border: 134 24% 43%;
+  --ui-available-foreground: 133 37% 75%;
+  --ui-requested-surface: 39 32% 16%;
+  --ui-requested-border: 40 49% 45%;
+  --ui-requested-foreground: 42 85% 75%;
+  --ui-confirmed-surface: 169 24% 17%;
+  --ui-confirmed-border: 169 32% 47%;
+  --ui-confirmed-foreground: 168 45% 77%;
+  --ui-blocked-surface: 45 7% 17%;
+  --ui-blocked-border: 45 8% 34%;
+  --ui-blocked-foreground: 45 8% 70%;
+  --ui-completed-surface: 160 8% 17%;
+  --ui-completed-border: 160 9% 36%;
+  --ui-completed-foreground: 160 12% 72%;
+  --ui-cancelled-surface: 5 23% 17%;
+  --ui-cancelled-border: 5 34% 43%;
+  --ui-cancelled-foreground: 5 61% 77%;
+}
+
+html {
+  color-scheme: light;
+  font-family: var(--ui-font-sans);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  font-variant-numeric: proportional-nums;
+}
+
+html[data-theme="dark"] { color-scheme: dark; }
+
+body {
+  background: hsl(var(--ui-canvas));
+  color: hsl(var(--ui-fg-primary));
+}
+
+:focus-visible {
+  outline: 2px solid hsl(var(--ui-focus));
+  outline-offset: 2px;
+}
+
+.ui-tabular { font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}

@@ -1,0 +1,92 @@
+name: Frontend Quality
+
+on:
+  pull_request:
+    paths:
+      - 'packages/frontend/**'
+      - 'e2e/**'
+      - 'docs/redesign/**'
+      - '.claude/**'
+      - 'scripts/uiux/**'
+      - '.github/workflows/frontend-quality.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'packages/frontend/**'
+      - 'e2e/**'
+      - 'docs/redesign/**'
+      - '.claude/**'
+      - 'scripts/uiux/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Determine comparison base
+        id: base
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "sha=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "sha=${{ github.event.before }}" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Changed-line UI/UX guardrails
+        run: node scripts/uiux/check-frontend-guardrails.mjs --base "${{ steps.base.outputs.sha }}"
+      - name: Frontend typecheck
+        run: npm --prefix packages/frontend run typecheck
+      - name: Frontend lint
+        run: npm --prefix packages/frontend run lint
+      - name: Frontend build
+        run: npm --prefix packages/frontend run build
+      - name: Unit tests
+        run: npm test -- --run --passWithNoTests
+
+  browser-e2e:
+    if: ${{ vars.RUN_FRONTEND_E2E == 'true' }}
+    runs-on: ubuntu-latest
+    needs: static-quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run configured browser tests
+        run: npx playwright test
+
+  visual-regression:
+    if: ${{ vars.RUN_VISUAL_REGRESSION == 'true' }}
+    runs-on: ubuntu-latest
+    needs: static-quality
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Run visual-tagged tests
+        run: npx playwright test --grep @visual
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: visual-regression-results
+          path: |
+            playwright-report/
+            test-results/

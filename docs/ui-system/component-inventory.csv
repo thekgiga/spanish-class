@@ -1,0 +1,25 @@
+Layer,Component,Priority,Contract,Status
+Primitive,Button,Required,primary secondary quiet danger link; sm md lg; loading disabled icons,Not started
+Primitive,IconButton,Required,accessible name tooltip destructive safeguard,Not started
+Primitive,Input,Required,label hint error disabled readonly leading/trailing,Not started
+Primitive,Textarea,Required,auto-grow optional counter error states,Not started
+Primitive,Select/Combobox,Required,keyboard search empty loading error,Not started
+Primitive,Checkbox/Radio/Switch,Required,correct selection semantics and touch target,Not started
+Primitive,Tabs/SegmentedControl,Required,URL state where meaningful,Not started
+Primitive,Avatar,Required,image initials fallback status,Not started
+Primitive,StatusBadge,Critical,central lifecycle mapping only,Not started
+Overlay,Popover,Required,anchored contextual creation/filter,Not started
+Overlay,Drawer/BottomSheet,Critical,desktop drawer mobile sheet focus management,Not started
+Overlay,Dialog/AlertDialog,Required,blocking/destructive only,Not started
+Feedback,Toast/InlineAlert,Required,success error retry and live region,Not started
+Feedback,EmptyState/Skeleton,Required,geometry-specific and one action max,Not started
+Layout,AppShell,Critical,sidebar topbar mobile nav,Not started
+Layout,PageHeader,Required,title context primary action,Not started
+Domain,CalendarEvent,Critical,all lifecycle states and dense variants,Not started
+Domain,CalendarSelectionComposer,Critical,offer schedule block actions,Not started
+Domain,BookingRequestDrawer,Critical,approve reject expiry,Not started
+Domain,LessonCard,Critical,upcoming pending history variants,Not started
+Domain,AvailableTimeOption,Critical,student booking selectable option,Not started
+Domain,StudentSummary,Required,avatar identity next lesson metadata,Not started
+Domain,RecurrenceComposer,Required,scope preview conflicts,Not started
+Domain,AttendanceControl,Required,completed lesson workflow,Not started
