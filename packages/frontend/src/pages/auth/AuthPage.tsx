@@ -84,7 +84,9 @@ export function AuthPage() {
         return;
       }
       toast.success(t("login.success_message"));
-      navigate(from, { replace: true });
+      const { user } = useAuthStore.getState();
+      const defaultDest = user?.isAdmin ? "/admin" : "/dashboard";
+      navigate(from === "/dashboard" ? defaultDest : from, { replace: true });
     } catch (error: unknown) {
       const err = error as {
         response?: { data?: { error?: string } };
@@ -123,7 +125,9 @@ export function AuthPage() {
       if (token) localStorage.setItem("token", token);
       if (user) setUser({ ...user, twoFactorEnabled: true });
       toast.success("Logged in successfully");
-      navigate(from, { replace: true });
+      const { user: authedUser } = useAuthStore.getState();
+      const defaultDest = authedUser?.isAdmin ? "/admin" : "/dashboard";
+      navigate(from === "/dashboard" ? defaultDest : from, { replace: true });
     } catch (error: unknown) {
       const err = error as { response?: { data?: { error?: string } }; rateLimitMessage?: string };
       toast.error(err.rateLimitMessage || err.response?.data?.error || "Invalid code. Please try again.");

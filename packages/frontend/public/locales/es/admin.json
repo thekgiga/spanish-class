@@ -285,7 +285,15 @@
         "save": "Guardar",
         "update": "Actualizar",
         "cancel": "Cancelar",
-        "note_placeholder": "Escribe tu nota aquí..."
+        "note_placeholder": "Escribe tu nota aquí...",
+        "generic_notes": "Notas generales",
+        "booking_notes": "Notas de clases",
+        "no_generic_notes": "Aún no hay notas generales. Usa el botón Agregar nota.",
+        "no_booking_notes": "Aún no hay notas de clases.",
+        "agenda_notes": "Agenda",
+        "session_notes": "Notas de sesión",
+        "load_more": "Cargar más",
+        "loading": "Cargando..."
       }
     }
   },

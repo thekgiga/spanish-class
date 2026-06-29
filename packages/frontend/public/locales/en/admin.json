@@ -285,7 +285,15 @@
         "save": "Save",
         "update": "Update",
         "cancel": "Cancel",
-        "note_placeholder": "Write your note here..."
+        "note_placeholder": "Write your note here...",
+        "generic_notes": "Generic Notes",
+        "booking_notes": "Booking / Class Notes",
+        "no_generic_notes": "No general notes yet. Use the Add Note button to record observations about this student.",
+        "no_booking_notes": "No session notes recorded yet.",
+        "agenda_notes": "Agenda",
+        "session_notes": "Session Notes",
+        "load_more": "Load More",
+        "loading": "Loading..."
       }
     }
   },

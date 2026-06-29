@@ -118,7 +118,7 @@
     "title": "Notas de la sesión",
     "agenda_label": "Agenda / Notas previas a la clase",
     "agenda_placeholder": "¿Qué planeas cubrir en esta sesión?",
-    "session_label": "Notas de la sesión",
+    "session_label": "Notas post-clase",
     "session_placeholder": "¿Cómo fue la sesión? Puntos clave, progreso del estudiante, próximos pasos…",
     "save": "Guardar notas",
     "saving": "Guardando…",

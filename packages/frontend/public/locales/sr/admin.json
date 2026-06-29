@@ -285,7 +285,15 @@
         "save": "Sačuvaj",
         "update": "Ažuriraj",
         "cancel": "Otkaži",
-        "note_placeholder": "Napišite vašu belešku ovde..."
+        "note_placeholder": "Napišite vašu belešku ovde...",
+        "generic_notes": "Opšte beleške",
+        "booking_notes": "Beleške sa časova",
+        "no_generic_notes": "Još nema opštih beleški. Koristite dugme Dodaj belešku.",
+        "no_booking_notes": "Još nema beleški sa časova.",
+        "agenda_notes": "Agenda",
+        "session_notes": "Beleške sa časa",
+        "load_more": "Učitaj još",
+        "loading": "Učitavanje..."
       }
     }
   },

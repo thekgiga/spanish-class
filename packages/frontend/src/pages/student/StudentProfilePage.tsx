@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-hot-toast";
@@ -155,6 +156,7 @@ interface ProfileFormData {
 export function StudentProfilePage() {
   const { t } = useTranslation("student");
   const { user, setUser } = useAuthStore();
+  const queryClient = useQueryClient();
   const [completion, setCompletion] = useState<ProfileCompletion | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -256,6 +258,7 @@ export function StudentProfilePage() {
       setCompletion(result.completion);
       setProfileData(data);
       setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ["student-profile"] });
 
       // Show celebration toast if profile just reached 100%
       if (!wasComplete && isNowComplete) {
@@ -375,8 +378,8 @@ export function StudentProfilePage() {
         <p className="text-slate-600">{t("profile.subtitle")}</p>
       </div>
 
-      {/* Profile Completion Indicator */}
-      {completion && (
+      {/* Profile Completion Indicator — hidden once 100% complete */}
+      {completion && completion.percentage < 100 && (
         <Card
           className={
             completion.percentage === 100

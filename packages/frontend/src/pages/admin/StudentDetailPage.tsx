@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,8 @@ import {
   MessageSquare,
   Reply,
   Loader2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -149,6 +151,10 @@ export function StudentDetailPage() {
   const [noteContent, setNoteContent] = useState("");
   const [meetingNotesBookingId, setMeetingNotesBookingId] = useState<string | null>(null);
   const [meetingNotesTitle, setMeetingNotesTitle] = useState<string | undefined>();
+  const [genericOpen, setGenericOpen] = useState(true);
+  const [bookingNotesOpen, setBookingNotesOpen] = useState(true);
+  const [bookingNotesPage, setBookingNotesPage] = useState(1);
+  const [allBookingNotes, setAllBookingNotes] = useState<any[]>([]);
 
   const { data: student, isLoading } = useQuery({
     queryKey: ["student", id],
@@ -162,6 +168,33 @@ export function StudentDetailPage() {
     queryFn: () => feedbackApi.getMyFeedbackAsProf(1, id),
     enabled: !!id,
   });
+
+  const { data: bookingNotesData, isFetching: bookingNotesFetching } = useQuery({
+    queryKey: ["student-booking-notes", id, bookingNotesPage],
+    queryFn: () => professorApi.getStudentBookingNotes(id!, bookingNotesPage, 10),
+    enabled: !!id,
+    placeholderData: (prev) => prev,
+  });
+
+  useEffect(() => {
+    if (bookingNotesData?.data) {
+      if (bookingNotesPage === 1) {
+        setAllBookingNotes(bookingNotesData.data);
+      } else {
+        setAllBookingNotes((prev) => {
+          const existingIds = new Set(prev.map((n: any) => n.id));
+          const fresh = bookingNotesData.data.filter((n: any) => !existingIds.has(n.id));
+          return [...prev, ...fresh];
+        });
+      }
+    }
+  }, [bookingNotesData, bookingNotesPage]);
+
+  // Accumulate booking notes across pages
+  const prevBookingPageRef = { current: 0 };
+  if (bookingNotesData && bookingNotesData.pagination.page > prevBookingPageRef.current) {
+    prevBookingPageRef.current = bookingNotesData.pagination.page;
+  }
 
   const createNoteMutation = useMutation({
     mutationFn: (content: string) => professorApi.createNote(id!, content),
@@ -544,7 +577,7 @@ export function StudentDetailPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="notes" className="mt-6 space-y-4">
+        <TabsContent value="notes" className="mt-6 space-y-3">
           <div className="flex justify-end">
             <Button variant="primary" onClick={openNewNote}>
               <Plus className="mr-2 h-4 w-4" />
@@ -552,48 +585,181 @@ export function StudentDetailPage() {
             </Button>
           </div>
 
-          {student.notes && student.notes.length > 0 ? (
-            student.notes.map((note: any) => (
-              <Card key={note.id}>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-start">
-                    <p className="text-sm text-muted-foreground">
-                      {formatDate(note.createdAt, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditNote(note)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteNoteMutation.mutate(note.id)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+          {/* Generic Notes Accordion — amber accent */}
+          <div className="border-2 border-amber-200 rounded-lg overflow-hidden">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-4 py-3 bg-amber-50 hover:bg-amber-100 transition-colors text-left"
+              onClick={() => setGenericOpen((v) => !v)}
+            >
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-amber-600" />
+                <span className="font-semibold text-amber-900 text-sm">
+                  {t("students.detail.notes_tab.generic_notes")}
+                </span>
+                <span className="text-xs bg-amber-200 text-amber-800 rounded-full px-2 py-0.5 font-medium">
+                  {student.notes?.length || 0}
+                </span>
+              </div>
+              {genericOpen ? (
+                <ChevronDown className="h-4 w-4 text-amber-600" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-amber-600" />
+              )}
+            </button>
+            {genericOpen && (
+              <div className="p-4 space-y-3 bg-white">
+                {student.notes && student.notes.length > 0 ? (
+                  student.notes.map((note: any) => (
+                    <div key={note.id} className="border border-amber-100 rounded-lg p-4 bg-amber-50/40">
+                      <div className="flex justify-between items-start">
+                        <p className="text-xs text-amber-700">
+                          {formatDate(note.createdAt, {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditNote(note)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteNoteMutation.mutate(note.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                      <p className="mt-2 text-sm whitespace-pre-wrap text-slate-700">{note.content}</p>
                     </div>
-                  </div>
-                  <p className="mt-2 whitespace-pre-wrap">{note.content}</p>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center text-muted-foreground">
-                {t("students.detail.notes_tab.no_notes")}
-              </CardContent>
-            </Card>
-          )}
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t("students.detail.notes_tab.no_generic_notes")}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Booking/Class Notes Accordion — teal accent */}
+          <div className="border-2 border-spanish-teal-200 rounded-lg overflow-hidden">
+            <button
+              type="button"
+              className="w-full flex items-center justify-between px-4 py-3 bg-spanish-teal-50 hover:bg-spanish-teal-100 transition-colors text-left"
+              onClick={() => setBookingNotesOpen((v) => !v)}
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-spanish-teal-600" />
+                <span className="font-semibold text-spanish-teal-900 text-sm">
+                  {t("students.detail.notes_tab.booking_notes")}
+                </span>
+                <span className="text-xs bg-spanish-teal-200 text-spanish-teal-800 rounded-full px-2 py-0.5 font-medium">
+                  {bookingNotesData?.pagination.total ?? 0}
+                </span>
+              </div>
+              {bookingNotesOpen ? (
+                <ChevronDown className="h-4 w-4 text-spanish-teal-600" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-spanish-teal-600" />
+              )}
+            </button>
+            {bookingNotesOpen && (
+              <div className="p-4 space-y-3 bg-white">
+                {allBookingNotes.length > 0 ? (
+                  <>
+                    {allBookingNotes.map((note: any) => (
+                      <div key={note.id} className="border border-spanish-teal-100 rounded-lg overflow-hidden">
+                        {/* Clickable header — opens Meeting Notes modal for this booking */}
+                        <button
+                          type="button"
+                          className="w-full flex items-center justify-between px-4 py-3 bg-spanish-teal-50/60 hover:bg-spanish-teal-100/70 transition-colors text-left"
+                          onClick={() => {
+                            setMeetingNotesBookingId(note.bookingId);
+                            setMeetingNotesTitle(note.booking?.slot?.title || undefined);
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-spanish-teal-500 shrink-0" />
+                            <span className="text-sm font-semibold text-spanish-teal-900">
+                              {note.booking?.slot?.title || t("students.detail.bookings_tab.spanish_class")}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {note.booking?.slot?.startTime && (
+                              <div className="text-right">
+                                <p className="text-xs font-medium text-spanish-teal-800">
+                                  {formatDate(note.booking.slot.startTime, {
+                                    weekday: "short",
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                  })}
+                                </p>
+                                <p className="text-xs text-spanish-teal-600">
+                                  {formatTime(note.booking.slot.startTime)}
+                                  {note.booking.slot.endTime ? ` – ${formatTime(note.booking.slot.endTime)}` : ""}
+                                </p>
+                              </div>
+                            )}
+                            <Edit className="h-3.5 w-3.5 text-spanish-teal-400 shrink-0" />
+                          </div>
+                        </button>
+                        {/* Note content */}
+                        <div className="px-4 py-3 space-y-2">
+                          {note.agendaNotes && (
+                            <div className="bg-blue-50 rounded-lg px-3 py-2">
+                              <p className="text-xs font-medium text-blue-700 mb-0.5">
+                                {t("students.detail.notes_tab.agenda_notes")}
+                              </p>
+                              <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.agendaNotes}</p>
+                            </div>
+                          )}
+                          {note.sessionNotes && (
+                            <div className="bg-green-50 rounded-lg px-3 py-2">
+                              <p className="text-xs font-medium text-green-700 mb-0.5">
+                                {t("students.detail.notes_tab.session_notes")}
+                              </p>
+                              <p className="text-sm text-slate-700 whitespace-pre-wrap">{note.sessionNotes}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    {bookingNotesData && allBookingNotes.length < bookingNotesData.pagination.total && (
+                      <div className="flex justify-center pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={bookingNotesFetching}
+                          onClick={() => setBookingNotesPage((p) => p + 1)}
+                        >
+                          {bookingNotesFetching ? (
+                            <><Loader2 className="h-3 w-3 mr-2 animate-spin" />{t("students.detail.notes_tab.loading")}</>
+                          ) : (
+                            t("students.detail.notes_tab.load_more")
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    {t("students.detail.notes_tab.no_booking_notes")}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         {/* Feedback Tab */}

@@ -118,7 +118,7 @@
     "title": "Meeting Notes",
     "agenda_label": "Agenda / Pre-class Notes",
     "agenda_placeholder": "What do you plan to cover in this session?",
-    "session_label": "Session Notes",
+    "session_label": "Post-class Notes",
     "session_placeholder": "How did the session go? Key points, student progress, next steps…",
     "save": "Save Notes",
     "saving": "Saving…",

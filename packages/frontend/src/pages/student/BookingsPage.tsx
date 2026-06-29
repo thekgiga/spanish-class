@@ -66,7 +66,7 @@ export function BookingsPage() {
   });
 
   const pastBookings = historyData?.data?.filter(
-    (b) => b.status !== "CONFIRMED" || new Date(b.slot.startTime) < new Date(),
+    (b) => new Date(b.slot.startTime) < new Date(),
   );
 
   const renderBookingCard = (booking: BookingWithSlot, showCancel = false) => {

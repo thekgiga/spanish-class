@@ -35,7 +35,9 @@ export function LoginPage() {
     try {
       await login(data.email, data.password);
       toast.success(t("login.success_message"));
-      navigate(from, { replace: true });
+      const { user } = useAuthStore.getState();
+      const defaultDest = user?.isAdmin ? "/admin" : "/dashboard";
+      navigate(from === "/dashboard" ? defaultDest : from, { replace: true });
     } catch (error: unknown) {
       const err = error as {
         response?: { data?: { error?: string } };

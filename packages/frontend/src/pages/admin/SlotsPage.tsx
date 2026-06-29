@@ -155,13 +155,9 @@ export function SlotsPage() {
 
   const now = new Date();
   const upcomingSlots =
-    data?.data?.filter(
-      (slot) => new Date(slot.startTime) >= now && slot.status !== "CANCELLED",
-    ) || [];
+    data?.data?.filter((slot) => new Date(slot.startTime) >= now) || [];
   const pastSlots =
-    data?.data?.filter(
-      (slot) => new Date(slot.startTime) < now || slot.status === "CANCELLED",
-    ) || [];
+    data?.data?.filter((slot) => new Date(slot.startTime) < now) || [];
 
   const renderSlotCard = (slot: AvailabilitySlot) => (
     <motion.div

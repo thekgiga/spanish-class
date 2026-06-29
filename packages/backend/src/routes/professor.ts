@@ -2131,6 +2131,52 @@ router.get("/pending-invitations", async (req, res, next) => {
   }
 });
 
+// GET /api/professor/students/:id/booking-notes — paginated meeting notes for a student
+router.get("/students/:id/booking-notes", async (req, res, next) => {
+  try {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
+    const skip = (page - 1) * limit;
+
+    const where = {
+      professorId: req.user!.id,
+      booking: { studentId: req.params.id },
+    };
+
+    const [notes, total] = await Promise.all([
+      prisma.meetingNote.findMany({
+        where,
+        include: {
+          booking: {
+            include: {
+              slot: {
+                select: { id: true, title: true, startTime: true, endTime: true },
+              },
+            },
+          },
+        },
+        orderBy: { booking: { slot: { startTime: "desc" } } },
+        skip,
+        take: limit,
+      }),
+      prisma.meetingNote.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: notes,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/professor/bookings/:id/meeting-notes — get meeting notes for a booking (M2)
 router.get("/bookings/:id/meeting-notes", async (req, res, next) => {
   try {

@@ -51,22 +51,26 @@ api.interceptors.response.use(
         : (error.response.data?.error ?? "Too many requests. Please try again later.");
     }
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      // Clear Zustand auth state without importing the store (avoids circular deps)
-      try {
-        const stored = localStorage.getItem("auth-storage");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed?.state) {
-            parsed.state.user = null;
-            parsed.state.isAuthenticated = false;
-            localStorage.setItem("auth-storage", JSON.stringify(parsed));
+      const url: string = error.config?.url ?? "";
+      const isAuthEndpoint = /\/auth\/(login|register)/.test(url);
+      if (!isAuthEndpoint) {
+        localStorage.removeItem("token");
+        // Clear Zustand auth state without importing the store (avoids circular deps)
+        try {
+          const stored = localStorage.getItem("auth-storage");
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed?.state) {
+              parsed.state.user = null;
+              parsed.state.isAuthenticated = false;
+              localStorage.setItem("auth-storage", JSON.stringify(parsed));
+            }
           }
+        } catch {
+          // ignore parse errors
         }
-      } catch {
-        // ignore parse errors
+        window.location.href = "/login";
       }
-      window.location.href = "/login";
     }
     return Promise.reject(error);
   },
@@ -295,6 +299,31 @@ export const professorApi = {
       { content },
     );
     return res.data.data;
+  },
+
+  getStudentBookingNotes: async (
+    studentId: string,
+    page = 1,
+    limit = 10,
+  ): Promise<{
+    data: Array<{
+      id: string;
+      bookingId: string;
+      agendaNotes?: string;
+      sessionNotes?: string;
+      createdAt: string;
+      updatedAt: string;
+      booking: {
+        id: string;
+        slot?: { id: string; title?: string; startTime: string; endTime: string } | null;
+      };
+    }>;
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }> => {
+    const res = await api.get(`/professor/students/${studentId}/booking-notes`, {
+      params: { page, limit },
+    });
+    return res.data;
   },
 
   deleteNote: async (studentId: string, noteId: string): Promise<void> => {
