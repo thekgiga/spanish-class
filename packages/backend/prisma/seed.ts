@@ -95,6 +95,77 @@ async function main() {
 
   console.log(`Created ${sampleSlots.length} sample slots`);
 
+  // ── Deterministic booking fixtures ──────────────────────────────────────
+  // These unlock the Phase 0 E2E test.fixme placeholders in
+  // packages/frontend/tests/e2e/baseline/*.spec.ts.
+
+  // Find the first available slot for the confirmed booking
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(10, 0, 0, 0);
+
+  const confirmedSlot = await prisma.availabilitySlot.findFirst({
+    where: { professorId: admin.id, status: 'AVAILABLE', startTime: { gte: tomorrow } },
+    orderBy: { startTime: 'asc' },
+  });
+
+  if (confirmedSlot) {
+    await prisma.booking.upsert({
+      where: { id: 'seed-booking-confirmed' },
+      update: {},
+      create: {
+        id: 'seed-booking-confirmed',
+        slotId: confirmedSlot.id,
+        studentId: student.id,
+        status: 'CONFIRMED',
+      },
+    });
+    console.log('Created confirmed booking fixture');
+  }
+
+  // Pending booking: use a different upcoming slot
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  dayAfterTomorrow.setHours(10, 0, 0, 0);
+
+  const pendingSlot = await prisma.availabilitySlot.findFirst({
+    where: {
+      professorId: admin.id,
+      status: 'AVAILABLE',
+      startTime: { gte: dayAfterTomorrow },
+      id: { not: confirmedSlot?.id ?? '' },
+    },
+    orderBy: { startTime: 'asc' },
+  });
+
+  if (pendingSlot) {
+    await prisma.booking.upsert({
+      where: { id: 'seed-booking-pending' },
+      update: {},
+      create: {
+        id: 'seed-booking-pending',
+        slotId: pendingSlot.id,
+        studentId: student.id,
+        status: 'PENDING_CONFIRMATION',
+      },
+    });
+    console.log('Created pending booking fixture');
+  }
+
+  // In-app notification for the pending booking
+  await prisma.notification.upsert({
+    where: { id: 'seed-notification-pending' },
+    update: {},
+    create: {
+      id: 'seed-notification-pending',
+      userId: admin.id,
+      type: 'booking_request',
+      title: 'New booking request',
+      body: 'John Doe has requested a lesson.',
+    },
+  });
+  console.log('Created notification fixture');
+
   console.log('Seeding completed!');
 }
 

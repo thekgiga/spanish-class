@@ -147,5 +147,15 @@
     "class_time": "Vreme časa",
     "confirmation_expiry": "Istek potvrde",
     "booking_pending": "Na čekanju"
+  },
+  "status": {
+    "available":     "Dostupno",
+    "approvalNeeded":"Potrebno odobrenje",
+    "confirmed":     "Potvrđeno",
+    "blocked":       "Nedostupno",
+    "completed":     "Završeno",
+    "cancelled":     "Otkazano",
+    "rejected":      "Odbijeno",
+    "expired":       "Isteklo"
   }
 }

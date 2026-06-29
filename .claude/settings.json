@@ -1,4 +1,12 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('packages/frontend/public/locales/en/common.json'\\)\\); print\\(list\\(d.get\\('notifications',{}\\).keys\\(\\)\\)\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('packages/frontend/public/locales/en/admin.json'\\)\\); print\\(list\\(d.keys\\(\\)\\)[:12]\\); print\\('total lines:', len\\(open\\('packages/frontend/public/locales/en/admin.json'\\).readlines\\(\\)\\)\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('packages/frontend/public/locales/en/admin.json'\\)\\); print\\(json.dumps\\(d.get\\('calendar',{}\\), indent=2\\)\\)\")",
+      "Bash(grep -nE \"spanish-|slate-|navy-|edu-|gradient-|#[0-9a-fA-F]{3,6}\\\\b|rgb\\\\\\(|hsl\\\\\\(\" packages/frontend/src/components/ui/calendar-event.tsx packages/frontend/src/components/ui/calendar-selection-composer.tsx packages/frontend/src/components/ui/slot-event-drawer.tsx)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {

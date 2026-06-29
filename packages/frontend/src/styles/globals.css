@@ -1,6 +1,9 @@
 /* Import Google Fonts - PREMIUM MODERN TYPOGRAPHY */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
+/* Editorial Teaching Studio semantic tokens — must precede @tailwind directives */
+@import './ui-system.tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

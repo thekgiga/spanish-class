@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "@/stores/auth";
-import { SkipLink } from "@/components/shared/SkipLink";
 import { PageSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useDocumentLang } from "@/hooks/useDocumentLang";
 
@@ -49,11 +48,21 @@ const DesignShowcase = lazy(() =>
     default: m.DesignShowcase,
   })),
 );
+const DesignSystemPage = lazy(() =>
+  import("@/pages/DesignSystemPage").then((m) => ({
+    default: m.DesignSystemPage,
+  })),
+);
 
 // Lazy-loaded Admin Pages
 const AdminDashboard = lazy(() =>
   import("@/pages/admin/AdminDashboard").then((m) => ({
     default: m.AdminDashboard,
+  })),
+);
+const AdminInsightsPage = lazy(() =>
+  import("@/pages/admin/AdminInsightsPage").then((m) => ({
+    default: m.AdminInsightsPage,
   })),
 );
 const SlotsPage = lazy(() =>
@@ -190,7 +199,6 @@ function AppRoutes() {
 
   return (
     <>
-      <SkipLink />
       <Suspense fallback={<PageSkeleton />}>
         <Routes>
           {/* Public Routes */}
@@ -199,6 +207,7 @@ function AppRoutes() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/design-showcase" element={<DesignShowcase />} />
+            <Route path="/design-system" element={<DesignSystemPage />} />
             <Route
               path="/auth"
               element={
@@ -239,8 +248,10 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<AdminDashboard />} />
+            <Route index element={<CalendarPage />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="calendar" element={<CalendarPage />} />
+            <Route path="insights" element={<AdminInsightsPage />} />
             <Route path="slots" element={<SlotsPage />} />
             <Route path="slots/new" element={<NewSlotPage />} />
             <Route path="slots/bulk" element={<BulkSlotPage />} />

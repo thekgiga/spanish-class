@@ -1,159 +1,90 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from './card';
 import { Button } from './button';
-import { Badge } from './badge';
-import { Calendar, Clock, Users } from 'lucide-react';
+import { Clock, Users } from 'lucide-react';
 
 const meta: Meta<typeof Card> = {
   title: 'UI/Card',
   component: Card,
-  parameters: {
-    layout: 'centered',
-  },
+  parameters: { layout: 'centered' },
   tags: ['autodocs'],
   argTypes: {
     variant: {
       control: 'select',
-      options: ['default', 'elevated', 'outlined', 'ghost'],
-      description: 'Visual style variant',
+      options: ['plain', 'interactive', 'selected', 'status', 'elevated', 'outlined'],
     },
-    hover: {
-      control: 'boolean',
-      description: 'Enable hover effect',
-    },
+    hover: { control: 'boolean' },
   },
 };
-
 export default meta;
 type Story = StoryObj<typeof Card>;
 
-export const Default: Story = {
+export const Plain: Story = {
   render: () => (
     <Card className="w-80">
       <CardHeader>
-        <CardTitle>Card Title</CardTitle>
-        <CardDescription>Card description goes here</CardDescription>
+        <CardTitle>Plain card</CardTitle>
+        <CardDescription>Default surface with border and shadow-1.</CardDescription>
       </CardHeader>
-      <CardContent>
-        <p className="text-sm text-slate-600">
-          This is the main content of the card. You can put any content here.
-        </p>
-      </CardContent>
-      <CardFooter>
-        <Button variant="outline" className="w-full">Action</Button>
-      </CardFooter>
+      <CardContent><p className="text-small text-ink-secondary">Content goes here.</p></CardContent>
+      <CardFooter><Button variant="secondary" className="w-full">Action</Button></CardFooter>
     </Card>
   ),
 };
 
-export const Elevated: Story = {
+export const Interactive: Story = {
   render: () => (
-    <Card variant="elevated" className="w-80">
-      <CardHeader>
-        <CardTitle>Elevated Card</CardTitle>
-        <CardDescription>This card has a larger shadow</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-slate-600">
-          Elevated cards stand out more with enhanced shadow effects.
-        </p>
+    <Card variant="interactive" className="w-80">
+      <CardContent className="p-5">
+        <p className="text-small text-ink-secondary">Hover or focus me — lift + shadow-2.</p>
       </CardContent>
     </Card>
   ),
 };
 
-export const Outlined: Story = {
+export const Selected: Story = {
   render: () => (
-    <Card variant="outlined" className="w-80">
-      <CardHeader>
-        <CardTitle>Outlined Card</CardTitle>
-        <CardDescription>Border-based styling</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-slate-600">
-          Outlined cards use borders instead of shadows.
-        </p>
+    <Card variant="selected" className="w-80">
+      <CardContent className="p-5">
+        <p className="text-small font-medium text-brand">This slot is selected.</p>
       </CardContent>
     </Card>
   ),
 };
 
-export const WithHover: Story = {
+// Status tones: all six semantic booking states
+export const StatusTones: Story = {
   render: () => (
-    <Card hover className="w-80">
-      <CardHeader>
-        <CardTitle>Hoverable Card</CardTitle>
-        <CardDescription>Hover over me!</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-slate-600">
-          This card has interactive hover effects for better UX.
-        </p>
-      </CardContent>
-    </Card>
+    <div className="flex flex-col gap-3 w-72">
+      {(['available', 'requested', 'confirmed', 'blocked', 'completed', 'cancelled'] as const).map(tone => (
+        <Card key={tone} variant="status" statusTone={tone} className="px-4 py-3">
+          <span className="text-small font-medium capitalize">{tone}</span>
+        </Card>
+      ))}
+    </div>
   ),
 };
 
+// Domain example — lesson card
 export const LessonCard: Story = {
   render: () => (
-    <Card hover className="w-80">
+    <Card variant="interactive" className="w-80">
       <CardContent className="p-5">
-        <div className="flex items-center justify-between mb-3">
-          <Badge variant="secondary">
-            <Users className="mr-1 h-3 w-3" />
-            Group
-          </Badge>
-          <Badge variant="gold">
-            Premium
-          </Badge>
+        <div className="flex items-center gap-2 mb-2">
+          <Users className="h-4 w-4 text-ink-tertiary" aria-hidden="true" />
+          <span className="text-small text-ink-secondary">Group</span>
         </div>
-
-        <h3 className="font-semibold text-navy-800 mb-1">
-          Spanish Conversation Practice
-        </h3>
-
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-          <Clock className="h-4 w-4" />
-          <span>10:00 AM - 11:00 AM (1 hour)</span>
+        <p className="text-title font-semibold text-ink mb-1">Spanish Conversation</p>
+        <div className="flex items-center gap-1 text-small text-ink-secondary mb-4">
+          <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+          <span>Mon 10:00 – 11:00</span>
         </div>
-
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
-          <Calendar className="h-4 w-4" />
-          <span>March 15, 2026</span>
-        </div>
-
-        <p className="text-sm text-muted-foreground mb-3">
-          Practice conversational Spanish with other students at your level.
-        </p>
-
-        <div className="flex items-center justify-between pt-3 border-t">
-          <span className="text-sm text-muted-foreground">
-            3/5 spots filled
-          </span>
-          <Button size="sm" variant="primary">
-            Book Now
-          </Button>
+        <div className="flex items-center justify-between border-t border-line pt-3">
+          <span className="text-small text-ink-secondary">3 / 5 spots</span>
+          <Button size="sm" variant="primary">Book Now</Button>
         </div>
       </CardContent>
     </Card>
-  ),
-};
-
-export const AllVariants: Story = {
-  render: () => (
-    <div className="grid grid-cols-2 gap-4">
-      <Card className="p-4">
-        <CardTitle className="text-sm">Default</CardTitle>
-      </Card>
-      <Card variant="elevated" className="p-4">
-        <CardTitle className="text-sm">Elevated</CardTitle>
-      </Card>
-      <Card variant="outlined" className="p-4">
-        <CardTitle className="text-sm">Outlined</CardTitle>
-      </Card>
-      <Card variant="ghost" className="p-4">
-        <CardTitle className="text-sm">Ghost</CardTitle>
-      </Card>
-    </div>
   ),
 };

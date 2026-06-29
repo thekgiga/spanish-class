@@ -46,6 +46,22 @@
   --ui-cancelled-border: 7 41% 75%;
   --ui-cancelled-foreground: 5 52% 36%;
 
+  /* Alert surface tokens — distinct from booking-lifecycle status.
+     success/error/warning/info use the same underlying hue family
+     but are independent so they can diverge as the palette evolves. */
+  --ui-alert-success-surface:    132 28% 93%;
+  --ui-alert-success-border:     134 16% 62%;
+  --ui-alert-success-foreground: 134 31% 28%;
+  --ui-alert-error-surface:      7 42% 93%;
+  --ui-alert-error-border:       7 41% 75%;
+  --ui-alert-error-foreground:   5 52% 36%;
+  --ui-alert-warning-surface:    41 100% 91%;
+  --ui-alert-warning-border:     41 63% 55%;
+  --ui-alert-warning-foreground: 38 100% 24%;
+  --ui-alert-info-surface:       202 25% 93%;
+  --ui-alert-info-border:        202 18% 70%;
+  --ui-alert-info-foreground:    202 40% 28%;
+
   --ui-font-sans: "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif;
   --ui-font-display: "Newsreader Variable", Newsreader, "Playfair Display", ui-serif, Georgia, serif;
   --ui-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -123,6 +139,71 @@
   --ui-cancelled-surface: 5 23% 17%;
   --ui-cancelled-border: 5 34% 43%;
   --ui-cancelled-foreground: 5 61% 77%;
+
+  /* Alert surface tokens — dark mode */
+  --ui-alert-success-surface:    135 18% 16%;
+  --ui-alert-success-border:     134 24% 43%;
+  --ui-alert-success-foreground: 133 37% 75%;
+  --ui-alert-error-surface:      5 23% 17%;
+  --ui-alert-error-border:       5 34% 43%;
+  --ui-alert-error-foreground:   5 61% 77%;
+  --ui-alert-warning-surface:    39 32% 16%;
+  --ui-alert-warning-border:     40 49% 45%;
+  --ui-alert-warning-foreground: 42 85% 75%;
+  --ui-alert-info-surface:       201 24% 16%;
+  --ui-alert-info-border:        201 35% 42%;
+  --ui-alert-info-foreground:    201 55% 72%;
+}
+
+/* ── FullCalendar semantic overrides ─────────────────────────────────────
+   Map @fullcalendar CSS vars to our semantic token layer so the time-grid
+   inherits the Editorial Teaching Studio visual language automatically.  */
+:root,
+[data-theme="light"] {
+  --fc-page-bg-color:            hsl(var(--ui-canvas));
+  --fc-border-color:             hsl(var(--ui-border));
+  --fc-neutral-bg-color:         hsl(var(--ui-surface-muted));
+  --fc-neutral-text-color:       hsl(var(--ui-fg-secondary));
+  --fc-today-bg-color:           hsl(var(--ui-surface-raised));
+  --fc-highlight-color:          hsl(var(--ui-brand) / 0.12);
+  --fc-now-indicator-color:      hsl(var(--ui-brand));
+  --fc-event-bg-color:           hsl(var(--ui-confirmed-surface));
+  --fc-event-border-color:       hsl(var(--ui-confirmed-border));
+  --fc-event-text-color:         hsl(var(--ui-confirmed-foreground));
+  --fc-non-business-color:       hsl(var(--ui-canvas-subtle));
+  --fc-more-link-bg-color:       hsl(var(--ui-surface));
+  --fc-more-link-text-color:     hsl(var(--ui-brand));
+  /* Buttons — mapped to our secondary/quiet pattern */
+  --fc-button-bg-color:          hsl(var(--ui-surface));
+  --fc-button-border-color:      hsl(var(--ui-border-strong));
+  --fc-button-text-color:        hsl(var(--ui-fg-primary));
+  --fc-button-hover-bg-color:    hsl(var(--ui-surface-muted));
+  --fc-button-hover-border-color:hsl(var(--ui-border-strong));
+  --fc-button-active-bg-color:   hsl(var(--ui-brand));
+  --fc-button-active-border-color:hsl(var(--ui-brand));
+  --fc-small-font-size:          12px;
+}
+
+[data-theme="dark"] {
+  --fc-page-bg-color:            hsl(var(--ui-canvas));
+  --fc-border-color:             hsl(var(--ui-border));
+  --fc-neutral-bg-color:         hsl(var(--ui-surface-muted));
+  --fc-neutral-text-color:       hsl(var(--ui-fg-secondary));
+  --fc-today-bg-color:           hsl(var(--ui-surface-raised));
+  --fc-highlight-color:          hsl(var(--ui-brand) / 0.18);
+  --fc-now-indicator-color:      hsl(var(--ui-brand));
+  --fc-non-business-color:       hsl(var(--ui-canvas-subtle));
+  /* Repeat event/button vars so dark mode resolves correctly without cascade surprises */
+  --fc-event-bg-color:           hsl(var(--ui-confirmed-surface));
+  --fc-event-border-color:       hsl(var(--ui-confirmed-border));
+  --fc-event-text-color:         hsl(var(--ui-confirmed-foreground));
+  --fc-button-bg-color:          hsl(var(--ui-surface));
+  --fc-button-border-color:      hsl(var(--ui-border-strong));
+  --fc-button-text-color:        hsl(var(--ui-fg-primary));
+  --fc-button-hover-bg-color:    hsl(var(--ui-surface-muted));
+  --fc-button-hover-border-color:hsl(var(--ui-border-strong));
+  --fc-button-active-bg-color:   hsl(var(--ui-brand));
+  --fc-button-active-border-color:hsl(var(--ui-brand));
 }
 
 html {
@@ -153,4 +234,30 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
   }
+}
+
+/* ── Semantic toast skins ─────────────────────────────────────────────────
+   Applied by uiToast helper via react-hot-toast's className option.
+   Declared here so hsl(var(--ui-*)) usage stays in a token file (exempt
+   from the raw-color guardrail).                                         */
+.toast-ui-success {
+  background: hsl(var(--ui-confirmed-surface)) !important;
+  color: hsl(var(--ui-confirmed-foreground)) !important;
+  border: 1px solid hsl(var(--ui-confirmed-border)) !important;
+  border-radius: var(--ui-radius-sm) !important;
+  font-size: 14px !important;
+}
+.toast-ui-error {
+  background: hsl(var(--ui-cancelled-surface)) !important;
+  color: hsl(var(--ui-cancelled-foreground)) !important;
+  border: 1px solid hsl(var(--ui-cancelled-border)) !important;
+  border-radius: var(--ui-radius-sm) !important;
+  font-size: 14px !important;
+}
+.toast-ui-info {
+  background: hsl(var(--ui-surface)) !important;
+  color: hsl(var(--ui-fg-primary)) !important;
+  border: 1px solid hsl(var(--ui-border)) !important;
+  border-radius: var(--ui-radius-sm) !important;
+  font-size: 14px !important;
 }

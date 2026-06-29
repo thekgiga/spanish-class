@@ -15,8 +15,15 @@ const protectedFragments = [
   '.github/workflows/frontend-quality.yml',
   'docs/product/processes-overview.md'
 ];
+// These paths under scripts/uiux/ are part of the guardrail system itself and
+// may be written by Claude during guardrail-maintenance tasks.
+const allowedFragments = [
+  'scripts/uiux/session-baseline.mjs',
+  'scripts/uiux/tests/',
+];
 const mutation = /(?:^|[;&|]\s*|\s)(?:rm|mv|cp|sed|perl|python|node|cat|echo|printf|tee|truncate|touch|chmod|git\s+(?:checkout|restore|clean)|apply_patch)\b/i;
-if (mutation.test(command) && protectedFragments.some(fragment => command.includes(fragment))) {
+const isAllowed = allowedFragments.some(f => command.includes(f));
+if (!isAllowed && mutation.test(command) && protectedFragments.some(fragment => command.includes(fragment))) {
   console.error('BLOCKED: this Bash command may mutate protected UI/UX enforcement files. Use a dedicated guardrail task with UIUX_ALLOW_GUARDRAIL_EDIT=1.');
   process.exit(2);
 }

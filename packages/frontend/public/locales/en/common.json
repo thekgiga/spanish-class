@@ -3,8 +3,14 @@
     "title": "Notifications",
     "empty": "No notifications yet",
     "mark_all_read": "Mark all read",
+    "mark_as_read": "Mark as read",
+    "unread_count": "{{count}} unread",
     "load_more": "Load more",
     "reconnecting": "Reconnecting to live updates…",
+    "just_now": "just now",
+    "minutes_ago": "{{count}}m ago",
+    "hours_ago": "{{count}}h ago",
+    "days_ago": "{{count}}d ago",
     "preferences_title": "Notification Preferences",
     "preferences_description": "Choose which notifications you receive in-app",
     "types": {
@@ -49,7 +55,14 @@
     "logout": "Logout",
     "login": "Login",
     "register": "Register",
-    "menu": "Menu"
+    "menu": "Menu",
+    "pending_count": "{{count}} pending approval",
+    "schedule": "Schedule",
+    "students": "Students",
+    "insights": "Insights",
+    "bookALesson": "Book a Lesson",
+    "myLessons": "My Lessons",
+    "two_factor_nudge": "2-factor authentication not enabled"
   },
   "time": {
     "today": "Today",
@@ -215,6 +228,11 @@
     "mobile_navigation": "Mobile navigation",
     "close_navigation": "Close navigation",
     "top_navigation": "Top navigation",
-    "email_preview": "Email Preview"
+    "email_preview": "Email Preview",
+    "primary_navigation": "Primary navigation",
+    "close_sidebar": "Close navigation",
+    "toggle_sidebar": "Toggle navigation",
+    "open_menu": "Open menu",
+    "skip_to_main": "Skip to main content"
   }
 }

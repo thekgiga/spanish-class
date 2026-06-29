@@ -42,6 +42,29 @@ module.exports = {
       danger: 'hsl(var(--ui-danger) / <alpha-value>)',
       info: 'hsl(var(--ui-info) / <alpha-value>)',
     },
+    // Alert surface tokens — generic feedback, independent of booking lifecycle
+    alert: {
+      success: {
+        surface:    'hsl(var(--ui-alert-success-surface) / <alpha-value>)',
+        border:     'hsl(var(--ui-alert-success-border) / <alpha-value>)',
+        foreground: 'hsl(var(--ui-alert-success-foreground) / <alpha-value>)',
+      },
+      error: {
+        surface:    'hsl(var(--ui-alert-error-surface) / <alpha-value>)',
+        border:     'hsl(var(--ui-alert-error-border) / <alpha-value>)',
+        foreground: 'hsl(var(--ui-alert-error-foreground) / <alpha-value>)',
+      },
+      warning: {
+        surface:    'hsl(var(--ui-alert-warning-surface) / <alpha-value>)',
+        border:     'hsl(var(--ui-alert-warning-border) / <alpha-value>)',
+        foreground: 'hsl(var(--ui-alert-warning-foreground) / <alpha-value>)',
+      },
+      info: {
+        surface:    'hsl(var(--ui-alert-info-surface) / <alpha-value>)',
+        border:     'hsl(var(--ui-alert-info-border) / <alpha-value>)',
+        foreground: 'hsl(var(--ui-alert-info-foreground) / <alpha-value>)',
+      },
+    },
     status: {
       available: {
         surface: 'hsl(var(--ui-available-surface) / <alpha-value>)',
@@ -80,11 +103,16 @@ module.exports = {
     display: ['Newsreader Variable', 'Newsreader', 'Playfair Display', 'ui-serif', 'Georgia', 'serif'],
   },
   fontSize: {
-    micro: ['11px', { lineHeight: '14px', fontWeight: '600' }],
+    micro:   ['11px', { lineHeight: '14px', fontWeight: '600' }],
     caption: ['12px', { lineHeight: '16px', fontWeight: '550' }],
-    small: ['13px', { lineHeight: '18px', fontWeight: '500' }],
-    body: ['15px', { lineHeight: '22px', fontWeight: '450' }],
-    title: ['17px', { lineHeight: '24px', fontWeight: '600' }],
+    small:   ['13px', { lineHeight: '18px', fontWeight: '500' }],
+    body:    ['15px', { lineHeight: '22px', fontWeight: '450' }],
+    title:   ['17px', { lineHeight: '24px', fontWeight: '600' }],
+    // Heading scale — used by PageHeader, section headers, and DesignSystemPage
+    h3:      ['20px', { lineHeight: '26px', fontWeight: '600' }],
+    h2:      ['24px', { lineHeight: '30px', fontWeight: '600' }],
+    h1:      ['32px', { lineHeight: '38px', fontWeight: '700' }],
+    display: ['48px', { lineHeight: '52px', fontWeight: '700' }],
   },
   borderRadius: {
     'ui-xs': 'var(--ui-radius-xs)',

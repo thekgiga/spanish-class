@@ -2,97 +2,83 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spanish-teal-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-ui-sm text-sm font-semibold ring-offset-background transition-all duration-standard ease-ui-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        // Spanish Teal Primary Color System
-        default:
-          "bg-gradient-to-r from-spanish-teal-500 to-spanish-teal-600 text-white hover:from-spanish-teal-600 hover:to-spanish-teal-700 shadow-lg",
+        // primary: brand fill, brand-contrast text — contract §Buttons
         primary:
-          "bg-gradient-to-r from-spanish-teal-500 to-spanish-teal-600 text-white hover:from-spanish-teal-600 hover:to-spanish-teal-700 shadow-lg",
+          "bg-brand text-brand-contrast hover:bg-brand-hover active:bg-brand-active",
+        // secondary: surface + strong border + primary text
         secondary:
-          "border-2 border-spanish-teal-500 bg-transparent text-spanish-teal-700 hover:bg-spanish-teal-50",
-        // CTA variant for high-conversion actions only (Sign Up, Book Now homepage)
-        cta: "bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 text-white hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-lg font-semibold",
-        destructive: "bg-red-500 text-white hover:bg-red-600 shadow-lg",
+          "border border-line-strong bg-surface text-ink hover:bg-surface-muted",
+        // quiet: transparent, primary text
+        quiet:
+          "bg-transparent text-ink hover:bg-surface-muted",
+        // danger: confirmed destructive action only
+        danger:
+          "bg-feedback-danger text-ink-inverse hover:opacity-90",
+        // link: inline navigation, no container
+        link:
+          "bg-transparent text-brand underline-offset-4 hover:text-brand-hover hover:underline p-0 h-auto",
+        // Legacy aliases — kept while pages migrate to contract names above
+        default:
+          "bg-brand text-brand-contrast hover:bg-brand-hover active:bg-brand-active",
+        cta:
+          "bg-accent text-ink-inverse hover:bg-accent-hover shadow-ui-1",
+        destructive:
+          "bg-feedback-danger text-ink-inverse hover:opacity-90 shadow-ui-1",
         outline:
-          "border-2 border-spanish-teal-500 bg-transparent text-spanish-teal-700 hover:bg-spanish-teal-50",
+          "border border-line-strong bg-transparent text-ink hover:bg-surface-muted",
         ghost:
-          "bg-transparent text-slate-600 hover:bg-spanish-teal-50 hover:text-spanish-teal-700",
-        link: "text-spanish-teal-600 underline-offset-4 hover:text-spanish-teal-700 hover:underline",
+          "bg-transparent text-ink hover:bg-surface-muted",
       },
       size: {
-        default: "h-11 px-6 py-2",
-        sm: "h-9 rounded-lg px-4 text-xs",
-        lg: "h-12 rounded-xl px-8 text-base",
-        xl: "h-14 rounded-2xl px-10 text-lg",
-        icon: "h-10 w-10 rounded-lg",
-        "icon-sm": "h-8 w-8 rounded-lg",
+        // sm = 32px compact desktop only
+        sm:      "h-control-compact px-3 text-xs rounded-ui-xs",
+        // md = 40px default
+        md:      "h-control-default px-4",
+        // lg = 48px booking and onboarding primary
+        lg:      "h-control-comfortable px-6 text-base",
+        // Legacy size names — mapped to nearest contract height
+        default: "h-control-default px-4",
+        xl:      "h-14 px-8 text-lg rounded-ui-md",
+        icon:    "h-control-default w-control-default p-0",
+        "icon-sm": "h-control-compact w-control-compact p-0",
       },
     },
     defaultVariants: {
-      variant: "default",
-      size: "default",
+      variant: "primary",
+      size:    "md",
     },
   },
 );
 
 export interface ButtonProps
-  extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   isLoading?: boolean;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    {
-      className,
-      variant,
-      size,
-      asChild = false,
-      isLoading,
-      children,
-      disabled,
-      ...props
-    },
-    ref,
-  ) => {
+  ({ className, variant, size, asChild = false, isLoading, children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={disabled || isLoading}
+        aria-busy={isLoading || undefined}
         {...props}
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
-            <svg
-              className="h-4 w-4 animate-spin"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            <span>Loading...</span>
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            <span>{children}</span>
           </span>
         ) : (
           children

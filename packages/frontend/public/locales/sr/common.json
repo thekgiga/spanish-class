@@ -3,8 +3,14 @@
     "title": "Obaveštenja",
     "empty": "Još nema obaveštenja",
     "mark_all_read": "Označi sva kao pročitana",
+    "mark_as_read": "Označi kao pročitano",
+    "unread_count": "{{count}} nepročitano",
     "load_more": "Učitaj još",
     "reconnecting": "Ponovo se povezuje na ažuriranja uživo…",
+    "just_now": "upravo",
+    "minutes_ago": "pre {{count}}m",
+    "hours_ago": "pre {{count}}h",
+    "days_ago": "pre {{count}}d",
     "preferences_title": "Podešavanja obaveštenja",
     "preferences_description": "Izaberite koja obaveštenja primate u aplikaciji",
     "types": {
@@ -49,7 +55,14 @@
     "logout": "Odjava",
     "login": "Prijava",
     "register": "Registracija",
-    "menu": "Meni"
+    "menu": "Meni",
+    "pending_count": "{{count}} čeka odobrenje",
+    "schedule": "Raspored",
+    "students": "Učenici",
+    "insights": "Statistike",
+    "bookALesson": "Rezerviši čas",
+    "myLessons": "Moji časovi",
+    "two_factor_nudge": "Dvofaktorska autentifikacija nije aktivna"
   },
   "time": {
     "today": "Danas",
@@ -215,6 +228,11 @@
     "mobile_navigation": "Mobilna navigacija",
     "close_navigation": "Zatvori navigaciju",
     "top_navigation": "Gornja navigacija",
-    "email_preview": "Pregled email-a"
+    "email_preview": "Pregled email-a",
+    "primary_navigation": "Primarna navigacija",
+    "close_sidebar": "Zatvori navigaciju",
+    "toggle_sidebar": "Preklopi navigaciju",
+    "open_menu": "Otvori meni",
+    "skip_to_main": "Preskoči na glavni sadržaj"
   }
 }

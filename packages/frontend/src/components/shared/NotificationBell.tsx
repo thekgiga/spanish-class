@@ -4,22 +4,28 @@ import { Bell, BellDot, Check, CheckCheck, X, Loader2, WifiOff } from "lucide-re
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: TFunction): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const m = Math.floor(diff / 60_000);
-  if (m < 1) return "just now";
-  if (m < 60) return `${m}m ago`;
+  if (m < 1) return t("notifications.just_now");
+  if (m < 60) return t("notifications.minutes_ago", { count: m });
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
+  if (h < 24) return t("notifications.hours_ago", { count: h });
+  return t("notifications.days_ago", { count: Math.floor(h / 24) });
 }
 
+const PANEL_ID = "notification-panel";
+
 export function NotificationBell() {
+  const { t } = useTranslation("common");
   const { notifications, unreadCount, connected, hasMore, loadingMore, markRead, markAllRead, loadMore } =
     useNotifications();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Close on outside click
   useEffect(() => {
@@ -30,47 +36,71 @@ export function NotificationBell() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Escape closes the popover and returns focus to trigger
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [open]);
+
   const recent = notifications.slice(0, 10);
 
   return (
     <div ref={ref} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="relative p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-colors"
-        aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ""}`}
+        aria-label={unreadCount > 0
+          ? `${t("notifications.title")} — ${t("notifications.unread_count", { count: unreadCount })}`
+          : t("notifications.title")}
+        aria-expanded={open}
+        aria-controls={PANEL_ID}
+        aria-haspopup="true"
+        className="relative p-2 rounded-ui-sm hover:bg-surface-muted text-ink-tertiary hover:text-ink transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         {unreadCount > 0 ? (
-          <BellDot className="w-5 h-5 text-spanish-teal-600" />
+          <BellDot className="w-5 h-5 text-brand" />
         ) : (
-          <Bell className={cn("w-5 h-5", !connected && "text-amber-500")} />
+          <Bell className={cn("w-5 h-5", !connected && "text-feedback-warning")} />
         )}
         {unreadCount > 0 && (
-          <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
+          <span
+            aria-hidden="true"
+            className="absolute top-1 right-1 w-4 h-4 bg-feedback-danger rounded-full text-ink-inverse text-micro font-bold flex items-center justify-center"
+          >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
-        {/* N1: subtle offline indicator dot */}
         {!connected && unreadCount === 0 && (
-          <span className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full" />
+          <span className="absolute top-1 right-1 w-2 h-2 bg-feedback-warning rounded-full" aria-hidden="true" />
         )}
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.96 }}
+            id={PANEL_ID}
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.96 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden"
+            exit={{ opacity: 0, y: -6, scale: 0.97 }}
+            transition={{ duration: 0.12 }}
+            className="absolute right-0 top-full mt-2 w-80 bg-surface rounded-ui-md shadow-ui-2 border border-line z-50 overflow-hidden"
+            role="dialog"
+            aria-label={t("notifications.title")}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
-              <span className="text-sm font-semibold text-slate-800">
-                Notifications
+            <div className="flex items-center justify-between px-4 py-3 border-b border-line">
+              <span className="text-small font-semibold text-ink">
+                {t("notifications.title")}
                 {unreadCount > 0 && (
-                  <span className="ml-2 text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded-full">
+                  <span className="ml-2 text-caption bg-alert-error-surface text-alert-error-foreground px-1.5 py-0.5 rounded-ui-full">
                     {unreadCount}
                   </span>
                 )}
@@ -80,43 +110,46 @@ export function NotificationBell() {
                   <button
                     type="button"
                     onClick={markAllRead}
-                    className="text-xs text-slate-500 hover:text-slate-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-slate-100"
+                    className="text-caption text-ink-secondary hover:text-ink flex items-center gap-1 px-2 py-1 rounded-ui-xs hover:bg-surface-muted transition-colors duration-micro"
                   >
-                    <CheckCheck className="w-3 h-3" />
-                    All read
+                    <CheckCheck className="w-3 h-3" aria-hidden="true" />
+                    {t("notifications.mark_all_read")}
                   </button>
                 )}
                 <button
                   type="button"
-                  onClick={() => setOpen(false)}
-                  className="p-1 rounded hover:bg-slate-100 text-slate-400"
+                  onClick={() => { setOpen(false); triggerRef.current?.focus(); }}
+                  aria-label={t("actions.close")}
+                  className="p-1 rounded-ui-xs hover:bg-surface-muted text-ink-tertiary hover:text-ink transition-colors duration-micro"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
 
-            {/* N1: Reconnecting banner */}
+            {/* Reconnecting banner */}
             {!connected && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-amber-50 border-b border-amber-100 text-amber-700 text-xs">
-                <WifiOff className="w-3 h-3 flex-shrink-0" />
-                Reconnecting to live updates…
+              <div className="flex items-center gap-2 px-4 py-2 bg-status-requested-surface border-b border-status-requested-border text-status-requested-foreground text-caption">
+                <WifiOff className="w-3 h-3 shrink-0" aria-hidden="true" />
+                {t("notifications.reconnecting")}
               </div>
             )}
 
-            {/* List */}
-            <div className="max-h-80 overflow-y-auto">
+            {/* Notification list */}
+            <div className="max-h-80 overflow-y-auto" role="list" aria-label={t("notifications.title")}>
               {recent.length === 0 ? (
-                <div className="py-8 text-center text-slate-400 text-sm">
-                  No notifications yet
+                <div className="py-8 text-center text-caption text-ink-tertiary">
+                  {t("notifications.empty")}
                 </div>
               ) : (
                 recent.map((n: AppNotification) => (
                   <div
                     key={n.id}
+                    role="listitem"
                     className={cn(
-                      "flex items-start gap-3 px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors",
-                      !n.readAt && "bg-spanish-teal-50/40",
+                      "flex items-start gap-3 px-4 py-3 border-b border-line last:border-0",
+                      "hover:bg-surface-muted transition-colors duration-micro cursor-default",
+                      !n.readAt && "bg-surface-raised",
                     )}
                     onClick={() => !n.readAt && markRead(n.id)}
                   >
@@ -124,32 +157,35 @@ export function NotificationBell() {
                       {n.href ? (
                         <Link
                           to={n.href}
-                          onClick={() => { !n.readAt && markRead(n.id); setOpen(false); }}
-                          className="block"
+                          onClick={() => {
+                            if (!n.readAt) markRead(n.id);
+                            setOpen(false);
+                          }}
+                          className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded-ui-xs"
                         >
-                          <p className={cn("text-sm text-slate-800 leading-snug", !n.readAt && "font-semibold")}>
+                          <p className={cn("text-small text-ink leading-snug", !n.readAt && "font-semibold")}>
                             {n.title}
                           </p>
-                          <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>
+                          <p className="text-caption text-ink-secondary mt-0.5 line-clamp-2">{n.body}</p>
                         </Link>
                       ) : (
                         <>
-                          <p className={cn("text-sm text-slate-800 leading-snug", !n.readAt && "font-semibold")}>
+                          <p className={cn("text-small text-ink leading-snug", !n.readAt && "font-semibold")}>
                             {n.title}
                           </p>
-                          <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.body}</p>
+                          <p className="text-caption text-ink-secondary mt-0.5 line-clamp-2">{n.body}</p>
                         </>
                       )}
-                      <p className="text-[10px] text-slate-400 mt-1">{timeAgo(n.createdAt)}</p>
+                      <p className="text-micro text-ink-tertiary mt-1">{timeAgo(n.createdAt, t)}</p>
                     </div>
                     {!n.readAt && (
                       <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); markRead(n.id); }}
-                        className="flex-shrink-0 p-1 rounded hover:bg-slate-200 text-slate-400 mt-0.5"
-                        title="Mark as read"
+                        aria-label={t("notifications.mark_as_read")}
+                        className="shrink-0 p-1 rounded-ui-xs hover:bg-surface-muted text-ink-tertiary hover:text-ink mt-0.5 transition-colors duration-micro"
                       >
-                        <Check className="w-3.5 h-3.5" />
+                        <Check className="w-3.5 h-3.5" aria-hidden="true" />
                       </button>
                     )}
                   </div>
@@ -157,19 +193,19 @@ export function NotificationBell() {
               )}
             </div>
 
-            {/* N4: Load more */}
+            {/* Load more */}
             {hasMore && (
-              <div className="border-t border-slate-100 px-4 py-2 text-center">
+              <div className="border-t border-line px-4 py-2 text-center">
                 <button
                   type="button"
                   onClick={loadMore}
                   disabled={loadingMore}
-                  className="text-xs text-spanish-teal-600 hover:text-spanish-teal-700 font-medium disabled:opacity-50 flex items-center gap-1 mx-auto"
+                  className="text-caption text-brand hover:text-brand-hover font-medium disabled:opacity-50 flex items-center gap-1 mx-auto transition-colors duration-micro"
                 >
                   {loadingMore ? (
-                    <><Loader2 className="w-3 h-3 animate-spin" /> Loading…</>
+                    <><Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" />{t("notifications.load_more")}…</>
                   ) : (
-                    "Load more"
+                    t("notifications.load_more")
                   )}
                 </button>
               </div>

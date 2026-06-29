@@ -70,7 +70,7 @@ for (const file of relevantFiles) {
     if (!tokenFiles.includes(file) && legacyVisualToken.test(line)) errors.push(`${location}: legacy visual token in changed code; use the Editorial Teaching Studio semantic system.`);
     if (arbitraryUtility.test(line) && !line.includes('uiux-allow-arbitrary')) errors.push(`${location}: arbitrary Tailwind value; add or reuse a token.`);
     if (nativeDialog.test(line)) errors.push(`${location}: native alert/confirm/prompt is forbidden; use the shared feedback/dialog pattern.`);
-    if (rawStatus.test(line) && !/status-map|statusMap|bookingStatus/i.test(file)) errors.push(`${location}: backend status must be mapped to user language centrally.`);
+    if (rawStatus.test(line) && !/status-map|statusMap|bookingStatus|slotStatus|ui-system\/status/i.test(file)) errors.push(`${location}: backend status must be mapped to user language centrally.`);
     if (leakedKey.test(line) && /[>{'"`]/.test(line)) warnings.push(`${location}: possible visible localization key leak.`);
     if (/style=\{\{/.test(line) && /(color|background|padding|margin|borderRadius|fontSize)\s*:/.test(line)) warnings.push(`${location}: visual inline style may bypass tokens.`);
   });

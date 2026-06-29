@@ -36,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { RecurringPreview } from "@/components/ui/recurring-preview";
 import {
   Dialog,
   DialogContent,
@@ -888,6 +889,22 @@ export function NewSlotPage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* CAL-006: Recurring preview — shows generated dates + conflicts */}
+          {mode === "recurring" && recurringDays.length > 0 && (
+            <RecurringPreview
+              daysOfWeek={recurringDays}
+              startDate={selectedDate}
+              weeksAhead={generateWeeksAhead}
+              startTime={startTime}
+              endTime={(() => {
+                const [h, m] = startTime.split(':').map(Number);
+                const endMin = h * 60 + m + duration;
+                return `${String(Math.floor(endMin / 60)).padStart(2, '0')}:${String(endMin % 60).padStart(2, '0')}`;
+              })()}
+              existingSlots={existingSlotsForDay}
+            />
+          )}
         </div>
 
         {/* Right Column - Details */}

@@ -147,5 +147,15 @@
     "class_time": "Class Time",
     "confirmation_expiry": "Confirmation Expiry",
     "booking_pending": "Pending"
+  },
+  "status": {
+    "available":     "Available",
+    "approvalNeeded":"Approval needed",
+    "confirmed":     "Confirmed",
+    "blocked":       "Unavailable",
+    "completed":     "Completed",
+    "cancelled":     "Cancelled",
+    "rejected":      "Rejected",
+    "expired":       "Expired"
   }
 }

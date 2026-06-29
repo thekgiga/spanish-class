@@ -72,3 +72,8 @@ workbox-*.js
 
 # Claude Code
 .claude/projects/*
+
+# Playwright test artifacts
+packages/frontend/test-results/
+packages/frontend/playwright-report/
+
