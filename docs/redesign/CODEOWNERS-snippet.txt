@@ -1,0 +1,7 @@
+# Merge this into .github/CODEOWNERS and replace @thekgiga if needed.
+/.claude/ @thekgiga
+/docs/redesign/ @thekgiga
+/docs/product/processes-overview.md @thekgiga
+/packages/frontend/src/styles/ @thekgiga
+/scripts/uiux/ @thekgiga
+/.github/workflows/frontend-quality.yml @thekgiga
