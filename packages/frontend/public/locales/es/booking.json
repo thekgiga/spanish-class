@@ -7,7 +7,20 @@
     "no_slots": "No hay clases disponibles en este momento. Por favor, vuelve más tarde.",
     "loading": "Cargando clases disponibles...",
     "seo_title": "Reservar una lección de español",
-    "seo_description": "Explore y reserve lecciones de español disponibles con profesores nativos. Horarios flexibles para clases individuales y grupales desde 2000 RSD."
+    "seo_description": "Explore y reserve lecciones de español disponibles con profesores nativos. Horarios flexibles para clases individuales y grupales desde 2000 RSD.",
+    "cancel": "Cancelar",
+    "cancel_success": "Reserva cancelada.",
+    "upcoming": "Próximas",
+    "history": "Historial",
+    "no_upcoming": "No hay clases próximas",
+    "no_upcoming_description": "Reserva una clase para comenzar.",
+    "no_history": "No hay historial de clases aún.",
+    "cancel_confirm_title": "¿Cancelar esta reserva?",
+    "cancel_confirm_description": "El horario volverá a estar disponible. Esto no se puede deshacer.",
+    "cancel_confirm_action": "Sí, cancelar",
+    "leave_feedback": "Dejar comentarios",
+    "feedback_sent": "Comentario enviado. ¡Gracias!",
+    "professor_fallback": "Profesor"
   },
   "tabs": {
     "upcoming": "Próximas",
@@ -123,7 +136,8 @@
     "already_booked": "Ya reservado",
     "book_now": "Reservar ahora",
     "booked": "Reservado",
-    "private_invitation": "Invitación privada"
+    "private_invitation": "Invitación privada",
+    "join": "Unirse a la clase"
   },
   "confirmation": {
     "title": "Confirmación de reserva",
@@ -157,5 +171,22 @@
     "cancelled":     "Cancelado",
     "rejected":      "Rechazado",
     "expired":       "Expirado"
+  },
+  "request": {
+    "request_lesson":           "Solicitar clase",
+    "select_date":              "Seleccionar fecha",
+    "select_time":              "Elegir horario",
+    "review_title":             "Revisar tu solicitud",
+    "awaiting_approval_title":  "Esperando aprobación",
+    "pending_explanation":      "Una vez que tu profesor apruebe, recibirás un correo de confirmación. Este horario está reservado para ti hasta entonces.",
+    "expiry_hint":              "Expira {{time}}",
+    "cancellation_policy":      "Cancelación gratuita hasta {{hours}} horas antes de la clase",
+    "recovery_rejected":        "Tu profesor rechazó esta solicitud. Puedes solicitar un horario diferente.",
+    "recovery_expired":         "Esta solicitud expiró antes de que tu profesor respondiera. Puedes reservar otro horario.",
+    "recovery_cancelled":       "Esta clase fue cancelada. Puedes reservar otro horario.",
+    "rebook":                   "Reservar una clase",
+    "booking_sent_title":       "¡Solicitud enviada!",
+    "booking_sent_body":        "Tu solicitud está pendiente de aprobación del profesor. Se te notificará por correo.",
+    "no_slots_on_date":         "No hay horarios disponibles en esta fecha. Prueba otro día."
   }
 }

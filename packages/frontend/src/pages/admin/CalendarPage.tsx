@@ -7,14 +7,13 @@
  * CAL-004: Event details use Drawer on desktop and sheet on mobile.
  * CAL-005: Mobile uses day agenda; tablet uses 3-day view; no compressed week.
  */
-import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { useMemo, useCallback, useRef, useEffect, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
   format, startOfWeek, endOfWeek,
-  addWeeks, subWeeks, addDays, subDays, startOfDay,
-  eachDayOfInterval,
+  addWeeks, subWeeks, addDays, subDays,
 } from "date-fns";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -28,6 +27,7 @@ import { CalendarEventTile } from "@/components/ui/calendar-event";
 import { CalendarSelectionComposer, type SelectionRange } from "@/components/ui/calendar-selection-composer";
 import { SlotEventDrawer } from "@/components/ui/slot-event-drawer";
 import { uiToast } from "@/components/ui/inline-alert";
+import { DateStrip } from "@/components/ui/date-strip";
 import { cn } from "@/lib/utils";
 import { professorApi } from "@/lib/api";
 import { bookingStatusToUi, slotStatusToUi, isBookingPending, uiStatusDefinition } from "@/lib/ui-system/status";
@@ -57,67 +57,6 @@ function slotToEvent(slot: AvailabilitySlot): EventInput {
     borderColor:     'transparent',
     textColor:       'inherit',
   };
-}
-
-// ── Mobile date strip ──────────────────────────────────────────────────────
-// Horizontal scrollable 7-day strip for day-by-day navigation on mobile.
-
-interface MobileDateStripProps {
-  centerDate: Date;
-  selectedDate: Date;
-  onSelect: (d: Date) => void;
-}
-
-function MobileDateStrip({ centerDate, selectedDate, onSelect }: MobileDateStripProps) {
-  // Show the 7 days centred on centerDate (3 before, 3 after)
-  const days = useMemo(
-    () => eachDayOfInterval({ start: subDays(centerDate, 3), end: addDays(centerDate, 3) }),
-    [centerDate],
-  );
-  const today = startOfDay(new Date());
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Keep the selected date centred on initial render
-  useEffect(() => {
-    const el = scrollRef.current?.querySelector('[data-selected="true"]') as HTMLElement | null;
-    el?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
-  }, [selectedDate]);
-
-  return (
-    <div
-      ref={scrollRef}
-      className="flex gap-1 overflow-x-auto px-4 py-2 border-b border-line bg-canvas scrollbar-hide"
-      role="listbox"
-      aria-label={format(centerDate, 'MMMM yyyy')}
-    >
-      {days.map((day) => {
-        const isSelected = format(day, 'yyyy-MM-dd') === format(selectedDate, 'yyyy-MM-dd');
-        const isToday    = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-        return (
-          <button
-            key={day.toISOString()}
-            type="button"
-            role="option"
-            aria-selected={isSelected}
-            data-selected={isSelected}
-            onClick={() => onSelect(day)}
-            className={cn(
-              'flex flex-col items-center gap-0.5 px-3 py-2 rounded-ui-sm min-w-touch-min',
-              'transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus',
-              isSelected
-                ? 'bg-brand text-brand-contrast'
-                : isToday
-                ? 'bg-surface-raised text-ink font-semibold'
-                : 'text-ink-secondary hover:bg-surface-muted',
-            )}
-          >
-            <span className="text-micro uppercase tracking-wide">{format(day, 'EEE')}</span>
-            <span className="text-small font-semibold">{format(day, 'd')}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
 }
 
 // ── CalendarPage ───────────────────────────────────────────────────────────
@@ -323,7 +262,7 @@ export function CalendarPage() {
 
       {/* Mobile date strip (CAL-005) */}
       {isMobile && (
-        <MobileDateStrip
+        <DateStrip
           centerDate={currentDate}
           selectedDate={currentDate}
           onSelect={goToDay}

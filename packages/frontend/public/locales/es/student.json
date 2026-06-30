@@ -154,5 +154,28 @@
     "choose_page_subtitle": "Selecciona el profesor con quien deseas estudiar",
     "select_button": "Seleccionar",
     "selected_success": "¡Profesor seleccionado! Ya puedes reservar clases."
+  },
+  "detail": {
+    "overview_tab":     "Resumen",
+    "lessons_tab":      "Clases",
+    "notes_tab":        "Notas",
+    "schedule_lesson":  "Programar clase",
+    "no_notes":         "Sin notas aún. Agrega contexto sobre los objetivos o el progreso del estudiante.",
+    "add_note":         "Agregar nota",
+    "edit_note":        "Editar",
+    "delete_note":      "Eliminar",
+    "save_note":        "Guardar",
+    "note_placeholder": "Escribe una nota sobre este estudiante…",
+    "next_lesson":      "Próxima clase",
+    "no_upcoming":      "No hay próxima clase programada.",
+    "availability_notes_label": "Notas de disponibilidad",
+    "lessons_empty_title":       "Sin clases aún",
+    "lessons_empty_description": "Las clases con este estudiante aparecerán aquí.",
+    "mark_no_show":              "Ausencia",
+    "note_required":             "El texto de la nota es obligatorio.",
+    "note_saved":                "Nota guardada.",
+    "note_deleted":              "Nota eliminada.",
+    "learning_goals_label":      "Objetivos de aprendizaje",
+    "cancel_note":               "Cancelar"
   }
 }

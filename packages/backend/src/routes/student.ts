@@ -75,6 +75,30 @@ router.get("/professor", async (req, res, next) => {
   }
 });
 
+// GET /api/student/professor-settings — Get professor cancellation policy for the booking review
+router.get("/professor-settings", async (req, res, next) => {
+  try {
+    const studentId = req.user!.id;
+    const assignment = await prisma.professorStudent.findUnique({
+      where: { studentId },
+      select: { professorId: true },
+    });
+    if (!assignment) {
+      return res.json({ success: true, data: { cancellationWindowHours: 24 } });
+    }
+    const settings = await prisma.professorSettings.findUnique({
+      where: { userId: assignment.professorId },
+      select: { cancellationWindowHours: true },
+    });
+    return res.json({
+      success: true,
+      data: { cancellationWindowHours: settings?.cancellationWindowHours ?? 24 },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // POST /api/student/select-professor — Unassigned student picks their professor
 router.post("/select-professor", validate(selectProfessorSchema), async (req, res, next) => {
   try {

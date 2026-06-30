@@ -73,5 +73,21 @@
     "subtitle": "¡Únete a nuestra vibrante comunidad y experimenta la alegría de aprender español con profesores apasionados!",
     "button_primary": "Comienza tu viaje en español",
     "button_secondary": "Contáctanos"
+  },
+  "dashboard": {
+    "seo_title":              "Mi panel",
+    "seo_description":        "Tus próximas clases, solicitudes pendientes y actividad.",
+    "next_lesson_title":        "Próxima clase",
+    "pending_title":            "Esperando aprobación",
+    "no_upcoming_title":        "No hay clases próximas",
+    "no_upcoming_description":  "¿Listo para practicar? Reserva tu próxima sesión.",
+    "book_action":              "Reservar una clase",
+    "recent_activity":          "Actividad reciente",
+    "no_recent_activity":       "Aún no hay clases.",
+    "meeting_opens_in_hours":   "Se une en {{count}} h",
+    "meeting_opens_in_minutes": "Se une en {{count}} min",
+    "meeting_open":             "La reunión está abierta",
+    "meeting_window_hint":      "El enlace de la reunión se abre 5 minutos antes de la clase.",
+    "join_lesson":              "Unirse a la clase"
   }
 }

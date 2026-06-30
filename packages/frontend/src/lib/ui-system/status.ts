@@ -66,7 +66,22 @@ const slotStatusMap: Record<SlotStatus, UiLifecycleStatus> = {
   [SlotStatus.CANCELLED]:    'cancelled',
 };
 
-// ─── Booking predicates (use instead of raw enum comparisons in components) ──
+/** True when a booking needs a recovery action (rejected / expired / cancelled by professor). */
+export function isBookingNeedsRecovery(booking: { status: BookingStatus }): boolean {
+  const ui = bookingStatusToUi(booking.status);
+  // cancelled tone covers rejected, expired, and both cancelled variants
+  return ui === 'cancelled' && booking.status !== BookingStatus.CANCELLED_BY_STUDENT;
+}
+
+/** Return the appropriate recovery i18n key for a terminal booking, or null for student cancellations. */
+export function bookingRecoveryKey(booking: { status: BookingStatus }): string | null {
+  switch (booking.status) {
+    case BookingStatus.REJECTED:              return 'request.recovery_rejected';
+    case BookingStatus.EXPIRED:               return 'request.recovery_expired';
+    case BookingStatus.CANCELLED_BY_PROFESSOR: return 'request.recovery_cancelled';
+    default:                                   return null;
+  }
+}
 
 /** True when a booking is waiting for professor action. */
 export function isBookingPending(booking: { status: BookingStatus }): boolean {

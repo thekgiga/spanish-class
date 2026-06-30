@@ -73,5 +73,21 @@
     "subtitle": "Join our vibrant community and experience the joy of learning Spanish with passionate teachers!",
     "button_primary": "Start Your Spanish Journey",
     "button_secondary": "Contact Us"
+  },
+  "dashboard": {
+    "seo_title":              "My Dashboard",
+    "seo_description":        "Your upcoming lessons, pending requests, and activity.",
+    "next_lesson_title":        "Next lesson",
+    "pending_title":            "Awaiting approval",
+    "no_upcoming_title":        "No upcoming lessons",
+    "no_upcoming_description":  "Ready to practice? Book your next session.",
+    "book_action":              "Book a lesson",
+    "recent_activity":          "Recent activity",
+    "no_recent_activity":       "No lessons yet.",
+    "meeting_opens_in_hours":   "Joins in {{count}} h",
+    "meeting_opens_in_minutes": "Joins in {{count}} min",
+    "meeting_open":             "Meeting is open",
+    "meeting_window_hint":      "Meeting link opens 5 minutes before the lesson.",
+    "join_lesson":              "Join lesson"
   }
 }

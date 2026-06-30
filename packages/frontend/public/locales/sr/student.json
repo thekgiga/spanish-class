@@ -154,5 +154,28 @@
     "choose_page_subtitle": "Izaberite profesora s kojim želite učiti",
     "select_button": "Izaberi",
     "selected_success": "Profesor je izabran! Sada možete zakazivati časove."
+  },
+  "detail": {
+    "overview_tab":     "Pregled",
+    "lessons_tab":      "Časovi",
+    "notes_tab":        "Beleške",
+    "schedule_lesson":  "Zakaži čas",
+    "no_notes":         "Nema beleški. Dodajte kontekst o ciljevima ili napretku studenta.",
+    "add_note":         "Dodaj belešku",
+    "edit_note":        "Uredi",
+    "delete_note":      "Obriši",
+    "save_note":        "Sačuvaj",
+    "note_placeholder": "Napišite belešku o ovom studentu…",
+    "next_lesson":      "Sledeći čas",
+    "no_upcoming":      "Nema zakazanog sledećeg časa.",
+    "availability_notes_label": "Beleške o dostupnosti",
+    "lessons_empty_title":       "Nema časova",
+    "lessons_empty_description": "Časovi sa ovim studentom će se pojaviti ovde.",
+    "mark_no_show":              "Odsutnost",
+    "note_required":             "Tekst beleške je obavezan.",
+    "note_saved":                "Beleška sačuvana.",
+    "note_deleted":              "Beleška obrisana.",
+    "learning_goals_label":      "Ciljevi učenja",
+    "cancel_note":               "Otkaži"
   }
 }

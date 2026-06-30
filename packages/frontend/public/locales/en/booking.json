@@ -7,7 +7,20 @@
     "no_slots": "No available classes at the moment. Please check back later.",
     "loading": "Loading available classes...",
     "seo_title": "Book a Spanish Lesson",
-    "seo_description": "Browse and book available Spanish lessons with native teachers. Flexible scheduling for individual and group classes starting at 2000 RSD."
+    "seo_description": "Browse and book available Spanish lessons with native teachers. Flexible scheduling for individual and group classes starting at 2000 RSD.",
+    "cancel": "Cancel",
+    "cancel_success": "Booking cancelled.",
+    "upcoming": "Upcoming",
+    "history": "History",
+    "no_upcoming": "No upcoming lessons",
+    "no_upcoming_description": "Book a lesson to get started.",
+    "no_history": "No lesson history yet.",
+    "cancel_confirm_title": "Cancel this booking?",
+    "cancel_confirm_description": "The time slot will become available again. This cannot be undone.",
+    "cancel_confirm_action": "Yes, cancel",
+    "leave_feedback": "Leave feedback",
+    "feedback_sent": "Feedback submitted. Thank you!",
+    "professor_fallback": "Professor"
   },
   "tabs": {
     "upcoming": "Upcoming",
@@ -123,7 +136,8 @@
     "already_booked": "Already Booked",
     "book_now": "Book Now",
     "booked": "Booked",
-    "private_invitation": "Private Invitation"
+    "private_invitation": "Private Invitation",
+    "join": "Join lesson"
   },
   "confirmation": {
     "title": "Booking Confirmation",
@@ -157,5 +171,22 @@
     "cancelled":     "Cancelled",
     "rejected":      "Rejected",
     "expired":       "Expired"
+  },
+  "request": {
+    "request_lesson":           "Request lesson",
+    "select_date":              "Select a date",
+    "select_time":              "Choose a time",
+    "review_title":             "Review your request",
+    "awaiting_approval_title":  "Awaiting approval",
+    "pending_explanation":      "Once your professor approves, you'll receive a confirmation email. This time is reserved for you until then.",
+    "expiry_hint":              "Expires {{time}}",
+    "cancellation_policy":      "Free cancellation up to {{hours}} hours before the lesson",
+    "recovery_rejected":        "Your professor declined this request. You can request a different time.",
+    "recovery_expired":         "This request expired before your professor responded. You can book a different time.",
+    "recovery_cancelled":       "This lesson was cancelled. You can book a different time.",
+    "rebook":                   "Book a lesson",
+    "booking_sent_title":       "Request sent!",
+    "booking_sent_body":        "Your request is pending professor approval. You'll be notified by email.",
+    "no_slots_on_date":         "No available times on this date. Try another day."
   }
 }

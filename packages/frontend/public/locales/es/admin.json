@@ -321,6 +321,8 @@
     "approve_button": "Aprobar",
     "reject_button": "Rechazar",
     "no_pending": "No hay aprobaciones pendientes",
+    "no_pending_description": "Las nuevas solicitudes de reserva aparecerán aquí.",
+    "review": "Revisar solicitud",
     "approve_success": "Reserva aprobada con éxito",
     "reject_success": "Reserva rechazada",
     "approve_error": "Error al aprobar la reserva",

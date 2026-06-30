@@ -321,6 +321,8 @@
     "approve_button": "Odobrite",
     "reject_button": "Odbijte",
     "no_pending": "Nema odobrenja na čekanju",
+    "no_pending_description": "Novi zahtevi za zakazivanje će se pojaviti ovde.",
+    "review": "Pregledaj zahtev",
     "approve_success": "Zakazivanje uspešno odobreno",
     "reject_success": "Zakazivanje odbijeno",
     "approve_error": "Neuspelo odobravanje zakazivanja",

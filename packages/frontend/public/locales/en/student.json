@@ -154,5 +154,28 @@
     "choose_page_subtitle": "Select the professor you'd like to study with",
     "select_button": "Select",
     "selected_success": "Professor selected! You can now book classes."
+  },
+  "detail": {
+    "overview_tab":     "Overview",
+    "lessons_tab":      "Lessons",
+    "notes_tab":        "Notes",
+    "schedule_lesson":  "Schedule lesson",
+    "no_notes":         "No notes yet. Add context about this student's goals or progress.",
+    "add_note":         "Add note",
+    "edit_note":        "Edit",
+    "delete_note":      "Delete",
+    "save_note":        "Save",
+    "note_placeholder": "Write a note about this student…",
+    "next_lesson":      "Next lesson",
+    "no_upcoming":      "No upcoming lesson scheduled.",
+    "availability_notes_label": "Availability notes",
+    "lessons_empty_title":       "No lessons yet",
+    "lessons_empty_description": "Lessons with this student will appear here.",
+    "mark_no_show":              "No-show",
+    "note_required":             "Note text is required.",
+    "note_saved":                "Note saved.",
+    "note_deleted":              "Note deleted.",
+    "learning_goals_label":      "Learning goals",
+    "cancel_note":               "Cancel"
   }
 }

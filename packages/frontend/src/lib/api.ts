@@ -456,6 +456,11 @@ export const studentApi = {
     await api.post("/student/select-professor", { professorId });
   },
 
+  getProfessorSettings: async (): Promise<{ cancellationWindowHours: number }> => {
+    const res = await api.get("/student/professor-settings");
+    return res.data.data;
+  },
+
   getDashboard: async (): Promise<{
     stats: StudentDashboardStats;
     nextSession: BookingWithSlot | null;

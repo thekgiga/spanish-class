@@ -128,7 +128,7 @@ export function CalendarSelectionComposer({
           type="button"
           onClick={action.onClick}
           className={cn(
-            'flex items-center gap-3 px-4 min-h-touch-min text-left border-b border-line last:border-0',
+            'flex items-center gap-3 px-4 min-h-touch text-left border-b border-line last:border-0',
             'transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus',
             action.tone,
           )}

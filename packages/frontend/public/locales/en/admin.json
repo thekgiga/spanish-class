@@ -321,6 +321,8 @@
     "approve_button": "Approve",
     "reject_button": "Reject",
     "no_pending": "No pending approvals",
+    "no_pending_description": "New booking requests will appear here.",
+    "review": "Review request",
     "approve_success": "Booking approved successfully",
     "reject_success": "Booking rejected",
     "approve_error": "Failed to approve booking",

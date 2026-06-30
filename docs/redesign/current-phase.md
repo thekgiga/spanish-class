@@ -116,4 +116,35 @@ Migrate the authenticated shell onto `AppShell` primitives and semantic tokens. 
 
 ## Phase 4 — Student request and professor approval
 
+**Status:** Complete
+
+## Delivered
+
+- [x] Backend `GET /api/student/professor-settings` — exposes cancellationWindowHours to student
+- [x] **BOOK-001** — `DateStrip` + `AvailableTimeOption` date-first booking flow
+- [x] **BOOK-002** — Review Drawer: date/time/duration/professor/cancellation policy
+- [x] **BOOK-003** — `BookingRequestCard` hero post-booking state
+- [x] **BOOK-004** — Expiry countdown + "what happens next" InlineAlert explanation
+- [x] **APP-001** — CalendarEventTile amber "Approval needed" (confirmed from Phase 3)
+- [x] **APP-002** — PendingApprovalsPage → SlotEventDrawer; "Review request" pattern
+- [x] **APP-003** — SlotEventDrawer invalidates state; success toast; drawer closes
+- [x] **APP-004** — `bookingRecoveryKey()` in status.ts; InlineAlert + rebook CTA in BookingRequestCard/HistoryCard
+- [x] All i18n in en/sr/es; `frontend-verify.mjs` passes; E2E baseline unchanged
+
+## Phase 5 — Lessons and students
+
+**Status:** Complete
+
+## Delivered
+
+- [x] **LESSON-S-001** — Already done in Phase 4; marked Done in matrix
+- [x] **HOME-S-001** — `StudentDashboard` rewritten: confirmed lesson hero → pending card → book CTA → recent activity priority stack
+- [x] **MEET-001** — `MeetingReadiness` component: opens-in-X-hours/minutes hint, active join link within 5 min, 30s polling, `aria-disabled` + `tabIndex=-1` on dormant link
+- [x] **STUDENT-P-001** — `StudentDetailPage` rewritten: PageHeader + Overview/Lessons/Notes tabs, `BookingRequestCard` for next lesson, `StatusBadge` on lessons, full note CRUD with localized validation/toast
+- [x] **FEED-001** — "Leave feedback" on completed `HistoryCard`; `RateUserModal` lazy-loaded with Suspense; gated by `bookingStatusToUi === 'completed'`
+- [x] All i18n in en/sr/es (home/booking/student namespaces); `frontend-verify.mjs` passes; E2E baseline unchanged
+- [x] UX reviewer blockers (B1 hardcoded strings) resolved; visual reviewer PASS
+
+## Phase 6 — Supporting capabilities
+
 **Status:** Not started

@@ -73,5 +73,21 @@
     "subtitle": "Pridružite se našoj živopisnoj zajednici i doživite radost učenja španskog sa strastvenim nastavnicima!",
     "button_primary": "Započnite svoje špansko putovanje",
     "button_secondary": "Kontaktirajte nas"
+  },
+  "dashboard": {
+    "seo_title":              "Moja kontrolna tabla",
+    "seo_description":        "Vaši predstojeći časovi, zahtevi na čekanju i aktivnost.",
+    "next_lesson_title":        "Sledeći čas",
+    "pending_title":            "Čeka odobrenje",
+    "no_upcoming_title":        "Nema predstojećih časova",
+    "no_upcoming_description":  "Spremi za vežbanje? Zakažite sledeću sesiju.",
+    "book_action":              "Zakažite čas",
+    "recent_activity":          "Nedavna aktivnost",
+    "no_recent_activity":       "Još nema časova.",
+    "meeting_opens_in_hours":   "Pristupanje za {{count}} h",
+    "meeting_opens_in_minutes": "Pristupanje za {{count}} min",
+    "meeting_open":             "Sastanak je otvoren",
+    "meeting_window_hint":      "Link za sastanak se otvara 5 minuta pre časa.",
+    "join_lesson":              "Pridruži se"
   }
 }

@@ -557,6 +557,9 @@ export default {
       minHeight: {
         'textarea': '120px',
         'touch':    'var(--ui-touch-minimum)',
+      },
+      minWidth: {
+        'touch': 'var(--ui-touch-minimum)',
       },      width: {
         'control-compact':     'var(--ui-control-compact)',
         'control-default':     'var(--ui-control-default)',
