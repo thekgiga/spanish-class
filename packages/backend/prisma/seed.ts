@@ -42,6 +42,34 @@ async function main() {
 
   console.log('Created student user:', student.email);
 
+  // Second student — needed for concurrent-booking race test (P0-TEST-001)
+  const student2 = await prisma.user.upsert({
+    where: { email: 'student2@example.com' },
+    update: {},
+    create: {
+      email: 'student2@example.com',
+      passwordHash: studentPassword,
+      firstName: 'Ana',
+      lastName: 'Smith',
+      isAdmin: false,
+      timezone: 'Europe/London',
+    },
+  });
+  console.log('Created second student user:', student2.email);
+
+  // Assign both students to the professor so they can see slots
+  await prisma.professorStudent.upsert({
+    where: { studentId: student.id },
+    update: {},
+    create: { professorId: admin.id, studentId: student.id },
+  });
+  await prisma.professorStudent.upsert({
+    where: { studentId: student2.id },
+    update: {},
+    create: { professorId: admin.id, studentId: student2.id },
+  });
+  console.log('Assigned both students to professor');
+
   // Create some sample availability slots for the next 7 days
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -110,6 +138,11 @@ async function main() {
   });
 
   if (confirmedSlot) {
+    // Add a meet link to the confirmed slot so meeting-access tests can verify it
+    await prisma.availabilitySlot.update({
+      where: { id: confirmedSlot.id },
+      data: { meetLink: 'https://meet.google.com/seed-confirmed-meeting' },
+    });
     await prisma.booking.upsert({
       where: { id: 'seed-booking-confirmed' },
       update: {},
@@ -139,6 +172,8 @@ async function main() {
   });
 
   if (pendingSlot) {
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 48); // 48 h from now
     await prisma.booking.upsert({
       where: { id: 'seed-booking-pending' },
       update: {},
@@ -147,6 +182,7 @@ async function main() {
         slotId: pendingSlot.id,
         studentId: student.id,
         status: 'PENDING_CONFIRMATION',
+        confirmationExpiresAt: expiresAt,
       },
     });
     console.log('Created pending booking fixture');

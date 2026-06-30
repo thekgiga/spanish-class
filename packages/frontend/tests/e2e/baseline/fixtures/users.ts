@@ -19,4 +19,10 @@ export const SEEDED = {
     firstName: 'John',
     lastName: 'Doe',
   },
+  student2: {
+    email: 'student2@example.com',
+    password: 'Student123!',
+    firstName: 'Ana',
+    lastName: 'Smith',
+  },
 } as const;
