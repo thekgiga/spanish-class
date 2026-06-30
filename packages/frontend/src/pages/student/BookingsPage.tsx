@@ -144,6 +144,14 @@ export function BookingsPage() {
   const [cancelTarget, setCancelTarget] = useState<BookingWithSlot | null>(null);
   const [ratingTarget, setRatingTarget] = useState<BookingWithSlot | null>(null);
 
+  // Fetch cancellation policy for CANCEL-001
+  const { data: profSettings } = useQuery({
+    queryKey: ["student-professor-settings"],
+    queryFn: () => studentApi.getProfessorSettings(),
+    staleTime: 10 * 60_000,
+  });
+  const cancellationHours = profSettings?.cancellationWindowHours ?? 24;
+
   const { data, isLoading } = useQuery({
     queryKey: ["student-bookings"],
     queryFn: () => studentApi.getBookings(),
@@ -283,6 +291,24 @@ export function BookingsPage() {
               {t("page.cancel_confirm_description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {/* CANCEL-001: show cancellation policy before confirming */}
+          {cancelTarget && (() => {
+            const hoursUntil = (new Date(cancelTarget.slot.startTime).getTime() - Date.now()) / 3_600_000;
+            const withinWindow = hoursUntil < cancellationHours && hoursUntil > 0;
+            return withinWindow ? (
+              <div className="px-6 pb-2">
+                <InlineAlert variant="warning">
+                  {t("cancel_outside_window", { hours: cancellationHours })}
+                </InlineAlert>
+              </div>
+            ) : (
+              <div className="px-6 pb-2">
+                <p className="text-caption text-ink-tertiary">
+                  {t("request.cancellation_policy", { hours: cancellationHours })}
+                </p>
+              </div>
+            );
+          })()}
           <AlertDialogFooter>
             <AlertDialogCancel>{t("booking_modal.cancel_button")}</AlertDialogCancel>
             <AlertDialogAction

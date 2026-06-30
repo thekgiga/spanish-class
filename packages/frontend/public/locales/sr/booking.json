@@ -17,6 +17,8 @@
     "no_history": "Nema istorije časova.",
     "cancel_confirm_title": "Otkazati ovo zakazivanje?",
     "cancel_confirm_description": "Termin će ponovo postati dostupan. Ovo se ne može poništiti.",
+    "cancel_policy_notice":       "Otkazivanja unutar {{hours}} sati od časa možda neće biti prihvaćena za kredit.",
+    "cancel_outside_window":      "Ovaj čas je unutar {{hours}}-satnog prozora za otkazivanje.",
     "cancel_confirm_action": "Da, otkaži",
     "leave_feedback": "Ostavi povratnu informaciju",
     "feedback_sent": "Povratna informacija poslata. Hvala!",

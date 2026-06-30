@@ -17,6 +17,8 @@
     "no_history": "No hay historial de clases aún.",
     "cancel_confirm_title": "¿Cancelar esta reserva?",
     "cancel_confirm_description": "El horario volverá a estar disponible. Esto no se puede deshacer.",
+    "cancel_policy_notice":       "Las cancelaciones realizadas dentro de {{hours}} horas de la clase pueden no ser elegibles para un crédito.",
+    "cancel_outside_window":      "Esta clase está dentro de la ventana de {{hours}} horas para cancelación.",
     "cancel_confirm_action": "Sí, cancelar",
     "leave_feedback": "Dejar comentarios",
     "feedback_sent": "Comentario enviado. ¡Gracias!",

@@ -17,6 +17,8 @@
     "no_history": "No lesson history yet.",
     "cancel_confirm_title": "Cancel this booking?",
     "cancel_confirm_description": "The time slot will become available again. This cannot be undone.",
+    "cancel_policy_notice":       "Cancellations made within {{hours}} hours of the lesson may not be eligible for a credit.",
+    "cancel_outside_window":      "This lesson is within the {{hours}}-hour cancellation window.",
     "cancel_confirm_action": "Yes, cancel",
     "leave_feedback": "Leave feedback",
     "feedback_sent": "Feedback submitted. Thank you!",

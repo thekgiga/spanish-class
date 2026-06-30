@@ -147,4 +147,15 @@ Migrate the authenticated shell onto `AppShell` primitives and semantic tokens. 
 
 ## Phase 6 — Supporting capabilities
 
+**Status:** Complete
+
+## Delivered
+
+- [x] **CANCEL-001** — Student cancel dialog shows cancellation policy (InlineAlert warning if within window, caption if outside); `getProfessorSettings()` fetched
+- [x] **CANCEL-002** — SlotEventDrawer cancel flow adds optional reason textarea; reason passed to `cancelSlotWithBookings`; same UX pattern as reject flow
+- [x] **AUTH-001** — Registration already only collects necessary data; no change needed
+- [x] **NOTIF-001** — NotificationBell in AppTopbar since Phase 2; gap closed; no change needed
+
+## Phase 7 — Premium polish and legacy removal
+
 **Status:** Not started

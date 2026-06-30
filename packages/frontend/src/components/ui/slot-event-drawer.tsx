@@ -60,6 +60,9 @@ export function SlotEventDrawer({ open, onClose, slot, onEdit }: SlotEventDrawer
   const [rejectOpen, setRejectOpen] = React.useState(false);
   const [rejectReason, setRejectReason] = React.useState('');
   const [rejectError, setRejectError] = React.useState('');
+  // CANCEL-002: professor provides an optional reason when cancelling a slot
+  const [cancelOpen, setCancelOpen] = React.useState(false);
+  const [cancelReason, setCancelReason] = React.useState('');
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['professor-slots'] });
@@ -90,8 +93,8 @@ export function SlotEventDrawer({ open, onClose, slot, onEdit }: SlotEventDrawer
 
   const cancelMutation = useMutation({
     mutationFn: (slotId: string) =>
-      professorApi.cancelSlotWithBookings(slotId),
-    onSuccess: () => { invalidate(); onClose(); uiToast.success(t('calendar.cancelled')); },
+      professorApi.cancelSlotWithBookings(slotId, cancelReason.trim() || undefined),
+    onSuccess: () => { invalidate(); onClose(); setCancelOpen(false); setCancelReason(''); uiToast.success(t('calendar.cancelled')); },
     onError:   () => uiToast.error(t('calendar.error_cancel')),
   });
 
@@ -218,26 +221,51 @@ export function SlotEventDrawer({ open, onClose, slot, onEdit }: SlotEventDrawer
               )}
             </div>
           )}
+
+          {/* CANCEL-002: professor cancellation reason (optional, student-facing) */}
+          {cancelOpen && (
+            <div className="space-y-2">
+              <label htmlFor="cancel-reason" className="text-small font-medium text-ink">
+                {t('calendar.cancel_slot_reason')}
+              </label>
+              <p className="text-caption text-ink-tertiary">{t('calendar.cancel_slot_reason_hint')}</p>
+              <textarea
+                id="cancel-reason"
+                rows={3}
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder={t('calendar.cancel_slot_placeholder')}
+                className="w-full rounded-ui-sm border border-line px-3 py-2 text-small bg-surface text-ink resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:border-transparent transition-colors duration-micro"
+              />
+            </div>
+          )}
         </DrawerBody>
 
         {/* Footer actions — vary by status */}
         <DrawerFooter className="flex-wrap gap-2">
           {/* AVAILABLE */}
           {displayStatus === 'available' && (
-            <>
-              {onEdit && (
-                <Button variant="secondary" onClick={() => { onClose(); onEdit(slot.id); }}>
-                  {t('calendar.edit_slot')}
+            cancelOpen ? (
+              <>
+                <Button variant="secondary" onClick={() => { setCancelOpen(false); setCancelReason(''); }}>
+                  {t('calendar.back')}
                 </Button>
-              )}
-              <Button
-                variant="danger"
-                isLoading={cancelMutation.isPending}
-                onClick={() => cancelMutation.mutate(slot.id)}
-              >
-                {t('calendar.cancel_slot')}
-              </Button>
-            </>
+                <Button variant="danger" isLoading={cancelMutation.isPending} onClick={() => cancelMutation.mutate(slot.id)}>
+                  {t('calendar.cancel_slot')}
+                </Button>
+              </>
+            ) : (
+              <>
+                {onEdit && (
+                  <Button variant="secondary" onClick={() => { onClose(); onEdit(slot.id); }}>
+                    {t('calendar.edit_slot')}
+                  </Button>
+                )}
+                <Button variant="danger" onClick={() => setCancelOpen(true)}>
+                  {t('calendar.cancel_slot')}
+                </Button>
+              </>
+            )
           )}
 
           {/* REQUESTED / PENDING */}
@@ -276,33 +304,47 @@ export function SlotEventDrawer({ open, onClose, slot, onEdit }: SlotEventDrawer
 
           {/* CONFIRMED */}
           {displayStatus === 'confirmed' && confirmedBooking && (
-            <>
-              <Button
-                variant="quiet"
-                isLoading={noShowMutation.isPending}
-                onClick={() => noShowMutation.mutate(confirmedBooking.id)}
-              >
-                {t('calendar.mark_no_show')}
-              </Button>
-              <Button
-                variant="danger"
-                isLoading={cancelMutation.isPending}
-                onClick={() => cancelMutation.mutate(slot.id)}
-              >
-                {t('calendar.cancel_slot')}
-              </Button>
-            </>
+            cancelOpen ? (
+              <>
+                <Button variant="secondary" onClick={() => { setCancelOpen(false); setCancelReason(''); }}>
+                  {t('calendar.back')}
+                </Button>
+                <Button variant="danger" isLoading={cancelMutation.isPending} onClick={() => cancelMutation.mutate(slot.id)}>
+                  {t('calendar.cancel_slot')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="quiet"
+                  isLoading={noShowMutation.isPending}
+                  onClick={() => noShowMutation.mutate(confirmedBooking.id)}
+                >
+                  {t('calendar.mark_no_show')}
+                </Button>
+                <Button variant="danger" onClick={() => setCancelOpen(true)}>
+                  {t('calendar.cancel_slot')}
+                </Button>
+              </>
+            )
           )}
 
           {/* BLOCKED */}
           {displayStatus === 'blocked' && (
-            <Button
-              variant="danger"
-              isLoading={cancelMutation.isPending}
-              onClick={() => cancelMutation.mutate(slot.id)}
-            >
-              {t('calendar.remove_block')}
-            </Button>
+            cancelOpen ? (
+              <>
+                <Button variant="secondary" onClick={() => { setCancelOpen(false); setCancelReason(''); }}>
+                  {t('calendar.back')}
+                </Button>
+                <Button variant="danger" isLoading={cancelMutation.isPending} onClick={() => cancelMutation.mutate(slot.id)}>
+                  {t('calendar.remove_block')}
+                </Button>
+              </>
+            ) : (
+              <Button variant="danger" onClick={() => setCancelOpen(true)}>
+                {t('calendar.remove_block')}
+              </Button>
+            )
           )}
         </DrawerFooter>
       </DrawerContent>
