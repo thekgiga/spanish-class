@@ -2,6 +2,7 @@ import { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
+import { MotionConfig } from "framer-motion";
 import { useAuthStore } from "@/stores/auth";
 import { PageSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useDocumentLang } from "@/hooks/useDocumentLang";
@@ -152,7 +153,7 @@ function ProtectedRoute({
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-navy-800 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-brand border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -192,7 +193,7 @@ function AppRoutes() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-navy-800 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-brand border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -298,20 +299,19 @@ export default function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppRoutes />
-        <Toaster
+      {/* Global reduced-motion gate — covers all framer-motion usage in the app */}
+      <MotionConfig reducedMotion="user">
+        <BrowserRouter>
+          <AppRoutes />
+          <Toaster
           position="top-right"
           toastOptions={{
             duration: 4000,
-            style: {
-              borderRadius: "12px",
-              background: "#1a1f36",
-              color: "#fff",
-            },
+            className: 'toast-ui-info',
           }}
         />
-      </BrowserRouter>
+        </BrowserRouter>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

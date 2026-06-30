@@ -3,25 +3,23 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-spanish-teal-500 focus:ring-offset-2",
+  "inline-flex items-center rounded-ui-full border px-2.5 py-0.5 text-caption font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2",
   {
     variants: {
       variant: {
-        // Earthy palette semantic badges
-        default:
-          "border-spanish-teal-200 bg-spanish-teal-100 text-spanish-teal-700",
-        success:
-          "border-spanish-olive-200 bg-spanish-olive-100 text-spanish-olive-700",
-        warning:
-          "border-spanish-sunshine-200 bg-spanish-sunshine-100 text-spanish-sunshine-700",
-        destructive:
-          "border-spanish-coral-200 bg-spanish-coral-100 text-spanish-coral-700",
-        neutral: "border-slate-200 bg-slate-100 text-slate-700",
-        outline: "border-slate-300 text-slate-700 bg-transparent",
+        default:     "border-transparent bg-brand text-brand-contrast",
+        secondary:   "border-line bg-surface-muted text-ink-secondary",
+        success:     "border-status-available-border bg-status-available-surface text-status-available-foreground",
+        warning:     "border-status-requested-border bg-status-requested-surface text-status-requested-foreground",
+        destructive: "border-transparent bg-feedback-danger text-ink-inverse",
+        neutral:     "border-line bg-surface-muted text-ink-secondary",
+        outline:     "border-line-strong text-ink bg-transparent",
+        // Legacy aliases kept for backward compat while public pages migrate
+        gold:        "border-line bg-surface-muted text-ink-secondary",
       },
     },
     defaultVariants: {
-      variant: "default",
+      variant: "secondary",
     },
   },
 );

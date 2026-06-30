@@ -19,7 +19,7 @@ import { registerSchema, type RegisterInput } from "@spanish-class/shared";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/stores/auth";
-import { PrimaryButton } from "@/components/ui/premium";
+import { Button } from "@/components/ui/button";
 import { PasswordStrengthMeter } from "@/components/shared/PasswordStrengthMeter";
 
 export function RegisterPage() {
@@ -273,7 +273,7 @@ export function RegisterPage() {
               </p>
             )}
 
-            <PrimaryButton
+            <Button variant="primary"
               type="submit"
               size="lg"
               className="w-full bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-xl"
@@ -288,7 +288,7 @@ export function RegisterPage() {
                   <ArrowRight className="h-5 w-5" />
                 </>
               )}
-            </PrimaryButton>
+            </Button>
           </form>
 
           {/* Divider */}

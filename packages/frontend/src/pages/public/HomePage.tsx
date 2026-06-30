@@ -15,7 +15,7 @@ import {
   Target,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { PrimaryButton } from "@/components/ui/premium";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -166,7 +166,7 @@ export function HomePage() {
 
               {/* CTA Buttons */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-10">
-                <PrimaryButton
+                <Button variant="primary"
                   size="lg"
                   className="text-xl px-12 py-6 bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-2xl hover:shadow-spanish-coral-500/50 transform hover:scale-105 transition-all duration-300 ring-4 ring-spanish-coral-200"
                   asChild
@@ -176,7 +176,7 @@ export function HomePage() {
                     {t("hero.cta_primary")}
                     <ArrowRight className="h-6 w-6" />
                   </Link>
-                </PrimaryButton>
+                </Button>
               </div>
 
               {/* Trust indicators */}
@@ -460,13 +460,13 @@ export function HomePage() {
                 ))}
               </div>
 
-              <PrimaryButton size="lg" className="mt-10" asChild>
+              <Button variant="primary" size="lg" className="mt-10" asChild>
                 <Link to="/auth">
                   <Sparkles className="h-5 w-5" />
                   {t("benefits.cta")}
                   <ArrowRight className="h-5 w-5" />
                 </Link>
-              </PrimaryButton>
+              </Button>
             </motion.div>
           </div>
         </div>
@@ -555,7 +555,7 @@ export function HomePage() {
               {t("cta.subtitle")}
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
-              <PrimaryButton
+              <Button variant="primary"
                 size="lg"
                 className="text-xl px-12 py-6 bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-2xl hover:shadow-spanish-coral-500/50 transform hover:scale-105 transition-all duration-300 ring-4 ring-spanish-coral-200"
                 asChild
@@ -565,14 +565,14 @@ export function HomePage() {
                   {t("cta.button_primary")}
                   <ArrowRight className="h-6 w-6" />
                 </Link>
-              </PrimaryButton>
-              <PrimaryButton
+              </Button>
+              <Button variant="primary"
                 size="lg"
                 className="text-lg px-10 py-4 bg-white/20 text-white backdrop-blur-sm border-2 border-white hover:bg-white/30 shadow-xl"
                 asChild
               >
                 <Link to="/contact">{t("cta.button_secondary")}</Link>
-              </PrimaryButton>
+              </Button>
             </div>
           </motion.div>
         </div>

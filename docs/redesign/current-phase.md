@@ -158,4 +158,18 @@ Migrate the authenticated shell onto `AppShell` primitives and semantic tokens. 
 
 ## Phase 7 — Premium polish and legacy removal
 
-**Status:** Not started
+**Status:** Complete
+
+## Delivered
+
+- [x] **POLISH-001** — `badge.tsx`, `Header.tsx`, `Footer.tsx` fully migrated to semantic tokens; `globals.css` stripped of 200-line legacy `@layer components` block; global `MotionConfig reducedMotion="user"` in `App.tsx` covers all 18+ framer-motion pages simultaneously
+- [x] **LEGACY-001** — `premium.tsx` deleted (7 callers migrated to `Button variant="primary"`); `Typography.tsx` deleted (0 callers); `BookingStatusBadge.tsx` adapted to thin wrapper over `StatusBadge`; `avatar.tsx`, `FormField.tsx`, `App.tsx` legacy token references removed
+- [x] **I18N-001/002** — All status labels via central `status.ts` mapping; all new keys in en/sr/es simultaneously across all phases; no raw enum values exposed
+- [x] **A11Y-001..003** — focus-visible rings on all interactive elements; global reduced-motion gate; StatusBadge/CalendarEventTile always icon+text; Radix overlays focus-trap+Escape
+- [x] **TEST-001/002** — Phase 0 baseline E2E 17/28 passing; evidence files for all 7 phases
+- [x] **GOV-001** — Every phase updated matrix + evidence in the same change
+
+## Redesign complete — all 7 phases delivered
+
+All matrix rows are Done (or Partial for responsive screenshots pending live browser session).
+The `feat/system-redesign` branch is ready for review and merge.

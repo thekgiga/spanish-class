@@ -44,7 +44,7 @@ const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
         <label
           htmlFor={fieldId}
           className={cn(
-            "text-sm font-medium text-navy-700",
+            "text-small font-medium text-ink",
             inputProps.disabled && "opacity-50 cursor-not-allowed",
           )}
         >
@@ -81,7 +81,7 @@ const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
         )}
 
         {!hasError && helperText && (
-          <p id={helperTextId} className="text-sm text-navy-500">
+          <p id={helperTextId} className="text-caption text-ink-secondary">
             {helperText}
           </p>
         )}

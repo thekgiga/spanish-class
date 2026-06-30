@@ -94,6 +94,9 @@
   --ui-control-default: 40px;
   --ui-control-comfortable: 48px;
   --ui-touch-minimum: 44px;
+  /* Scrollbar + selection — defined here so globals.css can reference without hsl() */
+  --ui-scrollbar-thumb:  hsl(var(--ui-border-strong));
+  --ui-selection-bg:     hsl(var(--ui-brand) / 0.15);
 }
 
 [data-theme="dark"] {

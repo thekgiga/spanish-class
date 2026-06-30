@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { SEOMeta } from "@/components/shared/SEOMeta";
-import { PrimaryButton } from "@/components/ui/premium";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -300,13 +300,13 @@ export function AboutPage() {
                 {t("cta.subtitle")}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <PrimaryButton size="lg" className="text-lg px-10" asChild>
+                <Button variant="primary" size="lg" className="text-lg px-10" asChild>
                   <Link to="/auth">
                     <Sparkles className="h-5 w-5" />
                     {t("cta.button_primary")}
                     <ArrowRight className="h-5 w-5" />
                   </Link>
-                </PrimaryButton>
+                </Button>
                 <button className="px-10 py-4 text-lg font-semibold text-white bg-white/20 backdrop-blur-sm border-2 border-white rounded-xl hover:bg-white/30 transition-all duration-200 shadow-xl">
                   {t("cta.button_secondary")}
                 </button>
