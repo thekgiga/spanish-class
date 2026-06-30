@@ -58,7 +58,7 @@ Implement the approved Editorial Teaching Studio semantic token layer, Tailwind 
 - [x] `/design-system` showcase route demonstrating tokens + all slice-1 primitives
 - [x] `check-ui-system.mjs` passes (contrast, guardrails, canonical story coverage)
 - [x] `frontend-verify.mjs` passes (typecheck, lint, build, integrity)
-- [ ] `tsconfig.json` shared-package path fix also resolves pre-existing `@spanish-class/shared` type errors
+- [x] `tsconfig.json` shared-package path fix also resolves pre-existing `@spanish-class/shared` type errors
 - [x] Drawer/BottomSheet, Popover, Dialog/AlertDialog, Toast/InlineAlert, EmptyState/Skeleton — slice 2
 - [x] AppShell (with AppSkipLink), PageHeader — slice 2
 - [x] Seed extended with deterministic pending + confirmed bookings + notification fixture
