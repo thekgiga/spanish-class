@@ -47,7 +47,6 @@ export function AppSidebar({ collapsed = false, className, children, ...props }:
       className={cn(
         'fixed left-0 top-0 z-30 h-full bg-surface border-r border-line',
         'flex flex-col transition-all duration-spatial ease-ui-standard',
-        'hidden lg:flex',
         collapsed ? 'w-sidebar-collapsed' : 'w-sidebar',
         className,
       )}

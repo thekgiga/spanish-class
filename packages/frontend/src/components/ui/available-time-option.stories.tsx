@@ -37,8 +37,25 @@ export const Default: Story = {
 export const Selected: Story = {
   args: { slot, selected: true, onSelect: () => {} },
 };
+export const PendingApproval: Story = {
+  args: {
+    slot: { ...slot, isBookedByMe: true, myBookingStatus: 'pending' },
+    onSelect: () => {},
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Slot the student has requested but the professor has not yet approved. Uses the requested (amber) tone — never green — so a request cannot be mistaken for a confirmed lesson.',
+      },
+    },
+  },
+};
 export const AlreadyBooked: Story = {
-  args: { slot: { ...slot, isBookedByMe: true }, onSelect: () => {} },
+  args: {
+    slot: { ...slot, isBookedByMe: true, myBookingStatus: 'confirmed' },
+    onSelect: () => {},
+  },
 };
 export const WithDuration: Story = {
   args: { slot, showDuration: true, onSelect: () => {} },
@@ -48,7 +65,14 @@ export const AllStates: Story = {
     <div className="space-y-2 max-w-sm">
       <AvailableTimeOption slot={slot} onSelect={() => {}} />
       <AvailableTimeOption slot={slot} selected onSelect={() => {}} />
-      <AvailableTimeOption slot={{ ...slot, isBookedByMe: true }} onSelect={() => {}} />
+      <AvailableTimeOption
+        slot={{ ...slot, isBookedByMe: true, myBookingStatus: 'pending' }}
+        onSelect={() => {}}
+      />
+      <AvailableTimeOption
+        slot={{ ...slot, isBookedByMe: true, myBookingStatus: 'confirmed' }}
+        onSelect={() => {}}
+      />
     </div>
   ),
 };

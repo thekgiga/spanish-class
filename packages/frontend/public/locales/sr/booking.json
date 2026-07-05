@@ -135,7 +135,8 @@
   },
   "slot": {
     "spots_filled": "{{current}}/{{max}} mesta popunjeno",
-    "already_booked": "Već zakazano",
+    "already_booked": "Potvrđeni čas",
+    "approval_needed": "Čeka odobrenje",
     "book_now": "Zakažite sada",
     "booked": "Zakazano",
     "private_invitation": "Privatna pozivnica",
@@ -189,6 +190,13 @@
     "rebook":                   "Zakaži čas",
     "booking_sent_title":       "Zahtev poslat!",
     "booking_sent_body":        "Zahtev čeka odobrenje profesora. Bićete obavešteni emailom.",
-    "no_slots_on_date":         "Nema dostupnih termina ovog datuma. Pokušajte drugi dan."
+    "no_slots_on_date":         "Nema dostupnih termina ovog datuma. Pokušajte drugi dan.",
+    "withdraw_title":           "Povući ovaj zahtev?",
+    "withdraw_description":     "Vaš zahtev će biti otkazan i termin će biti oslobođen.",
+    "withdraw_action":          "Da, povuci"
+  },
+  "date_strip": {
+    "slots_available": "{{count}} dostupno",
+    "slots_available_plural": "{{count}} dostupnih"
   }
 }

@@ -221,6 +221,10 @@
     "no_participants": "Aún no hay participantes",
     "loading": "Cargando participantes..."
   },
+  "route_loading": {
+    "dashboard": "Cargando panel…",
+    "generic": "Cargando…"
+  },
   "footer": {
     "instagram_title": "Síguenos en Instagram"
   },

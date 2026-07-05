@@ -60,6 +60,14 @@ export function AuthPage() {
   });
 
   const onLogin = async (data: LoginInput) => {
+    // Warm the code-split chunks for the destination shell + landing page
+    // before the redirect fires. Vite marks these as prefetch hints without
+    // blocking submission — if they resolve first (usually), the post-login
+    // Suspense fallback is skipped entirely and content is visible in one
+    // paint. If the network beats them, the nested Suspense in
+    // DashboardLayout still renders a geometry-matched skeleton.
+    void import("@/pages/student/StudentDashboard");
+    void import("@/pages/admin/CalendarPage");
     try {
       const result = await login(data.email, data.password);
       if (result?.totpRequired) {

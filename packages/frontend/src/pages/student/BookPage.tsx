@@ -4,9 +4,10 @@
  * BOOK-001: Date-first → time-options UX.
  * BOOK-002: Review drawer shows time, duration, professor, cancellation policy.
  * BOOK-003: After booking, BookingRequestCard hero shows the pending state.
+ * BOOK-005: DateStrip availability indicators (slot count per day).
  *
  * Flow:
- *   1. DateStrip — choose a date
+ *   1. DateStrip — choose a date (counts show which days have openings)
  *   2. AvailableTimeOption list — choose a time slot for that date
  *   3. Drawer review — confirm details including cancellation policy
  *   4. BookingRequestCard hero — post-booking pending state
@@ -50,9 +51,10 @@ export function BookPage() {
   const [drawerOpen, setDrawerOpen]     = useState(false);
   const [successBooking, setSuccessBooking] = useState<BookingWithSlot | null>(null);
 
-  // Query available slots for the visible 7-day window
-  const windowStart = useMemo(() => addDays(centerDate, -3), [centerDate]);
-  const windowEnd   = useMemo(() => addDays(centerDate, 4), [centerDate]);
+  // Query available slots for the full DateStrip window (radius 7 = 15 visible days).
+  // The window must match the strip radius so slotCounts covers every visible day.
+  const windowStart = useMemo(() => addDays(centerDate, -7), [centerDate]);
+  const windowEnd   = useMemo(() => addDays(centerDate, 8), [centerDate]);
 
   const { data: slotsData, isLoading } = useQuery({
     queryKey: ["student-available-slots", format(windowStart, "yyyy-MM-dd")],
@@ -74,6 +76,22 @@ export function BookPage() {
     queryKey: ["student-professor"],
     queryFn:  () => studentApi.getProfessor(),
   });
+
+  // Count available slots per day for the DateStrip availability indicator (BOOK-005)
+  const slotCounts = useMemo<Record<string, number>>(() => {
+    const all = slotsData?.data ?? [];
+    const counts: Record<string, number> = {};
+    for (const s of all) {
+      const key = format(new Date(s.startTime), 'yyyy-MM-dd');
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }, [slotsData]);
+
+  const getSlotLabel = useCallback(
+    (count: number) => t('date_strip.slots_available', { count }),
+    [t],
+  );
 
   // Filter slots to the selected date
   const slotsForDate = useMemo(() => {
@@ -100,7 +118,12 @@ export function BookPage() {
       qc.invalidateQueries({ queryKey: ["student-bookings"] });
       qc.invalidateQueries({ queryKey: ["student-dashboard"] });
       setDrawerOpen(false);
-      setSuccessBooking(data.booking ?? data);
+      // The API now returns { bookingId, slot, booking } where `booking` is a
+      // full BookingWithSlot record in the requested (awaiting-approval) UI
+      // state. BookingRequestCard consumes this and, via the central status
+      // map in lib/ui-system/status.ts, renders the amber "Approval needed"
+      // hero, the expiry countdown, and the "what happens next" explanation.
+      setSuccessBooking(data.booking as BookingWithSlot);
     },
     onError: () => uiToast.error(t("booking_modal.error_message")),
   });
@@ -123,7 +146,10 @@ export function BookPage() {
   if (successBooking) {
     return (
       <div className="max-w-lg mx-auto px-6 py-8 space-y-4">
-        <PageHeader title={t("request.booking_sent_title")} />
+        <PageHeader
+          title={t("request.booking_sent_title")}
+          description={t("request.booking_sent_body")}
+        />
         <BookingRequestCard
           booking={successBooking as BookingWithSlot}
           variant="hero"
@@ -151,6 +177,8 @@ export function BookPage() {
         selectedDate={selectedDate}
         radius={7}
         onSelect={handleDateSelect}
+        slotCounts={slotCounts}
+        getSlotLabel={getSlotLabel}
       />
 
       {/* Time options */}

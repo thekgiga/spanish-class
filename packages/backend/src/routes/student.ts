@@ -212,6 +212,7 @@ router.get(
       // forMeOnly=false/undefined: Show public slots OR private slots assigned to this student
       const where: Record<string, unknown> = {
         status: "AVAILABLE",
+        slotType: { not: "BLOCKED" },
         startTime: { gte: startDate ? new Date(startDate) : now },
         ...(forMeOnly === "true"
           ? {
@@ -289,6 +290,7 @@ router.get(
               },
               select: {
                 id: true,
+                status: true,
               },
             },
           },
@@ -299,12 +301,23 @@ router.get(
         prisma.availabilitySlot.count({ where }),
       ]);
 
-      // Add isBooked flag
-      const slotsWithBookedFlag = slots.map((slot: (typeof slots)[number]) => ({
-        ...slot,
-        isBookedByMe: slot.bookings.length > 0,
-        bookings: undefined, // Remove bookings from response
-      }));
+      // Add isBooked flag and myBookingStatus (pending | confirmed | null)
+      // so the client can distinguish a slot waiting for professor approval
+      // from a fully approved lesson. Pending must NEVER be shown as green.
+      const slotsWithBookedFlag = slots.map((slot: (typeof slots)[number]) => {
+        const myBooking = slot.bookings[0];
+        const myBookingStatus: "pending" | "confirmed" | null = myBooking
+          ? myBooking.status === "CONFIRMED"
+            ? "confirmed"
+            : "pending"
+          : null;
+        return {
+          ...slot,
+          isBookedByMe: slot.bookings.length > 0,
+          myBookingStatus,
+          bookings: undefined, // Remove bookings from response
+        };
+      });
 
       res.json({
         success: true,

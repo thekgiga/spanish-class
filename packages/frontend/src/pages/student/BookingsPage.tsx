@@ -165,7 +165,10 @@ export function BookingsPage() {
       setCancelTarget(null);
       uiToast.success(t("page.cancel_success"));
     },
-    onError: () => uiToast.error(t("booking_modal.error_message")),
+    onError: (err: any) => {
+      const msg = err?.response?.data?.error ?? t("cancel.error");
+      uiToast.error(msg);
+    },
   });
 
   const allBookings: BookingWithSlot[] = (data as any)?.data ?? [];
@@ -286,13 +289,19 @@ export function BookingsPage() {
       <AlertDialog open={!!cancelTarget} onOpenChange={(v) => !v && setCancelTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("page.cancel_confirm_title")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {cancelTarget && isBookingPending(cancelTarget)
+                ? t("request.withdraw_title")
+                : t("page.cancel_confirm_title")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("page.cancel_confirm_description")}
+              {cancelTarget && isBookingPending(cancelTarget)
+                ? t("request.withdraw_description")
+                : t("page.cancel_confirm_description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {/* CANCEL-001: show cancellation policy before confirming */}
-          {cancelTarget && (() => {
+          {/* CANCEL-001: show cancellation policy only for confirmed bookings */}
+          {cancelTarget && !isBookingPending(cancelTarget) && (() => {
             const hoursUntil = (new Date(cancelTarget.slot.startTime).getTime() - Date.now()) / 3_600_000;
             const withinWindow = hoursUntil < cancellationHours && hoursUntil > 0;
             return withinWindow ? (
@@ -314,7 +323,9 @@ export function BookingsPage() {
             <AlertDialogAction
               onClick={() => cancelTarget && cancelMutation.mutate(cancelTarget.id)}
             >
-              {t("page.cancel_confirm_action")}
+              {cancelTarget && isBookingPending(cancelTarget)
+                ? t("request.withdraw_action")
+                : t("page.cancel_confirm_action")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

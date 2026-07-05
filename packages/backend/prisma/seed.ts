@@ -114,7 +114,18 @@ async function main() {
     }
   }
 
-  // Create slots
+  // Create slots — delete future non-booked slots first to avoid duplicates on re-seed
+  const futureStart = new Date();
+  futureStart.setHours(0, 0, 0, 0);
+  await prisma.availabilitySlot.deleteMany({
+    where: {
+      professorId: admin.id,
+      startTime: { gte: futureStart },
+      bookings: { none: {} },
+      recurringPatternId: null,
+    },
+  });
+
   for (const slot of sampleSlots) {
     await prisma.availabilitySlot.create({
       data: slot,
@@ -176,7 +187,7 @@ async function main() {
     expiresAt.setHours(expiresAt.getHours() + 48); // 48 h from now
     await prisma.booking.upsert({
       where: { id: 'seed-booking-pending' },
-      update: {},
+      update: { confirmationExpiresAt: expiresAt },
       create: {
         id: 'seed-booking-pending',
         slotId: pendingSlot.id,

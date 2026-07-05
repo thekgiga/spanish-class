@@ -1,5 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import {
+  StudentDashboardSkeleton,
+  AdminShellSkeleton,
+} from "@/components/shared/RouteSkeletons";
 import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
 import { updateLanguagePreference } from "@/lib/api";
@@ -357,7 +361,16 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
       <AppMain sidebarCollapsed={collapsed}>
         <EmailVerificationBanner />
         <div className="p-6 sm:p-8">
-          <Outlet />
+          {/*
+           * Nested Suspense boundary — keeps the sidebar/topbar mounted while
+           * the lazy-loaded page chunk downloads on first navigation after
+           * login. Without this, App.tsx's outer Suspense unmounts the whole
+           * shell and shows a generic 3-card fallback that looks like an
+           * empty dashboard until the user hits refresh.
+           */}
+          <Suspense fallback={isAdmin ? <AdminShellSkeleton /> : <StudentDashboardSkeleton />}>
+            <Outlet />
+          </Suspense>
         </div>
       </AppMain>
     </div>

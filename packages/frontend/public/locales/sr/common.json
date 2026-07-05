@@ -221,6 +221,10 @@
     "no_participants": "Još nema učesnika",
     "loading": "Učitavanje učesnika..."
   },
+  "route_loading": {
+    "dashboard": "Učitavanje kontrolne table…",
+    "generic": "Učitavanje…"
+  },
   "footer": {
     "instagram_title": "Pratite nas na Instagramu"
   },

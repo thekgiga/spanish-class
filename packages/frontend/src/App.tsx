@@ -1,8 +1,10 @@
 import { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "react-hot-toast";
+import { Toaster, ToastBar, toast } from "react-hot-toast";
 import { MotionConfig } from "framer-motion";
+import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/stores/auth";
 import { PageSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useDocumentLang } from "@/hooks/useDocumentLang";
@@ -293,6 +295,35 @@ function AppRoutes() {
   );
 }
 
+function DismissibleToaster() {
+  const { t } = useTranslation('common');
+  return (
+    <Toaster
+      position="top-right"
+      toastOptions={{ duration: 4000, className: 'toast-ui-info' }}
+    >
+      {(t_toast) => (
+        <ToastBar toast={t_toast}>
+          {({ icon, message }) => (
+            <>
+              {icon}
+              {message}
+              <button
+                type="button"
+                aria-label={t('actions.close')}
+                onClick={() => toast.dismiss(t_toast.id)}
+                className="ml-1 shrink-0 rounded p-1 opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </>
+          )}
+        </ToastBar>
+      )}
+    </Toaster>
+  );
+}
+
 export default function App() {
   // Update HTML lang attribute based on current language
   useDocumentLang();
@@ -303,13 +334,7 @@ export default function App() {
       <MotionConfig reducedMotion="user">
         <BrowserRouter>
           <AppRoutes />
-          <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            className: 'toast-ui-info',
-          }}
-        />
+          <DismissibleToaster />
         </BrowserRouter>
       </MotionConfig>
     </QueryClientProvider>

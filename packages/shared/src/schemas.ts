@@ -23,7 +23,7 @@ export const registerSchema = z.object({
 });
 
 // Slot Schemas
-export const slotTypeEnum = z.enum(["INDIVIDUAL", "GROUP"]);
+export const slotTypeEnum = z.enum(["INDIVIDUAL", "GROUP", "BLOCKED"]);
 
 export const createSlotSchema = z
   .object({
@@ -238,7 +238,7 @@ export const changePasswordSchema = z
 // Query Schemas
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  limit: z.coerce.number().int().min(1).max(500).default(20),
 });
 
 export const slotsQuerySchema = paginationSchema.extend({

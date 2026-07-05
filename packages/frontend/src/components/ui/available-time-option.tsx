@@ -8,15 +8,22 @@
  * - Start–end time in tabular numerals
  * - Duration as secondary text only if options vary
  * - Clear selected state with border, ring, and check icon
+ * - Pending bookings (awaiting professor approval) surface with the
+ *   `requested` tone (amber "Approval needed") — never green — so a student
+ *   never mistakes a request for an approved lesson.
  */
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2, Clock3 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { formatTime } from '@/lib/utils';
 import type { AvailabilitySlot } from '@spanish-class/shared';
 
 export interface AvailableTimeOptionProps {
-  slot: AvailabilitySlot & { isBookedByMe?: boolean };
+  slot: AvailabilitySlot & {
+    isBookedByMe?: boolean;
+    /** null when the student has no active booking for this slot */
+    myBookingStatus?: 'pending' | 'confirmed' | null;
+  };
   selected?: boolean;
   onSelect: (slot: AvailabilitySlot) => void;
   /** Show duration label when options have varying lengths */
@@ -41,6 +48,9 @@ export function AvailableTimeOption({
 }: AvailableTimeOptionProps) {
   const { t } = useTranslation('booking');
   const isBookedByMe = slot.isBookedByMe ?? false;
+  const myStatus     = slot.myBookingStatus ?? null;
+  const isPending    = isBookedByMe && myStatus === 'pending';
+  const isConfirmed  = isBookedByMe && myStatus === 'confirmed';
   const duration     = getDurationLabel(slot.startTime, slot.endTime);
 
   return (
@@ -55,8 +65,10 @@ export function AvailableTimeOption({
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1',
         selected
           ? 'border-brand bg-status-confirmed-surface text-status-confirmed-foreground ring-1 ring-brand'
-          : isBookedByMe
-          ? 'border-line bg-surface-muted text-ink-tertiary cursor-not-allowed opacity-60'
+          : isPending
+          ? 'border-status-requested-border bg-status-requested-surface text-status-requested-foreground cursor-not-allowed'
+          : isConfirmed
+          ? 'border-status-confirmed-border bg-status-confirmed-surface text-status-confirmed-foreground cursor-not-allowed'
           : 'border-line bg-surface text-ink hover:border-brand hover:bg-surface-raised',
       )}
     >
@@ -65,11 +77,20 @@ export function AvailableTimeOption({
         <span className="text-small font-semibold ui-tabular">
           {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
         </span>
-        {showDuration && (
+        {showDuration && !isBookedByMe && (
           <span className="text-caption text-ink-tertiary">{duration}</span>
         )}
-        {isBookedByMe && (
-          <span className="text-caption text-status-confirmed-foreground">{duration} · {t('slot.already_booked')}</span>
+        {isPending && (
+          <span className="text-caption text-status-requested-foreground inline-flex items-center gap-1">
+            <Clock3 className="h-3 w-3" aria-hidden="true" />
+            {duration} · {t('slot.approval_needed')}
+          </span>
+        )}
+        {isConfirmed && (
+          <span className="text-caption text-status-confirmed-foreground inline-flex items-center gap-1">
+            <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+            {duration} · {t('slot.already_booked')}
+          </span>
         )}
       </div>
 

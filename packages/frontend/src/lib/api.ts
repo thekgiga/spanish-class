@@ -477,7 +477,13 @@ export const studentApi = {
     slotType?: string;
     forMeOnly?: boolean;
   }): Promise<
-    PaginatedResponse<AvailabilitySlot & { isBookedByMe: boolean }>
+    PaginatedResponse<
+      AvailabilitySlot & {
+        isBookedByMe: boolean;
+        /** null when I have no active booking for this slot */
+        myBookingStatus: 'pending' | 'confirmed' | null;
+      }
+    >
   > => {
     const res = await api.get("/student/slots", { params });
     return res.data;
@@ -485,7 +491,10 @@ export const studentApi = {
 
   bookSlot: async (
     slotId: string,
-  ): Promise<{ bookingId: string; slot: AvailabilitySlot } | { waitlisted: true; data: { position: number; slotId: string } }> => {
+  ): Promise<
+    | { bookingId: string; slot: AvailabilitySlot; booking: BookingWithSlot }
+    | { waitlisted: true; data: { position: number; slotId: string } }
+  > => {
     const res = await api.post("/student/bookings", { slotId });
     // 202 = waitlisted; 201 = booked
     if (res.data.waitlisted) return res.data;

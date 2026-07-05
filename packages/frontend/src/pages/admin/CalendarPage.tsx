@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 import { professorApi } from "@/lib/api";
 import { bookingStatusToUi, slotStatusToUi, isBookingPending, uiStatusDefinition } from "@/lib/ui-system/status";
 import type { AvailabilitySlot, AvailabilitySlotWithBookings } from "@spanish-class/shared";
+import { SlotType } from "@spanish-class/shared";
 import { PrivateInvitationModal } from "@/components/professor/PrivateInvitationModal";
 import { usePendingBookingsCount } from "@/hooks/usePendingBookingsCount";
 import { useIsMobile, useMediaQuery } from "@/hooks/useMediaQuery";
@@ -39,6 +40,7 @@ import { useIsMobile, useMediaQuery } from "@/hooks/useMediaQuery";
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function slotDisplayStatus(slot: AvailabilitySlot & { bookings?: { status: string }[] }) {
+  if (slot.slotType === SlotType.BLOCKED) return 'blocked' as const;
   const bookings = (slot as AvailabilitySlotWithBookings).bookings ?? [];
   const pending = bookings.find(isBookingPending as (b: { status: string }) => boolean);
   if (pending) return bookingStatusToUi((pending as { status: string }).status as any);
@@ -118,7 +120,7 @@ export function CalendarPage() {
       professorApi.createSlot({
         startTime: range.start.toISOString(),
         endTime:   range.end.toISOString(),
-        slotType: 'INDIVIDUAL',
+        slotType: 'BLOCKED',
         maxParticipants: 1,
         isPrivate: false,
       }),
@@ -232,7 +234,7 @@ export function CalendarPage() {
   const fcDuration = activeView === 'timeGrid3Day' ? { days: 3 } : undefined;
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col -m-6 sm:-m-8" style={{ height: 'calc(100svh - var(--ui-topbar-height))' }}>
       {/* Page header — hidden on mobile to save space; replaced by compact mobile toolbar */}
       {!isMobile && (
         <PageHeader

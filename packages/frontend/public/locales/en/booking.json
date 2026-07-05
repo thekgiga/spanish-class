@@ -135,7 +135,8 @@
   },
   "slot": {
     "spots_filled": "{{current}}/{{max}} spots filled",
-    "already_booked": "Already Booked",
+    "already_booked": "Confirmed lesson",
+    "approval_needed": "Awaiting approval",
     "book_now": "Book Now",
     "booked": "Booked",
     "private_invitation": "Private Invitation",
@@ -189,6 +190,13 @@
     "rebook":                   "Book a lesson",
     "booking_sent_title":       "Request sent!",
     "booking_sent_body":        "Your request is pending professor approval. You'll be notified by email.",
-    "no_slots_on_date":         "No available times on this date. Try another day."
+    "no_slots_on_date":         "No available times on this date. Try another day.",
+    "withdraw_title":           "Withdraw this request?",
+    "withdraw_description":     "Your request will be cancelled and the time slot will be released.",
+    "withdraw_action":          "Yes, withdraw"
+  },
+  "date_strip": {
+    "slots_available": "{{count}} available",
+    "slots_available_plural": "{{count}} available"
   }
 }

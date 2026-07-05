@@ -135,7 +135,8 @@
   },
   "slot": {
     "spots_filled": "{{current}}/{{max}} lugares ocupados",
-    "already_booked": "Ya reservado",
+    "already_booked": "Clase confirmada",
+    "approval_needed": "Esperando aprobación",
     "book_now": "Reservar ahora",
     "booked": "Reservado",
     "private_invitation": "Invitación privada",
@@ -189,6 +190,13 @@
     "rebook":                   "Reservar una clase",
     "booking_sent_title":       "¡Solicitud enviada!",
     "booking_sent_body":        "Tu solicitud está pendiente de aprobación del profesor. Se te notificará por correo.",
-    "no_slots_on_date":         "No hay horarios disponibles en esta fecha. Prueba otro día."
+    "no_slots_on_date":         "No hay horarios disponibles en esta fecha. Prueba otro día.",
+    "withdraw_title":           "¿Retirar esta solicitud?",
+    "withdraw_description":     "Tu solicitud será cancelada y el horario quedará disponible.",
+    "withdraw_action":          "Sí, retirar"
+  },
+  "date_strip": {
+    "slots_available": "{{count}} disponible",
+    "slots_available_plural": "{{count}} disponibles"
   }
 }

@@ -8,9 +8,9 @@
  *   available  → Edit, Cancel
  *   requested  → Approve, Reject (requires reason), Cancel
  *   confirmed  → Join meeting (if link), Mark no-show, Cancel
- *   blocked    → Remove block
+ *   blocked    → Remove (hard delete)
  *   completed  → read-only
- *   cancelled  → read-only
+ *   cancelled  → Remove (hard delete)
  */
 import * as React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -30,6 +30,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { bookingStatusToUi, slotStatusToUi, isBookingPending, isBookingConfirmed } from '@/lib/ui-system/status';
 import { professorApi } from '@/lib/api';
 import type { AvailabilitySlotWithBookings } from '@spanish-class/shared';
+import { SlotType } from '@spanish-class/shared';
 import { getInitials, formatTime } from '@/lib/utils';
 
 // ── Prop types ─────────────────────────────────────────────────────────────
@@ -98,6 +99,12 @@ export function SlotEventDrawer({ open, onClose, slot, onEdit }: SlotEventDrawer
     onError:   () => uiToast.error(t('calendar.error_cancel')),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (slotId: string) => professorApi.deleteSlot(slotId),
+    onSuccess: () => { invalidate(); onClose(); uiToast.success(t('calendar.removed')); },
+    onError:   () => uiToast.error(t('calendar.error_remove')),
+  });
+
   const noShowMutation = useMutation({
     mutationFn: (bookingId: string) => professorApi.markNoShow(bookingId),
     onSuccess: () => { invalidate(); onClose(); uiToast.success(t('calendar.no_show_marked')); },
@@ -107,9 +114,12 @@ export function SlotEventDrawer({ open, onClose, slot, onEdit }: SlotEventDrawer
   if (!slot) return null;
 
   // Determine effective status using central predicates (no raw enum comparisons)
+  // BLOCKED slotType always renders as 'blocked' regardless of SlotStatus
   const pendingBooking   = slot.bookings.find(isBookingPending);
   const confirmedBooking = slot.bookings.find(isBookingConfirmed);
-  const displayStatus = pendingBooking
+  const displayStatus = slot.slotType === SlotType.BLOCKED
+    ? 'blocked' as const
+    : pendingBooking
     ? bookingStatusToUi(pendingBooking.status)
     : confirmedBooking
     ? bookingStatusToUi(confirmedBooking.status)
@@ -127,7 +137,7 @@ export function SlotEventDrawer({ open, onClose, slot, onEdit }: SlotEventDrawer
 
   return (
     <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
-      <DrawerContent busy={approveMutation.isPending || rejectMutation.isPending || cancelMutation.isPending}>
+      <DrawerContent busy={approveMutation.isPending || rejectMutation.isPending || cancelMutation.isPending || deleteMutation.isPending}>
         <DrawerHeader>
           <div className="flex flex-col gap-1.5 flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
@@ -329,22 +339,26 @@ export function SlotEventDrawer({ open, onClose, slot, onEdit }: SlotEventDrawer
             )
           )}
 
-          {/* BLOCKED */}
+          {/* BLOCKED — professor's own blocking slot: just remove it */}
           {displayStatus === 'blocked' && (
-            cancelOpen ? (
-              <>
-                <Button variant="secondary" onClick={() => { setCancelOpen(false); setCancelReason(''); }}>
-                  {t('calendar.back')}
-                </Button>
-                <Button variant="danger" isLoading={cancelMutation.isPending} onClick={() => cancelMutation.mutate(slot.id)}>
-                  {t('calendar.remove_block')}
-                </Button>
-              </>
-            ) : (
-              <Button variant="danger" onClick={() => setCancelOpen(true)}>
-                {t('calendar.remove_block')}
-              </Button>
-            )
+            <Button
+              variant="danger"
+              isLoading={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate(slot.id)}
+            >
+              {t('calendar.remove_slot')}
+            </Button>
+          )}
+
+          {/* CANCELLED — slot already cancelled, professor can remove it entirely */}
+          {displayStatus === 'cancelled' && (
+            <Button
+              variant="danger"
+              isLoading={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate(slot.id)}
+            >
+              {t('calendar.remove_slot')}
+            </Button>
           )}
         </DrawerFooter>
       </DrawerContent>

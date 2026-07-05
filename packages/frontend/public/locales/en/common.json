@@ -221,6 +221,10 @@
     "no_participants": "No participants yet",
     "loading": "Loading participants..."
   },
+  "route_loading": {
+    "dashboard": "Loading dashboard…",
+    "generic": "Loading…"
+  },
   "footer": {
     "instagram_title": "Follow us on Instagram"
   },

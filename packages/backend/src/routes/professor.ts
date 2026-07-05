@@ -928,6 +928,8 @@ router.put("/slots/:id", validate(updateSlotSchema), async (req, res, next) => {
 });
 
 // DELETE /api/professor/slots/:id
+// Allows hard-deletion when the slot is CANCELLED or a BLOCKED slot (no student bookings involved).
+// All other slots must be cancelled via POST /cancel-with-bookings first.
 router.delete("/slots/:id", async (req, res, next) => {
   try {
     const slot = await prisma.availabilitySlot.findFirst({
@@ -946,21 +948,30 @@ router.delete("/slots/:id", async (req, res, next) => {
       throw new AppError(404, "Slot not found");
     }
 
-    if (slot.bookings.length > 0) {
+    const isDeletable =
+      slot.status === "CANCELLED" || slot.slotType === "BLOCKED";
+
+    if (!isDeletable) {
       throw new AppError(
         400,
-        "Cannot delete a slot with active bookings. Cancel the bookings first.",
+        "Only cancelled or blocked slots can be removed. Cancel the slot first.",
       );
     }
 
-    await prisma.availabilitySlot.update({
+    if (slot.bookings.length > 0) {
+      throw new AppError(
+        400,
+        "Cannot remove a slot with active bookings. Cancel the bookings first.",
+      );
+    }
+
+    await prisma.availabilitySlot.delete({
       where: { id: slot.id },
-      data: { status: "CANCELLED" },
     });
 
     res.json({
       success: true,
-      message: "Slot cancelled successfully",
+      message: "Slot removed successfully",
     });
   } catch (error) {
     next(error);
