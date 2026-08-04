@@ -46,6 +46,7 @@ services:
       dockerfile: packages/backend/Dockerfile
     restart: unless-stopped
     environment:
+      TZ: UTC
       ENV: ${APP_ENV}                                # local / staging / prod
       NODE_ENV: production
       PORT: 3001
@@ -72,6 +73,7 @@ services:
     command: ["worker"]
     restart: unless-stopped
     environment:
+      TZ: UTC
       ENV: ${APP_ENV}
       NODE_ENV: production
       DATABASE_URL: mysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}

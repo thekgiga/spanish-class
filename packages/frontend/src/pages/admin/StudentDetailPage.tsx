@@ -10,8 +10,9 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
-  ArrowLeft, Plus, Edit, Trash2, Target, BookOpen, Globe, Mail,
+  ArrowLeft, Plus, Edit, Trash2, Target, BookOpen, Globe, Mail, FileText, Eye,
 } from "lucide-react";
+import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -37,6 +38,7 @@ export function StudentDetailPage() {
   const [noteContent, setNoteContent]   = useState("");
   const [addingNote, setAddingNote]     = useState(false);
   const [noteError, setNoteError]       = useState("");
+  const [noteFilter, setNoteFilter]     = useState<'all' | 'class' | 'homework' | 'observation'>('all');
 
   const { data, isLoading } = useQuery({
     queryKey: ["student", id],
@@ -44,6 +46,12 @@ export function StudentDetailPage() {
     enabled: !!id,
   });
   const student = (data as any)?.data ?? (data as any);
+
+  const { data: sessionNotesData } = useQuery({
+    queryKey: ["student-session-notes", id],
+    queryFn:  () => professorApi.getStudentSessionNotes(id!),
+    enabled: !!id,
+  });
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["student", id] });
 
@@ -105,7 +113,7 @@ export function StudentDetailPage() {
         description={student.email}
         action={
           <Button variant="primary" size="sm" asChild>
-            <Link to="/admin/slots/new" state={{ scheduleStudent: true, studentId: id }}>
+            <Link to="/admin/calendar">
               {t("detail.schedule_lesson")}
             </Link>
           </Button>
@@ -241,9 +249,96 @@ export function StudentDetailPage() {
           </TabsContent>
 
           {/* ── Notes ──────────────────────────────────────────────── */}
-          <TabsContent value="notes" className="mt-4 space-y-3">
-            {/* Add note form */}
-            {addingNote ? (
+          <TabsContent value="notes" className="mt-4 space-y-4">
+
+            {/* Session notes (from in-class mode) */}
+            {sessionNotesData && sessionNotesData.length > 0 && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="text-caption text-ink-tertiary uppercase tracking-wide font-semibold">
+                    {t("detail.session_notes_section")}
+                  </p>
+                  {/* Filter pills */}
+                  <div className="flex items-center gap-1 flex-wrap" role="group" aria-label={t("detail.session_notes_section")}>
+                    {(["all", "class", "homework", "observation"] as const).map((f) => {
+                      const labelKey = f === "all" ? "filter_all" : f === "class" ? "filter_class_notes" : f === "homework" ? "filter_homework" : "filter_observations";
+                      return (
+                        <button
+                          key={f}
+                          type="button"
+                          onClick={() => setNoteFilter(f)}
+                          className={`px-2.5 py-1 rounded-ui-full text-caption font-semibold transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus ${
+                            noteFilter === f
+                              ? "bg-brand text-brand-contrast"
+                              : "bg-surface-muted text-ink-secondary hover:text-ink"
+                          }`}
+                          aria-pressed={noteFilter === f}
+                        >
+                          {t(`detail.${labelKey}`)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+                {sessionNotesData.map((sn: any) => {
+                  const showClass = noteFilter === "all" || noteFilter === "class";
+                  const showHomework = noteFilter === "all" || noteFilter === "homework";
+                  const showObservation = noteFilter === "all" || noteFilter === "observation";
+                  const hasVisible =
+                    (showClass && sn.sessionNotes) ||
+                    (showHomework && sn.homeworkNotes) ||
+                    (showObservation && sn.studentObservation);
+                  if (!hasVisible) return null;
+                  return (
+                    <Card key={sn.id} variant="plain">
+                      <CardContent className="p-4 space-y-3">
+                        <p className="text-caption text-ink-tertiary">
+                          {sn.slot ? format(new Date(sn.slot.startTime), "MMM d, yyyy · HH:mm") : ""}
+                          {sn.slot?.title ? ` — ${sn.slot.title}` : ""}
+                        </p>
+                        {showClass && sn.sessionNotes && (
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5 text-caption text-ink-secondary font-medium">
+                              <FileText className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                              {t("detail.session_notes_class")}
+                            </div>
+                            <p className="text-small text-ink whitespace-pre-wrap pl-5">{sn.sessionNotes}</p>
+                          </div>
+                        )}
+                        {showHomework && sn.homeworkNotes && (
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5 text-caption text-ink-secondary font-medium">
+                              <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                              {t("detail.session_notes_homework")}
+                            </div>
+                            <p className="text-small text-ink whitespace-pre-wrap pl-5">{sn.homeworkNotes}</p>
+                          </div>
+                        )}
+                        {showObservation && sn.studentObservation && (
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-1.5 text-caption text-ink-secondary font-medium">
+                              <Eye className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                              {t("detail.session_notes_observation")}
+                            </div>
+                            <p className="text-small text-ink whitespace-pre-wrap pl-5">{sn.studentObservation}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Personal notes — free-text */}
+            <div className="space-y-3">
+              {(sessionNotesData && sessionNotesData.length > 0) && (
+                <p className="text-caption text-ink-tertiary uppercase tracking-wide font-semibold">
+                  {t("detail.personal_notes_section")}
+                </p>
+              )}
+              {/* Add note form */}
+              {addingNote ? (
               <div className="space-y-2">
                 <Textarea
                   autoFocus
@@ -334,6 +429,7 @@ export function StudentDetailPage() {
                 )
               ))
             )}
+            </div>{/* end personal-notes div */}
           </TabsContent>
         </Tabs>
       </div>

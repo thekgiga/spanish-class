@@ -221,7 +221,7 @@ export function SlotsPage() {
             <Link to="/admin/slots/bulk">{t("slots.bulk_create")}</Link>
           </Button>
           <Button variant="primary" asChild>
-            <Link to="/admin/slots/new">
+            <Link to="/admin/calendar">
               <Plus className="mr-2 h-4 w-4" />
               {t("slots.create_button")}
             </Link>
@@ -255,7 +255,7 @@ export function SlotsPage() {
                 <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
                 <p className="text-muted-foreground">{t("slots.no_slots")}</p>
                 <Button variant="outline" className="mt-4" asChild>
-                  <Link to="/admin/slots/new">{t("slots.create_button")}</Link>
+                  <Link to="/admin/calendar">{t("slots.create_button")}</Link>
                 </Button>
               </CardContent>
             </Card>

@@ -34,9 +34,6 @@ const slot = {
 export const Default: Story = {
   args: { slot, onSelect: () => {} },
 };
-export const Selected: Story = {
-  args: { slot, selected: true, onSelect: () => {} },
-};
 export const PendingApproval: Story = {
   args: {
     slot: { ...slot, isBookedByMe: true, myBookingStatus: 'pending' },
@@ -63,12 +60,16 @@ export const WithDuration: Story = {
 export const AllStates: Story = {
   render: () => (
     <div className="space-y-2 max-w-sm">
+      {/* Default — available, interactive */}
       <AvailableTimeOption slot={slot} onSelect={() => {}} />
-      <AvailableTimeOption slot={slot} selected onSelect={() => {}} />
+      {/* WithDuration — secondary caption when durations vary */}
+      <AvailableTimeOption slot={slot} showDuration onSelect={() => {}} />
+      {/* Pending approval — amber requested tone */}
       <AvailableTimeOption
         slot={{ ...slot, isBookedByMe: true, myBookingStatus: 'pending' }}
         onSelect={() => {}}
       />
+      {/* Already confirmed */}
       <AvailableTimeOption
         slot={{ ...slot, isBookedByMe: true, myBookingStatus: 'confirmed' }}
         onSelect={() => {}}

@@ -155,6 +155,17 @@
     "select_button": "Seleccionar",
     "selected_success": "¡Profesor seleccionado! Ya puedes reservar clases."
   },
+  "homework": {
+    "page_title": "Tarea",
+    "page_subtitle": "Revisa las tareas asignadas por tu profesor después de cada clase completada",
+    "section_label": "Tarea",
+    "empty_title": "Sin tarea aún",
+    "empty_description": "Las tareas asignadas después de clases completadas aparecerán aquí",
+    "from_lesson_on": "Clase del {{date}}",
+    "with_professor": "con {{name}}",
+    "updated": "Actualizado {{date}}",
+    "error": "No se pudo cargar la tarea. Por favor, inténtalo de nuevo."
+  },
   "detail": {
     "overview_tab":     "Resumen",
     "lessons_tab":      "Clases",
@@ -176,6 +187,16 @@
     "note_saved":                "Nota guardada.",
     "note_deleted":              "Nota eliminada.",
     "learning_goals_label":      "Objetivos de aprendizaje",
-    "cancel_note":               "Cancelar"
+    "cancel_note":               "Cancelar",
+    "session_notes_section":     "Notas de sesión",
+    "session_notes_class":       "Notas de la clase",
+    "session_notes_homework":    "Tarea",
+    "session_notes_observation": "Observación",
+    "session_notes_empty":       "Sin notas de sesión aún.",
+    "personal_notes_section":    "Notas personales",
+    "filter_all":                "Todo",
+    "filter_class_notes":        "Notas de clase",
+    "filter_homework":           "Tarea",
+    "filter_observations":       "Observaciones"
   }
 }

@@ -396,7 +396,6 @@ export default {
       },
       fontFamily: {
         ...uiSystemExtend.fontFamily,
-        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
@@ -550,6 +549,7 @@ export default {
         'control-comfortable': 'var(--ui-control-comfortable)',
         'touch-min':           'var(--ui-touch-minimum)',
         'topbar':              'var(--ui-topbar-height)',
+        'content':             'calc(100vh - var(--ui-topbar-height))',
       },
       maxHeight: {
         'sheet': '90dvh',

@@ -36,13 +36,29 @@ export const Cancelled: Story = {
   render: () => <Wrapper><CalendarEventTile status="cancelled" iconName="CircleX" title="Cancelled" time="14:00 – 15:00" /></Wrapper>,
 };
 
-// Dense variant (short slot < 45 min)
-export const DenseRequested: Story = {
+// Individual vs Group type differentiation
+export const IndividualConfirmed: Story = {
+  render: () => <Wrapper><CalendarEventTile status="confirmed" iconName="CalendarCheck2" title="John Doe" time="10:00 – 11:00" slotType="INDIVIDUAL" /></Wrapper>,
+};
+export const GroupConfirmed: Story = {
+  render: () => <Wrapper><CalendarEventTile status="confirmed" iconName="CalendarCheck2" title="Beginner Class" time="10:00 – 11:00" slotType="GROUP" /></Wrapper>,
+};
+export const GroupAvailable: Story = {
+  render: () => <Wrapper><CalendarEventTile status="available" iconName="CalendarPlus" title="Available" time="14:00 – 15:00" slotType="GROUP" /></Wrapper>,
+};
+export const GroupRequested: Story = {
+  render: () => <Wrapper><CalendarEventTile status="requested" iconName="Clock3" title="Ana Kovač" time="10:00 – 11:00" slotType="GROUP" /></Wrapper>,
+};
+export const DenseGroup: Story = {
   render: () => (
     <div className="w-36 h-8 bg-canvas rounded overflow-hidden">
-      <CalendarEventTile status="requested" iconName="Clock3" title="Ana Kovač" dense />
+      <CalendarEventTile status="confirmed" iconName="CalendarCheck2" title="Beginner Class" dense slotType="GROUP" />
     </div>
   ),
+};
+export const BlockedNoType: Story = {
+  name: 'Blocked (no type icon)',
+  render: () => <Wrapper><CalendarEventTile status="blocked" iconName="Lock" title="Blocked" time="12:00 – 13:00" /></Wrapper>,
 };
 
 // All tones at a glance

@@ -18,6 +18,18 @@ import { createNotification } from "./notifications.js";
 
 type TransactionClient = Prisma.TransactionClient;
 
+/** Format a UTC date for an in-app notification body, shown in the recipient's timezone. */
+function formatForNotification(date: Date | string, timezone?: string | null): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: timezone || "UTC",
+    timeZoneName: "short",
+  }).format(new Date(date));
+}
+
 interface BookSlotResult {
   bookingId: string;
   slot: {
@@ -243,6 +255,15 @@ export async function bookSlot(
         professor: slotForEmail.professor as any,
         position,
       }).catch((e: unknown) => console.error("[waitlist] email failed:", e));
+
+      const waitlistDate = formatForNotification(slotForEmail.startTime, student.timezone);
+      createNotification(
+        student.id,
+        "waitlist_joined",
+        "Added to waitlist",
+        `You're #${position} on the waitlist for ${slotForEmail.title || "Spanish Class"} on ${waitlistDate}. We'll notify you if a spot opens.`,
+        "/dashboard/bookings",
+      ).catch(() => {});
     }
     return { waitlisted: true, position, slotId };
   }
@@ -293,9 +314,10 @@ export async function bookSlot(
 
       // Fire in-app notifications (non-blocking)
       const slotTitle = slot.title || "Spanish Class";
-      const classDate = new Date(slot.startTime).toLocaleDateString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-      createNotification(student.id, "booking_pending", "Booking pending confirmation", `Your booking for ${slotTitle} on ${classDate} is awaiting professor confirmation.`, "/dashboard/bookings").catch(() => {});
-      createNotification(slot.professor.id, "booking_request", "New booking request", `${student.firstName} ${student.lastName} has requested to book ${slotTitle} on ${classDate}.`, "/admin").catch(() => {});
+      const classDateForStudent = formatForNotification(slot.startTime, student.timezone);
+      const classDateForProfessor = formatForNotification(slot.startTime, slot.professor.timezone);
+      createNotification(student.id, "booking_pending", "Booking pending confirmation", `Your booking for ${slotTitle} on ${classDateForStudent} is awaiting professor confirmation.`, "/dashboard/bookings").catch(() => {});
+      createNotification(slot.professor.id, "booking_request", "New booking request", `${student.firstName} ${student.lastName} has requested to book ${slotTitle} on ${classDateForProfessor}.`, "/admin").catch(() => {});
 
       return {
         bookingId: booking.id,
@@ -488,12 +510,50 @@ export async function cancelBooking(
     console.error("Failed to send cancellation emails:", err),
   );
 
+  // In-app notifications for cancellation
+  const slotTitle = booking.slot.title || "Spanish Class";
+  if (cancelledBy === "student") {
+    // Student cancelled → notify student (confirmation) + professor
+    createNotification(
+      booking.studentId,
+      "booking_cancelled_student",
+      "Booking cancelled",
+      `Your booking for ${slotTitle} on ${formatForNotification(booking.slot.startTime, booking.student.timezone)} has been cancelled.`,
+      "/dashboard/bookings",
+    ).catch(() => {});
+    createNotification(
+      booking.slot.professor.id,
+      "booking_cancelled_student",
+      "Student cancelled a booking",
+      `${booking.student.firstName} ${booking.student.lastName} cancelled their booking for ${slotTitle} on ${formatForNotification(booking.slot.startTime, booking.slot.professor.timezone)}.`,
+      "/admin",
+    ).catch(() => {});
+  } else {
+    // Professor cancelled → notify student
+    createNotification(
+      booking.studentId,
+      "booking_cancelled_professor",
+      "Booking cancelled by professor",
+      `Your booking for ${slotTitle} on ${formatForNotification(booking.slot.startTime, booking.student.timezone)} was cancelled by the professor.${reason ? ` Reason: ${reason}` : ""} You can book another slot.`,
+      "/dashboard/book",
+    ).catch(() => {});
+  }
+
   // If someone was promoted from the waitlist, notify them
   if (promotedWaitlistEntry) {
+    const promotedStudent = promotedWaitlistEntry.user as unknown as import("@spanish-class/shared").UserPublic;
     sendWaitlistPromotionToStudent({
-      student: promotedWaitlistEntry.user as unknown as import("@spanish-class/shared").UserPublic,
+      student: promotedStudent,
       slot: cancelSlotForEmail,
       professor: booking.slot.professor as unknown as import("@spanish-class/shared").UserPublic,
     }).catch((e: unknown) => console.error("[waitlist] promotion email failed:", e));
+
+    createNotification(
+      promotedStudent.id,
+      "waitlist_promoted",
+      "A spot opened up!",
+      `A spot is now available for ${booking.slot.title || "Spanish Class"} on ${formatForNotification(booking.slot.startTime, promotedStudent.timezone)}. Book now before it's taken.`,
+      "/dashboard/book",
+    ).catch(() => {});
   }
 }

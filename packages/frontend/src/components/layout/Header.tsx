@@ -1,7 +1,7 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, MotionConfig } from "framer-motion";
 import { Menu, X, LogOut, User, LayoutDashboard } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,
@@ -15,17 +15,56 @@ import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { getInitials } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { labelKey: "navigation.about",   href: "/about" },
   { labelKey: "navigation.contact", href: "/contact" },
 ];
+
+/**
+ * Landing page (route "/") renders a full-viewport video hero. There the header
+ * is hidden while the hero is on screen and reappears — pinned to the bottom —
+ * once the visitor scrolls past it. Every other route keeps the header pinned to
+ * the top. We detect "scrolled past the hero" by observing the `#landing-hero-end`
+ * sentinel that HomePage renders at the end of its hero section.
+ */
+function useLandingHeaderMode(): "top" | "landing-hidden" | "landing-top" {
+  const { pathname } = useLocation();
+  const isLanding = pathname === "/";
+  const [pastHero, setPastHero] = useState(false);
+
+  useEffect(() => {
+    if (!isLanding) return;
+    const sentinel = document.getElementById("landing-hero-end");
+    if (!sentinel) return;
+
+    // The sentinel sits at the end of the hero. Once its top scrolls above the
+    // viewport top, the hero is out of view and the header should appear.
+    const update = () => setPastHero(sentinel.getBoundingClientRect().top <= 0);
+    update();
+
+    const observer = new IntersectionObserver(update, {
+      threshold: 0,
+      rootMargin: "0px",
+    });
+    observer.observe(sentinel);
+    window.addEventListener("scroll", update, { passive: true });
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", update);
+    };
+  }, [isLanding, pathname]);
+
+  if (!isLanding) return "top";
+  return pastHero ? "landing-top" : "landing-hidden";
+}
 
 export function Header() {
   const { t } = useTranslation("common");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
+  const headerMode = useLandingHeaderMode();
 
   const handleLogout = async () => {
     await logout();
@@ -34,9 +73,29 @@ export function Header() {
 
   const dashboardPath = user?.isAdmin ? "/admin" : "/dashboard";
 
+  // Landing hero is on screen → don't render the header at all (it slides in
+  // Landing hero is on screen → don't render the header at all (it slides in
+  // from the top once the visitor scrolls past the hero).
+  if (headerMode === "landing-hidden") {
+    return null;
+  }
+
+  // On the landing page, once past the hero the header appears pinned to the
+  // top of the viewport. We use `fixed` (not `sticky`) so it isn't in the
+  // document flow — that avoids a reflow jump when it mounts mid-scroll.
+  const isLandingTop = headerMode === "landing-top";
+
   return (
     <MotionConfig reducedMotion="user">
-      <header className="sticky top-0 z-50 bg-surface/95 backdrop-blur-xl border-b border-line shadow-ui-1">
+      <motion.header
+        initial={isLandingTop ? { y: "-100%" } : false}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+        className={cn(
+          "z-50 border-b border-line bg-surface/95 backdrop-blur-xl shadow-ui-1",
+          isLandingTop ? "fixed left-0 right-0 top-0" : "sticky top-0",
+        )}
+      >
         <nav className="mx-auto max-w-settings px-4 sm:px-6 lg:px-8" aria-label="Top">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
@@ -187,7 +246,7 @@ export function Header() {
             </motion.div>
           )}
         </nav>
-      </header>
+      </motion.header>
     </MotionConfig>
   );
 }

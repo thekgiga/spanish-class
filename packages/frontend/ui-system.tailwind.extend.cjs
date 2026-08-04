@@ -42,6 +42,16 @@ module.exports = {
       danger: 'hsl(var(--ui-danger) / <alpha-value>)',
       info: 'hsl(var(--ui-info) / <alpha-value>)',
     },
+    // Marketing hero — always-dark cinematic section tokens
+    hero: {
+      bg:          'hsl(var(--ui-hero-bg) / <alpha-value>)',
+      fg:          'hsl(var(--ui-hero-fg) / <alpha-value>)',
+      label:       'hsl(var(--ui-hero-step-label) / <alpha-value>)',
+      progress:    'hsl(var(--ui-hero-progress) / <alpha-value>)',
+      ctaBg:       'hsl(var(--ui-hero-cta-bg) / <alpha-value>)',
+      ctaFg:       'hsl(var(--ui-hero-cta-fg) / <alpha-value>)',
+      ctaHover:    'hsl(var(--ui-hero-cta-hover) / <alpha-value>)',
+    },
     // Alert surface tokens — generic feedback, independent of booking lifecycle
     alert: {
       success: {
@@ -125,6 +135,9 @@ module.exports = {
     'ui-1': 'var(--ui-shadow-1)',
     'ui-2': 'var(--ui-shadow-2)',
     'ui-3': 'var(--ui-shadow-3)',
+  },
+  height: {
+    'progress-bar': '3px',
   },
   transitionDuration: {
     instant: 'var(--ui-duration-instant)',

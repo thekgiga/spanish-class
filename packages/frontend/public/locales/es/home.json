@@ -66,13 +66,29 @@
     "james_content": "¡Las clases grupales son atractivas y divertidas! Gran manera de practicar con otros al mismo nivel.",
     "emily_name": "Emily Rodríguez",
     "emily_role": "Entusiasta de viajes",
-    "emily_content": "La programación flexible es perfecta. Puedo reservar sesiones fácilmente alrededor de mi agenda ocupada."
+    "emily_content": "La programación flexible es perfecta. Puedo reservar sesiones fácilmente alrededor de mi agenda ocupada.",
+    "rating_aria": "{{rating}} de 5 estrellas"
   },
   "cta": {
+    "badge": "Empieza Ya",
     "title": "¿Listo para dominar el español?",
     "subtitle": "¡Únete a nuestra vibrante comunidad y experimenta la alegría de aprender español con profesores apasionados!",
     "button_primary": "Comienza tu viaje en español",
     "button_secondary": "Contáctanos"
+  },
+  "paella": {
+    "sticky_headline": "Aprende español, ingrediente a ingrediente.",
+    "step1_label": "1: LA BASE",
+    "step1_copy": "Toda conversación empieza con una sola palabra.",
+    "step2_label": "2: EL VOCABULARIO",
+    "step2_copy": "300 palabras. Eso es todo lo que necesitas para empezar.",
+    "step3_label": "3: LA GRAMÁTICA",
+    "step3_copy": "La estructura da forma al sabor.",
+    "step4_label": "4: LA PRONUNCIACIÓN",
+    "step4_copy": "Deja que el idioma respire.",
+    "step5_label": "5: LA CONVERSACIÓN",
+    "step5_copy": "Ahora hablas español.",
+    "cta": "Empieza tu primera clase"
   },
   "dashboard": {
     "seo_title":              "Mi panel",

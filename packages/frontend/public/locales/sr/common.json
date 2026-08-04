@@ -22,7 +22,10 @@
       "booking_expired_professor": "Zakazivanje studenta isteklo",
       "class_reminder_24h": "Čas počinje za 24 sata",
       "class_reminder_1h": "Čas počinje za 1 sat"
-    }
+    },
+    "see_all": "Vidi sve obaveštenja →",
+    "page_title": "Obaveštenja",
+    "page_description": "Vaše nedavne aktivnosti i ažuriranja"
   },
   "actions": {
     "save": "Sačuvaj",
@@ -62,6 +65,7 @@
     "insights": "Statistike",
     "bookALesson": "Rezerviši čas",
     "myLessons": "Moji časovi",
+    "homework": "Domaći zadatak",
     "two_factor_nudge": "Dvofaktorska autentifikacija nije aktivna"
   },
   "time": {
@@ -226,7 +230,10 @@
     "generic": "Učitavanje…"
   },
   "footer": {
-    "instagram_title": "Pratite nas na Instagramu"
+    "instagram_title": "Pratite nas na Instagramu",
+    "email_label": "E-pošta",
+    "location": "Beograd, Srbija",
+    "copyright": "Sva prava zadržana."
   },
   "aria_labels": {
     "mobile_navigation": "Mobilna navigacija",

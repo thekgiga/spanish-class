@@ -36,9 +36,9 @@
   --ui-confirmed-surface: 169 31% 90%;
   --ui-confirmed-border: 169 25% 49%;
   --ui-confirmed-foreground: 170 51% 23%;
-  --ui-blocked-surface: 48 12% 92%;
-  --ui-blocked-border: 47 7% 76%;
-  --ui-blocked-foreground: 45 4% 35%;
+  --ui-blocked-surface: 270 30% 93%;
+  --ui-blocked-border: 270 28% 60%;
+  --ui-blocked-foreground: 270 35% 28%;
   --ui-completed-surface: 160 7% 92%;
   --ui-completed-border: 158 6% 74%;
   --ui-completed-foreground: 164 9% 34%;
@@ -97,6 +97,19 @@
   /* Scrollbar + selection — defined here so globals.css can reference without hsl() */
   --ui-scrollbar-thumb:  hsl(var(--ui-border-strong));
   --ui-selection-bg:     hsl(var(--ui-brand) / 0.15);
+
+  /* ── Marketing hero (dark cinematic section — theme-invariant) ──────────
+     These tokens are intentionally fixed values, not light/dark variants,
+     because the paella scroll-story section is always dark regardless of
+     the app-level theme. They live here so the raw-hex guardrail is
+     satisfied at the CSS layer and TSX can reference Tailwind aliases.   */
+  --ui-hero-bg:           20 14% 5%;       /* near-black warm: #0A0806        */
+  --ui-hero-fg:           0 0% 100%;       /* white text over dark bg         */
+  --ui-hero-step-label:   38 93% 65%;      /* saffron amber: #F59E0B family   */
+  --ui-hero-progress:     38 93% 65%;      /* same amber for the progress bar */
+  --ui-hero-cta-bg:       38 93% 65%;      /* saffron CTA button bg           */
+  --ui-hero-cta-fg:       20 14% 5%;       /* near-black text on saffron CTA  */
+  --ui-hero-cta-hover:    38 96% 72%;      /* lighter saffron on hover        */
 }
 
 [data-theme="dark"] {
@@ -133,9 +146,9 @@
   --ui-confirmed-surface: 169 24% 17%;
   --ui-confirmed-border: 169 32% 47%;
   --ui-confirmed-foreground: 168 45% 77%;
-  --ui-blocked-surface: 45 7% 17%;
-  --ui-blocked-border: 45 8% 34%;
-  --ui-blocked-foreground: 45 8% 70%;
+  --ui-blocked-surface: 270 22% 22%;
+  --ui-blocked-border: 270 28% 55%;
+  --ui-blocked-foreground: 270 35% 85%;
   --ui-completed-surface: 160 8% 17%;
   --ui-completed-border: 160 9% 36%;
   --ui-completed-foreground: 160 12% 72%;
@@ -237,6 +250,14 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
   }
+}
+
+/* ── Marketing hero utilities ────────────────────────────────────────────
+   Declared in the token file so [text-shadow] arbitrary values are not
+   needed in TSX. Referenced via Tailwind's @layer utilities.             */
+@layer utilities {
+  .hero-text-shadow-sm  { text-shadow: 0 2px 12px rgba(0,0,0,0.70); }
+  .hero-text-shadow     { text-shadow: 0 2px 16px rgba(0,0,0,0.60); }
 }
 
 /* ── Semantic toast skins ─────────────────────────────────────────────────

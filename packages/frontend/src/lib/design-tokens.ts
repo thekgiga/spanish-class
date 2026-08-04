@@ -173,7 +173,7 @@ export interface TypographySystem {
 export const typography: TypographySystem = {
   fontFamily: {
     sans: '"Inter", ui-sans-serif, system-ui, -apple-system, sans-serif',
-    serif: '"Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif',
+    serif: '"Playfair Display", "Georgia", ui-serif, serif',
     mono: 'ui-monospace, "Cascadia Code", "Source Code Pro", monospace',
   },
   fontSize: {

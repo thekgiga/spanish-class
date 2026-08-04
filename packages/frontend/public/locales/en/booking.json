@@ -17,12 +17,15 @@
     "no_history": "No lesson history yet.",
     "cancel_confirm_title": "Cancel this booking?",
     "cancel_confirm_description": "The time slot will become available again. This cannot be undone.",
-    "cancel_policy_notice":       "Cancellations made within {{hours}} hours of the lesson may not be eligible for a credit.",
-    "cancel_outside_window":      "This lesson is within the {{hours}}-hour cancellation window.",
+    "cancel_policy_notice": "Cancellations made within {{hours}} hours of the lesson may not be eligible for a credit.",
+    "cancel_outside_window": "This lesson is within the {{hours}}-hour cancellation window.",
     "cancel_confirm_action": "Yes, cancel",
     "leave_feedback": "Leave feedback",
     "feedback_sent": "Feedback submitted. Thank you!",
-    "professor_fallback": "Professor"
+    "professor_fallback": "Professor",
+    "my_lessons_on_day": "My lessons",
+    "available_to_book": "Available to book",
+    "my_upcoming_lessons": "My upcoming lessons"
   },
   "tabs": {
     "upcoming": "Upcoming",
@@ -102,10 +105,14 @@
     "error": "Failed to cancel booking"
   },
   "status": {
+    "available": "Available",
+    "approvalNeeded": "Approval needed",
     "confirmed": "Confirmed",
-    "pending": "Pending Approval",
+    "blocked": "Unavailable",
+    "completed": "Completed",
     "cancelled": "Cancelled",
-    "completed": "Completed"
+    "rejected": "Rejected",
+    "expired": "Expired"
   },
   "actions": {
     "join_class": "Join Class",
@@ -137,6 +144,7 @@
     "spots_filled": "{{current}}/{{max}} spots filled",
     "already_booked": "Confirmed lesson",
     "approval_needed": "Awaiting approval",
+    "past_slot": "Past",
     "book_now": "Book Now",
     "booked": "Booked",
     "private_invitation": "Private Invitation",
@@ -165,38 +173,33 @@
     "confirmation_expiry": "Confirmation Expiry",
     "booking_pending": "Pending"
   },
-  "status": {
-    "available":     "Available",
-    "approvalNeeded":"Approval needed",
-    "confirmed":     "Confirmed",
-    "blocked":       "Unavailable",
-    "completed":     "Completed",
-    "cancelled":     "Cancelled",
-    "rejected":      "Rejected",
-    "expired":       "Expired"
-  },
   "request": {
-    "request_lesson":           "Request lesson",
-    "select_date":              "Select a date",
-    "select_time":              "Choose a time",
-    "review_title":             "Review your request",
-    "awaiting_approval_title":  "Awaiting approval",
-    "pending_explanation":      "Once your professor approves, you'll receive a confirmation email. This time is reserved for you until then.",
-    "expiry_hint":              "Expires {{time}}",
-    "cancellation_policy":      "Free cancellation up to {{hours}} hours before the lesson",
-    "recovery_rejected":        "Your professor declined this request. You can request a different time.",
-    "recovery_expired":         "This request expired before your professor responded. You can book a different time.",
-    "recovery_cancelled":       "This lesson was cancelled. You can book a different time.",
-    "rebook":                   "Book a lesson",
-    "booking_sent_title":       "Request sent!",
-    "booking_sent_body":        "Your request is pending professor approval. You'll be notified by email.",
-    "no_slots_on_date":         "No available times on this date. Try another day.",
-    "withdraw_title":           "Withdraw this request?",
-    "withdraw_description":     "Your request will be cancelled and the time slot will be released.",
-    "withdraw_action":          "Yes, withdraw"
+    "request_lesson": "Request lesson",
+    "select_date": "Select a date",
+    "select_time": "Choose a time",
+    "review_title": "Review your request",
+    "awaiting_approval_title": "Awaiting approval",
+    "pending_explanation": "Once your professor approves, you'll receive a confirmation email. This time is reserved for you until then.",
+    "expiry_hint": "Expires {{time}}",
+    "cancellation_policy": "Free cancellation up to {{hours}} hours before the lesson",
+    "recovery_rejected": "Your professor declined this request. You can request a different time.",
+    "recovery_expired": "This request expired before your professor responded. You can book a different time.",
+    "recovery_cancelled": "This lesson was cancelled. You can book a different time.",
+    "rebook": "Book a lesson",
+    "booking_sent_title": "Request sent!",
+    "booking_sent_body": "Your request is pending professor approval. You'll be notified by email.",
+    "no_slots_on_date": "No available times on this date. Try another day.",
+    "withdraw_title": "Withdraw this request?",
+    "withdraw_description": "Your request will be cancelled and the time slot will be released.",
+    "withdraw_action": "Yes, withdraw"
   },
   "date_strip": {
     "slots_available": "{{count}} available",
     "slots_available_plural": "{{count}} available"
+  },
+  "session_notes": {
+    "homework_label": "Homework",
+    "class_notes_label": "Class notes",
+    "no_homework": "No homework assigned"
   }
 }

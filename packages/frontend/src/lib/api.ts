@@ -419,6 +419,43 @@ export const professorApi = {
     const res = await api.get("/professor/pending-invitations");
     return res.data.data;
   },
+
+  // ── In-Class Session Mode ───────────────────────────────────────────────
+
+  getSession: async (slotId: string): Promise<import("@spanish-class/shared").SessionData> => {
+    const res = await api.get(`/professor/slots/${slotId}/session`);
+    return res.data.data;
+  },
+
+  startSession: async (slotId: string) => {
+    const res = await api.post(`/professor/slots/${slotId}/start`);
+    return res.data.data;
+  },
+
+  endSession: async (slotId: string, copyObservationToStudentNote: boolean) => {
+    const res = await api.post(`/professor/slots/${slotId}/end`, {
+      copyObservationToStudentNote,
+    });
+    return res.data;
+  },
+
+  saveSessionNotes: async (
+    slotId: string,
+    notes: {
+      agendaNotes?: string;
+      sessionNotes?: string;
+      homeworkNotes?: string;
+      studentObservation?: string;
+    },
+  ) => {
+    const res = await api.put(`/professor/slots/${slotId}/session/notes`, notes);
+    return res.data.data as import("@spanish-class/shared").MeetingNote;
+  },
+
+  getStudentSessionNotes: async (studentId: string): Promise<Array<import("@spanish-class/shared").MeetingNote & { slot: { startTime: string; title: string | null } | null }>> => {
+    const res = await api.get(`/professor/students/${studentId}/session-notes`);
+    return res.data.data;
+  },
 };
 
 // Email Log type
@@ -518,6 +555,30 @@ export const studentApi = {
 
   cancelBooking: async (id: string, reason?: string): Promise<void> => {
     await api.post(`/student/bookings/${id}/cancel`, { reason });
+  },
+
+  getBookingNotes: async (bookingId: string): Promise<{
+    id: string;
+    homeworkNotes: string | null;
+    createdAt: string;
+    updatedAt: string;
+  } | null> => {
+    const res = await api.get(`/student/bookings/${bookingId}/notes`);
+    return res.data.data;
+  },
+
+  getHomework: async (): Promise<Array<{
+    bookingId: string;
+    slotId: string;
+    startTime: string;
+    endTime: string;
+    professor: { firstName: string; lastName: string } | null;
+    homeworkNotes: string;
+    noteId: string;
+    updatedAt: string;
+  }>> => {
+    const res = await api.get("/student/homework");
+    return res.data.data;
   },
 
   // Profile (US-16, US-17, US-18)

@@ -20,7 +20,7 @@ The "professor" role is encoded as `User.isAdmin === true`. No multi-tenant or f
 | Path | Page component | Notes |
 |---|---|---|
 | `/` | `HomePage` | [pages/public/HomePage.tsx](../../../packages/frontend/src/pages/public/HomePage.tsx) |
-| `/about` | `AboutPage` | [pages/public/AboutPage.tsx](../../../packages/frontend/src/pages/public/AboutPage.tsx) |
+| ~~`/about`~~ | ~~`AboutPage`~~ | Removed (LAND-002). Page deleted; `/about` now falls through to the `*` catch-all → redirect to `/`. The `about` i18n namespace is retained (still used by `ContactPage`). |
 | `/contact` | `ContactPage` | [pages/public/ContactPage.tsx](../../../packages/frontend/src/pages/public/ContactPage.tsx) |
 | `/design-showcase` | `DesignShowcase` | [pages/DesignShowcase.tsx](../../../packages/frontend/src/pages/DesignShowcase.tsx). Internal-only; not linked from public nav. |
 | `/auth` | `AuthPage` wrapped in `AuthRedirect` | Unified login + register. |

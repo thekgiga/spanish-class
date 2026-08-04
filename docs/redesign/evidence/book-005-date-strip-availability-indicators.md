@@ -15,9 +15,9 @@
 
 `DateStrip` accepts optional `slotCounts: Record<string,number>` and `getSlotLabel?: (n:number)=>string` props. When provided (student `BookPage` only):
 
-- Days with available slots show a small `text-micro text-brand` count below the date number (e.g. `3`, `9+` for >9).
-- Days with zero available slots show an invisible spacer of the same height — button heights remain uniform and no misleading zero is displayed.
-- When a day is selected, the count text switches to `text-brand-contrast` to stay legible against the filled brand background.
+- Days with available slots show a small `text-micro text-brand` count below the date number (e.g. `3`, `9+` for >9). Single consistent encoding for all counts.
+- Days with zero available slots show an `invisible` spacer of the same height — button heights remain uniform and no misleading zero is displayed.
+- When a day is selected, the count text switches to `text-brand-contrast/70` to stay legible against the filled brand background.
 - Each button's `aria-label` is augmented with the localized `getSlotLabel(count)` string so screen readers announce "Wednesday, July 9 — 3 available" (language-dependent).
 - `CalendarPage` (professor) passes neither prop — zero regression.
 - Slot query window widened from `centerDate ± 3/4 days` to `centerDate ± 7/8 days` to match `DateStrip radius={7}` (15 visible days). Without this, outer days always resolved to count=0.
@@ -85,3 +85,4 @@ Observations O1–O3, O5 deferred as follow-ups (see Remaining limitations).
 3. **O3** — Serbian plural needs `_zero`, `_one`, `_few`, `_many`, `_other` keys for correct grammar.
 4. **O5** — During loading, all strip days show the invisible spacer (visually flat). A shimmer row or "counts pending" affordance could improve perceived responsiveness.
 5. **O4** — No `date-strip.test.tsx` component test for the new branches. Storybook stories cover the visual states; automated assertions for aria-label content and 9+ cap are missing.
+6. **Screenshots deferred** — Viewport screenshots at 390/768/1280/1440 for BOOK-VIS-001 (slot card, DateStrip, date heading) were not captured during this session (Playwright headless shell not installed on this machine). Required by DoD; deferred to next session.

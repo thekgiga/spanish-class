@@ -155,6 +155,17 @@
     "select_button": "Izaberi",
     "selected_success": "Profesor je izabran! Sada možete zakazivati časove."
   },
+  "homework": {
+    "page_title": "Domaći zadatak",
+    "page_subtitle": "Pregledajte zadatke koje je profesor ostavio nakon svakog završenog časa",
+    "section_label": "Domaći zadatak",
+    "empty_title": "Nema domaćih zadataka",
+    "empty_description": "Domaći zadaci dodeljeni nakon završenih časova pojaviće se ovde",
+    "from_lesson_on": "Čas od {{date}}",
+    "with_professor": "sa {{name}}",
+    "updated": "Ažurirano {{date}}",
+    "error": "Domaći zadaci nisu dostupni. Molimo pokušajte ponovo."
+  },
   "detail": {
     "overview_tab":     "Pregled",
     "lessons_tab":      "Časovi",
@@ -176,6 +187,16 @@
     "note_saved":                "Beleška sačuvana.",
     "note_deleted":              "Beleška obrisana.",
     "learning_goals_label":      "Ciljevi učenja",
-    "cancel_note":               "Otkaži"
+    "cancel_note":               "Otkaži",
+    "session_notes_section":     "Beleške sa časa",
+    "session_notes_class":       "Beleške sa časa",
+    "session_notes_homework":    "Domaći zadatak",
+    "session_notes_observation": "Napomena",
+    "session_notes_empty":       "Još nema beleški sa časa.",
+    "personal_notes_section":    "Lične beleške",
+    "filter_all":                "Sve",
+    "filter_class_notes":        "Beleške sa časa",
+    "filter_homework":           "Domaći zadatak",
+    "filter_observations":       "Napomene"
   }
 }

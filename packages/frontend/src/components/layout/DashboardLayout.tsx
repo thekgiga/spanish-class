@@ -9,6 +9,7 @@ import i18n from "@/lib/i18n";
 import { updateLanguagePreference } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { EmailVerificationBanner } from "@/components/shared/EmailVerificationBanner";
+import { InProgressBanner } from "@/components/shared/InProgressBanner";
 import { NotificationBell } from "@/components/shared/NotificationBell";
 import {
   Calendar,
@@ -22,6 +23,7 @@ import {
   Home,
   User,
   TrendingUp,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -52,9 +54,10 @@ const ADMIN_NAV: NavItemDef[] = [
 ];
 
 const STUDENT_NAV: NavItemDef[] = [
-  { to: "/dashboard",          labelKey: "navigation.home",        icon: Home,     end: true },
+  { to: "/dashboard",          labelKey: "navigation.home",        icon: Home,          end: true },
   { to: "/dashboard/book",     labelKey: "navigation.bookALesson", icon: Calendar },
   { to: "/dashboard/bookings", labelKey: "navigation.myLessons",   icon: BookOpen },
+  { to: "/dashboard/homework", labelKey: "navigation.homework",    icon: GraduationCap },
   { to: "/dashboard/profile",  labelKey: "navigation.profile",     icon: User },
 ];
 
@@ -360,6 +363,7 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
       {/* ── Main ────────────────────────────────────────────────────────── */}
       <AppMain sidebarCollapsed={collapsed}>
         <EmailVerificationBanner />
+        {isAdmin && <InProgressBanner />}
         <div className="p-6 sm:p-8">
           {/*
            * Nested Suspense boundary — keeps the sidebar/topbar mounted while

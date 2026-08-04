@@ -22,7 +22,10 @@
       "booking_expired_professor": "Reserva de estudiante expirada",
       "class_reminder_24h": "La clase empieza en 24 horas",
       "class_reminder_1h": "La clase empieza en 1 hora"
-    }
+    },
+    "see_all": "Ver todas las notificaciones →",
+    "page_title": "Notificaciones",
+    "page_description": "Tu actividad reciente y actualizaciones"
   },
   "actions": {
     "save": "Guardar",
@@ -62,6 +65,7 @@
     "insights": "Estadísticas",
     "bookALesson": "Reservar una clase",
     "myLessons": "Mis clases",
+    "homework": "Tarea",
     "two_factor_nudge": "Autenticación de dos factores no activada"
   },
   "time": {
@@ -226,7 +230,10 @@
     "generic": "Cargando…"
   },
   "footer": {
-    "instagram_title": "Síguenos en Instagram"
+    "instagram_title": "Síguenos en Instagram",
+    "email_label": "Correo",
+    "location": "Belgrado, Serbia",
+    "copyright": "Todos los derechos reservados."
   },
   "aria_labels": {
     "mobile_navigation": "Navegación móvil",

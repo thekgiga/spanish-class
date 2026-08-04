@@ -14,7 +14,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { Video, User, Calendar } from "lucide-react";
+import { Video, User, Calendar, BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const RateUserModal = lazy(() => import("@/components/ratings/RateUserModal"));
@@ -100,6 +100,14 @@ function HistoryCard({
   const recoveryMsg = recoveryI18nKey ? t(recoveryI18nKey) : null;
   const isCompleted = uiStatus === 'completed';
 
+  // Fetch session notes (homework) only for completed lessons
+  const { data: bookingNotes } = useQuery({
+    queryKey: ['booking-notes', booking.id],
+    queryFn:  () => studentApi.getBookingNotes(booking.id),
+    enabled: isCompleted,
+    staleTime: 10 * 60_000,
+  });
+
   return (
     <Card variant="plain" className="opacity-80">
       <CardContent className="p-4 space-y-2">
@@ -126,6 +134,18 @@ function HistoryCard({
           <Button variant="secondary" size="sm" asChild>
             <Link to="/dashboard/book">{t('request.rebook')}</Link>
           </Button>
+        )}
+        {/* Homework from session notes */}
+        {isCompleted && bookingNotes?.homeworkNotes && (
+          <div className="pt-2 border-t border-line space-y-1">
+            <div className="flex items-center gap-1.5 text-caption text-ink-secondary font-medium">
+              <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              {t('session_notes.homework_label')}
+            </div>
+            <p className="text-small text-ink whitespace-pre-wrap pl-5">
+              {bookingNotes.homeworkNotes}
+            </p>
+          </div>
         )}
         {/* FEED-001: contextual feedback for completed lessons */}
         {isCompleted && onFeedback && (

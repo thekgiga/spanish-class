@@ -15,8 +15,8 @@
 import { useState, useMemo, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { format, startOfDay, addDays } from "date-fns";
-import { Clock, User } from "lucide-react";
+import { format, startOfDay, addDays, isBefore } from "date-fns";
+import { Clock, User, CheckCircle2 } from "lucide-react";
 import { DateStrip } from "@/components/ui/date-strip";
 import { AvailableTimeOption } from "@/components/ui/available-time-option";
 import { BookingRequestCard } from "@/components/ui/booking-request-card";
@@ -77,11 +77,14 @@ export function BookPage() {
     queryFn:  () => studentApi.getProfessor(),
   });
 
-  // Count available slots per day for the DateStrip availability indicator (BOOK-005)
+  // Count available slots per day for the DateStrip availability indicator (BOOK-005).
+  // Only future slots count — a day with only past slots should not show the green dot.
   const slotCounts = useMemo<Record<string, number>>(() => {
+    const now = new Date();
     const all = slotsData?.data ?? [];
     const counts: Record<string, number> = {};
     for (const s of all) {
+      if (isBefore(new Date(s.startTime), now)) continue;
       const key = format(new Date(s.startTime), 'yyyy-MM-dd');
       counts[key] = (counts[key] ?? 0) + 1;
     }
@@ -102,14 +105,26 @@ export function BookPage() {
     );
   }, [slotsData, selectedDate]);
 
-  // Are any slots varying in duration? (drives showDuration prop)
+  // Slots the student already has a booking for (pending or confirmed)
+  const myBookingsForDate = useMemo(
+    () => slotsForDate.filter((s) => s.isBookedByMe),
+    [slotsForDate],
+  );
+
+  // Slots still open to book
+  const availableSlotsForDate = useMemo(
+    () => slotsForDate.filter((s) => !s.isBookedByMe),
+    [slotsForDate],
+  );
+
+  // Are any bookable slots varying in duration? (drives showDuration prop)
   const hasMixedDurations = useMemo(() => {
-    if (slotsForDate.length < 2) return false;
-    const durations = slotsForDate.map((s) =>
+    if (availableSlotsForDate.length < 2) return false;
+    const durations = availableSlotsForDate.map((s) =>
       new Date(s.endTime).getTime() - new Date(s.startTime).getTime(),
     );
     return new Set(durations).size > 1;
-  }, [slotsForDate]);
+  }, [availableSlotsForDate]);
 
   const bookMutation = useMutation({
     mutationFn: (slotId: string) => studentApi.bookSlot(slotId),
@@ -134,6 +149,21 @@ export function BookPage() {
     setSelectedSlot(null);
   }, []);
 
+  const handleTodayClick = useCallback(() => {
+    const now = new Date();
+    setSelectedDate(startOfDay(now));
+    setCenterDate(now);
+    setSelectedSlot(null);
+  }, []);
+
+  const handlePageBack = useCallback(() => {
+    setCenterDate(c => addDays(c, -7));
+  }, []);
+
+  const handlePageForward = useCallback(() => {
+    setCenterDate(c => addDays(c, 7));
+  }, []);
+
   const handleSlotSelect = useCallback((slot: AvailabilitySlot) => {
     setSelectedSlot(slot);
     setDrawerOpen(true);
@@ -145,15 +175,24 @@ export function BookPage() {
   // Post-booking success screen
   if (successBooking) {
     return (
-      <div className="max-w-lg mx-auto px-6 py-8 space-y-4">
-        <PageHeader
-          title={t("request.booking_sent_title")}
-          description={t("request.booking_sent_body")}
-        />
+      <div className="max-w-lg mx-auto px-6 py-10 space-y-6">
+        {/* Success hero */}
+        <div className="flex flex-col items-center text-center gap-3">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-feedback-success/10">
+            <CheckCircle2 className="w-8 h-8 text-feedback-success" aria-hidden="true" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-h2 font-semibold text-ink">{t("request.booking_sent_title")}</h1>
+            <p className="text-body text-ink-secondary">{t("request.booking_sent_body")}</p>
+          </div>
+        </div>
+
+        {/* Booking detail card */}
         <BookingRequestCard
           booking={successBooking as BookingWithSlot}
           variant="hero"
         />
+
         <Button
           variant="secondary"
           className="w-full"
@@ -179,36 +218,78 @@ export function BookPage() {
         onSelect={handleDateSelect}
         slotCounts={slotCounts}
         getSlotLabel={getSlotLabel}
+        todayLabel={t("calendar.today")}
+        onTodayClick={handleTodayClick}
+        onPageBack={handlePageBack}
+        onPageForward={handlePageForward}
       />
 
       {/* Time options */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4">
-        <p className="text-caption text-ink-tertiary mb-3">
-          {format(selectedDate, "EEEE, MMMM d")}
-        </p>
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
+        {/* Date heading */}
+        <div className="flex items-baseline justify-between mb-4 max-w-lg">
+          <div>
+            <h2 className="text-title font-semibold text-ink">
+              {format(selectedDate, "EEEE, MMMM d")}
+            </h2>
+            {!isLoading && availableSlotsForDate.length > 0 && (
+              <p className="text-caption text-ink-tertiary mt-0.5">
+                {t("date_strip.slots_available", { count: availableSlotsForDate.length })}
+              </p>
+            )}
+          </div>
+        </div>
 
         {isLoading ? (
-          <div className="space-y-2">
+          <div className="space-y-2 max-w-lg">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-14 w-full" />
+              <Skeleton key={i} className="h-16 w-full rounded-ui-md" />
             ))}
           </div>
-        ) : slotsForDate.length === 0 ? (
-          <EmptyState
-            title={t("request.no_slots_on_date")}
-            description={t("request.select_date")}
-          />
         ) : (
-          <div className="space-y-2 max-w-lg">
-            {slotsForDate.map((slot) => (
-              <AvailableTimeOption
-                key={slot.id}
-                slot={slot}
-                selected={selectedSlot?.id === slot.id}
-                onSelect={handleSlotSelect}
-                showDuration={hasMixedDurations}
+          <div className="space-y-5 max-w-lg">
+            {/* My bookings on this day — pending or confirmed */}
+            {myBookingsForDate.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-caption font-semibold text-ink-secondary uppercase tracking-wide">
+                  {t("page.my_lessons_on_day")}
+                </p>
+                {myBookingsForDate.map((slot) => (
+                  <AvailableTimeOption
+                    key={slot.id}
+                    slot={slot}
+                    onSelect={handleSlotSelect}
+                    showDuration={false}
+                    isPast={isBefore(new Date(slot.startTime), new Date())}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Available slots to book */}
+            {availableSlotsForDate.length > 0 ? (
+              <div className="space-y-2">
+                {myBookingsForDate.length > 0 && (
+                  <p className="text-caption font-semibold text-ink-secondary uppercase tracking-wide">
+                    {t("page.available_to_book")}
+                  </p>
+                )}
+                {availableSlotsForDate.map((slot) => (
+                  <AvailableTimeOption
+                    key={slot.id}
+                    slot={slot}
+                    onSelect={handleSlotSelect}
+                    showDuration={hasMixedDurations}
+                    isPast={isBefore(new Date(slot.startTime), new Date())}
+                  />
+                ))}
+              </div>
+            ) : myBookingsForDate.length === 0 ? (
+              <EmptyState
+                title={t("request.no_slots_on_date")}
+                description={t("request.select_date")}
               />
-            ))}
+            ) : null}
           </div>
         )}
       </div>

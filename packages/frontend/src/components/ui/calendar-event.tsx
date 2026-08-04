@@ -16,6 +16,7 @@ import * as React from 'react';
 import {
   CalendarPlus, Clock3, CalendarCheck2, Lock,
   CircleCheck, CircleX, Ban, TimerOff,
+  User, Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UiLifecycleStatus } from '@/lib/ui-system/status';
@@ -56,20 +57,29 @@ export interface CalendarEventTileProps {
   /** Lucide icon name string from uiStatusDefinition */
   iconName: string;
   title: string;
+  /** Optional secondary line — student name(s) for booked/pending/confirmed slots */
+  subtitle?: string;
   time?: string;
   /** True when the event slot is < ~45 min and the tile is short */
   dense?: boolean;
+  /** INDIVIDUAL = one-on-one, GROUP = group class. Omit for BLOCKED slots. */
+  slotType?: 'INDIVIDUAL' | 'GROUP';
 }
 
 export function CalendarEventTile({
   status,
   iconName,
   title,
+  subtitle,
   time,
   dense = false,
+  slotType,
 }: CalendarEventTileProps) {
   const Icon = getIcon(iconName);
   const { strip, container, text } = TONE_CLASSES[status];
+
+  // Type icon: User = individual, Users = group. Hidden for BLOCKED (irrelevant).
+  const TypeIcon = slotType === 'GROUP' ? Users : slotType === 'INDIVIDUAL' ? User : null;
 
   return (
     <div className={cn('flex h-full w-full overflow-hidden rounded-ui-xs', container)}>
@@ -80,10 +90,21 @@ export function CalendarEventTile({
       <div className={cn('flex flex-1 min-w-0 gap-1 px-1.5', dense ? 'items-center py-0.5' : 'flex-col py-1')}>
         <div className={cn('flex items-center gap-1 min-w-0', text)}>
           {React.createElement(Icon, { className: 'h-3 w-3 shrink-0', role: 'presentation' } as React.ComponentProps<typeof Icon>)}
-          <span className={cn('font-semibold truncate leading-tight text-caption')}>
+          <span className={cn('font-semibold truncate leading-tight text-caption flex-1')}>
             {title}
           </span>
+          {TypeIcon && (
+            <TypeIcon
+              className="h-3 w-3 shrink-0 opacity-70"
+              aria-hidden="true"
+            />
+          )}
         </div>
+        {!dense && subtitle && (
+          <span className={cn('text-micro truncate font-medium', text, 'opacity-90')}>
+            {subtitle}
+          </span>
+        )}
         {!dense && time && (
           <span className={cn('text-micro truncate', text, 'opacity-80')}>
             {time}

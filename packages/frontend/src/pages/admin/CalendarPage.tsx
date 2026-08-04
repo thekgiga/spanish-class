@@ -8,7 +8,7 @@
  * CAL-005: Mobile uses day agenda; tablet uses 3-day view; no compressed week.
  */
 import { useMemo, useCallback, useRef, useEffect, useState } from "react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -19,42 +19,50 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import type { DateClickArg } from "@fullcalendar/interaction";
 import type { DateSelectArg, EventClickArg, EventContentArg, EventInput } from "@fullcalendar/core";
-import { ChevronLeft, ChevronRight, Plus, UserPlus } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { CalendarEventTile } from "@/components/ui/calendar-event";
 import { CalendarSelectionComposer, type SelectionRange } from "@/components/ui/calendar-selection-composer";
 import { SlotEventDrawer } from "@/components/ui/slot-event-drawer";
+import { SlotFormDrawer, type SlotFormDrawerPrefill } from "@/components/ui/slot-form-drawer";
 import { uiToast } from "@/components/ui/inline-alert";
 import { DateStrip } from "@/components/ui/date-strip";
 import { cn } from "@/lib/utils";
 import { professorApi } from "@/lib/api";
-import { bookingStatusToUi, slotStatusToUi, isBookingPending, uiStatusDefinition } from "@/lib/ui-system/status";
+import { slotDisplayStatus, uiStatusDefinition, type UiLifecycleStatus } from "@/lib/ui-system/status";
 import type { AvailabilitySlot, AvailabilitySlotWithBookings } from "@spanish-class/shared";
-import { SlotType } from "@spanish-class/shared";
-import { PrivateInvitationModal } from "@/components/professor/PrivateInvitationModal";
+import { SlotType, SlotStatus } from "@spanish-class/shared";
 import { usePendingBookingsCount } from "@/hooks/usePendingBookingsCount";
 import { useIsMobile, useMediaQuery } from "@/hooks/useMediaQuery";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function slotDisplayStatus(slot: AvailabilitySlot & { bookings?: { status: string }[] }) {
-  if (slot.slotType === SlotType.BLOCKED) return 'blocked' as const;
-  const bookings = (slot as AvailabilitySlotWithBookings).bookings ?? [];
-  const pending = bookings.find(isBookingPending as (b: { status: string }) => boolean);
-  if (pending) return bookingStatusToUi((pending as { status: string }).status as any);
-  return slotStatusToUi(slot.status as any);
-}
-
-function slotToEvent(slot: AvailabilitySlot): EventInput {
-  const uiStatus = slotDisplayStatus(slot);
+function slotToEvent(slot: AvailabilitySlot & { bookings?: { status: string; student?: { firstName?: string; lastName?: string } }[] }): EventInput {
+  const uiStatus = slotDisplayStatus(slot as unknown as Parameters<typeof slotDisplayStatus>[0]);
   const def = uiStatusDefinition[uiStatus];
+
+  // Collect student names from active bookings (confirmed or pending)
+  const studentNames = (slot.bookings ?? [])
+    .filter(b => b.student)
+    .map(b => [b.student!.firstName, b.student!.lastName].filter(Boolean).join(' '))
+    .filter(Boolean);
+
   return {
     id: slot.id,
     start: new Date(slot.startTime),
     end:   new Date(slot.endTime),
-    extendedProps: { slot, uiStatus, iconName: def.icon, title: slot.title ?? '' },
+    extendedProps: {
+      slot,
+      uiStatus,
+      iconName: def.icon,
+      title: slot.title ?? '',
+      isBlocked: slot.slotType === SlotType.BLOCKED,
+      slotType: slot.slotType,
+      studentNames,
+    },
     backgroundColor: 'transparent',
     borderColor:     'transparent',
     textColor:       'inherit',
@@ -68,7 +76,6 @@ type FCView = 'timeGridWeek' | 'timeGrid3Day' | 'timeGridDay';
 export function CalendarPage() {
   const { t } = useTranslation("admin");
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const fcRef = useRef<FullCalendar>(null);
 
   const isMobile = useIsMobile();                             // < 768px → day view
@@ -80,7 +87,10 @@ export function CalendarPage() {
   const [composerStyle, setComposerStyle] = useState<React.CSSProperties>({});
   const [openSlot, setOpenSlot] = useState<AvailabilitySlotWithBookings | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [showPrivateModal, setShowPrivateModal] = useState(false);
+  const [slotFormOpen, setSlotFormOpen] = useState(false);
+  const [slotFormPrefill, setSlotFormPrefill] = useState<SlotFormDrawerPrefill | undefined>();
+  const [editSlotId, setEditSlotId] = useState<string | undefined>();
+  const [legendOpen, setLegendOpen] = useState(false);
 
   // Derive the active FullCalendar view from breakpoint (unless manually overridden)
   const activeView: FCView = manualView ?? (isMobile ? 'timeGridDay' : isTablet ? 'timeGrid3Day' : 'timeGridWeek');
@@ -110,26 +120,11 @@ export function CalendarPage() {
   const { data: pendingData } = usePendingBookingsCount(true);
 
   const events: EventInput[] = useMemo(
-    () => (slotsData?.data ?? []).map(slotToEvent),
+    () => (slotsData?.data ?? [])
+      .filter(s => s.status !== SlotStatus.CANCELLED)
+      .map(slotToEvent),
     [slotsData],
   );
-
-  // Mutation to create a blocked slot
-  const blockMutation = useMutation({
-    mutationFn: (range: SelectionRange) =>
-      professorApi.createSlot({
-        startTime: range.start.toISOString(),
-        endTime:   range.end.toISOString(),
-        slotType: 'BLOCKED',
-        maxParticipants: 1,
-        isPrivate: false,
-      }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['professor-slots'] });
-      uiToast.success(t('calendar.blocked_created'));
-    },
-    onError: () => uiToast.error(t('calendar.error_generic')),
-  });
 
   // ── FullCalendar handlers ──────────────────────────────────────────────
 
@@ -153,22 +148,73 @@ export function CalendarPage() {
     }
   }, [t]);
 
+  // Single click on empty cell → open SlotFormDrawer pre-filled with snapped time.
+  // Desktop/tablet only: mobile already has a FAB and small cells risk misfired taps.
+  const handleDateClick = useCallback((arg: DateClickArg) => {
+    if (isMobile) return;
+    if (arg.date < new Date()) {
+      uiToast.info(t('calendar.past_time_notice'));
+      return;
+    }
+    const snapped = new Date(arg.date);
+    const remainder = snapped.getMinutes() % 15;
+    if (remainder !== 0) snapped.setMinutes(snapped.getMinutes() - remainder, 0, 0);
+    setSlotFormPrefill({ startTime: snapped.toISOString() });
+    setEditSlotId(undefined);
+    setSlotFormOpen(true);
+  }, [isMobile, t]);
+
   const renderEventContent = useCallback((arg: EventContentArg) => {
-    const { uiStatus, iconName, title } = arg.event.extendedProps as {
-      uiStatus: string;
-      iconName: string;
-      title: string;
+    const { uiStatus, iconName, title, isBlocked, slotType, studentNames } = arg.event.extendedProps as {
+      uiStatus?: string;
+      iconName?: string;
+      title?: string;
+      isBlocked?: boolean;
+      slotType?: string;
+      studentNames?: string[];
     };
+
+    // selectMirror / background events have no extendedProps — show a quiet placeholder
+    if (!uiStatus) {
+      return (
+        <div className="h-full w-full rounded-ui-xs bg-status-available-surface border border-dashed border-status-available-border opacity-50" />
+      );
+    }
     const durationMs = arg.event.end!.getTime() - arg.event.start!.getTime();
     const dense = durationMs < 45 * 60_000;
     const timeLabel = `${format(arg.event.start!, 'HH:mm')} – ${format(arg.event.end!, 'HH:mm')}`;
+
+    // Status-aware title: use custom title if set, otherwise derive from status
+    let displayTitle: string;
+    if (title) {
+      displayTitle = title;
+    } else if (isBlocked) {
+      displayTitle = t('calendar.blocked_title');
+    } else if (uiStatus === 'confirmed') {
+      displayTitle = t('calendar.status_title_confirmed');
+    } else if (uiStatus === 'requested') {
+      displayTitle = t('calendar.status_title_requested');
+    } else if (uiStatus === 'completed') {
+      displayTitle = t('calendar.status_title_completed');
+    } else {
+      // available
+      displayTitle = t('calendar.status_title_available');
+    }
+
+    // Show student name(s) as subtitle for booked/pending slots
+    const subtitle = !dense && (studentNames ?? []).length > 0
+      ? (studentNames ?? []).join(', ')
+      : undefined;
+
     return (
       <CalendarEventTile
-        status={uiStatus as any}
-        iconName={iconName}
-        title={title || t('calendar.lesson')}
+        status={uiStatus as UiLifecycleStatus}
+        iconName={iconName ?? 'CalendarCheck2'}
+        title={displayTitle}
+        subtitle={subtitle}
         time={timeLabel}
         dense={dense}
+        slotType={isBlocked ? undefined : slotType as 'INDIVIDUAL' | 'GROUP'}
       />
     );
   }, [t]);
@@ -233,6 +279,13 @@ export function CalendarPage() {
   // Tablet: configure FullCalendar to show 3 days
   const fcDuration = activeView === 'timeGrid3Day' ? { days: 3 } : undefined;
 
+  // Scroll to 1 hour before current time on mount so the current time indicator is visible
+  const scrollTime = useMemo(() => {
+    const now = new Date();
+    const hour = Math.max(7, now.getHours() - 1);
+    return `${String(hour).padStart(2, '0')}:00:00`;
+  }, []);
+
   return (
     <div className="flex flex-col -m-6 sm:-m-8" style={{ height: 'calc(100svh - var(--ui-topbar-height))' }}>
       {/* Page header — hidden on mobile to save space; replaced by compact mobile toolbar */}
@@ -242,17 +295,9 @@ export function CalendarPage() {
           action={
             <div className="flex items-center gap-2">
               <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setShowPrivateModal(true)}
-              >
-                <UserPlus className="h-4 w-4 mr-1" aria-hidden="true" />
-                {t('calendar.schedule_student')}
-              </Button>
-              <Button
                 variant="primary"
                 size="sm"
-                onClick={() => navigate('/admin/slots/new')}
+                onClick={() => { setSlotFormPrefill(undefined); setEditSlotId(undefined); setSlotFormOpen(true); }}
               >
                 <Plus className="h-4 w-4 mr-1" aria-hidden="true" />
                 {t('calendar.create_slot')}
@@ -334,7 +379,7 @@ export function CalendarPage() {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => navigate('/admin/slots/new')}
+              onClick={() => { setSlotFormPrefill(undefined); setEditSlotId(undefined); setSlotFormOpen(true); }}
               aria-label={t('calendar.create_slot')}
             >
               <Plus className="h-4 w-4" aria-hidden="true" />
@@ -361,11 +406,13 @@ export function CalendarPage() {
           allDaySlot={false}
           firstDay={1}
           nowIndicator
+          scrollTime={scrollTime}
           expandRows
           height="100%"
           headerToolbar={false}
           events={events}
           select={handleSelect}
+          dateClick={handleDateClick}
           eventClick={handleEventClick}
           eventContent={renderEventContent}
           eventMinHeight={24}
@@ -391,13 +438,24 @@ export function CalendarPage() {
           range={selectedRange ?? { start: new Date(), end: new Date() }}
           open={!!selectedRange}
           onClose={() => { setSelectedRange(null); fcRef.current?.getApi().unselect(); }}
-          onOfferTime={(range) => navigate('/admin/slots/new', {
-            state: { prefill: { startTime: range.start.toISOString(), endTime: range.end.toISOString() } },
-          })}
-          onScheduleStudent={(range) => navigate('/admin/slots/new', {
-            state: { prefill: { startTime: range.start.toISOString(), endTime: range.end.toISOString(), scheduleStudent: true } },
-          })}
-          onBlockTime={(range) => { blockMutation.mutate(range); setSelectedRange(null); }}
+          onOfferTime={(range) => {
+            setSlotFormPrefill({ startTime: range.start.toISOString(), endTime: range.end.toISOString() });
+            setEditSlotId(undefined);
+            setSlotFormOpen(true);
+            setSelectedRange(null);
+          }}
+          onScheduleStudent={(range) => {
+            setSlotFormPrefill({ startTime: range.start.toISOString(), endTime: range.end.toISOString(), scheduleStudent: true });
+            setEditSlotId(undefined);
+            setSlotFormOpen(true);
+            setSelectedRange(null);
+          }}
+          onBlockTime={(range) => {
+            setSlotFormPrefill({ startTime: range.start.toISOString(), endTime: range.end.toISOString(), blockTime: true });
+            setEditSlotId(undefined);
+            setSlotFormOpen(true);
+            setSelectedRange(null);
+          }}
           style={composerStyle}
         />
       </div>
@@ -407,14 +465,61 @@ export function CalendarPage() {
         open={drawerOpen}
         onClose={() => { setDrawerOpen(false); setOpenSlot(null); }}
         slot={openSlot}
-        onEdit={(id) => navigate(`/admin/slots/${id}`)}
+        onEdit={(id) => { setEditSlotId(id); setSlotFormPrefill(undefined); setSlotFormOpen(true); }}
       />
 
-      {/* Private invitation modal */}
-      <PrivateInvitationModal
-        isOpen={showPrivateModal}
-        onClose={() => setShowPrivateModal(false)}
+      {/* Slot form drawer — create, schedule, and edit */}
+      <SlotFormDrawer
+        open={slotFormOpen}
+        onClose={() => { setSlotFormOpen(false); setEditSlotId(undefined); setSlotFormPrefill(undefined); }}
+        prefill={slotFormPrefill}
+        slotId={editSlotId}
       />
+
+      {/* Calendar legend */}
+      <div className="shrink-0 border-t border-line bg-surface">
+          <button
+            type="button"
+            onClick={() => setLegendOpen(o => !o)}
+            className="flex items-center gap-1.5 px-6 py-1.5 text-micro font-semibold text-ink-muted hover:text-ink transition-colors w-full"
+          >
+            <ChevronDown className={cn('h-3 w-3 transition-transform duration-micro', legendOpen && 'rotate-180')} aria-hidden="true" />
+            {t('calendar.legend_toggle')}
+          </button>
+          {legendOpen && (
+            <div className="px-6 pb-2.5 flex items-center gap-5 flex-wrap">
+              {([
+                ['available',  t('calendar.status_title_available'),  t('calendar.legend_available')],
+                ['requested',  t('calendar.status_title_requested'),  t('calendar.legend_requested')],
+                ['confirmed',  t('calendar.status_title_confirmed'),  t('calendar.legend_confirmed')],
+                ['blocked',    t('calendar.blocked_title'),           t('calendar.legend_blocked')],
+                ['completed',  t('calendar.status_title_completed'),  t('calendar.legend_completed')],
+              ] as [string, string, string][]).map(([status, label, desc]) => (
+                <div key={status} className="flex items-center gap-2">
+                  <span className={cn(
+                    'flex items-center overflow-hidden rounded-ui-xs shrink-0 h-5 w-20',
+                    status === 'available' && 'bg-status-available-surface border border-dashed border-status-available-border',
+                    status === 'requested' && 'bg-status-requested-surface border border-status-requested-border',
+                    status === 'confirmed' && 'bg-brand border border-transparent',
+                    status === 'blocked'   && 'bg-status-blocked-surface border border-status-blocked-border',
+                    status === 'completed' && 'bg-status-completed-surface border border-status-completed-border',
+                  )} aria-hidden="true">
+                    <span className={cn(
+                      'w-1 h-full shrink-0',
+                      status === 'available' && 'bg-status-available-border',
+                      status === 'requested' && 'bg-status-requested-border',
+                      status === 'confirmed' && 'bg-brand-contrast/30',
+                      status === 'blocked'   && 'bg-status-blocked-border',
+                      status === 'completed' && 'bg-status-completed-border',
+                    )} />
+                  </span>
+                  <span className="text-micro font-semibold text-ink">{label}</span>
+                  <span className="text-micro text-ink-muted">{desc}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
     </div>
   );
 }

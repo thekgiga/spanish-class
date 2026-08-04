@@ -1650,7 +1650,7 @@ export async function sendPasswordResetEmail(
 // ── No-show notification ───────────────────────────────────────────────────
 
 interface NoShowEmailData {
-  student: Pick<UserPublic, "email" | "firstName" | "lastName">;
+  student: Pick<UserPublic, "email" | "firstName" | "lastName" | "timezone">;
   slot: Pick<AvailabilitySlot, "startTime" | "title">;
 }
 
@@ -1658,7 +1658,7 @@ export async function sendNoShowNotificationToStudent(
   data: NoShowEmailData,
 ): Promise<void> {
   const { student, slot } = data;
-  const classDate = formatDateTime(slot.startTime, "Europe/Madrid");
+  const classDate = formatDateTime(slot.startTime, student.timezone || "UTC");
   const classTitle = slot.title || "Spanish Class";
 
   const html = `
@@ -1732,7 +1732,7 @@ export async function sendNoShowNotificationToStudent(
 // ── Waitlist emails ────────────────────────────────────────────────────────────
 
 interface WaitlistEmailData {
-  student: Pick<UserPublic, "email" | "firstName">;
+  student: Pick<UserPublic, "email" | "firstName" | "timezone">;
   slot: Pick<AvailabilitySlot, "startTime" | "endTime" | "title">;
   professor: Pick<UserPublic, "firstName" | "lastName" | "timezone">;
   position?: number;
@@ -1742,7 +1742,7 @@ export async function sendWaitlistConfirmationToStudent(
   data: WaitlistEmailData & { position: number },
 ): Promise<void> {
   const { student, slot, professor, position } = data;
-  const classDate = formatDateTime(slot.startTime, professor.timezone);
+  const classDate = formatDateTime(slot.startTime, student.timezone || professor.timezone);
   const classTitle = slot.title || "Spanish Class";
 
   const html = `
@@ -1773,7 +1773,7 @@ export async function sendWaitlistConfirmationToStudent(
 
 export async function sendWaitlistPromotionToStudent(data: WaitlistEmailData): Promise<void> {
   const { student, slot, professor } = data;
-  const classDate = formatDateTime(slot.startTime, professor.timezone);
+  const classDate = formatDateTime(slot.startTime, student.timezone || professor.timezone);
   const classTitle = slot.title || "Spanish Class";
 
   const html = `
@@ -2167,7 +2167,10 @@ export async function sendStudentInvitationEmail(params: {
 }): Promise<void> {
   const { email, professorFirstName, professorLastName, inviteLink, expiresAt } = params;
   const professorName = `${professorFirstName} ${professorLastName}`;
-  const expiryStr = expiresAt.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  const expiryStr = new Intl.DateTimeFormat("en-US", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+    timeZone: "UTC", timeZoneName: "short",
+  }).format(expiresAt);
   const subject = `${professorName} has invited you to Spanish Class`;
 
   const html = `

@@ -7,12 +7,12 @@
  * - 44–48px minimum height
  * - Start–end time in tabular numerals
  * - Duration as secondary text only if options vary
- * - Clear selected state with border, ring, and check icon
+ * - Selecting a slot opens the review drawer immediately; no persistent local selection state.
  * - Pending bookings (awaiting professor approval) surface with the
  *   `requested` tone (amber "Approval needed") — never green — so a student
  *   never mistakes a request for an approved lesson.
  */
-import { CheckCircle2, Clock3 } from 'lucide-react';
+import { CheckCircle2, Clock3, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { formatTime } from '@/lib/utils';
@@ -24,10 +24,11 @@ export interface AvailableTimeOptionProps {
     /** null when the student has no active booking for this slot */
     myBookingStatus?: 'pending' | 'confirmed' | null;
   };
-  selected?: boolean;
   onSelect: (slot: AvailabilitySlot) => void;
   /** Show duration label when options have varying lengths */
   showDuration?: boolean;
+  /** Slot start time is in the past — rendered dimmed and non-interactive */
+  isPast?: boolean;
 }
 
 function getDurationLabel(startTime: Date | string, endTime: Date | string): string {
@@ -42,61 +43,103 @@ function getDurationLabel(startTime: Date | string, endTime: Date | string): str
 
 export function AvailableTimeOption({
   slot,
-  selected = false,
   onSelect,
   showDuration = false,
+  isPast = false,
 }: AvailableTimeOptionProps) {
   const { t } = useTranslation('booking');
   const isBookedByMe = slot.isBookedByMe ?? false;
   const myStatus     = slot.myBookingStatus ?? null;
   const isPending    = isBookedByMe && myStatus === 'pending';
   const isConfirmed  = isBookedByMe && myStatus === 'confirmed';
+  const isDisabled   = isBookedByMe || isPast;
   const duration     = getDurationLabel(slot.startTime, slot.endTime);
 
   return (
     <button
       type="button"
-      disabled={isBookedByMe}
-      onClick={() => !isBookedByMe && onSelect(slot)}
-      aria-pressed={selected}
+      disabled={isDisabled}
+      onClick={() => !isDisabled && onSelect(slot)}
       className={cn(
-        'w-full flex items-center justify-between px-4 min-h-touch rounded-ui-sm border',
+        'group relative w-full flex items-center gap-3 pl-4 pr-4 py-3.5 rounded-ui-md border overflow-hidden',
         'text-left transition-colors duration-micro',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1',
-        selected
-          ? 'border-brand bg-status-confirmed-surface text-status-confirmed-foreground ring-1 ring-brand'
+        isPast
+          ? 'border-line bg-canvas text-ink-tertiary cursor-not-allowed opacity-50'
           : isPending
           ? 'border-status-requested-border bg-status-requested-surface text-status-requested-foreground cursor-not-allowed'
           : isConfirmed
           ? 'border-status-confirmed-border bg-status-confirmed-surface text-status-confirmed-foreground cursor-not-allowed'
-          : 'border-line bg-surface text-ink hover:border-brand hover:bg-surface-raised',
+          : 'cursor-pointer border-line bg-surface text-ink hover:border-brand hover:bg-surface-raised',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-1',
       )}
     >
-      {/* Time range */}
-      <div className="flex flex-col gap-0.5">
-        <span className="text-small font-semibold ui-tabular">
+      {/* Coloured left-accent bar for booked states */}
+      {(isPending || isConfirmed) && (
+        <span
+          aria-hidden="true"
+          className={cn(
+            'absolute left-0 top-0 bottom-0 w-1 rounded-l-ui-md',
+            isPending ? 'bg-status-requested-border' : 'bg-status-confirmed-border',
+          )}
+        />
+      )}
+
+      {/* Leading icon — bare glyph, no container */}
+      <span
+        aria-hidden="true"
+        className={cn(
+          'flex-shrink-0 w-5 h-5 flex items-center justify-center',
+          isPending || isConfirmed ? 'ml-2' : '',
+          isPast
+            ? 'text-ink-tertiary'
+            : isPending
+            ? 'text-status-requested-foreground'
+            : isConfirmed
+            ? 'text-status-confirmed-foreground'
+            : 'text-ink-tertiary group-hover:text-brand transition-colors duration-micro',
+        )}
+      >
+        {isConfirmed ? (
+          <CheckCircle2 className="h-4 w-4" />
+        ) : (
+          <Clock3 className="h-4 w-4" />
+        )}
+      </span>
+
+      {/* Time and label */}
+      <div className="flex-1 min-w-0">
+        <span className={cn(
+          'block text-title ui-tabular',
+          !isDisabled && 'group-hover:text-brand transition-colors duration-micro',
+        )}>
           {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
         </span>
-        {showDuration && !isBookedByMe && (
-          <span className="text-caption text-ink-tertiary">{duration}</span>
+        {isPast && (
+          <span className="block text-caption text-ink-tertiary mt-0.5">
+            {duration} · {t('slot.past_slot')}
+          </span>
         )}
-        {isPending && (
-          <span className="text-caption text-status-requested-foreground inline-flex items-center gap-1">
-            <Clock3 className="h-3 w-3" aria-hidden="true" />
+        {!isPast && showDuration && !isBookedByMe && (
+          <span className="block text-caption text-ink-tertiary mt-0.5">{duration}</span>
+        )}
+        {!isPast && isPending && (
+          <span className="block text-caption text-status-requested-foreground mt-0.5">
             {duration} · {t('slot.approval_needed')}
           </span>
         )}
-        {isConfirmed && (
-          <span className="text-caption text-status-confirmed-foreground inline-flex items-center gap-1">
-            <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
+        {!isPast && isConfirmed && (
+          <span className="block text-caption text-status-confirmed-foreground mt-0.5">
             {duration} · {t('slot.already_booked')}
           </span>
         )}
       </div>
 
-      {/* Selected indicator */}
-      {selected && (
-        <CheckCircle2 className="h-5 w-5 text-brand shrink-0" aria-hidden="true" />
+      {/* Chevron — only on interactive slots */}
+      {!isDisabled && (
+        <ChevronRight
+          aria-hidden="true"
+          className="flex-shrink-0 h-4 w-4 text-ink-tertiary group-hover:text-brand group-hover:translate-x-0.5 transition-all duration-micro"
+        />
       )}
     </button>
   );

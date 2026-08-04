@@ -21,9 +21,6 @@ export function Footer() {
 
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-small">
-            <Link to="/about" className="text-ink-secondary hover:text-ink transition-colors duration-micro">
-              {t("navigation.about")}
-            </Link>
             <Link to="/contact" className="text-ink-secondary hover:text-ink transition-colors duration-micro">
               {t("navigation.contact")}
             </Link>
@@ -32,11 +29,11 @@ export function Footer() {
               className="flex items-center gap-1.5 text-ink-secondary hover:text-ink transition-colors duration-micro"
             >
               <Mail className="h-4 w-4" aria-hidden="true" />
-              Email
+              {t("footer.email_label")}
             </a>
             <span className="flex items-center gap-1.5 text-ink-tertiary">
               <MapPin className="h-4 w-4" aria-hidden="true" />
-              Belgrade, Serbia
+              {t("footer.location")}
             </span>
           </div>
 
@@ -57,7 +54,7 @@ export function Footer() {
         <div className="mt-6 pt-6 border-t border-line">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-caption text-ink-tertiary text-center sm:text-left">
-              &copy; {new Date().getFullYear()} Spanish Class. All rights reserved.
+              &copy; {new Date().getFullYear()} Spanish Class. {t("footer.copyright")}
             </p>
             <LanguageSwitcher />
           </div>

@@ -7,7 +7,7 @@
  * Localization keys resolve through the 'booking' namespace.
  */
 
-import { BookingStatus, SlotStatus } from '@spanish-class/shared';
+import { BookingStatus, SlotStatus, SlotType } from '@spanish-class/shared';
 
 // ─── UI status type ────────────────────────────────────────────────────────
 
@@ -123,4 +123,23 @@ export function bookingStatusDefinition(status: BookingStatus): StatusDefinition
 
 export function slotStatusDefinition(status: SlotStatus): StatusDefinition {
   return uiStatusDefinition[slotStatusToUi(status)];
+}
+
+// ─── Slot + slotType combined display status ──────────────────────────────
+// Single authority for converting a full slot shape to a UI lifecycle status.
+// Considers slotType first so BLOCKED slots always render as 'blocked',
+// then falls through to booking-driven or slot-status-driven resolution.
+
+export function slotDisplayStatus(slot: {
+  slotType: SlotType;
+  status: SlotStatus;
+  bookings?: { status: BookingStatus }[];
+}): UiLifecycleStatus {
+  if (slot.slotType === SlotType.BLOCKED) return 'blocked';
+  const bookings = slot.bookings ?? [];
+  const pending = bookings.find(b => bookingStatusToUi(b.status) === 'requested');
+  if (pending) return 'requested';
+  const confirmed = bookings.find(b => bookingStatusToUi(b.status) === 'confirmed');
+  if (confirmed) return 'confirmed';
+  return slotStatusToUi(slot.status);
 }

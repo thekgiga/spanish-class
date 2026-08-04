@@ -89,6 +89,7 @@ export interface AvailabilitySlotWithProfessor extends AvailabilitySlot {
 
 export interface AvailabilitySlotWithBookings extends AvailabilitySlot {
   bookings: BookingWithStudent[];
+  allowedStudents?: { studentId: string; student?: { firstName: string; lastName: string } }[];
 }
 
 // Booking Types
@@ -144,6 +145,27 @@ export interface StudentNote {
   content: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+// Meeting Note — session-scoped note written during class
+export interface MeetingNote {
+  id: string;
+  bookingId?: string | null;
+  slotId?: string | null;
+  professorId: string;
+  agendaNotes?: string | null;
+  sessionNotes?: string | null;
+  homeworkNotes?: string | null;
+  studentObservation?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Session data returned by GET /professor/slots/:id/session
+export interface SessionData {
+  slot: AvailabilitySlotWithBookings;
+  note: MeetingNote;
+  recentStudentNotes: StudentNote[];
 }
 
 export interface StudentNoteWithProfessor extends StudentNote {

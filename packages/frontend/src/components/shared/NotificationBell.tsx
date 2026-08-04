@@ -1,28 +1,21 @@
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Bell, BellDot, Check, CheckCheck, X, Loader2, WifiOff } from "lucide-react";
+import { Bell, BellDot, CheckCheck, X, Loader2, WifiOff } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { useNotifications, type AppNotification } from "@/hooks/useNotifications";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useTranslation } from "react-i18next";
-import type { TFunction } from "i18next";
-
-function timeAgo(dateStr: string, t: TFunction): string {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const m = Math.floor(diff / 60_000);
-  if (m < 1) return t("notifications.just_now");
-  if (m < 60) return t("notifications.minutes_ago", { count: m });
-  const h = Math.floor(m / 60);
-  if (h < 24) return t("notifications.hours_ago", { count: h });
-  return t("notifications.days_ago", { count: Math.floor(h / 24) });
-}
+import { NotificationItem } from "@/components/ui/notification-item";
+import { useAuthStore } from "@/stores/auth";
 
 const PANEL_ID = "notification-panel";
 
 export function NotificationBell() {
   const { t } = useTranslation("common");
+  const { user } = useAuthStore();
   const { notifications, unreadCount, connected, hasMore, loadingMore, markRead, markAllRead, loadMore } =
     useNotifications();
+  const notificationsPath = user?.isAdmin ? "/admin/notifications" : "/dashboard/notifications";
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -142,53 +135,13 @@ export function NotificationBell() {
                   {t("notifications.empty")}
                 </div>
               ) : (
-                recent.map((n: AppNotification) => (
-                  <div
+                recent.map((n) => (
+                  <NotificationItem
                     key={n.id}
-                    role="listitem"
-                    className={cn(
-                      "flex items-start gap-3 px-4 py-3 border-b border-line last:border-0",
-                      "hover:bg-surface-muted transition-colors duration-micro cursor-default",
-                      !n.readAt && "bg-surface-raised",
-                    )}
-                    onClick={() => !n.readAt && markRead(n.id)}
-                  >
-                    <div className="flex-1 min-w-0">
-                      {n.href ? (
-                        <Link
-                          to={n.href}
-                          onClick={() => {
-                            if (!n.readAt) markRead(n.id);
-                            setOpen(false);
-                          }}
-                          className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded-ui-xs"
-                        >
-                          <p className={cn("text-small text-ink leading-snug", !n.readAt && "font-semibold")}>
-                            {n.title}
-                          </p>
-                          <p className="text-caption text-ink-secondary mt-0.5 line-clamp-2">{n.body}</p>
-                        </Link>
-                      ) : (
-                        <>
-                          <p className={cn("text-small text-ink leading-snug", !n.readAt && "font-semibold")}>
-                            {n.title}
-                          </p>
-                          <p className="text-caption text-ink-secondary mt-0.5 line-clamp-2">{n.body}</p>
-                        </>
-                      )}
-                      <p className="text-micro text-ink-tertiary mt-1">{timeAgo(n.createdAt, t)}</p>
-                    </div>
-                    {!n.readAt && (
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); markRead(n.id); }}
-                        aria-label={t("notifications.mark_as_read")}
-                        className="shrink-0 p-1 rounded-ui-xs hover:bg-surface-muted text-ink-tertiary hover:text-ink mt-0.5 transition-colors duration-micro"
-                      >
-                        <Check className="w-3.5 h-3.5" aria-hidden="true" />
-                      </button>
-                    )}
-                  </div>
+                    notification={n}
+                    onMarkRead={markRead}
+                    compact
+                  />
                 ))
               )}
             </div>
@@ -210,6 +163,17 @@ export function NotificationBell() {
                 </button>
               </div>
             )}
+
+            {/* See all footer */}
+            <div className="border-t border-line px-4 py-2.5 text-center">
+              <Link
+                to={notificationsPath}
+                onClick={() => setOpen(false)}
+                className="text-caption text-brand hover:text-brand-hover font-semibold transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus rounded-ui-xs"
+              >
+                {t("notifications.see_all")}
+              </Link>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

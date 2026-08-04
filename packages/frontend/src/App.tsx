@@ -17,9 +17,6 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 const HomePage = lazy(() =>
   import("@/pages/public/HomePage").then((m) => ({ default: m.HomePage })),
 );
-const AboutPage = lazy(() =>
-  import("@/pages/public/AboutPage").then((m) => ({ default: m.AboutPage })),
-);
 const ContactPage = lazy(() =>
   import("@/pages/public/ContactPage").then((m) => ({
     default: m.ContactPage,
@@ -71,9 +68,6 @@ const AdminInsightsPage = lazy(() =>
 const SlotsPage = lazy(() =>
   import("@/pages/admin/SlotsPage").then((m) => ({ default: m.SlotsPage })),
 );
-const NewSlotPage = lazy(() =>
-  import("@/pages/admin/NewSlotPage").then((m) => ({ default: m.NewSlotPage })),
-);
 const StudentsPage = lazy(() =>
   import("@/pages/admin/StudentsPage").then((m) => ({
     default: m.StudentsPage,
@@ -110,6 +104,11 @@ const PendingApprovalsPage = lazy(() =>
     default: m.PendingApprovalsPage,
   })),
 );
+const SessionPage = lazy(() =>
+  import("@/pages/admin/SessionPage").then((m) => ({
+    default: m.SessionPage,
+  })),
+);
 
 // Lazy-loaded Student Pages
 const StudentDashboard = lazy(() =>
@@ -128,6 +127,16 @@ const BookingsPage = lazy(() =>
 const StudentProfilePage = lazy(() =>
   import("@/pages/student/StudentProfilePage").then((m) => ({
     default: m.StudentProfilePage,
+  })),
+);
+const NotificationsPage = lazy(() =>
+  import("@/pages/shared/NotificationsPage").then((m) => ({
+    default: m.NotificationsPage,
+  })),
+);
+const HomeworkPage = lazy(() =>
+  import("@/pages/student/HomeworkPage").then((m) => ({
+    default: m.HomeworkPage,
   })),
 );
 
@@ -207,7 +216,6 @@ function AppRoutes() {
           {/* Public Routes */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/design-showcase" element={<DesignShowcase />} />
             <Route path="/design-system" element={<DesignSystemPage />} />
@@ -256,9 +264,7 @@ function AppRoutes() {
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="insights" element={<AdminInsightsPage />} />
             <Route path="slots" element={<SlotsPage />} />
-            <Route path="slots/new" element={<NewSlotPage />} />
             <Route path="slots/bulk" element={<BulkSlotPage />} />
-            <Route path="slots/:id" element={<NewSlotPage />} />
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:id" element={<StudentDetailPage />} />
             <Route
@@ -266,8 +272,10 @@ function AppRoutes() {
               element={<PendingApprovalsPage />}
             />
             <Route path="email-logs" element={<EmailLogsPage />} />
+            <Route path="session/:slotId" element={<SessionPage />} />
             <Route path="settings/security" element={<SecuritySettingsPage />} />
             <Route path="settings" element={<ProfessorSettingsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
           </Route>
 
           {/* Student Routes */}
@@ -282,9 +290,11 @@ function AppRoutes() {
             <Route index element={<StudentDashboard />} />
             <Route path="book" element={<BookPage />} />
             <Route path="bookings" element={<BookingsPage />} />
+            <Route path="homework" element={<HomeworkPage />} />
             <Route path="profile" element={<StudentProfilePage />} />
             <Route path="referrals" element={<ReferralPage />} />
             <Route path="choose-professor" element={<ChooseProfessorPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
           </Route>
 
           {/* 404 */}
@@ -332,7 +342,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       {/* Global reduced-motion gate — covers all framer-motion usage in the app */}
       <MotionConfig reducedMotion="user">
-        <BrowserRouter>
+        <BrowserRouter
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
           <AppRoutes />
           <DismissibleToaster />
         </BrowserRouter>

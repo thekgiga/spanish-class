@@ -13,6 +13,7 @@ import {
 } from "@spanish-class/shared";
 import type { AvailabilitySlot, UserPublic } from "@spanish-class/shared";
 import { applyRejectionSideEffects } from "../services/bookingRejection.js";
+import { createNotification } from "../services/notifications.js";
 
 const router = Router();
 
@@ -110,6 +111,15 @@ router.post("/confirm-booking", validate(confirmBookingSchema), async (req, res,
       student: booking.student,
       price: pricing?.priceRSD,
     });
+
+    // In-app notification to student (mirrors the admin-panel confirm path)
+    createNotification(
+      booking.studentId,
+      "booking_confirmed",
+      "Booking confirmed!",
+      `${booking.slot.professor.firstName} confirmed your booking for ${booking.slot.title || "Spanish Class"}.`,
+      "/dashboard/bookings",
+    ).catch(() => {});
 
     res.json({
       success: true,

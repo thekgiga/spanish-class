@@ -76,4 +76,8 @@ workbox-*.js
 # Playwright test artifacts
 packages/frontend/test-results/
 packages/frontend/playwright-report/
+packages/frontend/test-results.json
+test-results/
+playwright-report/
+.playwright-mcp/
 

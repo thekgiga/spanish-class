@@ -206,34 +206,37 @@ router.get(
         };
 
       const now = new Date();
+      const studentId = req.user!.id;
 
-      // Build where clause based on forMeOnly filter
-      // forMeOnly=true: Only show private slots specifically assigned to this student
-      // forMeOnly=false/undefined: Show public slots OR private slots assigned to this student
-      const where: Record<string, unknown> = {
-        status: "AVAILABLE",
-        slotType: { not: "BLOCKED" },
-        startTime: { gte: startDate ? new Date(startDate) : now },
-        ...(forMeOnly === "true"
-          ? {
-              // Only private slots assigned to this student
-              isPrivate: true,
-              allowedStudents: {
-                some: { studentId: req.user!.id },
-              },
-            }
+      // Visibility condition for AVAILABLE slots (respects forMeOnly flag)
+      const availableVisibility: Record<string, unknown> =
+        forMeOnly === "true"
+          ? { isPrivate: true, allowedStudents: { some: { studentId } } }
           : {
-              // Public slots OR private slots assigned to this student
               OR: [
                 { isPrivate: false },
-                {
-                  isPrivate: true,
-                  allowedStudents: {
-                    some: { studentId: req.user!.id },
-                  },
-                },
+                { isPrivate: true, allowedStudents: { some: { studentId } } },
               ],
-            }),
+            };
+
+      // Include AVAILABLE slots visible to this student OR any slot the student
+      // has already booked (pending/confirmed) — the latter may be FULLY_BOOKED
+      // after the participant count incremented, so filtering on status:"AVAILABLE"
+      // alone would hide the student's own pending lesson from the booking page.
+      const where: Record<string, unknown> = {
+        slotType: { not: "BLOCKED" },
+        startTime: { gte: startDate ? new Date(startDate) : now },
+        OR: [
+          { status: "AVAILABLE", ...availableVisibility },
+          {
+            bookings: {
+              some: {
+                studentId,
+                status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
+              },
+            },
+          },
+        ],
       };
 
       if (endDate) {
@@ -247,7 +250,6 @@ router.get(
       }
 
       // Scope slots to assigned professor(s) if student is assigned
-      const studentId = req.user!.id;
       const assignment = await prisma.professorStudent.findUnique({
         where: { studentId },
         select: { professorId: true },
@@ -285,7 +287,7 @@ router.get(
             },
             bookings: {
               where: {
-                studentId: req.user!.id,
+                studentId,
                 status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] },
               },
               select: {
@@ -702,6 +704,105 @@ router.get("/slots/:id/waitlist-position", async (req, res, next) => {
       success: true,
       data: { position: entry?.position ?? null, waitlisted: !!entry },
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/student/bookings/:id/notes — homework only for a completed lesson (professor-only fields excluded)
+router.get("/bookings/:id/notes", async (req, res, next) => {
+  try {
+    const booking = await prisma.booking.findFirst({
+      where: { id: req.params.id, studentId: req.user!.id },
+      select: { slotId: true, status: true },
+    });
+
+    if (!booking) {
+      res.status(404).json({ success: false, error: "Booking not found" });
+      return;
+    }
+
+    const note = await (prisma.meetingNote as any).findFirst({
+      where: { slotId: booking.slotId },
+      select: {
+        id: true,
+        homeworkNotes: true,
+        // sessionNotes, agendaNotes, studentObservation are professor-only — never exposed to students
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.json({ success: true, data: note ?? null });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/student/homework — all homework notes across completed lessons, newest first
+// Requires: authenticated student. Queries are scoped to req.user!.id — students can only read their own data.
+router.get("/homework", async (req, res, next) => {
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: {
+        studentId: req.user!.id,
+        status: "COMPLETED",
+      },
+      select: {
+        id: true,
+        slot: {
+          select: {
+            id: true,
+            startTime: true,
+            endTime: true,
+            professorId: true,
+            professor: {
+              select: { firstName: true, lastName: true },
+            },
+          },
+        },
+      },
+      orderBy: { slot: { startTime: "desc" } },
+    });
+
+    const slotIds = bookings.map((b) => b.slot.id);
+
+    const notes = await (prisma.meetingNote as any).findMany({
+      where: {
+        slotId: { in: slotIds },
+        homeworkNotes: { not: null },
+      },
+      select: {
+        id: true,
+        slotId: true,
+        homeworkNotes: true,
+        // sessionNotes, agendaNotes, studentObservation are professor-only — never exposed to students
+        updatedAt: true,
+      },
+    });
+
+    const notesBySlot: Record<string, { id: string; homeworkNotes: string; updatedAt: string }> = {};
+    for (const n of notes) {
+      if (n.homeworkNotes) notesBySlot[n.slotId] = n;
+    }
+
+    const result = bookings
+      .filter((b) => notesBySlot[b.slot.id])
+      .map((b) => {
+        const note = notesBySlot[b.slot.id];
+        return {
+          bookingId: b.id,
+          slotId: b.slot.id,
+          startTime: b.slot.startTime,
+          endTime: b.slot.endTime,
+          professor: b.slot.professor,
+          homeworkNotes: note.homeworkNotes,
+          noteId: note.id,
+          updatedAt: note.updatedAt,
+        };
+      });
+
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }

@@ -6,6 +6,9 @@
     "mark_as_read": "Mark as read",
     "unread_count": "{{count}} unread",
     "load_more": "Load more",
+    "see_all": "See all notifications →",
+    "page_title": "Notifications",
+    "page_description": "Your recent activity and updates",
     "reconnecting": "Reconnecting to live updates…",
     "just_now": "just now",
     "minutes_ago": "{{count}}m ago",
@@ -62,6 +65,7 @@
     "insights": "Insights",
     "bookALesson": "Book a Lesson",
     "myLessons": "My Lessons",
+    "homework": "Homework",
     "two_factor_nudge": "2-factor authentication not enabled"
   },
   "time": {
@@ -226,7 +230,10 @@
     "generic": "Loading…"
   },
   "footer": {
-    "instagram_title": "Follow us on Instagram"
+    "instagram_title": "Follow us on Instagram",
+    "email_label": "Email",
+    "location": "Belgrade, Serbia",
+    "copyright": "All rights reserved."
   },
   "aria_labels": {
     "mobile_navigation": "Mobile navigation",

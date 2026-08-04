@@ -155,6 +155,17 @@
     "select_button": "Select",
     "selected_success": "Professor selected! You can now book classes."
   },
+  "homework": {
+    "page_title": "Homework",
+    "page_subtitle": "Review assignments left by your professor after each completed lesson",
+    "section_label": "Homework",
+    "empty_title": "No homework yet",
+    "empty_description": "Homework assigned after completed lessons will appear here",
+    "from_lesson_on": "Lesson on {{date}}",
+    "with_professor": "with {{name}}",
+    "updated": "Updated {{date}}",
+    "error": "Could not load homework. Please try again."
+  },
   "detail": {
     "overview_tab":     "Overview",
     "lessons_tab":      "Lessons",
@@ -176,6 +187,16 @@
     "note_saved":                "Note saved.",
     "note_deleted":              "Note deleted.",
     "learning_goals_label":      "Learning goals",
-    "cancel_note":               "Cancel"
+    "cancel_note":               "Cancel",
+    "session_notes_section":     "Session notes",
+    "session_notes_class":       "Class notes",
+    "session_notes_homework":    "Homework",
+    "session_notes_observation": "Observation",
+    "session_notes_empty":       "No session notes yet.",
+    "personal_notes_section":    "Personal notes",
+    "filter_all":                "All",
+    "filter_class_notes":        "Class notes",
+    "filter_homework":           "Homework",
+    "filter_observations":       "Observations"
   }
 }
