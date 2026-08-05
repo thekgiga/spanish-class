@@ -83,7 +83,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: Run visual-tagged tests
         run: npx playwright test --grep @visual
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: visual-regression-results
