@@ -40,9 +40,12 @@ All under `/dashboard`. Guard: authenticated, not admin.
 | `/dashboard` | `StudentDashboard` |
 | `/dashboard/book` | `BookPage` |
 | `/dashboard/bookings` | `BookingsPage` |
+| `/dashboard/homework` | `HomeworkPage` |
 | `/dashboard/profile` | `StudentProfilePage` |
 | `/dashboard/referrals` | `ReferralPage` |
 | `/dashboard/choose-professor` | `ChooseProfessorPage` |
+| `/dashboard/feedback/:bookingId` | `FeedbackPage` |
+| `/dashboard/notifications` | `NotificationsPage` |
 
 ### Admin/Professor (`ProtectedRoute requireAdmin` → `DashboardLayout isAdmin`)
 
@@ -50,18 +53,23 @@ All under `/admin`. Guard: authenticated and `user.isAdmin === true`.
 
 | Path | Page component |
 |---|---|
-| `/admin` | `AdminDashboard` |
+| `/admin` | `CalendarPage` (index — Schedule is the professor landing) |
+| `/admin/dashboard` | `AdminDashboard` |
 | `/admin/calendar` | `CalendarPage` |
+| `/admin/insights` | `AdminInsightsPage` |
 | `/admin/slots` | `SlotsPage` |
-| `/admin/slots/new` | `NewSlotPage` |
 | `/admin/slots/bulk` | `BulkSlotPage` |
-| `/admin/slots/:id` | `NewSlotPage` (edit mode) |
 | `/admin/students` | `StudentsPage` |
 | `/admin/students/:id` | `StudentDetailPage` |
 | `/admin/pending-approvals` | `PendingApprovalsPage` |
 | `/admin/email-logs` | `EmailLogsPage` |
+| `/admin/feedback` | `FeedbackDashboard` |
+| `/admin/session/:slotId` | `SessionPage` (In-Class Mode) |
 | `/admin/settings/security` | `SecuritySettingsPage` |
 | `/admin/settings` | `ProfessorSettingsPage` |
+| `/admin/notifications` | `NotificationsPage` |
+
+> Slot creation/editing no longer uses a dedicated `NewSlotPage` route — it happens contextually via `SlotFormDrawer` from the calendar (`CalendarPage`). `NewSlotPage.tsx` was removed in the `feat/system-redesign` merge.
 
 ## Orphaned page files (Phase 1 decides delete vs route)
 
