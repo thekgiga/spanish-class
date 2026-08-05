@@ -66,12 +66,44 @@
     "james_content": "Grupni časovi su zanimljivi i zabavni! Odličan način da vežbate sa drugima na istom nivou.",
     "emily_name": "Emilija Rodriguez",
     "emily_role": "Entuzijasta putovanja",
-    "emily_content": "Fleksibilno raspoređivanje je savršeno. Mogu lako da zakažem sesije oko mog zauzetog rasporeda."
+    "emily_content": "Fleksibilno raspoređivanje je savršeno. Mogu lako da zakažem sesije oko mog zauzetog rasporeda.",
+    "rating_aria": "{{rating}} od 5 zvezdica"
   },
   "cta": {
+    "badge": "Počnite",
     "title": "Spremni da savladate španski?",
     "subtitle": "Pridružite se našoj živopisnoj zajednici i doživite radost učenja španskog sa strastvenim nastavnicima!",
     "button_primary": "Započnite svoje špansko putovanje",
     "button_secondary": "Kontaktirajte nas"
+  },
+  "paella": {
+    "sticky_headline": "Učite španski, sastojak po sastojak.",
+    "step1_label": "1: OSNOVA",
+    "step1_copy": "Svaki razgovor počinje jednom jedinom rečju.",
+    "step2_label": "2: VOKABULAR",
+    "step2_copy": "300 reči. To je sve što vam treba za početak.",
+    "step3_label": "3: GRAMATIKA",
+    "step3_copy": "Struktura daje oblik ukusu.",
+    "step4_label": "4: IZGOVOR",
+    "step4_copy": "Pustite jezik da diše.",
+    "step5_label": "5: RAZGOVOR",
+    "step5_copy": "Ahora hablas español.",
+    "cta": "Počnite prvi čas"
+  },
+  "dashboard": {
+    "seo_title":              "Moja kontrolna tabla",
+    "seo_description":        "Vaši predstojeći časovi, zahtevi na čekanju i aktivnost.",
+    "next_lesson_title":        "Sledeći čas",
+    "pending_title":            "Čeka odobrenje",
+    "no_upcoming_title":        "Nema predstojećih časova",
+    "no_upcoming_description":  "Spremi za vežbanje? Zakažite sledeću sesiju.",
+    "book_action":              "Zakažite čas",
+    "recent_activity":          "Nedavna aktivnost",
+    "no_recent_activity":       "Još nema časova.",
+    "meeting_opens_in_hours":   "Pristupanje za {{count}} h",
+    "meeting_opens_in_minutes": "Pristupanje za {{count}} min",
+    "meeting_open":             "Sastanak je otvoren",
+    "meeting_window_hint":      "Link za sastanak se otvara 5 minuta pre časa.",
+    "join_lesson":              "Pridruži se"
   }
 }

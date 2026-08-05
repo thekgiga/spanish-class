@@ -1,13 +1,17 @@
-import { useState } from "react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import {
+  StudentDashboardSkeleton,
+  AdminShellSkeleton,
+} from "@/components/shared/RouteSkeletons";
 import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
 import { updateLanguagePreference } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { EmailVerificationBanner } from "@/components/shared/EmailVerificationBanner";
+import { InProgressBanner } from "@/components/shared/InProgressBanner";
 import { NotificationBell } from "@/components/shared/NotificationBell";
 import {
-  LayoutDashboard,
   Calendar,
   BookOpen,
   Users,
@@ -15,49 +19,123 @@ import {
   Menu,
   X,
   ChevronLeft,
-  Mail,
-  UserCircle,
-  Shield,
   Settings,
-  Gift,
   MessageSquare,
+  Home,
+  User,
+  TrendingUp,
+  GraduationCap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuthStore } from "@/stores/auth";
 import { getInitials } from "@/lib/utils";
 import { usePendingBookingsCount } from "@/hooks/usePendingBookingsCount";
+import {
+  AppSkipLink,
+  AppSidebar,
+  AppTopbar,
+  AppMain,
+} from "@/components/ui/app-shell";
 
-interface NavItem {
-  href: string;
-  label: string;
+// ── Nav item definitions ───────────────────────────────────────────────────
+
+interface NavItemDef {
+  to: string;
+  labelKey: string;
   icon: React.ElementType;
-  badge?: string;
+  end?: boolean;
 }
 
-const adminNavItems: NavItem[] = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/calendar", label: "Calendar", icon: Calendar },
-  { href: "/admin/slots", label: "Availability", icon: BookOpen },
-  { href: "/admin/students", label: "Students", icon: Users },
-  { href: "/admin/feedback", label: "Feedback", icon: MessageSquare },
-  { href: "/admin/email-logs", label: "Email Logs", icon: Mail },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
-  { href: "/admin/settings/security", label: "Security", icon: Shield },
+const ADMIN_NAV: NavItemDef[] = [
+  { to: "/admin",          labelKey: "navigation.schedule",  icon: Calendar,       end: true },
+  { to: "/admin/students", labelKey: "navigation.students",  icon: Users },
+  { to: "/admin/insights", labelKey: "navigation.insights",  icon: TrendingUp },
+  { to: "/admin/feedback", labelKey: "navigation.feedback",  icon: MessageSquare },
+  { to: "/admin/settings", labelKey: "navigation.settings",  icon: Settings },
 ];
 
-const studentNavItems: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  {
-    href: "/dashboard/book",
-    label: "Book Class",
-    icon: Calendar,
-    badge: "New",
-  },
-  { href: "/dashboard/bookings", label: "My Bookings", icon: BookOpen },
-  { href: "/dashboard/referrals", label: "Referrals", icon: Gift },
-  { href: "/dashboard/profile", label: "My Profile", icon: UserCircle },
+const STUDENT_NAV: NavItemDef[] = [
+  { to: "/dashboard",          labelKey: "navigation.home",        icon: Home,          end: true },
+  { to: "/dashboard/book",     labelKey: "navigation.bookALesson", icon: Calendar },
+  { to: "/dashboard/bookings", labelKey: "navigation.myLessons",   icon: BookOpen },
+  { to: "/dashboard/homework", labelKey: "navigation.homework",    icon: GraduationCap },
+  { to: "/dashboard/profile",  labelKey: "navigation.profile",     icon: User },
 ];
+
+// ── Logo mark ──────────────────────────────────────────────────────────────
+
+function LogoMark({ className }: { className?: string }) {
+  return (
+    <div className={cn("h-9 w-9 rounded-ui-sm bg-brand flex items-center justify-center shrink-0", className)}>
+      <span className="text-brand-contrast font-semibold text-title">S</span>
+    </div>
+  );
+}
+
+// ── Language switcher ──────────────────────────────────────────────────────
+
+function LangSwitcher() {
+  return (
+    <div className="flex items-center gap-0.5">
+      {(["en", "sr", "es"] as const).map((lang) => (
+        <button
+          key={lang}
+          type="button"
+          onClick={() => {
+            i18n.changeLanguage(lang);
+            updateLanguagePreference(lang).catch(() => {});
+          }}
+          className={cn(
+            "px-2 py-1 rounded-ui-xs text-caption font-semibold uppercase tracking-wide transition-colors duration-micro",
+            i18n.language.startsWith(lang)
+              ? "bg-brand/10 text-brand"
+              : "text-ink-tertiary hover:text-ink hover:bg-surface-muted",
+          )}
+        >
+          {lang}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Single nav item ────────────────────────────────────────────────────────
+
+interface NavItemProps extends NavItemDef {
+  collapsed: boolean;
+  badge?: React.ReactNode;
+}
+
+function SideNavItem({ to, labelKey, icon: Icon, end, collapsed, badge }: NavItemProps) {
+  const { t } = useTranslation("common");
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center gap-3 px-3 py-2.5 rounded-ui-sm text-small font-semibold",
+          "transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+          isActive
+            ? "bg-brand text-brand-contrast"
+            : "text-ink-secondary hover:text-ink hover:bg-surface-muted",
+          collapsed && "justify-center px-2",
+        )
+      }
+    >
+      <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
+      {!collapsed && (
+        <>
+          <span className="flex-1 truncate">{t(labelKey)}</span>
+          {badge}
+        </>
+      )}
+    </NavLink>
+  );
+}
+
+// ── Main layout ────────────────────────────────────────────────────────────
 
 interface DashboardLayoutProps {
   isAdmin?: boolean;
@@ -67,231 +145,240 @@ export function DashboardLayout({ isAdmin = false }: DashboardLayoutProps) {
   const { t } = useTranslation("common");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, twoFactorEnabled } = useAuthStore();
-
-  const navItems = isAdmin ? adminNavItems : studentNavItems;
-
   const { data: pendingData } = usePendingBookingsCount(isAdmin);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+
+  const navItems = isAdmin ? ADMIN_NAV : STUDENT_NAV;
+  const pendingCount = isAdmin && pendingData?.count && pendingData.count > 0 ? pendingData.count : null;
+
+  // ── Mobile sidebar keyboard/focus management ─────────────────────────────
+
+  // Escape closes the sidebar and returns focus to the hamburger
+  useEffect(() => {
+    if (!sidebarOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setSidebarOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [sidebarOpen]);
+
+  // Move focus into the sidebar when it opens
+  useEffect(() => {
+    if (sidebarOpen) {
+      // Focus the first focusable element inside the sidebar
+      const first = sidebarRef.current?.querySelector<HTMLElement>(
+        "a, button, [tabindex]:not([tabindex='-1'])",
+      );
+      first?.focus();
+    }
+  }, [sidebarOpen]);
 
   const handleLogout = async () => {
     await logout();
     navigate("/");
   };
 
-  const isActive = (href: string) => {
-    // Exact match for dashboard/admin root
-    if (href === "/admin" || href === "/dashboard") {
-      return location.pathname === href;
-    }
-    // For sub-routes, check exact match or if it's a parent path followed by /
-    return (
-      location.pathname === href || location.pathname.startsWith(href + "/")
-    );
-  };
+  // Pending-approval badge for professor "Schedule" nav item
+  const pendingBadge = pendingCount ? (
+    <span
+      className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-status-requested-foreground text-caption font-bold text-status-requested-surface"
+      aria-hidden="true"
+    >
+      {pendingCount > 9 ? "9+" : pendingCount}
+    </span>
+  ) : null;
+
+  // Accessible text for pending count (sr-only)
+  const pendingLabel = pendingCount ? (
+    <span className="sr-only">
+      {t("navigation.pending_count", { count: pendingCount })}
+    </span>
+  ) : null;
+
+  // 2FA nudge badge for Settings nav item
+  const twoFaBadge = isAdmin && !twoFactorEnabled ? (
+    <>
+      <span className="h-2 w-2 rounded-full bg-feedback-warning shrink-0" aria-hidden="true" />
+      <span className="sr-only">{t("navigation.two_factor_nudge")}</span>
+    </>
+  ) : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-spanish-teal-50 via-white to-spanish-coral-50">
-      {/* Mobile sidebar backdrop */}
+    <div className="relative min-h-screen bg-canvas">
+      <AppSkipLink />
+
+      {/* Mobile backdrop */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
+            key="backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden"
-            onClick={() => setSidebarOpen(false)}
+            transition={{ duration: 0.18 }}
+            className="fixed inset-0 z-40 bg-surface-inverse/40 lg:hidden"
+            onClick={() => { setSidebarOpen(false); menuButtonRef.current?.focus(); }}
+            aria-hidden="true"
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
-      <aside
+      {/* ── Sidebar ─────────────────────────────────────────────────────── */}
+      <div ref={sidebarRef}>
+      <AppSidebar
+        collapsed={collapsed}
+        id="sidebar-panel"
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen transition-all duration-300 ease-in-out",
-          collapsed ? "w-20" : "w-72",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          "z-50 transition-transform lg:transition-all",
         )}
       >
-        <div className="h-full bg-white border-r border-slate-200 shadow-xl flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-slate-200">
-            {!collapsed && (
-              <Link to="/" className="flex items-center gap-3 group">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 flex items-center justify-center shadow-lg shadow-spanish-teal-500/30 group-hover:scale-110 transition-transform">
-                  <span className="text-white font-display text-lg font-bold">
-                    S
-                  </span>
-                </div>
-                <span className="font-display text-lg font-bold text-slate-900">
-                  Spanish Class
-                </span>
-              </Link>
-            )}
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="hidden lg:flex p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              <ChevronLeft
-                className={cn(
-                  "h-5 w-5 transition-transform",
-                  collapsed && "rotate-180",
-                )}
-              />
-            </button>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* User info */}
-          {user && !collapsed && (
-            <div className="p-4 border-b border-slate-200">
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-spanish-teal-50 to-spanish-coral-50 border-2 border-spanish-teal-200">
-                <Avatar className="h-10 w-10 ring-2 ring-spanish-teal-200">
-                  <AvatarFallback className="bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 text-white font-semibold">
-                    {getInitials(user.firstName, user.lastName)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-slate-900 truncate">
-                    {user.firstName} {user.lastName}
-                  </p>
-                  <p className="text-xs text-slate-600 truncate">
-                    {user.email}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Language switcher */}
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-4 border-b border-line shrink-0">
           {!collapsed && (
-            <div className="px-4 py-2 border-b border-slate-100">
-              <div className="flex items-center gap-1">
-                {(["en", "sr", "es"] as const).map((lang) => (
-                  <button
-                    key={lang}
-                    type="button"
-                    onClick={() => {
-                      i18n.changeLanguage(lang);
-                      updateLanguagePreference(lang).catch(() => {});
-                    }}
-                    className={cn(
-                      "px-2.5 py-1 rounded-md text-xs font-semibold uppercase tracking-wide transition-colors",
-                      i18n.language.startsWith(lang)
-                        ? "bg-spanish-teal-100 text-spanish-teal-700"
-                        : "text-slate-400 hover:text-slate-600 hover:bg-slate-100",
-                    )}
-                  >
-                    {lang}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <NavLink to="/" className="flex items-center gap-2.5 min-w-0">
+              <LogoMark />
+              <span className="font-semibold text-title text-ink truncate">Spanish Class</span>
+            </NavLink>
           )}
-
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4 space-y-1">            {navItems.map((item) => {
-              const active = isActive(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all",
-                    active
-                      ? "bg-spanish-teal-500 text-white shadow-lg border-2 border-spanish-teal-600"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-spanish-teal-50",
-                    collapsed && "justify-center",
-                  )}
-                >
-                  <item.icon className="h-5 w-5 flex-shrink-0" />
-                  {!collapsed && (
-                    <>
-                      <span className="flex-1">{item.label}</span>
-                      {item.badge && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-700 px-2 py-0.5 text-xs font-bold">
-                          {item.badge}
-                        </span>
-                      )}
-                      {isAdmin &&
-                        item.href === "/admin" &&
-                        pendingData?.count &&
-                        pendingData.count > 0 && (
-                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-white shadow-lg">
-                            {pendingData.count}
-                          </span>
-                        )}
-                      {isAdmin &&
-                        item.href === "/admin/settings/security" &&
-                        !twoFactorEnabled && (
-                          <span className="w-2 h-2 rounded-full bg-yellow-400 flex-shrink-0" title="2FA not enabled" />
-                        )}
-                    </>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
-
-          {/* Logout button */}
-          <div className="p-4 border-t border-slate-200">
-            <button
-              onClick={handleLogout}
-              className={cn(
-                "flex w-full items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-slate-600 hover:text-red-600 hover:bg-red-50 transition-all",
-                collapsed && "justify-center",
-              )}
-            >
-              <LogOut className="h-5 w-5" />
-              {!collapsed && <span>{t("navigation.logout")}</span>}
-            </button>
-          </div>
+          {collapsed && <LogoMark />}
+          {/* Desktop collapse toggle */}
+          <button
+            type="button"
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={t("aria_labels.toggle_sidebar")}
+            className="hidden lg:flex p-1.5 rounded-ui-xs text-ink-tertiary hover:text-ink hover:bg-surface-muted transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} aria-hidden="true" />
+          </button>
+          {/* Mobile close */}
+          <button
+            type="button"
+            onClick={() => { setSidebarOpen(false); menuButtonRef.current?.focus(); }}
+            aria-label={t("aria_labels.close_sidebar")}
+            className="lg:hidden p-1.5 rounded-ui-xs text-ink-tertiary hover:text-ink hover:bg-surface-muted transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
-      </aside>
 
-      {/* Main content */}
-      <div
-        className={cn(
-          "transition-all duration-300",
-          collapsed ? "lg:ml-20" : "lg:ml-72",
-        )}
-      >
-        {/* Mobile header */}
-        <div className="lg:hidden sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-slate-200 p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 transition-all"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
-            <div className="flex items-center gap-2">
-              <NotificationBell />
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 flex items-center justify-center shadow-lg shadow-spanish-teal-500/30">
-                <span className="text-white font-display text-sm font-bold">
-                  S
-                </span>
+        {/* User identity (expanded only) */}
+        {user && !collapsed && (
+          <div className="px-4 py-3 border-b border-line shrink-0">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-9 w-9 shrink-0">
+                <AvatarFallback className="bg-brand text-brand-contrast text-caption font-semibold">
+                  {getInitials(user.firstName, user.lastName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-small font-semibold text-ink truncate">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="text-caption text-ink-tertiary truncate">{user.email}</p>
               </div>
-              <span className="font-display text-lg font-bold text-slate-900">
-                Spanish Class
-              </span>
             </div>
-            <div className="w-10" /> {/* Spacer for centering */}
           </div>
+        )}
+
+        {/* Language switcher (expanded only) */}
+        {!collapsed && (
+          <div className="px-4 py-2 border-b border-line shrink-0">
+            <LangSwitcher />
+          </div>
+        )}
+
+        {/* Navigation */}
+        <nav
+          className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5"
+          aria-label={t("aria_labels.primary_navigation")}
+          id="primary-nav"
+        >
+          {navItems.map((item) => (
+            <SideNavItem
+              key={item.to}
+              {...item}
+              collapsed={collapsed}
+              badge={
+                item.to === "/admin" ? (
+                  <>{pendingBadge}{pendingLabel}</>
+                ) : item.to === "/admin/settings" ? twoFaBadge
+                : undefined
+              }
+            />
+          ))}
+        </nav>
+
+        {/* Logout */}
+        <div className="px-3 py-3 border-t border-line shrink-0">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className={cn(
+              "flex w-full items-center gap-3 px-3 py-2.5 rounded-ui-sm text-small font-semibold",
+              "text-ink-secondary hover:text-feedback-danger hover:bg-feedback-danger/10",
+              "transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+              collapsed && "justify-center",
+            )}
+          >
+            <LogOut className="h-5 w-5 shrink-0" aria-hidden="true" />
+            {!collapsed && <span>{t("navigation.logout")}</span>}
+          </button>
+        </div>
+      </AppSidebar>
+      </div>
+
+      {/* ── Topbar ──────────────────────────────────────────────────────── */}
+      <AppTopbar sidebarCollapsed={collapsed}>
+        {/* Mobile: hamburger */}
+        <button
+          ref={menuButtonRef}
+          type="button"
+          onClick={() => setSidebarOpen(true)}
+          aria-label={t("aria_labels.open_menu")}
+          aria-expanded={sidebarOpen}
+          aria-controls="sidebar-panel"
+          className="lg:hidden p-2 -ml-1 rounded-ui-sm text-ink-tertiary hover:text-ink hover:bg-surface-muted transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          <Menu className="h-5 w-5" aria-hidden="true" />
+        </button>
+
+        {/* Mobile: logo */}
+        <div className="lg:hidden flex items-center gap-2 mx-auto">
+          <LogoMark />
+          <span className="font-semibold text-title text-ink">Spanish Class</span>
         </div>
 
-        {/* Page content */}
+        <div className="flex-1" />
+
+        {/* Right: notification bell only — no duplicate avatar */}
+        <NotificationBell />
+      </AppTopbar>
+
+      {/* ── Main ────────────────────────────────────────────────────────── */}
+      <AppMain sidebarCollapsed={collapsed}>
         <EmailVerificationBanner />
-        <main className="p-6 sm:p-8 lg:p-12">
-          <Outlet />
-        </main>
-      </div>
+        {isAdmin && <InProgressBanner />}
+        <div className="p-6 sm:p-8">
+          {/*
+           * Nested Suspense boundary — keeps the sidebar/topbar mounted while
+           * the lazy-loaded page chunk downloads on first navigation after
+           * login. Without this, App.tsx's outer Suspense unmounts the whole
+           * shell and shows a generic 3-card fallback that looks like an
+           * empty dashboard until the user hits refresh.
+           */}
+          <Suspense fallback={isAdmin ? <AdminShellSkeleton /> : <StudentDashboardSkeleton />}>
+            <Outlet />
+          </Suspense>
+        </div>
+      </AppMain>
     </div>
   );
 }

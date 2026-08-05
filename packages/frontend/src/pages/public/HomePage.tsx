@@ -1,13 +1,20 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useMotionValueEvent,
+  useReducedMotion,
+  MotionValue,
+} from "framer-motion";
 import {
   Calendar,
   Video,
   Users,
   Star,
-  CheckCircle2,
   ArrowRight,
-  Sparkles,
   Globe,
   Award,
   MessageCircle,
@@ -15,567 +22,491 @@ import {
   Target,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { PrimaryButton } from "@/components/ui/premium";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/useMediaQuery";
+
+// ── Types ───────────────────────────────────────────────────────────────────
+
+interface PaellaStep {
+  labelKey: string;
+  copyKey: string;
+}
+
+// ── Data ────────────────────────────────────────────────────────────────────
+
+/** The paella cooking video, scrubbed by scroll. Landscape for desktop,
+    square crop for mobile so the whole pan stays visible on tall screens. */
+const PAELLA_VIDEO_DESKTOP = "/imgs/paella-cook.mp4";
+const PAELLA_VIDEO_MOBILE = "/imgs/paella-cook-mobile.mp4";
+const PAELLA_POSTER_DESKTOP = "/imgs/paella-poster.webp";
+const PAELLA_POSTER_MOBILE = "/imgs/paella-poster-mobile.webp";
+
+/** Narrative steps overlaid on the video at evenly-spaced scroll thresholds. */
+const PAELLA_STEPS: PaellaStep[] = [
+  { labelKey: "paella.step1_label", copyKey: "paella.step1_copy" },
+  { labelKey: "paella.step2_label", copyKey: "paella.step2_copy" },
+  { labelKey: "paella.step3_label", copyKey: "paella.step3_copy" },
+  { labelKey: "paella.step4_label", copyKey: "paella.step4_copy" },
+  { labelKey: "paella.step5_label", copyKey: "paella.step5_copy" },
+];
+
+const N = PAELLA_STEPS.length;
 
 const featuresConfig = [
-  {
-    icon: Video,
-    titleKey: "features.video_title",
-    descriptionKey: "features.video_description",
-    color: "from-spanish-teal-500 to-spanish-teal-600",
-    bg: "bg-spanish-teal-50",
-  },
-  {
-    icon: Calendar,
-    titleKey: "features.calendar_title",
-    descriptionKey: "features.calendar_description",
-    color: "from-spanish-coral-500 to-spanish-coral-600",
-    bg: "bg-spanish-coral-50",
-  },
-  {
-    icon: Users,
-    titleKey: "features.users_title",
-    descriptionKey: "features.users_description",
-    color: "from-spanish-sunshine-500 to-spanish-sunshine-600",
-    bg: "bg-spanish-sunshine-50",
-  },
-  {
-    icon: Globe,
-    titleKey: "features.globe_title",
-    descriptionKey: "features.globe_description",
-    color: "from-spanish-orange-500 to-spanish-orange-600",
-    bg: "bg-spanish-orange-50",
-  },
-];
-
-const statsConfig = [
-  {
-    valueKey: "stats.students_value",
-    labelKey: "stats.students_label",
-    icon: Users,
-    color: "spanish-teal",
-  },
-  {
-    valueKey: "stats.countries_value",
-    labelKey: "stats.countries_label",
-    icon: Globe,
-    color: "spanish-coral",
-  },
-  {
-    valueKey: "stats.sessions_value",
-    labelKey: "stats.sessions_label",
-    icon: Video,
-    color: "spanish-sunshine",
-  },
-  {
-    valueKey: "stats.rating_value",
-    labelKey: "stats.rating_label",
-    icon: Star,
-    color: "spanish-orange",
-  },
-];
+  { icon: Video,    titleKey: "features.video_title",    descriptionKey: "features.video_description" },
+  { icon: Calendar, titleKey: "features.calendar_title", descriptionKey: "features.calendar_description" },
+  { icon: Users,    titleKey: "features.users_title",    descriptionKey: "features.users_description" },
+  { icon: Globe,    titleKey: "features.globe_title",    descriptionKey: "features.globe_description" },
+] as const;
 
 const benefitsConfig = [
-  {
-    icon: Award,
-    titleKey: "benefits.dele_title",
-    descriptionKey: "benefits.dele_description",
-    color: "from-spanish-teal-500 to-spanish-teal-600",
-  },
-  {
-    icon: BookOpen,
-    titleKey: "benefits.university_title",
-    descriptionKey: "benefits.university_description",
-    color: "from-spanish-coral-500 to-spanish-coral-600",
-  },
-  {
-    icon: MessageCircle,
-    titleKey: "benefits.conversation_title",
-    descriptionKey: "benefits.conversation_description",
-    color: "from-spanish-sunshine-500 to-spanish-sunshine-600",
-  },
-  {
-    icon: Target,
-    titleKey: "benefits.personalized_title",
-    descriptionKey: "benefits.personalized_description",
-    color: "from-spanish-orange-500 to-spanish-orange-600",
-  },
-];
+  { icon: Award,         titleKey: "benefits.dele_title",         descriptionKey: "benefits.dele_description" },
+  { icon: BookOpen,      titleKey: "benefits.university_title",   descriptionKey: "benefits.university_description" },
+  { icon: MessageCircle, titleKey: "benefits.conversation_title", descriptionKey: "benefits.conversation_description" },
+  { icon: Target,        titleKey: "benefits.personalized_title", descriptionKey: "benefits.personalized_description" },
+] as const;
 
 const testimonialsConfig = [
-  {
-    nameKey: "testimonials.sarah_name",
-    roleKey: "testimonials.sarah_role",
-    contentKey: "testimonials.sarah_content",
-    rating: 5,
-    image: "SM",
-    color: "from-spanish-teal-500 to-spanish-teal-600",
-  },
-  {
-    nameKey: "testimonials.james_name",
-    roleKey: "testimonials.james_role",
-    contentKey: "testimonials.james_content",
-    rating: 5,
-    image: "JL",
-    color: "from-spanish-coral-500 to-spanish-coral-600",
-  },
-  {
-    nameKey: "testimonials.emily_name",
-    roleKey: "testimonials.emily_role",
-    contentKey: "testimonials.emily_content",
-    rating: 5,
-    image: "ER",
-    color: "from-spanish-sunshine-500 to-spanish-sunshine-600",
-  },
-];
+  { nameKey: "testimonials.sarah_name", roleKey: "testimonials.sarah_role", contentKey: "testimonials.sarah_content", rating: 5, initials: "SM" },
+  { nameKey: "testimonials.james_name", roleKey: "testimonials.james_role", contentKey: "testimonials.james_content", rating: 5, initials: "JL" },
+  { nameKey: "testimonials.emily_name", roleKey: "testimonials.emily_role", contentKey: "testimonials.emily_content", rating: 5, initials: "ER" },
+] as const;
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+/** Derive copy-block opacity for step i. */
+function useCopyOpacity(scrollYProgress: MotionValue<number>, i: number): MotionValue<number> {
+  const start = i / N;
+  const end = (i + 1) / N;
+  const inputRange = i === 0
+    ? [0, end - 0.04, end]
+    : i === N - 1
+      ? [start - 0.02, start + 0.04]
+      : [start - 0.02, start + 0.04, end - 0.04, end];
+  const outputRange = i === 0
+    ? [1, 1, 0]
+    : i === N - 1
+      ? [0, 1]
+      : [0, 1, 1, 0];
+  return useTransform(scrollYProgress, inputRange, outputRange);
+}
+
+/** Derive copy-block vertical translate for step i. */
+function useCopyY(scrollYProgress: MotionValue<number>, i: number): MotionValue<number> {
+  const start = i / N;
+  return useTransform(scrollYProgress, [start - 0.02, start + 0.04], [16, 0]);
+}
+
+// ── Sub-components ───────────────────────────────────────────────────────────
+
+interface CopyLayerProps {
+  step: PaellaStep;
+  index: number;
+  scrollYProgress: MotionValue<number>;
+}
+
+function CopyLayer({ step, index, scrollYProgress }: CopyLayerProps) {
+  const { t } = useTranslation("home");
+  const opacity = useCopyOpacity(scrollYProgress, index);
+  const y = useCopyY(scrollYProgress, index);
+
+  return (
+    <motion.div
+      style={{ opacity, y }}
+      className="absolute inset-x-0 bottom-24 z-20 px-6 text-center sm:inset-x-auto sm:max-w-sm sm:px-0 sm:text-left sm:left-10 sm:bottom-16 lg:max-w-lg lg:left-16 lg:bottom-20"
+    >
+      <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-hero-label">
+        {t(step.labelKey)}
+      </p>
+      <p className="font-display text-xl font-medium leading-snug text-hero-fg hero-text-shadow-sm sm:text-2xl lg:text-3xl">
+        {t(step.copyKey)}
+      </p>
+    </motion.div>
+  );
+}
+
+function PaellaScrollStory() {
+  const { t } = useTranslation("home");
+  const isMobile = useIsMobile();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [videoReady, setVideoReady] = useState(false);
+  // rAF-throttling refs: only one seek is scheduled per animation frame
+  const targetTimeRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+
+  const videoSrc = isMobile ? PAELLA_VIDEO_MOBILE : PAELLA_VIDEO_DESKTOP;
+  const posterSrc = isMobile ? PAELLA_POSTER_MOBILE : PAELLA_POSTER_DESKTOP;
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+
+  // Smooth the raw scroll progress so video scrubbing feels fluid, not jumpy.
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 90,
+    damping: 24,
+    restDelta: 0.001,
+  });
+
+  // Drive video.currentTime from smoothed scroll progress (0→1 maps to full clip).
+  // The spring fires many times per frame; we coalesce those into a single seek
+  // per animation frame via requestAnimationFrame, which is what keeps scrubbing
+  // smooth instead of flooding the decoder with redundant seek requests.
+  useMotionValueEvent(smoothProgress, "change", (progress) => {
+    if (!videoDuration) return;
+    const p = prefersReducedMotion
+      ? Math.round(progress * (N - 1)) / (N - 1)
+      : progress;
+    targetTimeRef.current = Math.min(Math.max(p, 0), 1) * videoDuration;
+
+    if (rafRef.current !== null) return; // a seek is already scheduled this frame
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const video = videoRef.current;
+      if (!video) return;
+      const target = targetTimeRef.current;
+      // Skip micro-seeks (< half a frame at 24fps) to avoid decoder churn
+      if (Math.abs(video.currentTime - target) > 0.02) {
+        video.currentTime = target;
+      }
+    });
+  });
+
+  // Clean up any pending rAF on unmount
+  useEffect(() => () => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  // When the video source switches (crossing the mobile breakpoint), the
+  // <video> reloads via its key — reset readiness so the poster covers the gap.
+  useEffect(() => {
+    setVideoReady(false);
+    setVideoDuration(0);
+  }, [videoSrc]);
+
+  const ctaOpacity = useTransform(scrollYProgress, [0.82, 0.94], [0, 1]);
+  // Keep the hero CTA out of the tab order / a11y tree until it has faded in,
+  // so a keyboard user at the top of the page can't focus an invisible link.
+  const ctaVisibility = useTransform(scrollYProgress, (p) =>
+    p >= 0.82 ? "visible" : "hidden",
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative bg-hero-bg"
+      style={{ height: `${N * 100}vh` }}
+    >
+      <div className="sticky top-0 h-screen overflow-hidden bg-hero-bg">
+
+        {/* Blurred backdrop (mobile only). The square video is letterboxed via
+            object-contain; this fills those bars with a soft, out-of-focus copy
+            of the poster so the slate table appears to extend past the pan
+            instead of showing flat black. Hidden on sm+ where the video is
+            full-bleed. */}
+        <img
+          src={posterSrc}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 h-full w-full scale-110 object-cover blur-2xl brightness-75 sm:hidden"
+        />
+
+        {/* Scroll-scrubbed cooking video. Landscape on desktop, square crop on
+            mobile so the whole pan stays visible on tall screens. A lightweight
+            WebP poster is layered on top until the clip is seek-ready, so the
+            first paint is a sharp still — never a black box or partial frame. */}
+        <video
+          key={videoSrc}
+          ref={videoRef}
+          src={videoSrc}
+          className="absolute inset-0 h-full w-full object-contain sm:object-cover"
+          muted
+          playsInline
+          preload="auto"
+          onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration)}
+          onCanPlayThrough={() => setVideoReady(true)}
+          aria-hidden="true"
+        />
+        {/* Instant poster — fades out once the video can be scrubbed smoothly */}
+        <img
+          src={posterSrc}
+          alt=""
+          aria-hidden="true"
+          className={`absolute inset-0 h-full w-full object-contain sm:object-cover transition-opacity duration-500 ${
+            videoReady ? "opacity-0" : "opacity-100"
+          }`}
+        />
+        {/* Top+bottom gradients keep text legible over the footage */}
+        <div className="absolute inset-0 bg-gradient-to-b from-hero-bg/60 via-transparent to-hero-bg/70" />
+
+        {/* Sticky headline */}
+        <div className="absolute inset-x-0 top-20 z-20 px-6 text-center sm:inset-x-auto sm:max-w-none sm:px-0 sm:text-left sm:left-10 sm:top-24 lg:left-16">
+          <p className="font-display text-2xl font-semibold leading-tight text-hero-fg hero-text-shadow sm:text-3xl lg:text-4xl">
+            {t("paella.sticky_headline")}
+          </p>
+        </div>
+
+        {/* Per-step copy */}
+        {PAELLA_STEPS.map((step, i) => (
+          <CopyLayer key={step.labelKey} step={step} index={i} scrollYProgress={scrollYProgress} />
+        ))}
+
+        {/* CTA — appears on final step. On mobile it sits centered at the very
+            bottom (below the step copy); on sm+ it moves to the bottom-right. */}
+        <motion.div
+          style={{ opacity: ctaOpacity, visibility: ctaVisibility }}
+          className="absolute inset-x-6 bottom-4 z-20 flex justify-center sm:inset-x-auto sm:right-10 sm:bottom-16 sm:block lg:right-16 lg:bottom-20"
+        >
+          <Button
+            variant="primary"
+            size="lg"
+            className="bg-hero-ctaBg text-hero-ctaFg hover:bg-hero-ctaHover focus-visible:ring-hero-progress"
+            asChild
+          >
+            <Link to="/auth">
+              {t("paella.cta")}
+              <ArrowRight className="ml-2 h-5 w-5" aria-hidden />
+            </Link>
+          </Button>
+        </motion.div>
+
+        {/* Scroll progress bar */}
+        <motion.div
+          style={{ scaleX: scrollYProgress, transformOrigin: "left" }}
+          className="absolute bottom-0 left-0 right-0 z-30 h-progress-bar bg-hero-progress"
+          aria-hidden="true"
+        />
+      </div>
+    </div>
+  );
+}
+
+function FadeUp({
+  children,
+  delay = 0,
+  className,
+}: {
+  children: React.ReactNode;
+  delay?: number;
+  className?: string;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, delay }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
 
 export function HomePage() {
   const { t } = useTranslation("home");
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* HERO SECTION - Bright & Colorful */}
-      <section className="relative py-20 sm:py-28 overflow-hidden bg-gradient-to-br from-spanish-teal-50 via-white to-spanish-coral-50">
-        {/* Decorative colorful blobs */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-spanish-teal-400 to-spanish-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-float" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-spanish-coral-400 to-spanish-coral-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-float animation-delay-2000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-gradient-to-br from-spanish-sunshine-300 to-spanish-orange-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-float animation-delay-4000" />
+    <div className="min-h-screen">
 
-        <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left - Content */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center lg:text-left"
-            >
-              {/* Main heading */}
-              <h1 className="mb-6 text-5xl sm:text-6xl lg:text-7xl font-extrabold leading-tight text-slate-900">
-                {t("hero.title_line1")}
-                <br />
-                {t("hero.title_line2")}
-              </h1>
+      {/* 1 — Paella scroll story */}
+      <PaellaScrollStory />
 
-              {/* Subtitle */}
-              <p className="mb-8 text-xl leading-relaxed text-slate-700 max-w-xl mx-auto lg:mx-0">
-                {t("hero.subtitle")}
-              </p>
+      {/* Dark→light bridge. Also the sentinel the public Header observes to
+          know the video hero has scrolled out of view (see Header.tsx).
+          Tall gradient (32vh) softens the cinematic→editorial transition. */}
+      <div
+        id="landing-hero-end"
+        className="h-64 bg-gradient-to-b from-hero-bg via-hero-bg/60 to-canvas"
+        aria-hidden="true"
+      />
 
-              {/* CTA Buttons */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-10">
-                <PrimaryButton
-                  size="lg"
-                  className="text-xl px-12 py-6 bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-2xl hover:shadow-spanish-coral-500/50 transform hover:scale-105 transition-all duration-300 ring-4 ring-spanish-coral-200"
-                  asChild
-                >
-                  <Link to="/auth">
-                    <Sparkles className="h-6 w-6" />
-                    {t("hero.cta_primary")}
-                    <ArrowRight className="h-6 w-6" />
-                  </Link>
-                </PrimaryButton>
-              </div>
-
-              {/* Trust indicators */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-slate-600">
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          "h-10 w-10 rounded-full border-2 border-white flex items-center justify-center text-white text-sm font-semibold bg-gradient-to-br",
-                          i === 1 &&
-                            "from-spanish-teal-500 to-spanish-teal-600",
-                          i === 2 &&
-                            "from-spanish-coral-500 to-spanish-coral-600",
-                          i === 3 &&
-                            "from-spanish-sunshine-500 to-spanish-sunshine-600",
-                          i === 4 &&
-                            "from-spanish-orange-500 to-spanish-orange-600",
-                        )}
-                      >
-                        {String.fromCharCode(64 + i)}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="font-semibold">
-                    {t("stats.students_value")} {t("hero.trust_students")}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star
-                      key={i}
-                      className="h-5 w-5 fill-spanish-sunshine-500 text-spanish-sunshine-500"
-                    />
-                  ))}
-                  <span className="ml-2 font-semibold">
-                    {t("stats.rating_value")} {t("hero.trust_rating")}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Right - Colorful Bento Grid */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="grid grid-cols-2 gap-4"
-            >
-              {/* Large card */}
-              <div className="col-span-2 bg-white rounded-3xl p-8 shadow-2xl border-2 border-spanish-teal-200 hover:border-spanish-teal-400 transition-all duration-300 hover:shadow-spanish-teal-500/20">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 mb-4 shadow-lg">
-                  <Video className="h-8 w-8 text-white" />
-                </div>
-                <h3 className="text-2xl font-bold mb-2 text-slate-900">
-                  {t("hero_cards.video_title")}
-                </h3>
-                <p className="text-slate-600">
-                  {t("hero_cards.video_description")}
-                </p>
-              </div>
-
-              {/* Stats cards */}
-              <div className="bg-white rounded-2xl p-6 shadow-xl border-2 border-spanish-coral-200 hover:border-spanish-coral-400 transition-all duration-300">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-spanish-coral-500 to-spanish-coral-600 mb-3 shadow-lg">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-slate-900 mb-1">
-                  {t("stats.students_value")}
-                </div>
-                <div className="text-sm text-slate-600 font-medium">
-                  {t("hero_cards.students_label")}
-                </div>
-              </div>
-
-              <div className="bg-white rounded-2xl p-6 shadow-xl border-2 border-spanish-sunshine-200 hover:border-spanish-sunshine-400 transition-all duration-300">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-spanish-sunshine-500 to-spanish-sunshine-600 mb-3 shadow-lg">
-                  <Award className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-3xl font-bold text-slate-900 mb-1">
-                  {t("stats.rating_value")}
-                </div>
-                <div className="text-sm text-slate-600 font-medium">
-                  {t("hero_cards.rating_label")}
-                </div>
-              </div>
-
-              {/* Feature card */}
-              <div className="col-span-2 bg-white rounded-2xl p-6 shadow-xl border-2 border-spanish-orange-200 hover:border-spanish-orange-400 transition-all duration-300">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-spanish-orange-500 to-spanish-orange-600 flex items-center justify-center shadow-lg">
-                    <Calendar className="h-6 w-6 text-white" />
-                  </div>
-                  <h4 className="font-bold text-slate-900">
-                    {t("hero_cards.scheduling_title")}
-                  </h4>
-                </div>
-                <p className="text-sm text-slate-600">
-                  {t("hero_cards.scheduling_description")}
-                </p>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* STATS SECTION */}
-      <section className="py-16 bg-white border-y-4 border-spanish-teal-100">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {statsConfig.map((stat, index) => (
-              <motion.div
-                key={stat.labelKey}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="text-center"
-              >
-                <div
-                  className={cn(
-                    "inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br mb-4 shadow-lg",
-                    stat.color === "spanish-teal" &&
-                      "from-spanish-teal-500 to-spanish-teal-600",
-                    stat.color === "spanish-coral" &&
-                      "from-spanish-coral-500 to-spanish-coral-600",
-                    stat.color === "spanish-sunshine" &&
-                      "from-spanish-sunshine-500 to-spanish-sunshine-600",
-                    stat.color === "spanish-orange" &&
-                      "from-spanish-orange-500 to-spanish-orange-600",
-                  )}
-                >
-                  <stat.icon className="h-7 w-7 text-white" />
-                </div>
-                <div className="text-4xl font-bold text-slate-900 mb-1">
-                  {t(stat.valueKey)}
-                </div>
-                <div className="text-sm text-slate-600 font-semibold">
-                  {t(stat.labelKey)}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES SECTION */}
-      <section className="py-24 bg-gradient-to-br from-spanish-teal-50/50 to-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <Badge className="mb-4 bg-spanish-teal-100 text-spanish-teal-700 border-spanish-teal-200 px-6 py-2 text-base font-semibold">
+      {/* 3 — Features grid */}
+      <section className="bg-surface py-20">
+        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+          <FadeUp className="mb-12 text-center">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-accent">
               {t("features.badge")}
-            </Badge>
-            <h2 className="text-4xl font-bold text-slate-900 mb-4 sm:text-5xl">
+            </p>
+            <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
               {t("features.title")}
             </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            <p className="mx-auto mt-4 max-w-xl text-base text-ink-secondary">
               {t("features.subtitle")}
             </p>
-          </motion.div>
+          </FadeUp>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {featuresConfig.map((feature, index) => (
-              <motion.div
-                key={feature.titleKey}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className={cn(
-                  "bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 border-2",
-                  feature.bg,
-                  "border-transparent hover:scale-105 cursor-pointer",
-                )}
-              >
-                <div
-                  className={cn(
-                    "inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br mb-4 shadow-lg",
-                    feature.color,
-                  )}
-                >
-                  <feature.icon className="h-6 w-6 text-white" />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {featuresConfig.map((f, i) => (
+              <FadeUp key={f.titleKey} delay={i * 0.07}>
+                <div className="rounded-xl border border-line bg-surface-raised p-6 transition-shadow duration-200 hover:shadow-ui-2">
+                  <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-accent-soft">
+                    <f.icon className="h-5 w-5 text-accent" aria-hidden />
+                  </div>
+                  <h3 className="mb-1 text-base font-semibold text-ink">{t(f.titleKey)}</h3>
+                  <p className="text-sm leading-relaxed text-ink-secondary">{t(f.descriptionKey)}</p>
                 </div>
-                <h3 className="text-lg font-bold text-slate-900 mb-2">
-                  {t(feature.titleKey)}
-                </h3>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  {t(feature.descriptionKey)}
-                </p>
-              </motion.div>
+              </FadeUp>
             ))}
           </div>
         </div>
       </section>
 
-      {/* BENEFITS SECTION */}
-      <section className="py-24 bg-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left - Image */}
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="relative"
-            >
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-spanish-coral-200">
-                <img
-                  src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80"
-                  alt={t("benefits.image_alt")}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* Floating badge */}
-              <div className="absolute -bottom-6 -right-6 bg-white rounded-2xl p-6 shadow-2xl border-2 border-spanish-teal-200">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 flex items-center justify-center shadow-lg">
-                    <CheckCircle2 className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-slate-900">
-                      100%
-                    </div>
-                    <div className="text-sm text-slate-600 font-semibold">
-                      {t("benefits.satisfaction")}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Right - Benefits */}
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-            >
-              <Badge className="mb-4 bg-spanish-teal-100 text-spanish-teal-700 border-spanish-teal-200 px-6 py-2 text-base font-semibold">
+      {/* 4 — Benefits */}
+      <section className="bg-canvas py-20">
+        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+          <div className="grid items-center gap-16 lg:grid-cols-2">
+            <FadeUp>
+              <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-accent">
                 {t("benefits.badge")}
-              </Badge>
-              <h2 className="text-4xl font-bold text-slate-900 mb-6 sm:text-5xl">
+              </p>
+              <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
                 {t("benefits.title")}
               </h2>
-              <p className="text-xl text-slate-600 mb-10 leading-relaxed">
+              <p className="mt-4 text-base leading-relaxed text-ink-secondary">
                 {t("benefits.subtitle")}
               </p>
-
-              <div className="grid gap-6">
-                {benefitsConfig.map((benefit, index) => (
-                  <motion.div
-                    key={benefit.titleKey}
-                    initial={{ opacity: 0, x: -20 }}
+              <ul className="mt-8 space-y-4" aria-label={t("benefits.title")}>
+                {benefitsConfig.map((b, i) => (
+                  <motion.li
+                    key={b.titleKey}
+                    initial={{ opacity: 0, x: -16 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: index * 0.1 }}
-                    className="flex items-start gap-4 p-4 rounded-xl bg-white shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-spanish-teal-100 hover:border-spanish-teal-300"
+                    transition={{ delay: i * 0.08 }}
+                    className="flex items-start gap-4 rounded-lg border border-line bg-surface p-4"
                   >
-                    <div
-                      className={cn(
-                        "flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br flex items-center justify-center shadow-lg",
-                        benefit.color,
-                      )}
-                    >
-                      <benefit.icon className="h-5 w-5 text-white" />
+                    <div className="flex-shrink-0 rounded-md bg-accent-soft p-2">
+                      <b.icon className="h-4 w-4 text-accent" aria-hidden />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 mb-1">
-                        {t(benefit.titleKey)}
-                      </h3>
-                      <p className="text-sm text-slate-600">
-                        {t(benefit.descriptionKey)}
-                      </p>
+                      <p className="text-sm font-semibold text-ink">{t(b.titleKey)}</p>
+                      <p className="mt-0.5 text-sm text-ink-secondary">{t(b.descriptionKey)}</p>
                     </div>
-                  </motion.div>
+                  </motion.li>
                 ))}
-              </div>
-
-              <PrimaryButton size="lg" className="mt-10" asChild>
+              </ul>
+              <Button variant="primary" size="lg" className="mt-8" asChild>
                 <Link to="/auth">
-                  <Sparkles className="h-5 w-5" />
                   {t("benefits.cta")}
-                  <ArrowRight className="h-5 w-5" />
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                 </Link>
-              </PrimaryButton>
-            </motion.div>
+              </Button>
+            </FadeUp>
+
+            <FadeUp delay={0.1}>
+              <div className="relative overflow-hidden rounded-2xl shadow-ui-3">
+                <img
+                  src="/imgs/paella-5.webp"
+                  alt={t("benefits.image_alt")}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-ink/40 to-transparent" />
+                <div className="absolute bottom-6 left-6 rounded-xl bg-surface/90 px-5 py-4 shadow-ui-2 backdrop-blur-sm">
+                  <p className="text-2xl font-bold text-ink">100%</p>
+                  <p className="text-sm font-medium text-ink-secondary">{t("benefits.satisfaction")}</p>
+                </div>
+              </div>
+            </FadeUp>
           </div>
         </div>
       </section>
 
-      {/* TESTIMONIALS SECTION */}
-      <section className="py-24 bg-gradient-to-br from-spanish-coral-50/50 to-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <Badge className="mb-4 bg-spanish-teal-100 text-spanish-teal-700 border-spanish-teal-200 px-6 py-2 text-base font-semibold">
+      {/* 5 — Testimonials */}
+      <section className="bg-surface py-20">
+        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+          <FadeUp className="mb-12 text-center">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-accent">
               {t("testimonials.badge")}
-            </Badge>
-            <h2 className="text-4xl font-bold text-slate-900 mb-4 sm:text-5xl">
+            </p>
+            <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
               {t("testimonials.title")}
             </h2>
-            <p className="text-xl text-slate-600 max-w-2xl mx-auto">
+            <p className="mx-auto mt-4 max-w-xl text-base text-ink-secondary">
               {t("testimonials.subtitle")}
             </p>
-          </motion.div>
+          </FadeUp>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {testimonialsConfig.map((testimonial, index) => (
-              <motion.div
-                key={testimonial.nameKey}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-2xl p-8 shadow-xl hover:shadow-2xl transition-all duration-300 border-2 border-spanish-coral-100 hover:border-spanish-coral-300"
-              >
-                <div className="flex gap-1 mb-6">
-                  {Array.from({ length: testimonial.rating }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-5 w-5 fill-spanish-sunshine-500 text-spanish-sunshine-500"
-                    />
-                  ))}
-                </div>
-                <p className="text-slate-600 mb-6 leading-relaxed">
-                  "{t(testimonial.contentKey)}"
-                </p>
-                <div className="flex items-center gap-3">
+          <div className="grid gap-6 md:grid-cols-3">
+            {testimonialsConfig.map((item, i) => (
+              <FadeUp key={item.nameKey} delay={i * 0.08}>
+                <figure className="flex h-full flex-col rounded-xl border border-line bg-surface-raised p-6">
                   <div
-                    className={cn(
-                      "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shadow-lg bg-gradient-to-br",
-                      testimonial.color,
-                    )}
+                    className="mb-4 flex gap-0.5"
+                    role="img"
+                    aria-label={t("testimonials.rating_aria", { rating: item.rating })}
                   >
-                    {testimonial.image}
+                    {Array.from({ length: item.rating }).map((_, j) => (
+                      <Star
+                        key={j}
+                        className="h-4 w-4 fill-feedback-warning text-feedback-warning"
+                        aria-hidden
+                      />
+                    ))}
                   </div>
-                  <div>
-                    <div className="font-bold text-slate-900">
-                      {t(testimonial.nameKey)}
+                  <blockquote className="flex-1 text-sm leading-relaxed text-ink-secondary">
+                    "{t(item.contentKey)}"
+                  </blockquote>
+                  <figcaption className="mt-6 flex items-center gap-3">
+                    <div
+                      className="flex h-10 w-10 items-center justify-center rounded-full bg-brand text-sm font-bold text-brand-contrast"
+                      aria-hidden
+                    >
+                      {item.initials}
                     </div>
-                    <div className="text-sm text-slate-600">
-                      {t(testimonial.roleKey)}
+                    <div>
+                      <p className="text-sm font-semibold text-ink">{t(item.nameKey)}</p>
+                      <p className="text-xs text-ink-tertiary">{t(item.roleKey)}</p>
                     </div>
-                  </div>
-                </div>
-              </motion.div>
+                  </figcaption>
+                </figure>
+              </FadeUp>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA SECTION */}
-      <section className="py-24 bg-gradient-to-r from-spanish-teal-500 via-spanish-coral-500 to-spanish-orange-500 text-white relative overflow-hidden">
-        {/* Decorative patterns */}
-        <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10" />
-
-        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-4xl font-bold mb-6 sm:text-5xl lg:text-6xl">
-              {t("cta.title")}
-            </h2>
-            <p className="text-xl mb-10 max-w-2xl mx-auto leading-relaxed opacity-90">
-              {t("cta.subtitle")}
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <PrimaryButton
-                size="lg"
-                className="text-xl px-12 py-6 bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-2xl hover:shadow-spanish-coral-500/50 transform hover:scale-105 transition-all duration-300 ring-4 ring-spanish-coral-200"
-                asChild
-              >
-                <Link to="/auth">
-                  <Sparkles className="h-6 w-6" />
-                  {t("cta.button_primary")}
-                  <ArrowRight className="h-6 w-6" />
-                </Link>
-              </PrimaryButton>
-              <PrimaryButton
-                size="lg"
-                className="text-lg px-10 py-4 bg-white/20 text-white backdrop-blur-sm border-2 border-white hover:bg-white/30 shadow-xl"
-                asChild
-              >
-                <Link to="/contact">{t("cta.button_secondary")}</Link>
-              </PrimaryButton>
-            </div>
-          </motion.div>
-        </div>
+      {/* 6 — Final CTA — dark cinematic section matching hero tone */}
+      <section className="bg-hero-bg py-20">
+        <FadeUp className="mx-auto max-w-2xl px-4 text-center sm:px-6">
+          <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-hero-progress">
+            {t("cta.badge")}
+          </p>
+          <h2 className="font-display text-3xl font-semibold text-hero-fg sm:text-4xl">
+            {t("cta.title")}
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-hero-fg/70">
+            {t("cta.subtitle")}
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Button
+              variant="primary"
+              size="lg"
+              className="bg-hero-ctaBg text-hero-ctaFg hover:bg-hero-ctaHover focus-visible:ring-hero-progress"
+              asChild
+            >
+              <Link to="/auth">
+                {t("cta.button_primary")}
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="border border-hero-fg/30 text-hero-fg hover:bg-hero-fg/10"
+              asChild
+            >
+              <Link to="/contact">{t("cta.button_secondary")}</Link>
+            </Button>
+          </div>
+        </FadeUp>
       </section>
     </div>
   );

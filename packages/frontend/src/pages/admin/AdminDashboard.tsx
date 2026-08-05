@@ -93,7 +93,7 @@ export function AdminDashboard() {
               {t("dashboard.quick_actions.view_analytics")}
             </Button>
             <Button size="lg" variant="primary" asChild>
-              <Link to="/admin/slots/new">
+              <Link to="/admin/calendar">
                 <Plus className="mr-2 h-5 w-5" />
                 {t("dashboard.quick_actions.create_slot")}
               </Link>
@@ -310,7 +310,7 @@ export function AdminDashboard() {
                   Create a new slot to schedule your first class
                 </p>
                 <Button size="lg" variant="primary" asChild>
-                  <Link to="/admin/slots/new">
+                  <Link to="/admin/calendar">
                     <Plus className="mr-2 h-5 w-5" />
                     Create a Slot
                   </Link>

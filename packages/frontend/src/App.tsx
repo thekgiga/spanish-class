@@ -1,9 +1,11 @@
 import { useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "react-hot-toast";
+import { Toaster, ToastBar, toast } from "react-hot-toast";
+import { MotionConfig } from "framer-motion";
+import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useAuthStore } from "@/stores/auth";
-import { SkipLink } from "@/components/shared/SkipLink";
 import { PageSkeleton } from "@/components/shared/LoadingSkeleton";
 import { useDocumentLang } from "@/hooks/useDocumentLang";
 
@@ -14,9 +16,6 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 // Lazy-loaded Public Pages
 const HomePage = lazy(() =>
   import("@/pages/public/HomePage").then((m) => ({ default: m.HomePage })),
-);
-const AboutPage = lazy(() =>
-  import("@/pages/public/AboutPage").then((m) => ({ default: m.AboutPage })),
 );
 const ContactPage = lazy(() =>
   import("@/pages/public/ContactPage").then((m) => ({
@@ -52,6 +51,11 @@ const DesignShowcase = lazy(() =>
     default: m.DesignShowcase,
   })),
 );
+const DesignSystemPage = lazy(() =>
+  import("@/pages/DesignSystemPage").then((m) => ({
+    default: m.DesignSystemPage,
+  })),
+);
 
 // Lazy-loaded Admin Pages
 const AdminDashboard = lazy(() =>
@@ -59,11 +63,13 @@ const AdminDashboard = lazy(() =>
     default: m.AdminDashboard,
   })),
 );
+const AdminInsightsPage = lazy(() =>
+  import("@/pages/admin/AdminInsightsPage").then((m) => ({
+    default: m.AdminInsightsPage,
+  })),
+);
 const SlotsPage = lazy(() =>
   import("@/pages/admin/SlotsPage").then((m) => ({ default: m.SlotsPage })),
-);
-const NewSlotPage = lazy(() =>
-  import("@/pages/admin/NewSlotPage").then((m) => ({ default: m.NewSlotPage })),
 );
 const StudentsPage = lazy(() =>
   import("@/pages/admin/StudentsPage").then((m) => ({
@@ -104,6 +110,11 @@ const PendingApprovalsPage = lazy(() =>
 const FeedbackDashboard = lazy(() =>
   import("@/pages/admin/FeedbackDashboard").then((m) => ({ default: m.FeedbackDashboard })),
 );
+const SessionPage = lazy(() =>
+  import("@/pages/admin/SessionPage").then((m) => ({
+    default: m.SessionPage,
+  })),
+);
 
 // Lazy-loaded Student Pages
 const StudentDashboard = lazy(() =>
@@ -122,6 +133,16 @@ const BookingsPage = lazy(() =>
 const StudentProfilePage = lazy(() =>
   import("@/pages/student/StudentProfilePage").then((m) => ({
     default: m.StudentProfilePage,
+  })),
+);
+const NotificationsPage = lazy(() =>
+  import("@/pages/shared/NotificationsPage").then((m) => ({
+    default: m.NotificationsPage,
+  })),
+);
+const HomeworkPage = lazy(() =>
+  import("@/pages/student/HomeworkPage").then((m) => ({
+    default: m.HomeworkPage,
   })),
 );
 
@@ -149,7 +170,7 @@ function ProtectedRoute({
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-navy-800 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-brand border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -189,22 +210,21 @@ function AppRoutes() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-4 border-navy-800 border-t-transparent rounded-full" />
+        <div className="animate-spin h-8 w-8 border-4 border-brand border-t-transparent rounded-full" />
       </div>
     );
   }
 
   return (
     <>
-      <SkipLink />
       <Suspense fallback={<PageSkeleton />}>
         <Routes>
           {/* Public Routes */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
-            <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/design-showcase" element={<DesignShowcase />} />
+            <Route path="/design-system" element={<DesignSystemPage />} />
             <Route
               path="/auth"
               element={
@@ -245,12 +265,12 @@ function AppRoutes() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<AdminDashboard />} />
+            <Route index element={<CalendarPage />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="calendar" element={<CalendarPage />} />
+            <Route path="insights" element={<AdminInsightsPage />} />
             <Route path="slots" element={<SlotsPage />} />
-            <Route path="slots/new" element={<NewSlotPage />} />
             <Route path="slots/bulk" element={<BulkSlotPage />} />
-            <Route path="slots/:id" element={<NewSlotPage />} />
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:id" element={<StudentDetailPage />} />
             <Route
@@ -259,8 +279,10 @@ function AppRoutes() {
             />
             <Route path="email-logs" element={<EmailLogsPage />} />
             <Route path="feedback" element={<FeedbackDashboard />} />
+            <Route path="session/:slotId" element={<SessionPage />} />
             <Route path="settings/security" element={<SecuritySettingsPage />} />
             <Route path="settings" element={<ProfessorSettingsPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
           </Route>
 
           {/* Student Routes */}
@@ -275,10 +297,12 @@ function AppRoutes() {
             <Route index element={<StudentDashboard />} />
             <Route path="book" element={<BookPage />} />
             <Route path="bookings" element={<BookingsPage />} />
+            <Route path="homework" element={<HomeworkPage />} />
             <Route path="profile" element={<StudentProfilePage />} />
             <Route path="referrals" element={<ReferralPage />} />
             <Route path="choose-professor" element={<ChooseProfessorPage />} />
             <Route path="feedback/:bookingId" element={<FeedbackPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
           </Route>
 
           {/* 404 */}
@@ -289,26 +313,50 @@ function AppRoutes() {
   );
 }
 
+function DismissibleToaster() {
+  const { t } = useTranslation('common');
+  return (
+    <Toaster
+      position="top-right"
+      toastOptions={{ duration: 4000, className: 'toast-ui-info' }}
+    >
+      {(t_toast) => (
+        <ToastBar toast={t_toast}>
+          {({ icon, message }) => (
+            <>
+              {icon}
+              {message}
+              <button
+                type="button"
+                aria-label={t('actions.close')}
+                onClick={() => toast.dismiss(t_toast.id)}
+                className="ml-1 shrink-0 rounded p-1 opacity-60 transition-opacity hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            </>
+          )}
+        </ToastBar>
+      )}
+    </Toaster>
+  );
+}
+
 export default function App() {
   // Update HTML lang attribute based on current language
   useDocumentLang();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppRoutes />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              borderRadius: "12px",
-              background: "#1a1f36",
-              color: "#fff",
-            },
-          }}
-        />
-      </BrowserRouter>
+      {/* Global reduced-motion gate — covers all framer-motion usage in the app */}
+      <MotionConfig reducedMotion="user">
+        <BrowserRouter
+          future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+        >
+          <AppRoutes />
+          <DismissibleToaster />
+        </BrowserRouter>
+      </MotionConfig>
     </QueryClientProvider>
   );
 }

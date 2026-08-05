@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SEOMeta } from "@/components/shared/SEOMeta";
-import { PrimaryButton } from "@/components/ui/premium";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export function ContactPage() {
@@ -195,7 +195,7 @@ export function ContactPage() {
                         />
                       </div>
 
-                      <PrimaryButton
+                      <Button variant="primary"
                         type="submit"
                         size="lg"
                         className="w-full"
@@ -210,7 +210,7 @@ export function ContactPage() {
                             <Send className="h-5 w-5" />
                           </>
                         )}
-                      </PrimaryButton>
+                      </Button>
                     </form>
                   )}
                 </div>

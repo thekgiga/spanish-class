@@ -38,6 +38,18 @@ import {
   cancelPrivateInvitation,
 } from "../services/private-invitation.js";
 import type { Router as ExpressRouter } from "express";
+
+/** Format a UTC date for an in-app notification body, shown in the recipient's timezone. */
+function formatForNotification(date: Date | string, timezone?: string | null): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: timezone || "UTC",
+    timeZoneName: "short",
+  }).format(new Date(date));
+}
 import type { AvailabilitySlot, UserPublic } from "@spanish-class/shared";
 import { createNotification } from "../services/notifications.js";
 import { applyRejectionSideEffects } from "../services/bookingRejection.js";
@@ -124,7 +136,7 @@ router.get("/dashboard", async (req, res, next) => {
       },
       include: {
         bookings: {
-          where: { status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] } },
+          where: { status: { in: ["CONFIRMED", "PENDING_CONFIRMATION", "COMPLETED", "NO_SHOW"] } },
           include: {
             student: {
               select: {
@@ -202,7 +214,7 @@ router.get(
           where,
           include: {
             bookings: {
-              where: { status: { in: ["CONFIRMED", "PENDING_CONFIRMATION"] } },
+              where: { status: { in: ["CONFIRMED", "PENDING_CONFIRMATION", "COMPLETED", "NO_SHOW"] } },
               include: {
                 student: {
                   select: {
@@ -253,8 +265,8 @@ router.post("/slots", validate(createSlotSchema), async (req, res, next) => {
       bookForStudentId,
     } = req.body;
 
-    // Check for overlapping slots
-    const overlap = await prisma.availabilitySlot.findFirst({
+    // Check for overlapping slots — BLOCKED slots are personal holds and bypass this check
+    const overlap = slotType === "BLOCKED" ? null : await prisma.availabilitySlot.findFirst({
       where: {
         professorId: req.user!.id,
         status: { notIn: ["CANCELLED", "COMPLETED"] },
@@ -373,6 +385,15 @@ router.post("/slots", validate(createSlotSchema), async (req, res, next) => {
           endTime: new Date(endTime),
           meetLink: meetingUrl,
         }).catch(console.error);
+
+        const classDate = formatForNotification(startTime, student.timezone);
+        createNotification(
+          student.id,
+          "booking_confirmed",
+          "Lesson scheduled!",
+          `${req.user!.firstName} ${req.user!.lastName} scheduled a lesson for you on ${classDate}.`,
+          "/dashboard/bookings",
+        ).catch(() => {});
       }
     }
 
@@ -844,6 +865,7 @@ router.post(
                 firstName: true,
                 lastName: true,
                 email: true,
+                timezone: true,
               },
             },
             slot: true,
@@ -879,14 +901,15 @@ router.post(
         }).catch(console.error);
       }
 
-      // S6/S7: Create in-app notification for student (always, regardless of sendInvitation)
+      // In-app notification to student regardless of whether an invitation email was sent
+      const inviteDate = formatForNotification(slot.startTime, booking.student.timezone);
       createNotification(
         student.id,
         "booking_confirmed",
-        "You've been booked into a class",
-        `${req.user!.firstName} ${req.user!.lastName} has booked you into ${slot.title || "Spanish Class"}.`,
+        "Lesson scheduled!",
+        `${req.user!.firstName} ${req.user!.lastName} scheduled a lesson for you on ${inviteDate}.`,
         "/dashboard/bookings",
-      ).catch(console.error);
+      ).catch(() => {});
 
       res.status(201).json({
         success: true,
@@ -919,6 +942,17 @@ router.get("/slots/:id", async (req, res, next) => {
                 lastName: true,
                 email: true,
                 timezone: true,
+              },
+            },
+          },
+        },
+        allowedStudents: {
+          select: {
+            studentId: true,
+            student: {
+              select: {
+                firstName: true,
+                lastName: true,
               },
             },
           },
@@ -984,15 +1018,36 @@ router.put("/slots/:id", validate(updateSlotSchema), async (req, res, next) => {
       }
     }
 
-    const updated = await prisma.availabilitySlot.update({
-      where: { id: slot.id },
-      data: {
-        ...req.body,
-        startTime: req.body.startTime
-          ? new Date(req.body.startTime)
-          : undefined,
-        endTime: req.body.endTime ? new Date(req.body.endTime) : undefined,
-      },
+    const { allowedStudentIds, ...slotFields } = req.body;
+
+    const updated = await prisma.$transaction(async (tx) => {
+      const updatedSlot = await tx.availabilitySlot.update({
+        where: { id: slot.id },
+        data: {
+          ...slotFields,
+          startTime: slotFields.startTime
+            ? new Date(slotFields.startTime)
+            : undefined,
+          endTime: slotFields.endTime ? new Date(slotFields.endTime) : undefined,
+        },
+      });
+
+      if (allowedStudentIds !== undefined) {
+        await tx.slotAllowedStudent.deleteMany({ where: { slotId: slot.id } });
+        if (allowedStudentIds.length > 0) {
+          await tx.slotAllowedStudent.createMany({
+            data: allowedStudentIds.map((studentId: string) => ({
+              slotId: slot.id,
+              studentId,
+            })),
+          });
+        }
+      }
+
+      return tx.availabilitySlot.findUnique({
+        where: { id: slot.id },
+        include: { allowedStudents: { select: { studentId: true } } },
+      });
     });
 
     res.json({
@@ -1005,6 +1060,8 @@ router.put("/slots/:id", validate(updateSlotSchema), async (req, res, next) => {
 });
 
 // DELETE /api/professor/slots/:id
+// Allows hard-deletion when the slot is CANCELLED or a BLOCKED slot (no student bookings involved).
+// All other slots must be cancelled via POST /cancel-with-bookings first.
 router.delete("/slots/:id", async (req, res, next) => {
   try {
     const slot = await prisma.availabilitySlot.findFirst({
@@ -1023,7 +1080,10 @@ router.delete("/slots/:id", async (req, res, next) => {
       throw new AppError(404, "Slot not found");
     }
 
-    if (slot.bookings.length > 0) {
+    const isDeletable =
+      slot.status === "CANCELLED" || slot.slotType === "BLOCKED";
+
+    if (!isDeletable) {
       throw new AppError(
         400,
         "This slot has active bookings. Use 'Cancel Booking & Notify Student' first, then delete.",
@@ -1120,7 +1180,7 @@ router.post("/slots/:id/cancel-with-bookings", validate(cancelSlotWithBookingsSc
       }),
     ]);
 
-    // Send cancellation emails to all affected students
+    // Send cancellation emails and in-app notifications to all affected students
     const professor = req.user!;
     for (const booking of confirmedBookings) {
       sendCancellationToStudent({
@@ -1135,6 +1195,15 @@ router.post("/slots/:id/cancel-with-bookings", validate(cancelSlotWithBookingsSc
           err,
         ),
       );
+
+      const classDate = formatForNotification(slot.startTime, booking.student.timezone);
+      createNotification(
+        booking.student.id,
+        "booking_cancelled_professor",
+        "Booking cancelled by professor",
+        `Your booking for ${(slot as any).title || "Spanish Class"} on ${classDate} was cancelled by the professor.${reason ? ` Reason: ${reason}` : ""} You can book another slot.`,
+        "/dashboard/book",
+      ).catch(() => {});
     }
 
     res.json({
@@ -1286,6 +1355,52 @@ router.get("/students/:id", async (req, res, next) => {
         notes,
       },
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/professor/students/:id/session-notes — all session notes for a student
+router.get("/students/:id/session-notes", async (req, res, next) => {
+  try {
+    // Find all booking IDs for this student on slots owned by this professor
+    const bookings = await prisma.booking.findMany({
+      where: {
+        studentId: req.params.id,
+        slot: { professorId: req.user!.id },
+        status: { in: ["COMPLETED", "CONFIRMED", "NO_SHOW"] },
+      },
+      select: { slotId: true, slot: { select: { startTime: true, title: true } } },
+    });
+
+    const slotIds = bookings.map((b: any) => b.slotId);
+    if (slotIds.length === 0) {
+      res.json({ success: true, data: [] });
+      return;
+    }
+
+    const sessionNotes = await (prisma.meetingNote as any).findMany({
+      where: {
+        slotId: { in: slotIds },
+        professorId: req.user!.id,
+        OR: [
+          { sessionNotes: { not: null } },
+          { agendaNotes: { not: null } },
+          { homeworkNotes: { not: null } },
+          { studentObservation: { not: null } },
+        ],
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    // Attach slot info
+    const slotMap = new Map(bookings.map((b: any) => [b.slotId, b.slot]));
+    const result = sessionNotes.map((n: any) => ({
+      ...n,
+      slot: slotMap.get(n.slotId) ?? null,
+    }));
+
+    res.json({ success: true, data: result });
   } catch (error) {
     next(error);
   }
@@ -1980,6 +2095,16 @@ router.post("/bookings/:id/no-show", async (req, res, next) => {
       )
       .catch(() => {});
 
+    // In-app notification to student
+    const noShowDate = formatForNotification(booking.slot.startTime, booking.student.timezone);
+    createNotification(
+      booking.studentId,
+      "booking_no_show",
+      "Marked as no-show",
+      `You were marked as no-show for the class on ${noShowDate}. Please contact your professor if this is incorrect.`,
+      "/dashboard/bookings",
+    ).catch(() => {});
+
     res.json({
       success: true,
       message: "Booking marked as no-show",
@@ -2185,10 +2310,189 @@ router.get("/students/:id/booking-notes", async (req, res, next) => {
   }
 });
 
+// ── In-Class Session Mode ──────────────────────────────────────────────────
+
+// GET /api/professor/slots/:id/session — load slot + meeting note for session page
+router.get("/slots/:id/session", async (req, res, next) => {
+  try {
+    const slot = await prisma.availabilitySlot.findFirst({
+      where: { id: req.params.id, professorId: req.user!.id },
+      include: {
+        bookings: {
+          where: { status: { in: ["CONFIRMED", "COMPLETED", "PENDING_CONFIRMATION"] } },
+          include: {
+            student: {
+              select: { id: true, firstName: true, lastName: true, email: true, timezone: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!slot) throw new AppError(404, "Slot not found");
+    if (slot.status === "CANCELLED") {
+      throw new AppError(400, "Session not available for a cancelled slot");
+    }
+
+    // Fetch or create meeting note for this slot
+    let note = await (prisma.meetingNote as any).findFirst({
+      where: { slotId: slot.id, professorId: req.user!.id },
+    });
+
+    if (!note) {
+      note = await (prisma.meetingNote as any).create({
+        data: { slotId: slot.id, professorId: req.user!.id },
+      });
+    }
+
+    // Fetch last 3 student notes for reference panel
+    const studentIds = slot.bookings.map((b: any) => b.studentId);
+    const recentStudentNotes = studentIds.length > 0
+      ? await prisma.studentNote.findMany({
+          where: { studentId: { in: studentIds }, professorId: req.user!.id },
+          orderBy: { createdAt: "desc" },
+          take: 6,
+        })
+      : [];
+
+    res.json({ success: true, data: { slot, note, recentStudentNotes } });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/professor/bookings/:id/meeting-notes — get meeting notes for a booking (M2)
 router.get("/bookings/:id/meeting-notes", async (req, res, next) => {
   try {
     const note = await getMeetingNote(req.params.id, req.user!.id);
+    res.json({ success: true, data: note });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/professor/slots/:id/start — transition slot to IN_PROGRESS
+router.post("/slots/:id/start", async (req, res, next) => {
+  try {
+    const slot = await prisma.availabilitySlot.findFirst({
+      where: { id: req.params.id, professorId: req.user!.id },
+    });
+
+    if (!slot) throw new AppError(404, "Slot not found");
+    if (!["CONFIRMED", "FULLY_BOOKED", "AVAILABLE"].includes(slot.status)) {
+      throw new AppError(400, "Only confirmed or available slots can be started");
+    }
+
+    const updated = await prisma.availabilitySlot.update({
+      where: { id: slot.id },
+      data: { status: "IN_PROGRESS" },
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/professor/slots/:id/end — complete the session
+router.post("/slots/:id/end", async (req, res, next) => {
+  try {
+    const { copyObservationToStudentNote } = req.body as {
+      copyObservationToStudentNote?: boolean;
+    };
+
+    const slot = await prisma.availabilitySlot.findFirst({
+      where: { id: req.params.id, professorId: req.user!.id },
+      include: {
+        bookings: {
+          where: { status: { in: ["CONFIRMED"] } },
+          include: {
+            student: { select: { id: true, firstName: true, lastName: true } },
+          },
+        },
+      },
+    });
+
+    if (!slot) throw new AppError(404, "Slot not found");
+    if (slot.status !== "IN_PROGRESS") {
+      throw new AppError(400, "Only in-progress slots can be ended");
+    }
+
+    const confirmedBookings = slot.bookings;
+    const note = await (prisma.meetingNote as any).findFirst({
+      where: { slotId: slot.id, professorId: req.user!.id },
+    });
+
+    await prisma.$transaction(async (tx) => {
+      // Complete slot
+      await tx.availabilitySlot.update({
+        where: { id: slot.id },
+        data: { status: "COMPLETED" },
+      });
+
+      // Complete all confirmed bookings
+      await tx.booking.updateMany({
+        where: { slotId: slot.id, status: { in: ["CONFIRMED"] } },
+        data: { status: "COMPLETED" },
+      });
+
+      // Copy observation to student note(s) if requested
+      if (copyObservationToStudentNote && note?.studentObservation) {
+        for (const booking of confirmedBookings) {
+          await tx.studentNote.create({
+            data: {
+              professorId: req.user!.id,
+              studentId: booking.studentId,
+              content: note.studentObservation,
+            },
+          });
+        }
+      }
+    });
+
+    res.json({ success: true, message: "Session ended" });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// PUT /api/professor/slots/:id/session/notes — auto-save note fields
+router.put("/slots/:id/session/notes", async (req, res, next) => {
+  try {
+    const { agendaNotes, sessionNotes, homeworkNotes, studentObservation } = req.body as {
+      agendaNotes?: string;
+      sessionNotes?: string;
+      homeworkNotes?: string;
+      studentObservation?: string;
+    };
+
+    const slot = await prisma.availabilitySlot.findFirst({
+      where: { id: req.params.id, professorId: req.user!.id },
+    });
+
+    if (!slot) throw new AppError(404, "Slot not found");
+
+    const existing = await (prisma.meetingNote as any).findFirst({
+      where: { slotId: slot.id, professorId: req.user!.id },
+      select: { id: true },
+    });
+
+    const data = {
+      ...(agendaNotes !== undefined && { agendaNotes }),
+      ...(sessionNotes !== undefined && { sessionNotes }),
+      ...(homeworkNotes !== undefined && { homeworkNotes }),
+      ...(studentObservation !== undefined && { studentObservation }),
+    };
+
+    let note;
+    if (existing) {
+      note = await (prisma.meetingNote as any).update({ where: { id: existing.id }, data });
+    } else {
+      note = await (prisma.meetingNote as any).create({
+        data: { slotId: slot.id, professorId: req.user!.id, ...data },
+      });
+    }
+
     res.json({ success: true, data: note });
   } catch (error) {
     next(error);

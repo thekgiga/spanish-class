@@ -92,7 +92,7 @@ export function useNotifications() {
       esRef.current = null;
       setConnected(false);
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.readAt).length;
 

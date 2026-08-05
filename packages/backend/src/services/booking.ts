@@ -19,6 +19,18 @@ import { createNotification } from "./notifications.js";
 
 type TransactionClient = Prisma.TransactionClient;
 
+/** Format a UTC date for an in-app notification body, shown in the recipient's timezone. */
+function formatForNotification(date: Date | string, timezone?: string | null): string {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: timezone || "UTC",
+    timeZoneName: "short",
+  }).format(new Date(date));
+}
+
 interface BookSlotResult {
   bookingId: string;
   slot: {
@@ -29,6 +41,13 @@ interface BookSlotResult {
     meetLink: string | null;
     meetingUrl: string | null;
   };
+  /**
+   * Full booking record (with nested slot + professor) shaped like
+   * `BookingWithSlot` from @spanish-class/shared. Provided so the client can
+   * render the pending-confirmation card immediately after booking without a
+   * follow-up round trip. Status will always be PENDING_CONFIRMATION here.
+   */
+  booking: import("@spanish-class/shared").BookingWithSlot;
 }
 
 interface WaitlistResult {
@@ -85,6 +104,11 @@ async function attemptBooking(
     }
   }
 
+  // BLOCKED slots are never bookable
+  if (slot.slotType === "BLOCKED") {
+    throw new AppError(400, "This slot is not available for booking");
+  }
+
   // Check if slot is available
   if (slot.status !== "AVAILABLE") {
     throw new AppError(400, "This slot is no longer available");
@@ -113,11 +137,13 @@ async function attemptBooking(
     throw new AppError(400, "You have already booked this slot");
   }
 
-  // Generate confirmation token for professor approval
+  // Generate confirmation token for professor approval.
+  // Expiry is capped at slot start time so the token cannot be used after class begins.
   const { token, expiresAt, jti } = generateConfirmationToken(
     "", // Will be updated after booking is created
     slot.professorId,
     student.id,
+    new Date(slot.startTime),
   );
 
   // Create the booking with PENDING_CONFIRMATION status
@@ -131,11 +157,12 @@ async function attemptBooking(
     },
   });
 
-  // Update the token with the actual booking ID
+  // Update the token with the actual booking ID (same slot start time cap applies)
   const { token: finalToken } = generateConfirmationToken(
     booking.id,
     slot.professorId,
     student.id,
+    new Date(slot.startTime),
   );
 
   // Update booking with correct token
@@ -229,6 +256,15 @@ export async function bookSlot(
         professor: slotForEmail.professor as any,
         position,
       }).catch((e: unknown) => console.error("[waitlist] email failed:", e));
+
+      const waitlistDate = formatForNotification(slotForEmail.startTime, student.timezone);
+      createNotification(
+        student.id,
+        "waitlist_joined",
+        "Added to waitlist",
+        `You're #${position} on the waitlist for ${slotForEmail.title || "Spanish Class"} on ${waitlistDate}. We'll notify you if a spot opens.`,
+        "/dashboard/bookings",
+      ).catch(() => {});
     }
     return { waitlisted: true, position, slotId };
   }
@@ -279,9 +315,10 @@ export async function bookSlot(
 
       // Fire in-app notifications (non-blocking)
       const slotTitle = slot.title || "Spanish Class";
-      const classDate = new Date(slot.startTime).toLocaleDateString("en", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-      createNotification(student.id, "booking_pending", "Booking pending confirmation", `Your booking for ${slotTitle} on ${classDate} is awaiting professor confirmation.`, "/dashboard/bookings").catch(() => {});
-      createNotification(slot.professor.id, "booking_request", "New booking request", `${student.firstName} ${student.lastName} has requested to book ${slotTitle} on ${classDate}.`, "/admin").catch(() => {});
+      const classDateForStudent = formatForNotification(slot.startTime, student.timezone);
+      const classDateForProfessor = formatForNotification(slot.startTime, slot.professor.timezone);
+      createNotification(student.id, "booking_pending", "Booking pending confirmation", `Your booking for ${slotTitle} on ${classDateForStudent} is awaiting professor confirmation.`, "/dashboard/bookings").catch(() => {});
+      createNotification(slot.professor.id, "booking_request", "New booking request", `${student.firstName} ${student.lastName} has requested to book ${slotTitle} on ${classDateForProfessor}.`, "/admin").catch(() => {});
 
       // AN2: Track booking in StudentEngagementStats (non-blocking)
       incrementEngagementStat(student.id, "totalClassesBooked", new Date()).catch(() => {});
@@ -296,6 +333,15 @@ export async function bookSlot(
           meetLink: slot.meetLink,
           meetingUrl,
         },
+        // Shaped as BookingWithSlot for the frontend's post-booking card.
+        // status is always PENDING_CONFIRMATION at this point (see line 132).
+        booking: {
+          ...booking,
+          slot: {
+            ...slot,
+            meetLink: slot.meetLink,
+          },
+        } as unknown as import("@spanish-class/shared").BookingWithSlot,
       };
     } catch (error: unknown) {
       // Retry on optimistic locking conflict (409)
@@ -363,7 +409,10 @@ export async function cancelBooking(
       throw new AppError(404, "Booking not found");
     }
 
-    if (booking.status !== "CONFIRMED") {
+    const isPending = booking.status === "PENDING_CONFIRMATION";
+    const isConfirmed = booking.status === "CONFIRMED";
+
+    if (!isPending && !isConfirmed) {
       throw new AppError(400, "This booking cannot be cancelled");
     }
 
@@ -375,20 +424,22 @@ export async function cancelBooking(
       throw new AppError(403, "You are not authorized to cancel this booking");
     }
 
-    // Check cancellation policy — window is configurable per professor (default 24h)
-    const professorSettings = await prisma.professorSettings.findUnique({
-      where: { userId: booking.slot.professorId },
-    });
-    const windowHours = professorSettings?.cancellationWindowHours ?? 24;
-    const hoursUntilStart =
-      (new Date(booking.slot.startTime).getTime() - Date.now()) /
-      (1000 * 60 * 60);
+    // Cancellation window only applies to confirmed bookings (pending requests can always be withdrawn)
+    if (isConfirmed) {
+      const professorSettings = await prisma.professorSettings.findUnique({
+        where: { userId: booking.slot.professorId },
+      });
+      const windowHours = professorSettings?.cancellationWindowHours ?? 24;
+      const hoursUntilStart =
+        (new Date(booking.slot.startTime).getTime() - Date.now()) /
+        (1000 * 60 * 60);
 
-    if (hoursUntilStart < windowHours && !isAdmin) {
-      throw new AppError(
-        400,
-        `Bookings must be cancelled at least ${windowHours} hour${windowHours === 1 ? "" : "s"} in advance`,
-      );
+      if (hoursUntilStart < windowHours && !isAdmin) {
+        throw new AppError(
+          400,
+          `Bookings must be cancelled at least ${windowHours} hour${windowHours === 1 ? "" : "s"} in advance`,
+        );
+      }
     }
 
     // Determine who cancelled
@@ -479,12 +530,50 @@ export async function cancelBooking(
     console.error("Failed to send cancellation emails:", err),
   );
 
+  // In-app notifications for cancellation
+  const slotTitle = booking.slot.title || "Spanish Class";
+  if (cancelledBy === "student") {
+    // Student cancelled → notify student (confirmation) + professor
+    createNotification(
+      booking.studentId,
+      "booking_cancelled_student",
+      "Booking cancelled",
+      `Your booking for ${slotTitle} on ${formatForNotification(booking.slot.startTime, booking.student.timezone)} has been cancelled.`,
+      "/dashboard/bookings",
+    ).catch(() => {});
+    createNotification(
+      booking.slot.professor.id,
+      "booking_cancelled_student",
+      "Student cancelled a booking",
+      `${booking.student.firstName} ${booking.student.lastName} cancelled their booking for ${slotTitle} on ${formatForNotification(booking.slot.startTime, booking.slot.professor.timezone)}.`,
+      "/admin",
+    ).catch(() => {});
+  } else {
+    // Professor cancelled → notify student
+    createNotification(
+      booking.studentId,
+      "booking_cancelled_professor",
+      "Booking cancelled by professor",
+      `Your booking for ${slotTitle} on ${formatForNotification(booking.slot.startTime, booking.student.timezone)} was cancelled by the professor.${reason ? ` Reason: ${reason}` : ""} You can book another slot.`,
+      "/dashboard/book",
+    ).catch(() => {});
+  }
+
   // If someone was promoted from the waitlist, notify them
   if (promotedWaitlistEntry) {
+    const promotedStudent = promotedWaitlistEntry.user as unknown as import("@spanish-class/shared").UserPublic;
     sendWaitlistPromotionToStudent({
-      student: promotedWaitlistEntry.user as unknown as import("@spanish-class/shared").UserPublic,
+      student: promotedStudent,
       slot: cancelSlotForEmail,
       professor: booking.slot.professor as unknown as import("@spanish-class/shared").UserPublic,
     }).catch((e: unknown) => console.error("[waitlist] promotion email failed:", e));
+
+    createNotification(
+      promotedStudent.id,
+      "waitlist_promoted",
+      "A spot opened up!",
+      `A spot is now available for ${booking.slot.title || "Spanish Class"} on ${formatForNotification(booking.slot.startTime, promotedStudent.timezone)}. Book now before it's taken.`,
+      "/dashboard/book",
+    ).catch(() => {});
   }
 }

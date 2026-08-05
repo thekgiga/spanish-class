@@ -1,10 +1,16 @@
 /** @type {import('tailwindcss').Config} */
+import uiSystemExtend from './ui-system.tailwind.extend.cjs';
+
 export default {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      // ── Editorial Teaching Studio semantic mappings ──────────────────────
+      // Merged from ui-system.tailwind.extend.cjs; do NOT remove legacy
+      // entries until all production references are migrated (Phase 7).
       colors: {
+        ...uiSystemExtend.colors,
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -380,6 +386,7 @@ export default {
         // Use edu-blue, edu-emerald, edu-orange, edu-slate instead
       },
       borderRadius: {
+        ...uiSystemExtend.borderRadius,
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
@@ -388,8 +395,7 @@ export default {
         "3xl": "1.5rem",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        ...uiSystemExtend.fontFamily,
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
@@ -425,6 +431,7 @@ export default {
         "mesh-pattern": `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23B91C1C' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
       },
       boxShadow: {
+        ...uiSystemExtend.boxShadow,
         // ========================================
         // PREMIUM EDUCATION SHADOWS
         // ========================================
@@ -531,6 +538,60 @@ export default {
         morph: "morph 10s ease-in-out infinite",
         float: "float 6s ease-in-out infinite",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+      },
+      // ── Editorial Teaching Studio additional semantic entries ─────────────
+      fontSize: {
+        ...uiSystemExtend.fontSize,
+      },
+      height: {
+        'control-compact':     'var(--ui-control-compact)',
+        'control-default':     'var(--ui-control-default)',
+        'control-comfortable': 'var(--ui-control-comfortable)',
+        'touch-min':           'var(--ui-touch-minimum)',
+        'topbar':              'var(--ui-topbar-height)',
+        'content':             'calc(100vh - var(--ui-topbar-height))',
+      },
+      maxHeight: {
+        'sheet': '90dvh',
+      },
+      minHeight: {
+        'textarea': '120px',
+        'touch':    'var(--ui-touch-minimum)',
+      },
+      minWidth: {
+        'touch': 'var(--ui-touch-minimum)',
+      },      width: {
+        'control-compact':     'var(--ui-control-compact)',
+        'control-default':     'var(--ui-control-default)',
+        'control-comfortable': 'var(--ui-control-comfortable)',
+        'touch-min':           'var(--ui-touch-minimum)',
+        'drawer':              'var(--ui-drawer-width)',
+        'drawer-wide':         'var(--ui-drawer-wide)',
+        'sidebar':             'var(--ui-sidebar-width)',
+        'sidebar-collapsed':   'var(--ui-sidebar-collapsed)',
+      },
+      // inset/left tokens so AppTopbar and AppMain can offset from the sidebar
+      inset: {
+        'sidebar':           'var(--ui-sidebar-width)',
+        'sidebar-collapsed': 'var(--ui-sidebar-collapsed)',
+        'topbar':            'var(--ui-topbar-height)',
+      },
+      padding: {
+        'topbar': 'var(--ui-topbar-height)',
+        'sidebar': 'var(--ui-sidebar-width)',
+        'sidebar-collapsed': 'var(--ui-sidebar-collapsed)',
+      },
+      maxWidth: {
+        'drawer':    'var(--ui-drawer-width)',
+        'drawer-wide': 'var(--ui-drawer-wide)',
+        'settings':  'var(--ui-settings-max)',
+        'marketing': 'var(--ui-marketing-max)',
+      },
+      transitionDuration: {
+        ...uiSystemExtend.transitionDuration,
+      },
+      transitionTimingFunction: {
+        ...uiSystemExtend.transitionTimingFunction,
       },
     },
   },

@@ -1,0 +1,25 @@
+Layer,Component,Priority,Contract,Status,File,Story
+Primitive,Button,Required,primary secondary quiet danger link; sm md lg; loading disabled icons,Done,packages/frontend/src/components/ui/button.tsx,packages/frontend/src/components/ui/Button.stories.tsx
+Primitive,IconButton,Required,accessible name tooltip destructive safeguard,Done,packages/frontend/src/components/ui/icon-button.tsx,packages/frontend/src/components/ui/IconButton.stories.tsx
+Primitive,Input,Required,label hint error disabled readonly leading/trailing,Done,packages/frontend/src/components/ui/input.tsx,packages/frontend/src/components/ui/Input.stories.tsx
+Primitive,Textarea,Required,auto-grow optional counter error states,Done,packages/frontend/src/components/ui/textarea.tsx,packages/frontend/src/components/ui/Textarea.stories.tsx
+Primitive,Select/Combobox,Required,keyboard search empty loading error,Done,packages/frontend/src/components/ui/select.tsx,—
+Primitive,Checkbox/Radio/Switch,Required,correct selection semantics and touch target,Done,packages/frontend/src/components/ui/checkbox.tsx,—
+Primitive,Tabs/SegmentedControl,Required,URL state where meaningful,Done,packages/frontend/src/components/ui/tabs.tsx,—
+Primitive,Avatar,Required,image initials fallback status,Done,packages/frontend/src/components/ui/avatar.tsx,—
+Primitive,StatusBadge,Critical,central lifecycle mapping only,Done,packages/frontend/src/components/ui/status-badge.tsx,packages/frontend/src/components/ui/StatusBadge.stories.tsx
+Overlay,Popover,Required,anchored contextual creation/filter,Done,packages/frontend/src/components/ui/popover.tsx,packages/frontend/src/components/ui/popover.stories.tsx
+Overlay,Drawer/BottomSheet,Critical,desktop drawer mobile sheet focus management,Done,packages/frontend/src/components/ui/drawer.tsx,packages/frontend/src/components/ui/drawer.stories.tsx
+Overlay,Dialog/AlertDialog,Required,blocking/destructive only,Done,packages/frontend/src/components/ui/dialog.tsx,packages/frontend/src/components/ui/dialog.stories.tsx
+Feedback,Toast/InlineAlert,Required,success error retry and live region,Done,packages/frontend/src/components/ui/inline-alert.tsx,packages/frontend/src/components/ui/inline-alert.stories.tsx
+Feedback,EmptyState/Skeleton,Required,geometry-specific and one action max,Done,"packages/frontend/src/components/ui/empty-state.tsx,packages/frontend/src/components/ui/skeleton.tsx","packages/frontend/src/components/ui/empty-state.stories.tsx,packages/frontend/src/components/ui/skeleton.stories.tsx"
+Layout,AppShell,Critical,sidebar topbar mobile nav,Done,packages/frontend/src/components/ui/app-shell.tsx,packages/frontend/src/components/ui/app-shell.stories.tsx
+Layout,PageHeader,Required,title context primary action,Done,packages/frontend/src/components/ui/page-header.tsx,packages/frontend/src/components/ui/page-header.stories.tsx
+Domain,CalendarEvent,Critical,all lifecycle states and dense variants,Done,packages/frontend/src/components/ui/calendar-event.tsx,packages/frontend/src/components/ui/calendar-event.stories.tsx
+Domain,CalendarSelectionComposer,Critical,offer schedule block actions,Done,packages/frontend/src/components/ui/calendar-selection-composer.tsx,packages/frontend/src/components/ui/calendar-selection-composer.stories.tsx
+Domain,BookingRequestDrawer,Critical,approve reject expiry,Done,packages/frontend/src/components/ui/slot-event-drawer.tsx,packages/frontend/src/components/ui/slot-event-drawer.stories.tsx
+Domain,LessonCard,Critical,upcoming pending history variants,Done,packages/frontend/src/pages/student/BookingsPage.tsx,—
+Domain,AvailableTimeOption,Critical,student booking selectable option,Done,packages/frontend/src/components/ui/available-time-option.tsx,packages/frontend/src/components/ui/available-time-option.stories.tsx
+Domain,StudentSummary,Required,avatar identity next lesson metadata,Done,packages/frontend/src/pages/admin/StudentDetailPage.tsx,—
+Domain,RecurrenceComposer,Required,scope preview conflicts,Done,packages/frontend/src/components/ui/recurring-preview.tsx,packages/frontend/src/components/ui/recurring-preview.stories.tsx
+Domain,AttendanceControl,Required,completed lesson workflow,Done,packages/frontend/src/components/ui/slot-event-drawer.tsx,—

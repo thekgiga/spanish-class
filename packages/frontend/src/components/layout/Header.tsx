@@ -1,7 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Menu, X, LogOut, User, LayoutDashboard, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { motion, MotionConfig } from "framer-motion";
+import { Menu, X, LogOut, User, LayoutDashboard } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,20 +11,60 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { getInitials } from "@/lib/utils";
-import { PrimaryButton } from "@/components/ui/premium";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
+  { labelKey: "navigation.contact", href: "/contact" },
 ];
 
+/**
+ * Landing page (route "/") renders a full-viewport video hero. There the header
+ * is hidden while the hero is on screen and reappears — pinned to the bottom —
+ * once the visitor scrolls past it. Every other route keeps the header pinned to
+ * the top. We detect "scrolled past the hero" by observing the `#landing-hero-end`
+ * sentinel that HomePage renders at the end of its hero section.
+ */
+function useLandingHeaderMode(): "top" | "landing-hidden" | "landing-top" {
+  const { pathname } = useLocation();
+  const isLanding = pathname === "/";
+  const [pastHero, setPastHero] = useState(false);
+
+  useEffect(() => {
+    if (!isLanding) return;
+    const sentinel = document.getElementById("landing-hero-end");
+    if (!sentinel) return;
+
+    // The sentinel sits at the end of the hero. Once its top scrolls above the
+    // viewport top, the hero is out of view and the header should appear.
+    const update = () => setPastHero(sentinel.getBoundingClientRect().top <= 0);
+    update();
+
+    const observer = new IntersectionObserver(update, {
+      threshold: 0,
+      rootMargin: "0px",
+    });
+    observer.observe(sentinel);
+    window.addEventListener("scroll", update, { passive: true });
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", update);
+    };
+  }, [isLanding, pathname]);
+
+  if (!isLanding) return "top";
+  return pastHero ? "landing-top" : "landing-hidden";
+}
+
 export function Header() {
+  const { t } = useTranslation("common");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
+  const headerMode = useLandingHeaderMode();
 
   const handleLogout = async () => {
     await logout();
@@ -32,199 +73,180 @@ export function Header() {
 
   const dashboardPath = user?.isAdmin ? "/admin" : "/dashboard";
 
+  // Landing hero is on screen → don't render the header at all (it slides in
+  // Landing hero is on screen → don't render the header at all (it slides in
+  // from the top once the visitor scrolls past the hero).
+  if (headerMode === "landing-hidden") {
+    return null;
+  }
+
+  // On the landing page, once past the hero the header appears pinned to the
+  // top of the viewport. We use `fixed` (not `sticky`) so it isn't in the
+  // document flow — that avoids a reflow jump when it mounts mid-scroll.
+  const isLandingTop = headerMode === "landing-top";
+
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b-2 border-spanish-teal-100 shadow-lg">
-      <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Top">
-        <div className="flex h-20 items-center justify-between">
-          {/* Logo */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center"
-          >
+    <MotionConfig reducedMotion="user">
+      <motion.header
+        initial={isLandingTop ? { y: "-100%" } : false}
+        animate={{ y: 0 }}
+        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+        className={cn(
+          "z-50 border-b border-line bg-surface/95 backdrop-blur-xl shadow-ui-1",
+          isLandingTop ? "fixed left-0 right-0 top-0" : "sticky top-0",
+        )}
+      >
+        <nav className="mx-auto max-w-settings px-4 sm:px-6 lg:px-8" aria-label="Top">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                <span className="text-white font-display text-2xl font-bold">
-                  S
-                </span>
+              <div className="h-9 w-9 rounded-ui-sm bg-brand flex items-center justify-center shrink-0 group-hover:opacity-90 transition-opacity">
+                <span className="text-brand-contrast font-semibold text-title">S</span>
               </div>
-              <span className="font-display text-2xl font-bold text-slate-900 group-hover:text-spanish-teal-600 transition-colors">
+              <span className="font-semibold text-title text-ink group-hover:text-brand transition-colors">
                 Spanish Class
               </span>
             </Link>
-          </motion.div>
 
-          {/* Desktop navigation */}
-          <div className="hidden md:flex md:items-center md:gap-2">
-            {navLinks.map((link, index) => (
-              <motion.div
-                key={link.href}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Link
-                  to={link.href}
-                  className="px-4 py-2 text-sm font-semibold text-slate-700 hover:text-spanish-teal-600 hover:bg-spanish-teal-50 rounded-xl transition-all duration-200"
-                >
-                  {link.label}
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Auth buttons / User menu */}
-          <div className="hidden md:flex md:items-center md:gap-4">
-            <LanguageSwitcher />
-            {isAuthenticated && user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="relative h-12 w-12 rounded-full hover:scale-110 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-spanish-teal-500 focus:ring-offset-2 focus:ring-offset-white">
-                    <Avatar className="h-12 w-12 border-2 border-spanish-teal-300">
-                      <AvatarFallback className="bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 text-white font-semibold text-base">
-                        {getInitials(user.firstName, user.lastName)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-64 rounded-2xl shadow-2xl border-2 border-spanish-teal-100 bg-white"
-                  align="end"
-                >
-                  <div className="flex items-center justify-start gap-3 p-4">
-                    <Avatar className="h-12 w-12 border-2 border-spanish-teal-300">
-                      <AvatarFallback className="bg-gradient-to-br from-spanish-teal-500 to-spanish-coral-500 text-white font-semibold">
-                        {getInitials(user.firstName, user.lastName)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-semibold text-slate-900">
-                        {user.firstName} {user.lastName}
-                      </p>
-                      <p className="text-sm text-slate-600">{user.email}</p>
-                    </div>
-                  </div>
-                  <DropdownMenuSeparator className="bg-spanish-teal-100" />
-                  <DropdownMenuItem
-                    asChild
-                    className="cursor-pointer hover:bg-spanish-teal-50"
-                  >
-                    <Link
-                      to={dashboardPath}
-                      className="flex items-center text-slate-700"
-                    >
-                      <LayoutDashboard className="mr-3 h-4 w-4" />
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    asChild
-                    className="cursor-pointer hover:bg-spanish-teal-50"
-                  >
-                    <Link
-                      to={`${dashboardPath}/profile`}
-                      className="flex items-center text-slate-700"
-                    >
-                      <User className="mr-3 h-4 w-4" />
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-spanish-teal-100" />
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    className="cursor-pointer text-spanish-coral-600 hover:bg-spanish-coral-50"
-                  >
-                    <LogOut className="mr-3 h-4 w-4" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <PrimaryButton
-                size="sm"
-                className="bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-lg"
-                asChild
-              >
-                <Link to="/auth">
-                  <Sparkles className="h-4 w-4" />
-                  Sign In
-                </Link>
-              </PrimaryButton>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="flex md:hidden items-center gap-2">
-            <LanguageSwitcher />
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-xl p-2 text-slate-700 hover:bg-spanish-teal-50 hover:text-spanish-teal-600 transition-all"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              <span className="sr-only">Open menu</span>
-              {mobileMenuOpen ? (
-                <X className="h-6 w-6" aria-hidden="true" />
-              ) : (
-                <Menu className="h-6 w-6" aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t-2 border-spanish-teal-100 mt-2 pt-4 pb-3"
-          >
-            <div className="space-y-1 px-2">
+            {/* Desktop navigation */}
+            <div className="hidden md:flex md:items-center md:gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   to={link.href}
-                  className="block rounded-xl px-3 py-2 text-base font-medium text-slate-700 hover:bg-spanish-teal-50 hover:text-spanish-teal-600 transition-all"
-                  onClick={() => setMobileMenuOpen(false)}
+                  className="px-4 py-2 text-small font-semibold text-ink-secondary hover:text-ink hover:bg-surface-muted rounded-ui-sm transition-colors duration-micro"
                 >
-                  {link.label}
+                  {t(link.labelKey)}
                 </Link>
               ))}
+            </div>
+
+            {/* Auth / user menu */}
+            <div className="hidden md:flex md:items-center md:gap-3">
+              <LanguageSwitcher />
               {isAuthenticated && user ? (
-                <>
-                  <Link
-                    to={dashboardPath}
-                    className="block rounded-xl px-3 py-2 text-base font-medium text-slate-700 hover:bg-spanish-teal-50 hover:text-spanish-teal-600 transition-all"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left rounded-xl px-3 py-2 text-base font-medium text-spanish-coral-600 hover:bg-spanish-coral-50 transition-all"
-                  >
-                    Sign out
-                  </button>
-                </>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2">
+                      <Avatar className="h-9 w-9 border border-line">
+                        <AvatarFallback className="bg-brand text-brand-contrast text-caption font-semibold">
+                          {getInitials(user.firstName, user.lastName)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-60 rounded-ui-md shadow-ui-2 border border-line bg-surface" align="end">
+                    <div className="flex items-center gap-3 p-4">
+                      <Avatar className="h-9 w-9 shrink-0">
+                        <AvatarFallback className="bg-brand text-brand-contrast text-caption font-semibold">
+                          {getInitials(user.firstName, user.lastName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="text-small font-semibold text-ink truncate">
+                          {user.firstName} {user.lastName}
+                        </p>
+                        <p className="text-caption text-ink-tertiary truncate">{user.email}</p>
+                      </div>
+                    </div>
+                    <DropdownMenuSeparator className="bg-line" />
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-surface-muted">
+                      <Link to={dashboardPath} className="flex items-center text-ink">
+                        <LayoutDashboard className="mr-3 h-4 w-4" aria-hidden="true" />
+                        {t("navigation.dashboard")}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild className="cursor-pointer hover:bg-surface-muted">
+                      <Link to={`${dashboardPath}/profile`} className="flex items-center text-ink">
+                        <User className="mr-3 h-4 w-4" aria-hidden="true" />
+                        {t("navigation.profile")}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator className="bg-line" />
+                    <DropdownMenuItem
+                      onClick={handleLogout}
+                      className="cursor-pointer text-feedback-danger hover:bg-feedback-danger/10"
+                    >
+                      <LogOut className="mr-3 h-4 w-4" aria-hidden="true" />
+                      {t("navigation.logout")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
-                <Link
-                  to="/auth"
-                  className="block rounded-xl px-3 py-2 text-base font-medium text-white bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 hover:from-spanish-coral-600 hover:to-spanish-orange-600 transition-all shadow-lg"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <span className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    Sign In
-                  </span>
-                </Link>
+                <Button variant="primary" size="sm" asChild>
+                  <Link to="/auth">{t("navigation.login")}</Link>
+                </Button>
               )}
             </div>
-          </motion.div>
-        )}
-      </nav>
-    </header>
+
+            {/* Mobile menu button */}
+            <div className="flex md:hidden items-center gap-2">
+              <LanguageSwitcher />
+              <button
+                type="button"
+                aria-label={t("aria_labels.open_menu")}
+                aria-expanded={mobileMenuOpen}
+                className="inline-flex items-center justify-center rounded-ui-sm p-2 text-ink-tertiary hover:bg-surface-muted hover:text-ink transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? (
+                  <X className="h-5 w-5" aria-hidden="true" />
+                ) : (
+                  <Menu className="h-5 w-5" aria-hidden="true" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile menu */}
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t border-line mt-1 pt-3 pb-3"
+            >
+              <div className="space-y-0.5 px-2">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    className="block rounded-ui-sm px-3 py-2.5 text-small font-semibold text-ink-secondary hover:bg-surface-muted hover:text-ink transition-colors duration-micro"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t(link.labelKey)}
+                  </Link>
+                ))}
+                {isAuthenticated ? (
+                  <>
+                    <Link
+                      to={dashboardPath}
+                      className="block rounded-ui-sm px-3 py-2.5 text-small font-semibold text-ink-secondary hover:bg-surface-muted hover:text-ink transition-colors duration-micro"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {t("navigation.dashboard")}
+                    </Link>
+                    <button
+                      onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                      className="block w-full text-left rounded-ui-sm px-3 py-2.5 text-small font-semibold text-feedback-danger hover:bg-feedback-danger/10 transition-colors duration-micro"
+                    >
+                      {t("navigation.logout")}
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    to="/auth"
+                    className="block rounded-ui-sm px-3 py-2.5 text-small font-medium bg-brand text-brand-contrast hover:bg-brand-hover transition-colors duration-micro"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {t("navigation.login")}
+                  </Link>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </nav>
+      </motion.header>
+    </MotionConfig>
   );
 }

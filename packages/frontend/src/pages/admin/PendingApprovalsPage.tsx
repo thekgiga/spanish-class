@@ -1,250 +1,162 @@
+/**
+ * PendingApprovalsPage — professor reviews pending student booking requests.
+ *
+ * APP-002: Approve and reject happen in contextual request drawer.
+ * APP-003: Approval result updates visible state without dead end.
+ *
+ * Migration: inline approve/reject replaced with SlotEventDrawer (Phase 3).
+ * Each card has a "Review" button that loads the slot and opens the drawer.
+ */
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { motion } from "framer-motion";
-import { Clock, CheckCircle, XCircle, Calendar, User } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import toast from "react-hot-toast";
+import { motion, MotionConfig } from "framer-motion";
+import { Clock, CheckCircle2 } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { SlotEventDrawer } from "@/components/ui/slot-event-drawer";
+import { uiToast } from "@/components/ui/inline-alert";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { professorApi } from "@/lib/api";
-import { formatTime, formatDate } from "@/lib/utils";
+import { formatTime, getInitials } from "@/lib/utils";
+import type { AvailabilitySlotWithBookings } from "@spanish-class/shared";
 
 export function PendingApprovalsPage() {
   const { t } = useTranslation("admin");
-  const queryClient = useQueryClient();
-  const [rejectingBooking, setRejectingBooking] = useState<string | null>(null);
-  const [rejectionReason, setRejectionReason] = useState("");
+  const [openSlot, setOpenSlot] = useState<AvailabilitySlotWithBookings | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [loadingSlotId, setLoadingSlotId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["pending-bookings"],
     queryFn: () => professorApi.getPendingBookings({ limit: 50 }),
   });
 
-  const approveMutation = useMutation({
-    mutationFn: (bookingId: string) => professorApi.confirmBooking(bookingId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pending-bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["professor-dashboard"] });
-      toast.success(t("approvals.approve_success"));
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || t("approvals.approve_error"));
-    },
-  });
+  // API returns extra student data even though the type says BookingWithSlot
+  const pendingBookings: Array<{
+    id: string; slotId: string;
+    confirmationExpiresAt?: string | null;
+    slot: { startTime: Date | string; endTime: Date | string };
+    student: { firstName: string; lastName: string; email: string };
+  }> = (data as any)?.data ?? [];
 
-  const rejectMutation = useMutation({
-    mutationFn: ({
-      bookingId,
-      reason,
-    }: {
-      bookingId: string;
-      reason: string;
-    }) => professorApi.rejectBooking(bookingId, reason),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pending-bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["professor-dashboard"] });
-      toast.success(t("approvals.reject_success"));
-      setRejectingBooking(null);
-      setRejectionReason("");
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || t("approvals.reject_error"));
-    },
-  });
-
-  const handleApprove = (bookingId: string) => {
-    approveMutation.mutate(bookingId);
-  };
-
-  const handleReject = () => {
-    if (!rejectingBooking) return;
-    if (!rejectionReason.trim()) {
-      toast.error(t("approvals.reject_dialog.reason_required"));
-      return;
+  const handleReview = async (booking: { slotId: string }) => {
+    setLoadingSlotId(booking.slotId);
+    try {
+      const slot = await professorApi.getSlot(booking.slotId);
+      setOpenSlot(slot);
+      setDrawerOpen(true);
+    } catch {
+      uiToast.error(t("calendar.error_generic"));
+    } finally {
+      setLoadingSlotId(null);
     }
-    rejectMutation.mutate({
-      bookingId: rejectingBooking,
-      reason: rejectionReason,
-    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-6 py-6 space-y-3">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-display font-bold text-navy-800">
-          {t("approvals.title")}
-        </h1>
-        <p className="text-muted-foreground">{t("approvals.subtitle")}</p>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4">
+      <PageHeader
+        title={t("approvals.title")}
+        description={t("approvals.subtitle")}
+      />
+
+      <div className="mt-4 space-y-3">
+        {pendingBookings.length === 0 ? (
+          <EmptyState
+            icon={<CheckCircle2 className="h-10 w-10" />}
+            title={t("approvals.no_pending")}
+            description={t("approvals.no_pending_description")}
+          />
+        ) : (
+          <MotionConfig reducedMotion="user">
+            {pendingBookings.map((booking, i) => {
+            const student = booking.student;
+            const slot    = booking.slot;
+            const expiry  = booking.confirmationExpiresAt
+              ? new Date(booking.confirmationExpiresAt)
+              : null;
+
+            return (
+              <motion.div
+                key={booking.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+              >
+                <Card variant="plain">
+                  <CardContent className="p-4 space-y-3">
+                    {/* Status + expiry */}
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <StatusBadge status="requested" variant="tag" />
+                      {expiry && expiry > new Date() && (
+                        <span className="flex items-center gap-1 text-caption text-ink-tertiary">
+                          <Clock className="h-3 w-3" aria-hidden="true" />
+                          {formatDistanceToNow(expiry, { addSuffix: true })}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Student */}
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9 shrink-0">
+                        <AvatarFallback className="bg-brand text-brand-contrast text-caption font-semibold">
+                          {getInitials(student.firstName, student.lastName)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-small font-semibold text-ink truncate">
+                          {student.firstName} {student.lastName}
+                        </p>
+                        <p className="text-caption text-ink-tertiary truncate">{student.email}</p>
+                      </div>
+                    </div>
+
+                    {/* Slot time */}
+                    <div className="text-small text-ink-secondary ui-tabular">
+                      {format(new Date(slot.startTime), "EEEE, MMMM d")} · {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
+                    </div>
+
+                    {/* Review button → opens SlotEventDrawer */}
+                    <div className="pt-1 border-t border-line">
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        isLoading={loadingSlotId === booking.slotId}
+                        onClick={() => handleReview(booking)}
+                      >
+                        {t("approvals.review")}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+            })}
+          </MotionConfig>
+        )}
       </div>
 
-      {/* Pending Bookings List */}
-      {isLoading ? (
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-32 w-full" />
-          ))}
-        </div>
-      ) : data?.data && data.data.length > 0 ? (
-        <div className="space-y-4">
-          {data.data.map((booking: any, index: number) => (
-            <motion.div
-              key={booking.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
-                          <User className="h-5 w-5 text-amber-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-navy-800">
-                            {booking.student?.firstName}{" "}
-                            {booking.student?.lastName}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {booking.student?.email}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-muted-foreground">
-                            {t("approvals.card.class_time")}
-                          </span>
-                          <span className="font-medium">
-                            {formatDate(booking.slot.startTime, { weekday: undefined, year: undefined, month: 'short', day: 'numeric' })}{" "}
-                            {t("approvals.card.at")}{" "}
-                            {formatTime(booking.slot.startTime)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-amber-600" />
-                          <span className="text-muted-foreground">
-                            {t("approvals.card.expires")}
-                          </span>
-                          <span className="font-medium text-amber-600">
-                            {formatDistanceToNow(
-                              new Date(booking.confirmationExpiresAt),
-                              { addSuffix: true },
-                            )}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        size="sm"
-                        variant="default"
-                        className="bg-green-600 hover:bg-green-700"
-                        onClick={() => handleApprove(booking.id)}
-                        disabled={
-                          approveMutation.isPending || rejectMutation.isPending
-                        }
-                      >
-                        <CheckCircle className="mr-1 h-4 w-4" />
-                        {t("approvals.approve_button")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => setRejectingBooking(booking.id)}
-                        disabled={
-                          approveMutation.isPending || rejectMutation.isPending
-                        }
-                      >
-                        <XCircle className="mr-1 h-4 w-4" />
-                        {t("approvals.reject_button")}
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <CheckCircle className="h-16 w-16 mx-auto mb-4 text-green-500 opacity-50" />
-            <h3 className="text-lg font-semibold text-navy-800 mb-2">
-              {t("approvals.all_caught_up.title")}
-            </h3>
-            <p className="text-muted-foreground">
-              {t("approvals.all_caught_up.message")}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Reject Dialog */}
-      <Dialog
-        open={!!rejectingBooking}
-        onOpenChange={() => setRejectingBooking(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("approvals.reject_dialog.title")}</DialogTitle>
-            <DialogDescription>
-              {t("approvals.reject_dialog.description")}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div>
-              <Label htmlFor="reason">
-                {t("approvals.reject_dialog.reason_label")}
-              </Label>
-              <Textarea
-                id="reason"
-                placeholder={t("approvals.reject_dialog.reason_placeholder")}
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                rows={4}
-                className="mt-2"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setRejectingBooking(null);
-                setRejectionReason("");
-              }}
-              disabled={rejectMutation.isPending}
-            >
-              {t("approvals.reject_dialog.cancel")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleReject}
-              disabled={rejectMutation.isPending || !rejectionReason.trim()}
-            >
-              {t("approvals.reject_dialog.confirm")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* SlotEventDrawer handles approve/reject — APP-002 + APP-003 */}
+      <SlotEventDrawer
+        open={drawerOpen}
+        onClose={() => { setDrawerOpen(false); setOpenSlot(null); }}
+        slot={openSlot}
+      />
     </div>
   );
 }

@@ -1,305 +1,360 @@
-import { useState, useCallback } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+/**
+ * BookPage — Student booking flow.
+ *
+ * BOOK-001: Date-first → time-options UX.
+ * BOOK-002: Review drawer shows time, duration, professor, cancellation policy.
+ * BOOK-003: After booking, BookingRequestCard hero shows the pending state.
+ * BOOK-005: DateStrip availability indicators (slot count per day).
+ *
+ * Flow:
+ *   1. DateStrip — choose a date (counts show which days have openings)
+ *   2. AvailableTimeOption list — choose a time slot for that date
+ *   3. Drawer review — confirm details including cancellation policy
+ *   4. BookingRequestCard hero — post-booking pending state
+ */
+import { useState, useMemo, useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import {
-  addDays,
-  addWeeks,
-  subWeeks,
-  startOfWeek,
-  endOfWeek,
-  format,
-  isSameDay,
-} from "date-fns";
-import {
-  ChevronLeft,
-  ChevronRight,
-  SlidersHorizontal,
-} from "lucide-react";
-import { AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { studentApi } from "@/lib/api";
-import { WeeklyCalendar, SlotDetailDrawer } from "@/components/calendar";
-import type { CalendarSlot } from "@/components/calendar/EventCard";
+import { format, startOfDay, addDays, isBefore } from "date-fns";
+import { Clock, User, CheckCircle2 } from "lucide-react";
+import { DateStrip } from "@/components/ui/date-strip";
+import { AvailableTimeOption } from "@/components/ui/available-time-option";
+import { BookingRequestCard } from "@/components/ui/booking-request-card";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerBody, DrawerFooter, DrawerCloseButton } from "@/components/ui/drawer";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
+import { InlineAlert, uiToast } from "@/components/ui/inline-alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SEOMeta } from "@/components/shared/SEOMeta";
+import { formatTime } from "@/lib/utils";
+import { studentApi } from "@/lib/api";
+import type { AvailabilitySlot, BookingWithSlot } from "@spanish-class/shared";
 
-type SlotFilter = "all" | "INDIVIDUAL" | "GROUP";
-
-type SlotWithBookedFlag = CalendarSlot & { isBookedByMe: boolean };
+function getDurationLabel(start: Date | string, end: Date | string): string {
+  const mins = Math.round(
+    (new Date(end).getTime() - new Date(start).getTime()) / 60_000,
+  );
+  if (mins < 60) return `${mins} min`;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return m === 0 ? `${h} h` : `${h} h ${m} min`;
+}
 
 export function BookPage() {
-  const { t: ts } = useTranslation("student");
-  const { t: tb } = useTranslation("booking");
-  const queryClient = useQueryClient();
+  const { t } = useTranslation("booking");
+  const qc    = useQueryClient();
 
-  // ── View state ────────────────────────────────────────────────────────────
-  const [weekStart, setWeekStart] = useState<Date>(() =>
-    startOfWeek(new Date(), { weekStartsOn: 1 })
-  );
-  const weekEnd = endOfWeek(weekStart, { weekStartsOn: 1 });
-  const [filter, setFilter] = useState<SlotFilter>("all");
-  const [showFilterMenu, setShowFilterMenu] = useState(false);
+  const [centerDate, setCenterDate]     = useState(() => new Date());
+  const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
+  const [selectedSlot, setSelectedSlot] = useState<AvailabilitySlot | null>(null);
+  const [drawerOpen, setDrawerOpen]     = useState(false);
+  const [successBooking, setSuccessBooking] = useState<BookingWithSlot | null>(null);
 
-  // ── Slot drawer ───────────────────────────────────────────────────────────
-  const [drawerSlot, setDrawerSlot] = useState<SlotWithBookedFlag | null>(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  // Query available slots for the full DateStrip window (radius 7 = 15 visible days).
+  // The window must match the strip radius so slotCounts covers every visible day.
+  const windowStart = useMemo(() => addDays(centerDate, -7), [centerDate]);
+  const windowEnd   = useMemo(() => addDays(centerDate, 8), [centerDate]);
 
-  // ── Data ──────────────────────────────────────────────────────────────────
-  const { data, isLoading } = useQuery({
-    queryKey: [
-      "available-slots",
-      weekStart.toISOString(),
-      filter,
-    ],
+  const { data: slotsData, isLoading } = useQuery({
+    queryKey: ["student-available-slots", format(windowStart, "yyyy-MM-dd")],
     queryFn: () =>
       studentApi.getSlots({
-        startDate: weekStart.toISOString(),
-        endDate: addDays(weekEnd, 1).toISOString(),
-        slotType: filter !== "all" ? filter : undefined,
-        limit: 100,
+        startDate: windowStart.toISOString(),
+        endDate:   windowEnd.toISOString(),
+        limit: 200,
       }),
-    staleTime: 30_000,
   });
 
-  const { data: professorAssignment } = useQuery({
+  const { data: professorSettings } = useQuery({
+    queryKey: ["student-professor-settings"],
+    queryFn: () => studentApi.getProfessorSettings(),
+    staleTime: 10 * 60_000,
+  });
+
+  const { data: professorData } = useQuery({
     queryKey: ["student-professor"],
-    queryFn: studentApi.getProfessor,
-    staleTime: 5 * 60_000,
+    queryFn:  () => studentApi.getProfessor(),
   });
 
-  const slots: SlotWithBookedFlag[] = (data?.data ?? []).map((s: any) => ({
-    ...s,
-    startTime: typeof s.startTime === 'string' ? s.startTime : s.startTime.toISOString(),
-    endTime: typeof s.endTime === 'string' ? s.endTime : s.endTime.toISOString(),
-    isBookedByMe: s.isBookedByMe ?? false,
-  })) as SlotWithBookedFlag[];
+  // Count available slots per day for the DateStrip availability indicator (BOOK-005).
+  // Only future slots count — a day with only past slots should not show the green dot.
+  const slotCounts = useMemo<Record<string, number>>(() => {
+    const now = new Date();
+    const all = slotsData?.data ?? [];
+    const counts: Record<string, number> = {};
+    for (const s of all) {
+      if (isBefore(new Date(s.startTime), now)) continue;
+      const key = format(new Date(s.startTime), 'yyyy-MM-dd');
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }, [slotsData]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
-  const goToToday = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }));
-  const goPrev = () => setWeekStart((w) => subWeeks(w, 1));
-  const goNext = () => setWeekStart((w) => addWeeks(w, 1));
+  const getSlotLabel = useCallback(
+    (count: number) => t('date_strip.slots_available', { count }),
+    [t],
+  );
 
-  const handleSlotClick = useCallback((slot: CalendarSlot) => {
-    setDrawerSlot(slot as SlotWithBookedFlag);
+  // Filter slots to the selected date
+  const slotsForDate = useMemo(() => {
+    const all = slotsData?.data ?? [];
+    const dateKey = format(selectedDate, "yyyy-MM-dd");
+    return all.filter(
+      (s) => format(new Date(s.startTime), "yyyy-MM-dd") === dateKey,
+    );
+  }, [slotsData, selectedDate]);
+
+  // Slots the student already has a booking for (pending or confirmed)
+  const myBookingsForDate = useMemo(
+    () => slotsForDate.filter((s) => s.isBookedByMe),
+    [slotsForDate],
+  );
+
+  // Slots still open to book
+  const availableSlotsForDate = useMemo(
+    () => slotsForDate.filter((s) => !s.isBookedByMe),
+    [slotsForDate],
+  );
+
+  // Are any bookable slots varying in duration? (drives showDuration prop)
+  const hasMixedDurations = useMemo(() => {
+    if (availableSlotsForDate.length < 2) return false;
+    const durations = availableSlotsForDate.map((s) =>
+      new Date(s.endTime).getTime() - new Date(s.startTime).getTime(),
+    );
+    return new Set(durations).size > 1;
+  }, [availableSlotsForDate]);
+
+  const bookMutation = useMutation({
+    mutationFn: (slotId: string) => studentApi.bookSlot(slotId),
+    onSuccess: (data: any) => {
+      qc.invalidateQueries({ queryKey: ["student-available-slots"] });
+      qc.invalidateQueries({ queryKey: ["student-bookings"] });
+      qc.invalidateQueries({ queryKey: ["student-dashboard"] });
+      setDrawerOpen(false);
+      // The API now returns { bookingId, slot, booking } where `booking` is a
+      // full BookingWithSlot record in the requested (awaiting-approval) UI
+      // state. BookingRequestCard consumes this and, via the central status
+      // map in lib/ui-system/status.ts, renders the amber "Approval needed"
+      // hero, the expiry countdown, and the "what happens next" explanation.
+      setSuccessBooking(data.booking as BookingWithSlot);
+    },
+    onError: () => uiToast.error(t("booking_modal.error_message")),
+  });
+
+  const handleDateSelect = useCallback((day: Date) => {
+    setSelectedDate(startOfDay(day));
+    setCenterDate(day);
+    setSelectedSlot(null);
+  }, []);
+
+  const handleTodayClick = useCallback(() => {
+    const now = new Date();
+    setSelectedDate(startOfDay(now));
+    setCenterDate(now);
+    setSelectedSlot(null);
+  }, []);
+
+  const handlePageBack = useCallback(() => {
+    setCenterDate(c => addDays(c, -7));
+  }, []);
+
+  const handlePageForward = useCallback(() => {
+    setCenterDate(c => addDays(c, 7));
+  }, []);
+
+  const handleSlotSelect = useCallback((slot: AvailabilitySlot) => {
+    setSelectedSlot(slot);
     setDrawerOpen(true);
   }, []);
 
-  const handleBooked = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: ["available-slots"] });
-    setDrawerOpen(false);
-  }, [queryClient]);
+  const professor = professorData?.professor;
+  const cancellationHours = professorSettings?.cancellationWindowHours ?? 24;
 
-  // ── Week title ────────────────────────────────────────────────────────────
-  const weekTitle = `${format(weekStart, "MMM d")} – ${format(weekEnd, "MMM d, yyyy")}`;
+  // Post-booking success screen
+  if (successBooking) {
+    return (
+      <div className="max-w-lg mx-auto px-6 py-10 space-y-6">
+        {/* Success hero */}
+        <div className="flex flex-col items-center text-center gap-3">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-feedback-success/10">
+            <CheckCircle2 className="w-8 h-8 text-feedback-success" aria-hidden="true" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-h2 font-semibold text-ink">{t("request.booking_sent_title")}</h1>
+            <p className="text-body text-ink-secondary">{t("request.booking_sent_body")}</p>
+          </div>
+        </div>
 
-  // ── Mobile agenda view ────────────────────────────────────────────────────
-  const agendaDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const getAgendaSlots = (day: Date) =>
-    slots.filter((s) => isSameDay(new Date(s.startTime), day));
+        {/* Booking detail card */}
+        <BookingRequestCard
+          booking={successBooking as BookingWithSlot}
+          variant="hero"
+        />
+
+        <Button
+          variant="secondary"
+          className="w-full"
+          onClick={() => setSuccessBooking(null)}
+        >
+          {t("request.select_date")}
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <SEOMeta
-        title={tb("page.seo_title", "Book a Class")}
-        description={tb("page.seo_description", "Browse and book available Spanish lessons")}
-        canonical="/book"
-        noindex={true}
+    <div className="flex flex-col h-full">
+      <SEOMeta title={t("page.seo_title")} description={t("page.seo_description")} />
+
+      <PageHeader title={t("page.book_title")} description={t("page.book_subtitle")} />
+
+      {/* Date strip */}
+      <DateStrip
+        centerDate={centerDate}
+        selectedDate={selectedDate}
+        radius={7}
+        onSelect={handleDateSelect}
+        slotCounts={slotCounts}
+        getSlotLabel={getSlotLabel}
+        todayLabel={t("calendar.today")}
+        onTodayClick={handleTodayClick}
+        onPageBack={handlePageBack}
+        onPageForward={handlePageForward}
       />
 
-      <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden bg-[#FAFAFA]">
-        {/* ── Unassigned guard ──────────────────────────────────────────── */}
-        {professorAssignment && !professorAssignment.professor && (
-          <div className="bg-amber-50 border-b border-amber-200 px-4 py-3 flex items-center justify-between gap-4 flex-none">
-            <p className="text-amber-800 text-sm font-medium">
-              {ts("professor.choose_before_booking")}
-            </p>
-            <a
-              href="/dashboard/choose-professor"
-              className="shrink-0 text-sm font-semibold text-amber-800 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-lg transition-colors"
-            >
-              {ts("professor.choose_professor_link")}
-            </a>
-          </div>
-        )}
-
-        {/* ── Toolbar ───────────────────────────────────────────────────── */}
-        <header className="flex-none flex items-center gap-3 px-4 py-3 border-b border-slate-200 bg-white">
-          <div className="flex items-center gap-1">
-            <button
-              onClick={goPrev}
-              className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500"
-              aria-label={ts("calendar.toolbar.prev", "Previous week")}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={goToToday}
-              className="px-3 py-1.5 text-sm font-medium text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
-            >
-              {ts("calendar.toolbar.today", "Today")}
-            </button>
-            <button
-              onClick={goNext}
-              className="p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-500"
-              aria-label={ts("calendar.toolbar.next", "Next week")}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-
-          <h1 className="text-lg font-semibold text-slate-900 flex-none">
-            {weekTitle}
-          </h1>
-
-          <div className="flex-1" />
-
-          {/* Filter button */}
-          <div className="relative">
-            <button
-              onClick={() => setShowFilterMenu((v) => !v)}
-              className={cn(
-                "flex items-center gap-2 px-3 py-1.5 rounded-xl border text-sm font-medium transition-colors",
-                filter !== "all"
-                  ? "border-edu-blue-400 bg-edu-blue-50 text-edu-blue-700"
-                  : "border-slate-200 text-slate-600 hover:bg-slate-50"
-              )}
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              {ts("calendar.toolbar.filter", "Filter")}
-              {filter !== "all" && (
-                <span className="w-1.5 h-1.5 rounded-full bg-edu-blue-500" />
-              )}
-            </button>
-
-            {showFilterMenu && (
-              <>
-                <div
-                  className="fixed inset-0 z-10"
-                  onClick={() => setShowFilterMenu(false)}
-                />
-                <div className="absolute right-0 top-full mt-1 bg-white rounded-xl border border-slate-200 shadow-lg z-20 min-w-[160px] py-1">
-                  {(["all", "INDIVIDUAL", "GROUP"] as SlotFilter[]).map((f) => (
-                    <button
-                      key={f}
-                      onClick={() => {
-                        setFilter(f);
-                        setShowFilterMenu(false);
-                      }}
-                      className={cn(
-                        "w-full text-left px-4 py-2 text-sm transition-colors hover:bg-slate-50",
-                        filter === f ? "text-edu-blue-700 font-semibold" : "text-slate-700"
-                      )}
-                    >
-                      {f === "all"
-                        ? ts("calendar.filter.all", "All Classes")
-                        : f === "INDIVIDUAL"
-                        ? ts("calendar.filter.individual", "Individual")
-                        : ts("calendar.filter.group", "Group")}
-                    </button>
-                  ))}
-                </div>
-              </>
+      {/* Time options */}
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-5">
+        {/* Date heading */}
+        <div className="flex items-baseline justify-between mb-4 max-w-lg">
+          <div>
+            <h2 className="text-title font-semibold text-ink">
+              {format(selectedDate, "EEEE, MMMM d")}
+            </h2>
+            {!isLoading && availableSlotsForDate.length > 0 && (
+              <p className="text-caption text-ink-tertiary mt-0.5">
+                {t("date_strip.slots_available", { count: availableSlotsForDate.length })}
+              </p>
             )}
           </div>
-        </header>
+        </div>
 
-        {/* ── Calendar (desktop) ────────────────────────────────────────── */}
-        <div className="flex-1 overflow-hidden hidden md:block">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <div className="w-8 h-8 border-2 border-edu-blue-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : slots.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
-              <span className="text-5xl">📅</span>
-              <div>
-                <p className="text-lg font-semibold text-slate-700">
-                  {ts("calendar.empty.title", "No available lessons this week.")}
+        {isLoading ? (
+          <div className="space-y-2 max-w-lg">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-16 w-full rounded-ui-md" />
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-5 max-w-lg">
+            {/* My bookings on this day — pending or confirmed */}
+            {myBookingsForDate.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-caption font-semibold text-ink-secondary uppercase tracking-wide">
+                  {t("page.my_lessons_on_day")}
                 </p>
-                <p className="text-sm text-slate-400 mt-1">
-                  {ts("calendar.empty.subtitle", "Check back soon or contact your professor.")}
+                {myBookingsForDate.map((slot) => (
+                  <AvailableTimeOption
+                    key={slot.id}
+                    slot={slot}
+                    onSelect={handleSlotSelect}
+                    showDuration={false}
+                    isPast={isBefore(new Date(slot.startTime), new Date())}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Available slots to book */}
+            {availableSlotsForDate.length > 0 ? (
+              <div className="space-y-2">
+                {myBookingsForDate.length > 0 && (
+                  <p className="text-caption font-semibold text-ink-secondary uppercase tracking-wide">
+                    {t("page.available_to_book")}
+                  </p>
+                )}
+                {availableSlotsForDate.map((slot) => (
+                  <AvailableTimeOption
+                    key={slot.id}
+                    slot={slot}
+                    onSelect={handleSlotSelect}
+                    showDuration={hasMixedDurations}
+                    isPast={isBefore(new Date(slot.startTime), new Date())}
+                  />
+                ))}
+              </div>
+            ) : myBookingsForDate.length === 0 ? (
+              <EmptyState
+                title={t("request.no_slots_on_date")}
+                description={t("request.select_date")}
+              />
+            ) : null}
+          </div>
+        )}
+      </div>
+
+      {/* Review drawer — BOOK-002 */}
+      <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{t("request.review_title")}</DrawerTitle>
+            <DrawerCloseButton />
+          </DrawerHeader>
+          {selectedSlot && (
+            <DrawerBody className="space-y-4">
+              {/* Date / time */}
+              <div className="space-y-1">
+                <p className="text-title font-semibold text-ink">
+                  {format(new Date(selectedSlot.startTime), "EEEE, MMMM d, yyyy")}
+                </p>
+                <p className="text-small text-ink-secondary ui-tabular">
+                  {formatTime(selectedSlot.startTime)} – {formatTime(selectedSlot.endTime)}
+                  {" · "}
+                  {getDurationLabel(selectedSlot.startTime, selectedSlot.endTime)}
                 </p>
               </div>
-            </div>
-          ) : (
-            <WeeklyCalendar
-              slots={slots}
-              view="week"
-              weekStart={weekStart}
-              onSlotClick={handleSlotClick}
-              isStudent={true}
-              className="h-full"
-            />
-          )}
-        </div>
 
-        {/* ── Agenda (mobile) ───────────────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto md:hidden divide-y divide-slate-100">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="w-8 h-8 border-2 border-edu-blue-600 border-t-transparent rounded-full animate-spin" />
-            </div>
-          ) : (
-            agendaDays.map((day) => {
-              const daySlots = getAgendaSlots(day);
-              return (
-                <div key={day.toISOString()} className="px-4 py-3">
-                  <p className="text-xs font-semibold text-slate-400 uppercase mb-2">
-                    {format(day, "EEE, MMM d")}
-                  </p>
-                  {daySlots.length === 0 ? (
-                    <p className="text-xs text-slate-300 py-1">
-                      {ts("calendar.empty.no_slots_day", "No available slots")}
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {daySlots.map((slot) => (
-                        <button
-                          key={slot.id}
-                          onClick={() => handleSlotClick(slot)}
-                          className={cn(
-                            "w-full text-left px-4 py-3 rounded-xl border transition-colors",
-                            slot.isBookedByMe
-                              ? "bg-edu-blue-50 border-edu-blue-200"
-                              : "bg-white border-slate-200 hover:border-edu-blue-300 hover:bg-slate-50"
-                          )}
-                        >
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-semibold text-slate-800">
-                              {slot.title ?? ts("calendar.slot_title_default", "Spanish Class")}
-                            </p>
-                            {slot.isBookedByMe && (
-                              <span className="text-xs font-medium text-edu-blue-600 bg-edu-blue-50 px-2 py-0.5 rounded-full border border-edu-blue-200">
-                                {ts("calendar.drawer.already_booked", "Booked")}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500 mt-0.5">
-                            {format(new Date(slot.startTime), "HH:mm")} –{" "}
-                            {format(new Date(slot.endTime), "HH:mm")}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+              {/* Professor */}
+              {professor && (
+                <div className="flex items-center gap-2 text-small text-ink-secondary">
+                  <User className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span>{professor.firstName} {professor.lastName}</span>
                 </div>
-              );
-            })
-          )}
-        </div>
+              )}
 
-        {/* ── Slot Detail Drawer ────────────────────────────────────────── */}
-        <AnimatePresence>
-          {drawerOpen && (
-            <SlotDetailDrawer
-              key="slot-detail-drawer"
-              slot={drawerSlot}
-              open={drawerOpen}
-              onClose={() => setDrawerOpen(false)}
-              onBooked={handleBooked}
-            />
+              {/* Cancellation policy — BOOK-002 */}
+              <div className="flex items-start gap-2 text-small text-ink-secondary">
+                <Clock className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
+                <span>
+                  {t("request.cancellation_policy", { hours: cancellationHours })}
+                </span>
+              </div>
+
+              {/* What happens next */}
+              <InlineAlert variant="info">
+                {t("request.pending_explanation")}
+              </InlineAlert>
+            </DrawerBody>
           )}
-        </AnimatePresence>
-      </div>
-    </>
+          <DrawerFooter>
+            <Button
+              variant="secondary"
+              onClick={() => setDrawerOpen(false)}
+            >
+              {t("booking_modal.cancel_button")}
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              isLoading={bookMutation.isPending}
+              onClick={() => selectedSlot && bookMutation.mutate(selectedSlot.id)}
+            >
+              {t("request.request_lesson")}
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    </div>
   );
 }

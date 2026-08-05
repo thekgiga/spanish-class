@@ -66,12 +66,44 @@
     "james_content": "Group classes are engaging and fun! Great way to practice with others at the same level.",
     "emily_name": "Emily Rodriguez",
     "emily_role": "Travel Enthusiast",
-    "emily_content": "Flexible scheduling is perfect. I can book sessions around my busy schedule easily."
+    "emily_content": "Flexible scheduling is perfect. I can book sessions around my busy schedule easily.",
+    "rating_aria": "{{rating}} out of 5 stars"
   },
   "cta": {
+    "badge": "Get Started",
     "title": "Ready to Master Spanish?",
     "subtitle": "Join our vibrant community and experience the joy of learning Spanish with passionate teachers!",
     "button_primary": "Start Your Spanish Journey",
     "button_secondary": "Contact Us"
+  },
+  "paella": {
+    "sticky_headline": "Learn Spanish, ingredient by ingredient.",
+    "step1_label": "1: FOUNDATION",
+    "step1_copy": "Every conversation starts with a single word.",
+    "step2_label": "2: VOCABULARY",
+    "step2_copy": "300 words. That's all you need to start.",
+    "step3_label": "3: GRAMMAR",
+    "step3_copy": "Structure gives flavour its form.",
+    "step4_label": "4: PRONUNCIATION",
+    "step4_copy": "Let the language breathe.",
+    "step5_label": "5: CONVERSATION",
+    "step5_copy": "Ahora hablas español.",
+    "cta": "Start your first lesson"
+  },
+  "dashboard": {
+    "seo_title":              "My Dashboard",
+    "seo_description":        "Your upcoming lessons, pending requests, and activity.",
+    "next_lesson_title":        "Next lesson",
+    "pending_title":            "Awaiting approval",
+    "no_upcoming_title":        "No upcoming lessons",
+    "no_upcoming_description":  "Ready to practice? Book your next session.",
+    "book_action":              "Book a lesson",
+    "recent_activity":          "Recent activity",
+    "no_recent_activity":       "No lessons yet.",
+    "meeting_opens_in_hours":   "Joins in {{count}} h",
+    "meeting_opens_in_minutes": "Joins in {{count}} min",
+    "meeting_open":             "Meeting is open",
+    "meeting_window_hint":      "Meeting link opens 5 minutes before the lesson.",
+    "join_lesson":              "Join lesson"
   }
 }

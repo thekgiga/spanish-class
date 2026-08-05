@@ -7,7 +7,25 @@
     "no_slots": "No hay clases disponibles en este momento. Por favor, vuelve más tarde.",
     "loading": "Cargando clases disponibles...",
     "seo_title": "Reservar una lección de español",
-    "seo_description": "Explore y reserve lecciones de español disponibles con profesores nativos. Horarios flexibles para clases individuales y grupales desde 2000 RSD."
+    "seo_description": "Explore y reserve lecciones de español disponibles con profesores nativos. Horarios flexibles para clases individuales y grupales desde 2000 RSD.",
+    "cancel": "Cancelar",
+    "cancel_success": "Reserva cancelada.",
+    "upcoming": "Próximas",
+    "history": "Historial",
+    "no_upcoming": "No hay clases próximas",
+    "no_upcoming_description": "Reserva una clase para comenzar.",
+    "no_history": "No hay historial de clases aún.",
+    "cancel_confirm_title": "¿Cancelar esta reserva?",
+    "cancel_confirm_description": "El horario volverá a estar disponible. Esto no se puede deshacer.",
+    "cancel_policy_notice": "Las cancelaciones realizadas dentro de {{hours}} horas de la clase pueden no ser elegibles para un crédito.",
+    "cancel_outside_window": "Esta clase está dentro de la ventana de {{hours}} horas para cancelación.",
+    "cancel_confirm_action": "Sí, cancelar",
+    "leave_feedback": "Dejar comentarios",
+    "feedback_sent": "Comentario enviado. ¡Gracias!",
+    "professor_fallback": "Profesor",
+    "my_lessons_on_day": "Mis clases",
+    "available_to_book": "Disponible para reservar",
+    "my_upcoming_lessons": "Mis clases próximas"
   },
   "tabs": {
     "upcoming": "Próximas",
@@ -87,10 +105,15 @@
     "error": "Error al cancelar la reserva"
   },
   "status": {
-    "confirmed": "Confirmada",
+    "confirmed": "Confirmado",
     "pending": "Pendiente de aprobación",
-    "cancelled": "Cancelada",
-    "completed": "Completada"
+    "cancelled": "Cancelado",
+    "completed": "Completado",
+    "available": "Disponible",
+    "approvalNeeded": "Aprobación requerida",
+    "blocked": "No disponible",
+    "rejected": "Rechazado",
+    "expired": "Expirado"
   },
   "actions": {
     "join_class": "Unirse a la clase",
@@ -120,12 +143,15 @@
   },
   "slot": {
     "spots_filled": "{{current}}/{{max}} lugares ocupados",
-    "already_booked": "Ya reservado",
+    "already_booked": "Clase confirmada",
     "book_now": "Reservar ahora",
     "booked": "Reservado",
     "private_invitation": "Invitación privada",
     "waitlist_available": "Completo — únete a la lista de espera",
-    "no_waitlist": "Completo — no hay lista de espera para clases individuales"
+    "no_waitlist": "Completo — no hay lista de espera para clases individuales",
+    "approval_needed": "Esperando aprobación",
+    "past_slot": "Pasado",
+    "join": "Unirse a la clase"
   },
   "confirmation": {
     "title": "Confirmación de reserva",
@@ -149,5 +175,34 @@
     "class_time": "Hora de la clase",
     "confirmation_expiry": "Expiración de la confirmación",
     "booking_pending": "Pendiente"
+  },
+  "request": {
+    "request_lesson": "Solicitar clase",
+    "select_date": "Seleccionar fecha",
+    "select_time": "Elegir horario",
+    "review_title": "Revisar tu solicitud",
+    "awaiting_approval_title": "Esperando aprobación",
+    "pending_explanation": "Una vez que tu profesor apruebe, recibirás un correo de confirmación. Este horario está reservado para ti hasta entonces.",
+    "expiry_hint": "Expira {{time}}",
+    "cancellation_policy": "Cancelación gratuita hasta {{hours}} horas antes de la clase",
+    "recovery_rejected": "Tu profesor rechazó esta solicitud. Puedes solicitar un horario diferente.",
+    "recovery_expired": "Esta solicitud expiró antes de que tu profesor respondiera. Puedes reservar otro horario.",
+    "recovery_cancelled": "Esta clase fue cancelada. Puedes reservar otro horario.",
+    "rebook": "Reservar una clase",
+    "booking_sent_title": "¡Solicitud enviada!",
+    "booking_sent_body": "Tu solicitud está pendiente de aprobación del profesor. Se te notificará por correo.",
+    "no_slots_on_date": "No hay horarios disponibles en esta fecha. Prueba otro día.",
+    "withdraw_title": "¿Retirar esta solicitud?",
+    "withdraw_description": "Tu solicitud será cancelada y el horario quedará disponible.",
+    "withdraw_action": "Sí, retirar"
+  },
+  "date_strip": {
+    "slots_available": "{{count}} disponible",
+    "slots_available_plural": "{{count}} disponibles"
+  },
+  "session_notes": {
+    "homework_label": "Tarea",
+    "class_notes_label": "Notas de la clase",
+    "no_homework": "Sin tarea asignada"
   }
 }

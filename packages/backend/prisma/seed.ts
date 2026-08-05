@@ -42,6 +42,34 @@ async function main() {
 
   console.log('Created student user:', student.email);
 
+  // Second student — needed for concurrent-booking race test (P0-TEST-001)
+  const student2 = await prisma.user.upsert({
+    where: { email: 'student2@example.com' },
+    update: {},
+    create: {
+      email: 'student2@example.com',
+      passwordHash: studentPassword,
+      firstName: 'Ana',
+      lastName: 'Smith',
+      isAdmin: false,
+      timezone: 'Europe/London',
+    },
+  });
+  console.log('Created second student user:', student2.email);
+
+  // Assign both students to the professor so they can see slots
+  await prisma.professorStudent.upsert({
+    where: { studentId: student.id },
+    update: {},
+    create: { professorId: admin.id, studentId: student.id },
+  });
+  await prisma.professorStudent.upsert({
+    where: { studentId: student2.id },
+    update: {},
+    create: { professorId: admin.id, studentId: student2.id },
+  });
+  console.log('Assigned both students to professor');
+
   // Create some sample availability slots for the next 7 days
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -86,7 +114,18 @@ async function main() {
     }
   }
 
-  // Create slots
+  // Create slots — delete future non-booked slots first to avoid duplicates on re-seed
+  const futureStart = new Date();
+  futureStart.setHours(0, 0, 0, 0);
+  await prisma.availabilitySlot.deleteMany({
+    where: {
+      professorId: admin.id,
+      startTime: { gte: futureStart },
+      bookings: { none: {} },
+      recurringPatternId: null,
+    },
+  });
+
   for (const slot of sampleSlots) {
     await prisma.availabilitySlot.create({
       data: slot,
@@ -94,6 +133,85 @@ async function main() {
   }
 
   console.log(`Created ${sampleSlots.length} sample slots`);
+
+  // ── Deterministic booking fixtures ──────────────────────────────────────
+  // These unlock the Phase 0 E2E test.fixme placeholders in
+  // packages/frontend/tests/e2e/baseline/*.spec.ts.
+
+  // Find the first available slot for the confirmed booking
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(10, 0, 0, 0);
+
+  const confirmedSlot = await prisma.availabilitySlot.findFirst({
+    where: { professorId: admin.id, status: 'AVAILABLE', startTime: { gte: tomorrow } },
+    orderBy: { startTime: 'asc' },
+  });
+
+  if (confirmedSlot) {
+    // Add a meet link to the confirmed slot so meeting-access tests can verify it
+    await prisma.availabilitySlot.update({
+      where: { id: confirmedSlot.id },
+      data: { meetLink: 'https://meet.google.com/seed-confirmed-meeting' },
+    });
+    await prisma.booking.upsert({
+      where: { id: 'seed-booking-confirmed' },
+      update: {},
+      create: {
+        id: 'seed-booking-confirmed',
+        slotId: confirmedSlot.id,
+        studentId: student.id,
+        status: 'CONFIRMED',
+      },
+    });
+    console.log('Created confirmed booking fixture');
+  }
+
+  // Pending booking: use a different upcoming slot
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  dayAfterTomorrow.setHours(10, 0, 0, 0);
+
+  const pendingSlot = await prisma.availabilitySlot.findFirst({
+    where: {
+      professorId: admin.id,
+      status: 'AVAILABLE',
+      startTime: { gte: dayAfterTomorrow },
+      id: { not: confirmedSlot?.id ?? '' },
+    },
+    orderBy: { startTime: 'asc' },
+  });
+
+  if (pendingSlot) {
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 48); // 48 h from now
+    await prisma.booking.upsert({
+      where: { id: 'seed-booking-pending' },
+      update: { confirmationExpiresAt: expiresAt },
+      create: {
+        id: 'seed-booking-pending',
+        slotId: pendingSlot.id,
+        studentId: student.id,
+        status: 'PENDING_CONFIRMATION',
+        confirmationExpiresAt: expiresAt,
+      },
+    });
+    console.log('Created pending booking fixture');
+  }
+
+  // In-app notification for the pending booking
+  await prisma.notification.upsert({
+    where: { id: 'seed-notification-pending' },
+    update: {},
+    create: {
+      id: 'seed-notification-pending',
+      userId: admin.id,
+      type: 'booking_request',
+      title: 'New booking request',
+      body: 'John Doe has requested a lesson.',
+    },
+  });
+  console.log('Created notification fixture');
 
   console.log('Seeding completed!');
 }

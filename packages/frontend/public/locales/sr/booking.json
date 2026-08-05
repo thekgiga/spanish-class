@@ -7,7 +7,25 @@
     "no_slots": "Trenutno nema dostupnih časova. Molimo proverite ponovo kasnije.",
     "loading": "Učitavanje dostupnih časova...",
     "seo_title": "Zakažite čas španskog",
-    "seo_description": "Pregledajte i zakažite dostupne časove španskog sa izvornim govornicima. Fleksibilno raspoređivanje za individualne i grupne časove počevši od 2000 RSD."
+    "seo_description": "Pregledajte i zakažite dostupne časove španskog sa izvornim govornicima. Fleksibilno raspoređivanje za individualne i grupne časove počevši od 2000 RSD.",
+    "cancel": "Otkaži",
+    "cancel_success": "Zakazivanje otkazano.",
+    "upcoming": "Predstojeće",
+    "history": "Istorija",
+    "no_upcoming": "Nema predstojećih časova",
+    "no_upcoming_description": "Zakažite čas da biste počeli.",
+    "no_history": "Nema istorije časova.",
+    "cancel_confirm_title": "Otkazati ovo zakazivanje?",
+    "cancel_confirm_description": "Termin će ponovo postati dostupan. Ovo se ne može poništiti.",
+    "cancel_policy_notice": "Otkazivanja unutar {{hours}} sati od časa možda neće biti prihvaćena za kredit.",
+    "cancel_outside_window": "Ovaj čas je unutar {{hours}}-satnog prozora za otkazivanje.",
+    "cancel_confirm_action": "Da, otkaži",
+    "leave_feedback": "Ostavi povratnu informaciju",
+    "feedback_sent": "Povratna informacija poslata. Hvala!",
+    "professor_fallback": "Profesor",
+    "my_lessons_on_day": "Moje lekcije",
+    "available_to_book": "Dostupno za rezervaciju",
+    "my_upcoming_lessons": "Moje predstojeće lekcije"
   },
   "tabs": {
     "upcoming": "Predstojećе",
@@ -90,7 +108,12 @@
     "confirmed": "Potvrđeno",
     "pending": "Čeka odobrenje",
     "cancelled": "Otkazano",
-    "completed": "Završeno"
+    "completed": "Završeno",
+    "available": "Dostupno",
+    "approvalNeeded": "Potrebno odobrenje",
+    "blocked": "Nedostupno",
+    "rejected": "Odbijeno",
+    "expired": "Isteklo"
   },
   "actions": {
     "join_class": "Pridružite se času",
@@ -120,12 +143,15 @@
   },
   "slot": {
     "spots_filled": "{{current}}/{{max}} mesta popunjeno",
-    "already_booked": "Već zakazano",
+    "already_booked": "Potvrđeni čas",
     "book_now": "Zakažite sada",
     "booked": "Zakazano",
     "private_invitation": "Privatna pozivnica",
     "waitlist_available": "Popunjeno — pridružite se listi čekanja",
-    "no_waitlist": "Popunjeno — lista čekanja nije dostupna za individualne časove"
+    "no_waitlist": "Popunjeno — lista čekanja nije dostupna za individualne časove",
+    "approval_needed": "Čeka odobrenje",
+    "past_slot": "Prošlo",
+    "join": "Pridruži se"
   },
   "confirmation": {
     "title": "Potvrda zakazivanja",
@@ -149,5 +175,34 @@
     "class_time": "Vreme časa",
     "confirmation_expiry": "Istek potvrde",
     "booking_pending": "Na čekanju"
+  },
+  "request": {
+    "request_lesson": "Zatraži čas",
+    "select_date": "Odaberi datum",
+    "select_time": "Odaberi vreme",
+    "review_title": "Pregled zahteva",
+    "awaiting_approval_title": "Čeka odobrenje",
+    "pending_explanation": "Kada profesor odobri, dobićete email potvrdu. Vreme je rezervisano za vas do tada.",
+    "expiry_hint": "Ističe {{time}}",
+    "cancellation_policy": "Besplatno otkazivanje do {{hours}} sati pre časa",
+    "recovery_rejected": "Profesor je odbio ovaj zahtev. Možete zatražiti drugo vreme.",
+    "recovery_expired": "Ovaj zahtev je istekao pre nego što je profesor odgovorio. Možete zakazati drugo vreme.",
+    "recovery_cancelled": "Ovaj čas je otkazan. Možete zakazati drugo vreme.",
+    "rebook": "Zakaži čas",
+    "booking_sent_title": "Zahtev poslat!",
+    "booking_sent_body": "Zahtev čeka odobrenje profesora. Bićete obavešteni emailom.",
+    "no_slots_on_date": "Nema dostupnih termina ovog datuma. Pokušajte drugi dan.",
+    "withdraw_title": "Povući ovaj zahtev?",
+    "withdraw_description": "Vaš zahtev će biti otkazan i termin će biti oslobođen.",
+    "withdraw_action": "Da, povuci"
+  },
+  "date_strip": {
+    "slots_available": "{{count}} dostupno",
+    "slots_available_plural": "{{count}} dostupnih"
+  },
+  "session_notes": {
+    "homework_label": "Domaći zadatak",
+    "class_notes_label": "Beleške sa časa",
+    "no_homework": "Nije zadato domaće"
   }
 }

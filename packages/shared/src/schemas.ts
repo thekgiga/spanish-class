@@ -164,6 +164,8 @@ export const updateSlotSchema = z
         "CANCELLED",
       ])
       .optional(),
+    isPrivate: z.boolean().optional(),
+    allowedStudentIds: z.array(z.string()).optional(),
   })
   .refine(
     (data) => {
@@ -173,6 +175,12 @@ export const updateSlotSchema = z
       return true;
     },
     { message: "End time must be after start time" },
+  )
+  .refine(
+    (data) =>
+      data.isPrivate !== true ||
+      (data.allowedStudentIds && data.allowedStudentIds.length > 0),
+    { message: "Private slots must have at least one allowed student" },
   );
 
 // Booking Schemas
@@ -264,7 +272,7 @@ export const changePasswordSchema = z
 // Query Schemas
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  limit: z.coerce.number().int().min(1).max(500).default(20),
 });
 
 export const slotsQuerySchema = paginationSchema.extend({

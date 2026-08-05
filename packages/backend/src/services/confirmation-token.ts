@@ -14,16 +14,23 @@ export interface ConfirmationTokenPayload {
 }
 
 /**
- * Generate a confirmation token for booking approval
+ * Generate a confirmation token for booking approval.
+ * The token (and confirmationExpiresAt) expire at the earlier of:
+ *   - TOKEN_EXPIRY_HOURS from now
+ *   - slotStartTime (professor cannot approve after the class has started)
  */
 export function generateConfirmationToken(
   bookingId: string,
   professorId: string,
   studentId: string,
+  slotStartTime?: Date,
 ): { token: string; expiresAt: Date; jti: string } {
   const jti = randomBytes(16).toString("hex");
-  const expiresAt = new Date();
-  expiresAt.setHours(expiresAt.getHours() + TOKEN_EXPIRY_HOURS);
+  const defaultExpiry = new Date();
+  defaultExpiry.setHours(defaultExpiry.getHours() + TOKEN_EXPIRY_HOURS);
+
+  const expiresAt =
+    slotStartTime && slotStartTime < defaultExpiry ? slotStartTime : defaultExpiry;
 
   const payload: ConfirmationTokenPayload = {
     bookingId,

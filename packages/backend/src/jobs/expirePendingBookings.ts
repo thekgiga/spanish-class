@@ -12,11 +12,15 @@ export async function expirePendingBookings(): Promise<{ expiredCount: number }>
   try {
     const now = new Date();
 
-    // Fetch expired bookings with full slot + professor + student data
+    // Fetch expired bookings: either the confirmation token has elapsed,
+    // or the class has already started (slot.startTime < now) — whichever comes first.
     const expiredBookings = await prisma.booking.findMany({
       where: {
         status: "PENDING_CONFIRMATION",
-        confirmationExpiresAt: { lt: now },
+        OR: [
+          { confirmationExpiresAt: { lt: now } },
+          { slot: { startTime: { lt: now } } },
+        ],
       },
       include: {
         slot: {
@@ -72,17 +76,25 @@ export async function expirePendingBookings(): Promise<{ expiredCount: number }>
     for (const [slotId, decrementCount] of decrementsBySlot) {
       const slot = await prisma.availabilitySlot.findUnique({
         where: { id: slotId },
-        select: { currentParticipants: true, maxParticipants: true },
+        select: { currentParticipants: true, maxParticipants: true, startTime: true },
       });
       if (!slot) continue;
 
       const newParticipants = Math.max(0, slot.currentParticipants - decrementCount);
-      const newStatus =
-        newParticipants < slot.maxParticipants ? "AVAILABLE" : "FULLY_BOOKED";
+      // Don't re-open a slot whose class time has already passed
+      const slotHasPassed = new Date(slot.startTime) <= now;
+      const newStatus = slotHasPassed
+        ? undefined
+        : newParticipants < slot.maxParticipants
+          ? "AVAILABLE"
+          : "FULLY_BOOKED";
 
       await prisma.availabilitySlot.update({
         where: { id: slotId },
-        data: { currentParticipants: newParticipants, status: newStatus },
+        data: {
+          currentParticipants: newParticipants,
+          ...(newStatus !== undefined && { status: newStatus }),
+        },
       });
     }
 

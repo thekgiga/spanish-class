@@ -1,345 +1,354 @@
+/**
+ * BookingsPage — student's lessons: upcoming + pending requests + history.
+ *
+ * BOOK-004: Pending state explains what happens next + expiry deadline.
+ * APP-004: Expired/rejected recovery path with context.
+ *
+ * Three visual sections in "Upcoming" tab:
+ *   1. Pending requests (BookingRequestCard compact, BOOK-004)
+ *   2. Confirmed upcoming lessons (meet-link, join button, cancellation window)
+ *   3. History tab: completed/cancelled/rejected/expired with recovery
+ */
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { toast } from "react-hot-toast";
-import { formatDistanceToNow } from "date-fns";
-import {
-  Calendar,
-  Clock,
-  Video,
-  X,
-  User,
-  AlertCircle,
-  Lock,
-  Users,
-} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { format } from "date-fns";
+import { Video, User, Calendar, BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonCard } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { InlineAlert, uiToast } from "@/components/ui/inline-alert";
+import { EmptyState } from "@/components/ui/empty-state";
+import { BookingRequestCard } from "@/components/ui/booking-request-card";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction, AlertDialogCancel } from "@/components/ui/dialog";
+import { PageHeader } from "@/components/ui/page-header";
 import { studentApi } from "@/lib/api";
-import { formatDate, formatTime, getRelativeTime } from "@/lib/utils";
+import { bookingStatusToUi, isBookingPending, isBookingConfirmed, isBookingNeedsRecovery, bookingRecoveryKey } from "@/lib/ui-system/status";
+import { formatTime } from "@/lib/utils";
 import type { BookingWithSlot } from "@spanish-class/shared";
+
+function ConfirmedLessonCard({
+  booking,
+  onCancel,
+}: {
+  booking: BookingWithSlot;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation("booking");
+  const slot  = booking.slot;
+
+  return (
+    <Card variant="plain">
+      <CardContent className="p-4 space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <StatusBadge status="confirmed" variant="tag" />
+        </div>
+        <div>
+          <p className="text-title font-semibold text-ink">
+            {format(new Date(slot.startTime), "EEEE, MMMM d, yyyy")}
+          </p>
+          <p className="text-small text-ink-secondary ui-tabular">
+            {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
+          </p>
+        </div>
+        {(slot as any).professor && (
+          <div className="flex items-center gap-2 text-small text-ink-secondary">
+            <User className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span>
+              {(slot as any).professor.firstName} {(slot as any).professor.lastName}
+            </span>
+          </div>
+        )}
+        {(slot as any).meetLink && (
+          <a
+            href={(slot as any).meetLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 px-3 py-2 rounded-ui-sm bg-status-confirmed-surface border border-status-confirmed-border text-status-confirmed-foreground text-small font-medium hover:opacity-90 transition-opacity"
+          >
+            <Video className="h-4 w-4 shrink-0" aria-hidden="true" />
+            {t("slot.join")}
+          </a>
+        )}
+        <div className="flex items-center gap-2 pt-1 border-t border-line">
+          <Button variant="quiet" size="sm" onClick={onCancel}>
+            {t("page.cancel")}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function HistoryCard({
+  booking,
+  onFeedback,
+}: {
+  booking: BookingWithSlot;
+  onFeedback?: () => void;
+}) {
+  const { t }    = useTranslation("booking");
+  const uiStatus = bookingStatusToUi(booking.status);
+  const slot     = booking.slot;
+  const recovery = isBookingNeedsRecovery(booking);
+  const recoveryI18nKey = bookingRecoveryKey(booking);
+  const recoveryMsg = recoveryI18nKey ? t(recoveryI18nKey) : null;
+  const isCompleted = uiStatus === 'completed';
+
+  // Fetch session notes (homework) only for completed lessons
+  const { data: bookingNotes } = useQuery({
+    queryKey: ['booking-notes', booking.id],
+    queryFn:  () => studentApi.getBookingNotes(booking.id),
+    enabled: isCompleted,
+    staleTime: 10 * 60_000,
+  });
+
+  return (
+    <Card variant="plain" className="opacity-80">
+      <CardContent className="p-4 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <StatusBadge status={uiStatus} variant="pill" />
+          <span className="text-caption text-ink-tertiary">
+            {format(new Date(slot.startTime), "MMM d, yyyy")}
+          </span>
+        </div>
+        <p className="text-small text-ink ui-tabular">
+          {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
+        </p>
+        {booking.cancelReason && (
+          <p className="text-caption text-ink-secondary italic">
+            "{booking.cancelReason}"
+          </p>
+        )}
+        {recovery && recoveryMsg && (
+          <InlineAlert variant="warning" className="mt-2">
+            <span>{recoveryMsg}</span>
+          </InlineAlert>
+        )}
+        {recovery && (
+          <Button variant="secondary" size="sm" asChild>
+            <Link to="/dashboard/book">{t('request.rebook')}</Link>
+          </Button>
+        )}
+        {/* Homework from session notes */}
+        {isCompleted && bookingNotes?.homeworkNotes && (
+          <div className="pt-2 border-t border-line space-y-1">
+            <div className="flex items-center gap-1.5 text-caption text-ink-secondary font-medium">
+              <BookOpen className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              {t('session_notes.homework_label')}
+            </div>
+            <p className="text-small text-ink whitespace-pre-wrap pl-5">
+              {bookingNotes.homeworkNotes}
+            </p>
+          </div>
+        )}
+        {/* FEED-001: contextual feedback for completed lessons */}
+        {isCompleted && onFeedback && (
+          <Button variant="quiet" size="sm" onClick={onFeedback}>
+            {t("page.leave_feedback")}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export function BookingsPage() {
   const { t } = useTranslation("booking");
-  const [cancelBooking, setCancelBooking] = useState<BookingWithSlot | null>(null);
-  const [cancelReason, setCancelReason] = useState("");
-  const queryClient = useQueryClient();
+  const qc    = useQueryClient();
+  const navigate = useNavigate();
+  const [cancelTarget, setCancelTarget] = useState<BookingWithSlot | null>(null);
 
-  const { data: upcomingData, isLoading: upcomingLoading } = useQuery({
-    queryKey: ["student-bookings", "upcoming"],
-    queryFn: () => studentApi.getBookings({ upcoming: true, limit: 50 }),
+  // Fetch cancellation policy for CANCEL-001
+  const { data: profSettings } = useQuery({
+    queryKey: ["student-professor-settings"],
+    queryFn: () => studentApi.getProfessorSettings(),
+    staleTime: 10 * 60_000,
   });
+  const cancellationHours = profSettings?.cancellationWindowHours ?? 24;
 
-  const { data: historyData, isLoading: historyLoading } = useQuery({
-    queryKey: ["student-bookings", "history"],
-    queryFn: () => studentApi.getBookings({ limit: 50 }),
+  const { data, isLoading } = useQuery({
+    queryKey: ["student-bookings"],
+    queryFn: () => studentApi.getBookings(),
   });
 
   const cancelMutation = useMutation({
-    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
-      studentApi.cancelBooking(id, reason),
+    mutationFn: (id: string) => studentApi.cancelBooking(id),
     onSuccess: () => {
-      toast.success(t("cancel.success"));
-      queryClient.invalidateQueries({ queryKey: ["student-bookings"] });
-      queryClient.invalidateQueries({ queryKey: ["student-dashboard"] });
-      queryClient.invalidateQueries({ queryKey: ["available-slots"] });
-      setCancelBooking(null);
-      setCancelReason("");
+      qc.invalidateQueries({ queryKey: ["student-bookings"] });
+      qc.invalidateQueries({ queryKey: ["student-dashboard"] });
+      setCancelTarget(null);
+      uiToast.success(t("page.cancel_success"));
     },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.error || t("cancel.error"));
+    onError: (err: any) => {
+      const msg = err?.response?.data?.error ?? t("cancel.error");
+      uiToast.error(msg);
     },
   });
 
-  const pastBookings = historyData?.data?.filter(
-    (b) => new Date(b.slot.startTime) < new Date(),
+  const allBookings: BookingWithSlot[] = (data as any)?.data ?? [];
+  const now = new Date();
+
+  const pendingBookings   = allBookings.filter((b) => isBookingPending(b));
+  const confirmedBookings = allBookings.filter(
+    (b) => isBookingConfirmed(b) && new Date(b.slot.startTime) > now,
+  );
+  const historyBookings = allBookings.filter(
+    (b) =>
+      !isBookingPending(b) &&
+      !(isBookingConfirmed(b) && new Date(b.slot.startTime) > now),
   );
 
-  const renderBookingCard = (booking: BookingWithSlot, showCancel = false) => {
-    const isUpcoming = new Date(booking.slot.startTime) > new Date();
-    const canCancel =
-      booking.status === "CONFIRMED" &&
-      isUpcoming &&
-      (new Date(booking.slot.startTime).getTime() - Date.now()) /
-        (1000 * 60 * 60) >
-        24;
-
+  if (isLoading) {
     return (
-      <motion.div
-        key={booking.id}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        <Card className="border-2 border-spanish-teal-200">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-spanish-teal-100 to-spanish-coral-100 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="h-5 w-5 text-spanish-teal-600" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="font-semibold text-slate-900">
-                      {booking.slot.title || "Spanish Class"}
-                    </p>
-                    <Badge
-                      variant={
-                        booking.status === "CONFIRMED"
-                          ? "success"
-                          : booking.status === "COMPLETED"
-                            ? "neutral"
-                            : "destructive"
-                      }
-                    >
-                      {booking.status.replace(/_/g, " ")}
-                    </Badge>
-                    {isUpcoming && (
-                      <Badge className="bg-gradient-to-r from-spanish-sunshine-500 to-spanish-orange-500 text-white border-0">
-                        {getRelativeTime(booking.slot.startTime)}
-                      </Badge>
-                    )}
-                    {booking.slot.isPrivate && (
-                      <Badge variant="neutral" className="gap-1">
-                        <Lock className="h-3 w-3" />
-                        Private Invitation
-                      </Badge>
-                    )}
-                    {/* B6: Countdown for pending confirmation */}
-                    {booking.status === "PENDING_CONFIRMATION" && booking.confirmationExpiresAt && (
-                      <Badge variant="outline" className="gap-1 text-amber-600 border-amber-300 bg-amber-50">
-                        <Clock className="h-3 w-3" />
-                        {t("bookings.confirmation_expires", {
-                          time: formatDistanceToNow(new Date(booking.confirmationExpiresAt), { addSuffix: true }),
-                        })}
-                      </Badge>
-                    )}
-                  </div>
-                  <p className="text-slate-600 mt-1">
-                    {formatDate(booking.slot.startTime)}
-                  </p>
-                  <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-slate-600">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {formatTime(booking.slot.startTime)} -{" "}
-                      {formatTime(booking.slot.endTime)}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                      {booking.slot.professor?.firstName}{" "}
-                      {booking.slot.professor?.lastName}
-                    </span>
-                    {/* B9: Spots remaining for GROUP slots */}
-                    {booking.slot.slotType === "GROUP" && (
-                      <span className="flex items-center gap-1">
-                        <Users className="h-4 w-4" />
-                        {t("bookings.spots_filled", {
-                          current: booking.slot.currentParticipants,
-                          max: booking.slot.maxParticipants,
-                        })}
-                      </span>
-                    )}
-                  </div>
-                  {booking.cancelReason && (
-                    <p className="text-sm text-destructive mt-2">
-                      Reason: {booking.cancelReason}
-                    </p>
-                  )}
-                  {/* B5: Re-book button for rejected/expired bookings */}
-                  {(booking.status === "REJECTED" || booking.status === "EXPIRED") && (
-                    <div className="mt-3">
-                      <Button variant="outline" size="sm" asChild>
-                        <Link to="/dashboard/book">
-                          {t("bookings.book_another_slot")}
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 sm:flex-col sm:items-end">
-                {booking.slot.meetLink &&
-                  booking.status === "CONFIRMED" &&
-                  isUpcoming && (
-                    <a
-                      href={booking.slot.meetLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-spanish-teal-500 to-spanish-teal-600 text-white hover:from-spanish-teal-600 hover:to-spanish-teal-700 shadow-lg h-9 px-4"
-                    >
-                      <Video className="mr-1 h-4 w-4" />
-                      Join
-                    </a>
-                  )}
-                {showCancel && canCancel && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCancelBooking(booking)}
-                  >
-                    <X className="mr-1 h-4 w-4" />
-                    Cancel
-                  </Button>
-                )}
-                {showCancel &&
-                  !canCancel &&
-                  booking.status === "CONFIRMED" &&
-                  isUpcoming && (
-                    <p className="text-xs text-slate-600">
-                      Can't cancel within 24 hours
-                    </p>
-                  )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+      <div className="max-w-2xl mx-auto px-6 py-6 space-y-3">
+        <SkeletonCard />
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
     );
-  };
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-slate-900">
-            {t("page.bookings_title")}
-          </h1>
-          <p className="text-slate-600">{t("page.bookings_subtitle")}</p>
-        </div>
-        <Button variant="primary" asChild>
-          <Link to="/dashboard/book">{t("bookings.book_class")}</Link>
-        </Button>
-      </div>
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-4">
+      <PageHeader title={t("page.bookings_title")} description={t("page.bookings_subtitle")} />
 
-      {/* Tabs */}
-      <Tabs defaultValue="upcoming">
+      <Tabs defaultValue="upcoming" className="mt-4">
         <TabsList>
           <TabsTrigger value="upcoming">
-            {t("tabs.upcoming")} ({upcomingData?.data?.length || 0})
+            {t("page.upcoming")}
+            {(pendingBookings.length + confirmedBookings.length) > 0 && (
+              <span className="ml-1 text-caption text-ink-tertiary">
+                ({pendingBookings.length + confirmedBookings.length})
+              </span>
+            )}
           </TabsTrigger>
-          <TabsTrigger value="history">
-            History ({pastBookings?.length || 0})
-          </TabsTrigger>
+          <TabsTrigger value="history">{t("page.history")}</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="upcoming" className="mt-6 space-y-4">
-          {upcomingLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-32 w-full" />
-              ))}
-            </div>
-          ) : upcomingData?.data && upcomingData.data.length > 0 ? (
-            upcomingData.data.map((booking) => renderBookingCard(booking, true))
-          ) : (
-            <Card className="border-2 border-spanish-teal-200">
-              <CardContent className="py-12 text-center">
-                <Calendar className="h-12 w-12 mx-auto mb-4 text-spanish-teal-500 opacity-50" />
-                <p className="text-slate-600 mb-4">
-                  {t("bookings.no_upcoming")}
-                </p>
+        <TabsContent value="upcoming" className="mt-4 space-y-6">
+          {/* Pending section */}
+          {pendingBookings.length > 0 && (
+            <section>
+              <p className="text-caption text-ink-tertiary uppercase tracking-wide font-semibold mb-2">
+                {t("request.awaiting_approval_title")} · {pendingBookings.length}
+              </p>
+              <div className="space-y-3">
+                {pendingBookings.map((b) => (
+                  <BookingRequestCard
+                    key={b.id}
+                    booking={b}
+                    variant="compact"
+                    onCancel={() => setCancelTarget(b)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Confirmed section */}
+          {confirmedBookings.length > 0 && (
+            <section>
+              <p className="text-caption text-ink-tertiary uppercase tracking-wide font-semibold mb-2">
+                {t("page.upcoming")} · {confirmedBookings.length}
+              </p>
+              <div className="space-y-3">
+                {confirmedBookings.map((b) => (
+                  <ConfirmedLessonCard
+                    key={b.id}
+                    booking={b}
+                    onCancel={() => setCancelTarget(b)}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {pendingBookings.length === 0 && confirmedBookings.length === 0 && (
+            <EmptyState
+              icon={<Calendar className="h-10 w-10" />}
+              title={t("page.no_upcoming")}
+              description={t("page.no_upcoming_description")}
+              action={
                 <Button variant="primary" asChild>
-                  <Link to="/dashboard/book">{t("bookings.book_class")}</Link>
+                  <Link to="/dashboard/book">{t("request.rebook")}</Link>
                 </Button>
-              </CardContent>
-            </Card>
+              }
+            />
           )}
         </TabsContent>
 
-        <TabsContent value="history" className="mt-6 space-y-4">
-          {historyLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <Skeleton key={i} className="h-32 w-full" />
-              ))}
-            </div>
-          ) : pastBookings && pastBookings.length > 0 ? (
-            pastBookings.map((booking) => renderBookingCard(booking))
+        <TabsContent value="history" className="mt-4 space-y-3">
+          {historyBookings.length === 0 ? (
+            <EmptyState
+              icon={<Calendar className="h-10 w-10" />}
+              title={t("page.no_history")}
+            />
           ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">{t("bookings.no_past")}</p>
-              </CardContent>
-            </Card>
+            historyBookings.map((b) => (
+              <HistoryCard
+                key={b.id}
+                booking={b}
+                onFeedback={
+                  bookingStatusToUi(b.status) === 'completed'
+                    ? () => navigate(`/dashboard/feedback/${b.id}`)
+                    : undefined
+                }
+              />
+            ))
           )}
         </TabsContent>
       </Tabs>
 
-      {/* Cancel Dialog */}
-      <Dialog
-        open={!!cancelBooking}
-        onOpenChange={() => setCancelBooking(null)}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t("cancel.title")}</DialogTitle>
-            <DialogDescription>{t("cancel.description")}</DialogDescription>
-          </DialogHeader>
-
-          {cancelBooking && (
-            <div className="p-4 rounded-lg bg-gray-50 space-y-2">
-              <p className="font-semibold">
-                {cancelBooking.slot.title || t("booking_modal.class_title")}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                {formatDate(cancelBooking.slot.startTime)} at{" "}
-                {formatTime(cancelBooking.slot.startTime)}
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium">
-              {t("cancel.reason_label")}
-            </label>
-            <Textarea
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder={t("cancel.reason_placeholder")}
-              rows={3}
-            />
-          </div>
-
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 text-amber-800 text-sm">
-            <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
-            <p>{t("cancel.warning")}</p>
-          </div>
-
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setCancelBooking(null)}>
-              {t("cancel.keep")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() =>
-                cancelBooking &&
-                cancelMutation.mutate({
-                  id: cancelBooking.id,
-                  reason: cancelReason,
-                })
-              }
-              isLoading={cancelMutation.isPending}
+      {/* Cancel confirmation dialog */}
+      <AlertDialog open={!!cancelTarget} onOpenChange={(v) => !v && setCancelTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {cancelTarget && isBookingPending(cancelTarget)
+                ? t("request.withdraw_title")
+                : t("page.cancel_confirm_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {cancelTarget && isBookingPending(cancelTarget)
+                ? t("request.withdraw_description")
+                : t("page.cancel_confirm_description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {/* CANCEL-001: show cancellation policy only for confirmed bookings */}
+          {cancelTarget && !isBookingPending(cancelTarget) && (() => {
+            const hoursUntil = (new Date(cancelTarget.slot.startTime).getTime() - Date.now()) / 3_600_000;
+            const withinWindow = hoursUntil < cancellationHours && hoursUntil > 0;
+            return withinWindow ? (
+              <div className="px-6 pb-2">
+                <InlineAlert variant="warning">
+                  {t("cancel_outside_window", { hours: cancellationHours })}
+                </InlineAlert>
+              </div>
+            ) : (
+              <div className="px-6 pb-2">
+                <p className="text-caption text-ink-tertiary">
+                  {t("request.cancellation_policy", { hours: cancellationHours })}
+                </p>
+              </div>
+            );
+          })()}
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("booking_modal.cancel_button")}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => cancelTarget && cancelMutation.mutate(cancelTarget.id)}
             >
-              {t("cancel.button")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              {cancelTarget && isBookingPending(cancelTarget)
+                ? t("request.withdraw_action")
+                : t("page.cancel_confirm_action")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

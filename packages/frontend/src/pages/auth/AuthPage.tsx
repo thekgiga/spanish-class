@@ -24,7 +24,7 @@ import {
 } from "@spanish-class/shared";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PrimaryButton } from "@/components/ui/premium";
+import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -76,6 +76,14 @@ export function AuthPage() {
   });
 
   const onLogin = async (data: LoginInput) => {
+    // Warm the code-split chunks for the destination shell + landing page
+    // before the redirect fires. Vite marks these as prefetch hints without
+    // blocking submission — if they resolve first (usually), the post-login
+    // Suspense fallback is skipped entirely and content is visible in one
+    // paint. If the network beats them, the nested Suspense in
+    // DashboardLayout still renders a geometry-matched skeleton.
+    void import("@/pages/student/StudentDashboard");
+    void import("@/pages/admin/CalendarPage");
     try {
       const result = await login(data.email, data.password);
       if (result?.totpRequired) {
@@ -359,7 +367,7 @@ export function AuthPage() {
                     </p>
                   )}
 
-                  <PrimaryButton
+                  <Button variant="primary"
                     type="submit"
                     size="lg"
                     className="w-full bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-xl"
@@ -374,7 +382,7 @@ export function AuthPage() {
                         <ArrowRight className="h-5 w-5" />
                       </>
                     )}
-                  </PrimaryButton>
+                  </Button>
                 </form>
 
                 {/* Switch to Login */}
@@ -475,7 +483,7 @@ export function AuthPage() {
                     </div>
                   </div>
 
-                  <PrimaryButton
+                  <Button variant="primary"
                     type="submit"
                     size="lg"
                     className="w-full bg-gradient-to-r from-spanish-coral-500 to-spanish-orange-500 hover:from-spanish-coral-600 hover:to-spanish-orange-600 shadow-xl"
@@ -490,7 +498,7 @@ export function AuthPage() {
                         <ArrowRight className="h-5 w-5" />
                       </>
                     )}
-                  </PrimaryButton>
+                  </Button>
                 </form>
 
                 {/* Switch to Register */}
@@ -574,7 +582,7 @@ export function AuthPage() {
                     />
                   </div>
 
-                  <PrimaryButton
+                  <Button variant="primary"
                     type="submit"
                     size="lg"
                     className="w-full bg-gradient-to-r from-spanish-teal-500 to-spanish-teal-600 hover:from-spanish-teal-600 hover:to-spanish-teal-700 shadow-xl"
@@ -587,7 +595,7 @@ export function AuthPage() {
                         <ArrowRight className="h-5 w-5" />
                       </>
                     )}
-                  </PrimaryButton>
+                  </Button>
                 </form>
 
                 <div className="mt-4 text-center">

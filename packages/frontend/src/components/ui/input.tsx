@@ -1,49 +1,63 @@
 import * as React from "react";
+import { AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  /** Inline error message — shown below the input with icon */
   error?: string;
+  /** Leading icon inside the input */
   icon?: React.ReactNode;
+  /** Trailing decoration inside the input */
+  trailing?: React.ReactNode;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, error, icon, ...props }, ref) => {
+  ({ className, type, error, icon, trailing, ...props }, ref) => {
     return (
       <div className="w-full">
         <div className="relative">
           {icon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-edu-slate-400">
+            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-tertiary">
               {icon}
             </div>
           )}
           <input
             type={type}
+            ref={ref}
             className={cn(
-              "flex h-12 w-full rounded-xl border-2 border-edu-slate-200 bg-white/80 backdrop-blur-sm px-4 py-2 text-sm text-edu-slate-800 font-medium",
-              "ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-semibold",
-              "placeholder:text-edu-slate-400 placeholder:font-normal",
-              "focus-visible:outline-none focus-visible:border-edu-blue-500 focus-visible:ring-4 focus-visible:ring-edu-blue-100",
-              "hover:border-edu-slate-300",
-              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-edu-slate-50",
-              "transition-all duration-200",
-              error &&
-                "border-edu-red-400 focus-visible:border-edu-red-500 focus-visible:ring-edu-red-100",
-              icon && "pl-11",
+              // Base layout
+              "flex h-control-default w-full rounded-ui-sm px-3 py-2 text-sm",
+              // Colours — semantic tokens only
+              "border border-line bg-surface text-ink",
+              "placeholder:text-ink-tertiary",
+              // Focus ring
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2 focus-visible:border-transparent",
+              // States
+              "hover:border-line-strong",
+              "disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-surface-muted",
+              "read-only:bg-surface-muted read-only:border-line",
+              // File input reset
+              "file:border-0 file:bg-transparent file:text-sm file:font-semibold",
+              "transition-colors duration-micro",
+              // Error state
+              error && "border-feedback-danger focus-visible:ring-feedback-danger",
+              // Padding adjustment for icons
+              icon    && "pl-9",
+              trailing && "pr-9",
               className,
             )}
-            ref={ref}
+            aria-invalid={!!error || undefined}
             {...props}
           />
+          {trailing && (
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-ink-tertiary">
+              {trailing}
+            </div>
+          )}
         </div>
         {error && (
-          <p className="mt-2 text-sm text-edu-red-600 font-medium flex items-center gap-1">
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
+          <p className="mt-1.5 flex items-center gap-1 text-xs text-feedback-danger" role="alert">
+            <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             {error}
           </p>
         )}
