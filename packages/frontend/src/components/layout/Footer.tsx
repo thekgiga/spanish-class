@@ -8,19 +8,24 @@ export function Footer() {
   return (
     <footer className="bg-surface border-t border-line">
       <div className="mx-auto max-w-settings px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           {/* Brand */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="h-8 w-8 rounded-ui-sm bg-brand flex items-center justify-center shrink-0 group-hover:opacity-90 transition-opacity">
-              <span className="text-brand-contrast font-semibold text-small">S</span>
-            </div>
-            <span className="font-semibold text-title text-ink group-hover:text-brand transition-colors">
-              Spanish Class
-            </span>
-          </Link>
+          <div className="flex flex-col gap-1.5">
+            <Link to="/" className="group inline-block">
+              <img
+                src="/imgs/brand/header-logo-white.webp"
+                alt="Elite Education"
+                className="h-7 w-auto group-hover:opacity-85 transition-opacity"
+              />
+            </Link>
+            <p className="text-caption text-ink-tertiary italic">{t("footer.tagline")}</p>
+          </div>
 
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-small">
+            <Link to="/elite-guide" className="text-ink-secondary hover:text-ink transition-colors duration-micro">
+              {t("navigation.elite_guide")}
+            </Link>
             <Link to="/contact" className="text-ink-secondary hover:text-ink transition-colors duration-micro">
               {t("navigation.contact")}
             </Link>
@@ -54,7 +59,7 @@ export function Footer() {
         <div className="mt-6 pt-6 border-t border-line">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <p className="text-caption text-ink-tertiary text-center sm:text-left">
-              &copy; {new Date().getFullYear()} Spanish Class. {t("footer.copyright")}
+              &copy; {new Date().getFullYear()} {t("footer.brand")}. {t("footer.copyright")}
             </p>
             <LanguageSwitcher />
           </div>

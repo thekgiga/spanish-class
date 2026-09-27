@@ -66,7 +66,10 @@
     "bookALesson": "Reservar una clase",
     "myLessons": "Mis clases",
     "homework": "Tarea",
-    "two_factor_nudge": "Autenticación de dos factores no activada"
+    "two_factor_nudge": "Autenticación de dos factores no activada",
+    "elite_guide": "Guía Elite",
+    "services": "Servicios",
+    "how_it_works": "Cómo funciona"
   },
   "time": {
     "today": "Hoy",
@@ -233,7 +236,9 @@
     "instagram_title": "Síguenos en Instagram",
     "email_label": "Correo",
     "location": "Belgrado, Serbia",
-    "copyright": "Todos los derechos reservados."
+    "copyright": "Todos los derechos reservados.",
+    "tagline": "Educación. Idioma. España.",
+    "brand": "Elite Education"
   },
   "aria_labels": {
     "mobile_navigation": "Navegación móvil",

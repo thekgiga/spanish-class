@@ -66,7 +66,10 @@
     "bookALesson": "Rezerviši čas",
     "myLessons": "Moji časovi",
     "homework": "Domaći zadatak",
-    "two_factor_nudge": "Dvofaktorska autentifikacija nije aktivna"
+    "two_factor_nudge": "Dvofaktorska autentifikacija nije aktivna",
+    "elite_guide": "Elite Vodič",
+    "services": "Usluge",
+    "how_it_works": "Kako radimo"
   },
   "time": {
     "today": "Danas",
@@ -233,7 +236,9 @@
     "instagram_title": "Pratite nas na Instagramu",
     "email_label": "E-pošta",
     "location": "Beograd, Srbija",
-    "copyright": "Sva prava zadržana."
+    "copyright": "Sva prava zadržana.",
+    "tagline": "Obrazovanje. Jezik. Španija.",
+    "brand": "Elite Education"
   },
   "aria_labels": {
     "mobile_navigation": "Mobilna navigacija",

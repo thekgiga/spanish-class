@@ -1,13 +1,11 @@
 /**
- * HomePage stories — public landing page with the paella scroll-story hero.
+ * HomePage stories — Elite Education public landing page.
  *
  * The page is static marketing content (no data fetching), so stories only
- * provide the i18n + router context it needs. The scroll-scrubbed video hero
- * relies on real scroll position and IntersectionObserver-style scroll
- * progress, which Storybook's canvas does not drive — so these stories
- * document the composed page and its responsive framing rather than the
- * mid-scroll video states (those are captured as viewport screenshots in
- * docs/redesign/evidence/land-001/).
+ * provide the i18n + router context it needs. All 11 sections (Hero, About,
+ * Founder, Services, Approach, How We Work, Why Us, Elite Guide Teaser,
+ * FAQ, Final CTA) render from i18n keys with no server state.
+ * Visual screenshots are captured in docs/redesign/evidence/land-001/.
  */
 import type { Meta, StoryObj } from "@storybook/react";
 import React from "react";
@@ -32,12 +30,10 @@ const meta: Meta<typeof HomePage> = {
     docs: {
       description: {
         component:
-          "Public landing page. Dark cinematic hero with a scroll-scrubbed paella " +
-          "cooking video (video.currentTime driven by scroll progress), followed by " +
-          "stats, features, benefits, testimonials, and a final CTA on the Editorial " +
-          "Teaching Studio semantic token system. The hero video is landscape and " +
-          "full-bleed on desktop, and a square crop with a blurred slate backdrop on " +
-          "mobile (<768px) so the whole pan stays visible on tall screens.",
+          "Elite Education public landing page. Burgundy hero with logo card, Playfair Display " +
+          "headline, and two CTAs. Below-fold sections: About, Founder, Services (4 cards), " +
+          "Approach, How We Work, Why Us (burgundy), Elite Guide Teaser, FAQ accordion, Final CTA. " +
+          "All text from i18n keys (en/sr/es). Semantic tokens throughout; no raw colors.",
       },
     },
   },
@@ -53,9 +49,8 @@ export const Desktop: Story = {
     docs: {
       description: {
         story:
-          "Full landing page at desktop width. Hero shows the landscape video " +
-          "(object-cover, full-bleed). Scroll the canvas to scrub the paella cooking " +
-          "sequence and reveal the below-fold sections.",
+          "Full landing page at desktop width (1280px+). Sections stack vertically. " +
+          "Services grid uses 2-column layout; Founder uses flex row; FAQ uses 3-column grid.",
       },
     },
   },
@@ -68,10 +63,8 @@ export const Mobile: Story = {
     docs: {
       description: {
         story:
-          "Landing page at 390px. Hero uses the square video crop (object-contain) " +
-          "with a blurred, dimmed poster backdrop filling the letterbox so the slate " +
-          "table appears to extend past the pan. Step copy and the CTA stack " +
-          "vertically instead of sitting side by side.",
+          "Landing page at 390px. Hero stacks logo card + title + CTAs vertically. " +
+          "Services grid collapses to single column; Founder portrait above bio text.",
       },
     },
   },
@@ -84,8 +77,8 @@ export const Tablet: Story = {
     docs: {
       description: {
         story:
-          "Landing page at 768px — the breakpoint where the hero switches from the " +
-          "mobile square crop to the desktop landscape, full-bleed treatment.",
+          "Landing page at 768px. Most sections switch from single-column to two-column. " +
+          "CTAs appear side-by-side in the hero.",
       },
     },
   },

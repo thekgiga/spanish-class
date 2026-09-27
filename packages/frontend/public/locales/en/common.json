@@ -66,7 +66,10 @@
     "bookALesson": "Book a Lesson",
     "myLessons": "My Lessons",
     "homework": "Homework",
-    "two_factor_nudge": "2-factor authentication not enabled"
+    "two_factor_nudge": "2-factor authentication not enabled",
+    "elite_guide": "Elite Guide",
+    "services": "Services",
+    "how_it_works": "How it works"
   },
   "time": {
     "today": "Today",
@@ -233,7 +236,9 @@
     "instagram_title": "Follow us on Instagram",
     "email_label": "Email",
     "location": "Belgrade, Serbia",
-    "copyright": "All rights reserved."
+    "copyright": "All rights reserved.",
+    "tagline": "Education. Language. Spain.",
+    "brand": "Elite Education"
   },
   "aria_labels": {
     "mobile_navigation": "Mobile navigation",
