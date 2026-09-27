@@ -109,8 +109,8 @@ module.exports = {
     },
   },
   fontFamily: {
-    sans: ['Inter Variable', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-    display: ['Newsreader Variable', 'Newsreader', 'Playfair Display', 'ui-serif', 'Georgia', 'serif'],
+    sans: ['Montserrat Variable', 'Montserrat', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+    display: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
   },
   fontSize: {
     micro:   ['11px', { lineHeight: '14px', fontWeight: '600' }],

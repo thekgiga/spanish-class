@@ -17,29 +17,26 @@ import { getInitials } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 
-const navLinks = [
-  { labelKey: "navigation.contact", href: "/contact" },
-];
-
 /**
- * Landing page (route "/") renders a full-viewport video hero. There the header
- * is hidden while the hero is on screen and reappears — pinned to the bottom —
- * once the visitor scrolls past it. Every other route keeps the header pinned to
- * the top. We detect "scrolled past the hero" by observing the `#landing-hero-end`
- * sentinel that HomePage renders at the end of its hero section.
+ * Landing page (route "/") renders a full-viewport video hero. The header sits
+ * over the hero as a transparent overlay and transitions to a solid surface header
+ * once the visitor scrolls past the hero. Every other route keeps the header
+ * pinned to the top as solid. We detect "scrolled past the hero" by observing
+ * the `#landing-hero-end` sentinel that HomePage renders at the end of its hero.
  */
-function useLandingHeaderMode(): "top" | "landing-hidden" | "landing-top" {
+function useLandingHeaderMode(): "top" | "landing-overlay" | "landing-solid" {
   const { pathname } = useLocation();
   const isLanding = pathname === "/";
   const [pastHero, setPastHero] = useState(false);
 
   useEffect(() => {
-    if (!isLanding) return;
+    if (!isLanding) {
+      setPastHero(false);
+      return;
+    }
     const sentinel = document.getElementById("landing-hero-end");
     if (!sentinel) return;
 
-    // The sentinel sits at the end of the hero. Once its top scrolls above the
-    // viewport top, the hero is out of view and the header should appear.
     const update = () => setPastHero(sentinel.getBoundingClientRect().top <= 0);
     update();
 
@@ -56,7 +53,7 @@ function useLandingHeaderMode(): "top" | "landing-hidden" | "landing-top" {
   }, [isLanding, pathname]);
 
   if (!isLanding) return "top";
-  return pastHero ? "landing-top" : "landing-hidden";
+  return pastHero ? "landing-solid" : "landing-overlay";
 }
 
 export function Header() {
@@ -73,52 +70,58 @@ export function Header() {
 
   const dashboardPath = user?.isAdmin ? "/admin" : "/dashboard";
 
-  // Landing hero is on screen → don't render the header at all (it slides in
-  // Landing hero is on screen → don't render the header at all (it slides in
-  // from the top once the visitor scrolls past the hero).
-  if (headerMode === "landing-hidden") {
-    return null;
-  }
+  const isOverlay = headerMode === "landing-overlay";
+  const isFixed = headerMode === "landing-overlay" || headerMode === "landing-solid";
 
-  // On the landing page, once past the hero the header appears pinned to the
-  // top of the viewport. We use `fixed` (not `sticky`) so it isn't in the
-  // document flow — that avoids a reflow jump when it mounts mid-scroll.
-  const isLandingTop = headerMode === "landing-top";
+  const navLinks = [
+    { labelKey: "navigation.about", href: "/about" },
+    { labelKey: "navigation.services", href: "/services" },
+    { labelKey: "navigation.how_it_works", href: "/how-it-works" },
+    { labelKey: "navigation.elite_guide", href: "/elite-guide" },
+    { labelKey: "navigation.contact", href: "/contact" },
+  ];
 
   return (
     <MotionConfig reducedMotion="user">
       <motion.header
-        initial={isLandingTop ? { y: "-100%" } : false}
+        initial={headerMode === "landing-solid" ? { y: "-100%" } : false}
         animate={{ y: 0 }}
         transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
-          "z-50 border-b border-line bg-surface/95 backdrop-blur-xl shadow-ui-1",
-          isLandingTop ? "fixed left-0 right-0 top-0" : "sticky top-0",
+          "z-50",
+          isFixed ? "fixed left-0 right-0 top-0" : "sticky top-0",
+          "transition-all duration-standard",
+          isOverlay
+            ? "border-b border-transparent bg-hero-bg/30 backdrop-blur-sm"
+            : "border-b border-line bg-surface/95 backdrop-blur-xl shadow-ui-1",
         )}
       >
         <nav className="mx-auto max-w-settings px-4 sm:px-6 lg:px-8" aria-label="Top">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3 group">
-              <div className="h-9 w-9 rounded-ui-sm bg-brand flex items-center justify-center shrink-0 group-hover:opacity-90 transition-opacity">
-                <span className="text-brand-contrast font-semibold text-title">S</span>
-              </div>
-              <span className="font-semibold text-title text-ink group-hover:text-brand transition-colors">
-                Spanish Class
-              </span>
+            <Link to="/" className="flex items-center group shrink-0">
+              <img
+                src="/imgs/brand/header-logo-white.webp"
+                alt="Elite Education"
+                className="h-9 w-auto group-hover:opacity-85 transition-opacity"
+              />
             </Link>
 
             {/* Desktop navigation */}
             <div className="hidden md:flex md:items-center md:gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  to={link.href}
-                  className="px-4 py-2 text-small font-semibold text-ink-secondary hover:text-ink hover:bg-surface-muted rounded-ui-sm transition-colors duration-micro"
-                >
-                  {t(link.labelKey)}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const linkClass = cn(
+                  "px-4 py-2 text-small font-semibold rounded-ui-sm transition-colors duration-micro",
+                  isOverlay
+                    ? "text-hero-fg/80 hover:text-hero-fg hover:bg-hero-fg/10"
+                    : "text-ink-secondary hover:text-ink hover:bg-surface-muted",
+                );
+                return (
+                  <Link key={link.href} to={link.href} className={linkClass}>
+                    {t(link.labelKey)}
+                  </Link>
+                );
+              })}
             </div>
 
             {/* Auth / user menu */}
@@ -186,7 +189,12 @@ export function Header() {
                 type="button"
                 aria-label={t("aria_labels.open_menu")}
                 aria-expanded={mobileMenuOpen}
-                className="inline-flex items-center justify-center rounded-ui-sm p-2 text-ink-tertiary hover:bg-surface-muted hover:text-ink transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                className={cn(
+                  "inline-flex items-center justify-center rounded-ui-sm p-2 transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
+                  isOverlay
+                    ? "text-hero-fg/80 hover:bg-hero-fg/10 hover:text-hero-fg"
+                    : "text-ink-tertiary hover:bg-surface-muted hover:text-ink",
+                )}
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? (

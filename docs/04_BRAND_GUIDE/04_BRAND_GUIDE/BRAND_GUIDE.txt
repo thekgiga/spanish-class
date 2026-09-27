@@ -1,0 +1,41 @@
+ELITE EDUCATION — WEBSITE BRANDING GUIDE
+
+FINAL LOGO RULE
+The approved logo supplied by the client is the master artwork. Do not redraw, stretch,
+recolour, crop into the logo, alter its EE monogram, alter the tilde, or change the
+spacing inside the mark. Use the supplied master logo exactly as provided.
+
+BRAND PALETTE
+Burgundy #8B0E1A
+Gold #D4AF7C
+Light Beige #F9F6EF
+Charcoal #1E1E24
+White #FFFFFF
+
+TYPOGRAPHY
+Headlines: Playfair Display
+Navigation/body: Montserrat
+Fallbacks: Georgia / Arial
+
+VISUAL LANGUAGE
+Luxury editorial, warm Spanish architecture, education, travel, cultural immersion,
+quiet confidence, premium guidance. Use generous whitespace, thin gold rules,
+burgundy blocks, cream backgrounds, subtle paper texture and restrained line-art.
+
+WEBSITE DIRECTION
+Hero → Intro → Services → Study in Spain → Learn Spanish → Guidance → Spain experience →
+Testimonials/Stories → CTA → Footer.
+
+BUTTONS
+Primary: Burgundy background / white text.
+Secondary: Gold background / burgundy text.
+Avoid gradients on buttons.
+
+PHOTOGRAPHY
+Prefer warm natural light, Spanish architecture, university/campus environments,
+streets, books, language learning, travel details and authentic human moments.
+Avoid generic corporate stock photography.
+
+LOGO PLACEMENT
+Use the exact final logo on clean white/cream areas. For dark sections, place the exact
+logo on a white/cream card rather than altering the logo colours.

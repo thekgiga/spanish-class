@@ -17,9 +17,31 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 const HomePage = lazy(() =>
   import("@/pages/public/HomePage").then((m) => ({ default: m.HomePage })),
 );
+const AboutPage = lazy(() =>
+  import("@/pages/public/AboutPage").then((m) => ({ default: m.AboutPage })),
+);
+const ServicesPage = lazy(() =>
+  import("@/pages/public/ServicesPage").then((m) => ({ default: m.ServicesPage })),
+);
+const HowItWorksPage = lazy(() =>
+  import("@/pages/public/HowItWorksPage").then((m) => ({ default: m.HowItWorksPage })),
+);
+const FAQPage = lazy(() =>
+  import("@/pages/public/FAQPage").then((m) => ({ default: m.FAQPage })),
+);
 const ContactPage = lazy(() =>
   import("@/pages/public/ContactPage").then((m) => ({
     default: m.ContactPage,
+  })),
+);
+const EliteGuideHubPage = lazy(() =>
+  import("@/pages/public/EliteGuideHubPage").then((m) => ({
+    default: m.EliteGuideHubPage,
+  })),
+);
+const EliteGuideArticlePage = lazy(() =>
+  import("@/pages/public/EliteGuideArticlePage").then((m) => ({
+    default: m.EliteGuideArticlePage,
   })),
 );
 const AuthPage = lazy(() =>
@@ -222,7 +244,13 @@ function AppRoutes() {
           {/* Public Routes */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/faq" element={<FAQPage />} />
             <Route path="/contact" element={<ContactPage />} />
+            <Route path="/elite-guide" element={<EliteGuideHubPage />} />
+            <Route path="/elite-guide/:slug" element={<EliteGuideArticlePage />} />
             <Route path="/design-showcase" element={<DesignShowcase />} />
             <Route path="/design-system" element={<DesignSystemPage />} />
             <Route

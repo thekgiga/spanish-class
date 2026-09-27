@@ -1,0 +1,98 @@
+{
+  "meta_title": "Elite Guide — {{title}}",
+  "meta_description": "{{excerpt}}",
+  "hub": {
+    "seo_title": "Elite Guide — Conocimiento para tu camino a España",
+    "seo_description": "Guías prácticas y artículos sobre estudios, aprendizaje de español, vida y experiencias en España — de Elite Education.",
+    "hero_label": "Elite Guide",
+    "hero_title": "Tu guía por España.",
+    "hero_subtitle": "Información práctica, consejos y guías para todos los que piensan en aprender español, estudiar o vivir en España.",
+    "rubric_all": "Todo",
+    "rubric_study": "Estudios",
+    "rubric_learn": "Idioma",
+    "rubric_live": "España",
+    "rubric_experience": "Experiencia",
+    "rubric_camps": "Campamentos",
+    "rubric_insights": "Perspectivas",
+    "filter_label": "Filtrar artículos por tema",
+    "articles_empty": "Aún no hay artículos en esta categoría.",
+    "articles_loading": "Cargando artículos…",
+    "featured_label": "Destacado"
+  },
+  "article": {
+    "breadcrumb_home": "Inicio",
+    "breadcrumb_guide": "Elite Guide",
+    "back_to_guide": "Volver a Elite Guide",
+    "read_more": "Leer más",
+    "related_label": "Artículos relacionados",
+    "cta_label": "¿Listo para dar el siguiente paso?",
+    "cta_body": "Reserva una consulta gratuita y te ayudaremos a encontrar el camino adecuado.",
+    "cta_button": "Reservar una consulta",
+    "fallback_lang_note": "Este artículo está disponible actualmente en serbio. Las versiones en inglés y español llegarán pronto.",
+    "reading_time": "{{minutes}} min de lectura"
+  },
+  "glossary": {
+    "label": "Glosario",
+    "unedasiss": "UNEDasiss — sistema de la universidad española a distancia UNED que ofrece a los solicitantes internacionales servicios para el ingreso universitario (evaluación de credenciales, prueba de aptitud académica).",
+    "pce": "PCE (Prueba de Competencias Específicas) — pruebas de materias específicas ofrecidas por la UNED para candidatos internacionales que desean mejorar su nota de acceso a universidades españolas.",
+    "ects": "ECTS (European Credit Transfer and Accumulation System) — unidad estándar para medir la carga académica en las universidades europeas. Un curso académico equivale normalmente a 60 ECTS.",
+    "dele": "DELE (Diplomas de Español como Lengua Extranjera) — certificación oficial de la lengua española expedida por el Instituto Cervantes. Diploma permanente sin fecha de caducidad.",
+    "siele": "SIELE (Servicio Internacional de Evaluación de la Lengua Española) — sistema digital y multinivel de certificación de la lengua española. Válido durante 5 años; las puntuaciones se expresan en una escala de 1.000 puntos."
+  },
+  "start_here": {
+    "label": "Empieza aquí",
+    "title": "¿Recién empiezas a pensar en España? Empieza aquí.",
+    "body": "Si estás en el punto de partida — preguntándote si estudiar o vivir en España es siquiera posible para ti — el mejor punto de inicio es el artículo '¿Por qué creé Elite Education?' Marca el tono de todo lo que encontrarás en esta guía.",
+    "cta": "Leer: ¿Por qué creé Elite Education?"
+  },
+  "articles": {
+    "upis-fakulteta": {
+      "title": "¿Cómo matricularse en una universidad en España?",
+      "excerpt": "El proceso implica elegir un programa, verificar los requisitos de admisión, preparar la documentación y hacer seguimiento de los plazos. Por aquí puedes empezar."
+    },
+    "unedasiss": {
+      "title": "¿Qué es UNEDasiss y quién lo necesita?",
+      "excerpt": "UNEDasiss no es igual para todos. Si lo necesitas depende de tu sistema educativo de origen y de la universidad específica a la que solicitas."
+    },
+    "pce-priprema": {
+      "title": "¿Qué es PCE y cómo prepararse?",
+      "excerpt": "La pregunta correcta no es '¿cómo apruebo PCE?' sino '¿qué materias de PCE necesito realmente?' Empieza por la pregunta correcta."
+    },
+    "troskovi-studija": {
+      "title": "¿Cuánto cuestan los estudios y la vida estudiantil en España?",
+      "excerpt": "La media nacional es de unos 15,37 € por crédito ECTS en universidades públicas, pero la elección de ciudad y estilo de vida importa tanto como la matrícula."
+    },
+    "dele-ili-siele": {
+      "title": "DELE o SIELE — ¿qué examen elegir?",
+      "excerpt": "El DELE es un diploma permanente sin caducidad. El SIELE es un sistema digital multinivel válido cinco años. La elección depende del uso que vayas a darle al certificado."
+    },
+    "nivo-spanskog": {
+      "title": "¿Cómo evaluar tu nivel de español?",
+      "excerpt": "El nivel es un punto de partida para un plan, no una etiqueta. Una evaluación adecuada cubre lectura, escucha, gramática, escritura y expresión oral."
+    },
+    "koji-grad": {
+      "title": "Madrid, Barcelona, Valencia o Málaga — ¿qué ciudad es la adecuada para ti?",
+      "excerpt": "No existe la mejor ciudad para todos los estudiantes. Depende de tu presupuesto, tus estudios, tu estilo de vida y tus prioridades."
+    },
+    "smestaj": {
+      "title": "¿Cómo encontrar alojamiento en España?",
+      "excerpt": "La ubicación debe ser parte de la decisión, no solo el precio. Una habitación 100 € más barata puede no serlo si añade dos horas de desplazamiento al día."
+    },
+    "prvi-jezicki-kamp": {
+      "title": "¿Qué saber antes del primer campamento de idiomas de tu hijo?",
+      "excerpt": "No elijas un campamento solo por la ciudad o las fotos. Aquí tienes qué comprobar primero y qué debe saber tu hijo antes de partir."
+    },
+    "pet-stvari-spanija": {
+      "title": "Cinco cosas que solo notas cuando pasas tiempo de verdad en España",
+      "excerpt": "La primera visita se recuerda por los monumentos y la comida. Una estancia más larga trae una perspectiva completamente diferente."
+    },
+    "prvi-boravak-madrid": {
+      "title": "Mi primera estancia en Madrid — qué haría diferente hoy",
+      "excerpt": "Lo más que aprendí fue cuando tuve que apañármelas sola. Esa experiencia se convirtió después en algo central en cómo trabajo con los estudiantes."
+    },
+    "zasto-elite-education": {
+      "title": "Por qué creé Elite Education",
+      "excerpt": "No para tramitar solicitudes, sino para ser el lugar donde alguien puede llegar con 'quiero ir a España pero no sé por dónde empezar' y marcharse con un siguiente paso claro."
+    }
+  }
+}

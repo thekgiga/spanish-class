@@ -1,0 +1,98 @@
+{
+  "meta_title": "Elite Guide — {{title}}",
+  "meta_description": "{{excerpt}}",
+  "hub": {
+    "seo_title": "Elite Guide — Znanje za vaš put do Španije",
+    "seo_description": "Praktični vodiči i članci o studiranju, učenju španskog, životu i iskustvima u Španiji — od Elite Education.",
+    "hero_label": "Elite Guide",
+    "hero_title": "Vaš vodič kroz Španiju.",
+    "hero_subtitle": "Praktične informacije, saveti i vodiči za sve koji razmišljaju o učenju španskog, studiranju ili životu u Španiji.",
+    "rubric_all": "Sve",
+    "rubric_study": "Studiranje",
+    "rubric_learn": "Jezik",
+    "rubric_live": "Španija",
+    "rubric_experience": "Doživljaj",
+    "rubric_camps": "Kampovi",
+    "rubric_insights": "Uvidi",
+    "filter_label": "Filtriraj članke po temi",
+    "articles_empty": "Još nema članaka u ovoj kategoriji.",
+    "articles_loading": "Učitavanje članaka…",
+    "featured_label": "Izdvojeno"
+  },
+  "article": {
+    "breadcrumb_home": "Početna",
+    "breadcrumb_guide": "Elite Guide",
+    "back_to_guide": "Nazad na Elite Guide",
+    "read_more": "Pročitajte više",
+    "related_label": "Srodni članci",
+    "cta_label": "Spremi za sledeći korak?",
+    "cta_body": "Zakažite besplatnu konsultaciju i pomoći ćemo vam da pronađete pravi put.",
+    "cta_button": "Zakažite konsultaciju",
+    "fallback_lang_note": "Ovaj članak je trenutno dostupan na srpskom. Verzije na engleskom i španskom uskoro stižu.",
+    "reading_time": "{{minutes}} min čitanja"
+  },
+  "glossary": {
+    "label": "Rečnik pojmova",
+    "unedasiss": "UNEDasiss — sistem španskog daljinskog univerziteta UNED koji stranim kandidatima pruža usluge vezane za upis na fakultet (vrednovanje diploma, provera akademskih kompetencija).",
+    "pce": "PCE (Prueba de Competencias Específicas) — ispiti iz određenih predmeta koje organizuje UNED za strane kandidate koji žele da poboljšaju rezultat pri upisu na španskim fakultetima.",
+    "ects": "ECTS (European Credit Transfer and Accumulation System) — standardna jedinica za merenje akademskog opterećenja na evropskim univerzitetima. Jedna akademska godina iznosi obično 60 ECTS.",
+    "dele": "DELE (Diplomas de Español como Lengua Extranjera) — zvanična sertifikacija španskog jezika, izdaje je Instituto Cervantes. Trajna diploma bez roka važenja.",
+    "siele": "SIELE (Servicio Internacional de Evaluación de la Lengua Española) — digitalni, višenivojski sistem sertifikacije španskog jezika. Važi 5 godina; rezultati se iskazuju na skali od 1.000 poena."
+  },
+  "start_here": {
+    "label": "Počnite ovde",
+    "title": "Tek razmišljate o Španiji? Počnite ovde.",
+    "body": "Ako ste na samom početku — pitate se da li je studiranje ili život u Španiji uopšte moguć za vas — najbolja polazna tačka je članak 'Zašto sam pokrenula Elite Education.' On postavlja ton za sve ostalo u ovom vodiču.",
+    "cta": "Pročitajte: Zašto sam pokrenula Elite Education"
+  },
+  "articles": {
+    "upis-fakulteta": {
+      "title": "Kako upisati fakultet u Španiji?",
+      "excerpt": "Proces uključuje izbor programa, proveru uslova prijave, pripremu dokumentacije i praćenje rokova. Evo odakle da počnete."
+    },
+    "unedasiss": {
+      "title": "Šta je UNEDasiss i kome je potreban?",
+      "excerpt": "UNEDasiss nije isti za svakoga. Da li vam je potreban zavisi od vašeg obrazovnog sistema i konkretnog univerziteta na koji aplicirate."
+    },
+    "pce-priprema": {
+      "title": "Šta je PCE i kako se pripremiti?",
+      "excerpt": "Pravo pitanje nije 'kako da položim PCE?' već 'koji PCE predmeti meni zapravo trebaju?' Počnite od pravog pitanja."
+    },
+    "troskovi-studija": {
+      "title": "Koliko koštaju studije i život studenta u Španiji?",
+      "excerpt": "Nacionalni prosek je oko 15,37 € po ECTS kreditu na javnim fakultetima, ali izbor grada i načina života jednako je važan kao i školarina."
+    },
+    "dele-ili-siele": {
+      "title": "DELE ili SIELE — koji ispit izabrati?",
+      "excerpt": "DELE je trajna diploma bez roka važenja. SIELE je digitalni, višenivojski sistem koji važi pet godina. Izbor zavisi od toga čemu vam sertifikat služi."
+    },
+    "nivo-spanskog": {
+      "title": "Kako da odredite svoj nivo španskog?",
+      "excerpt": "Nivo je polazna tačka za plan, a ne etiketa. Dobra procena obuhvata čitanje, slušanje, gramatiku, pisanje i govor — ne samo filmove koje razumete."
+    },
+    "koji-grad": {
+      "title": "Madrid, Barselona, Valensija ili Malaga — koji grad je za vas?",
+      "excerpt": "Ne postoji jedan „najbolji“ grad za svakog studenta. Zavisi od budžeta, studija, načina života i prioriteta."
+    },
+    "smestaj": {
+      "title": "Kako pronaći smeštaj u Španiji?",
+      "excerpt": "Lokacija treba da bude deo odluke, a ne samo cena. Soba koja je 100 € jeftinija možda nije jeftinija ako dodaje dva sata svakodnevnog putovanja."
+    },
+    "prvi-jezicki-kamp": {
+      "title": "Šta treba da znate pre prvog odlaska na jezički kamp?",
+      "excerpt": "Ne birajte kamp samo prema gradu ili fotografijama. Evo šta prvo treba proveriti — i šta dete treba da zna pre puta."
+    },
+    "pet-stvari-spanija": {
+      "title": "Pet stvari koje ćete primetiti tek kada provedete više vremena u Španiji",
+      "excerpt": "Prva poseta ostane u sećanju zbog znamenitosti i hrane. Duži boravak donosi potpuno drugačiji pogled. Uvek postoji nova verzija Španije koju još niste upoznali."
+    },
+    "prvi-boravak-madrid": {
+      "title": "Moj prvi boravak u Madridu — šta bih danas uradila drugačije?",
+      "excerpt": "Najviše sam naučila onda kada sam morala sama da se snađem. To iskustvo mi je postalo važno u radu sa studentima koji žele da odu u inostranstvo."
+    },
+    "zasto-elite-education": {
+      "title": "Zašto sam pokrenula Elite Education?",
+      "excerpt": "Ne da obrađujemo prijave, već da budemo mesto gde neko može da dođe sa 'Želim u Španiju, ali ne znam odakle da počnem' i ode sa jasnim sledećim korakom."
+    }
+  }
+}

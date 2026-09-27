@@ -1,0 +1,98 @@
+{
+  "meta_title": "Elite Guide — {{title}}",
+  "meta_description": "{{excerpt}}",
+  "hub": {
+    "seo_title": "Elite Guide — Knowledge for your path to Spain",
+    "seo_description": "Practical guides and articles on studying, learning Spanish, living, and experiencing Spain — from Elite Education.",
+    "hero_label": "Elite Guide",
+    "hero_title": "Your guide through Spain.",
+    "hero_subtitle": "Practical information, advice and guides for everyone thinking about learning Spanish, studying or living in Spain.",
+    "rubric_all": "All",
+    "rubric_study": "Study",
+    "rubric_learn": "Learn",
+    "rubric_live": "Live",
+    "rubric_experience": "Experience",
+    "rubric_camps": "Camps",
+    "rubric_insights": "Insights",
+    "filter_label": "Filter articles by topic",
+    "articles_empty": "No articles in this category yet.",
+    "articles_loading": "Loading articles…",
+    "featured_label": "Featured"
+  },
+  "article": {
+    "breadcrumb_home": "Home",
+    "breadcrumb_guide": "Elite Guide",
+    "back_to_guide": "Back to Elite Guide",
+    "read_more": "Read more",
+    "related_label": "Related articles",
+    "cta_label": "Ready to take the next step?",
+    "cta_body": "Book a free consultation and we will help you find the right path.",
+    "cta_button": "Book a consultation",
+    "fallback_lang_note": "This article is currently available in Serbian. English and Spanish versions are coming soon.",
+    "reading_time": "{{minutes}} min read"
+  },
+  "glossary": {
+    "label": "Glossary",
+    "unedasiss": "UNEDasiss — a system of the Spanish distance university UNED that provides international applicants with services for university admission (credential evaluation, academic aptitude test).",
+    "pce": "PCE (Prueba de Competencias Específicas) — subject-specific tests offered by UNED for international applicants who wish to improve their university admissions score in Spain.",
+    "ects": "ECTS (European Credit Transfer and Accumulation System) — a standard unit for measuring academic workload across European universities. One academic year is typically 60 ECTS.",
+    "dele": "DELE (Diplomas de Español como Lengua Extranjera) — official Spanish language certification issued by Instituto Cervantes. A permanent diploma with no expiry date.",
+    "siele": "SIELE (Servicio Internacional de Evaluación de la Lengua Española) — a digital, multi-level Spanish language certification system. Valid for 5 years; scores reported on a 1,000-point scale."
+  },
+  "start_here": {
+    "label": "Start here",
+    "title": "New to the idea of Spain? Start here.",
+    "body": "If you are at the very beginning — wondering whether studying or living in Spain is even possible for you — the best starting point is the article 'Why I started Elite Education.' It sets the tone for everything else in this guide.",
+    "cta": "Read: Why I started Elite Education"
+  },
+  "articles": {
+    "upis-fakulteta": {
+      "title": "How to enrol in a university in Spain?",
+      "excerpt": "The process involves choosing a programme, checking admission requirements, preparing documentation, and tracking deadlines. Here is where to start."
+    },
+    "unedasiss": {
+      "title": "What is UNEDasiss and who needs it?",
+      "excerpt": "UNEDasiss is not a one-size-fits-all requirement. Whether you need it depends on your home education system and the specific university you are applying to."
+    },
+    "pce-priprema": {
+      "title": "What is PCE and how do you prepare?",
+      "excerpt": "The right question is not 'how do I pass PCE?' but 'which PCE subjects do I actually need?' Start with the right question."
+    },
+    "troskovi-studija": {
+      "title": "How much do studies and student life in Spain cost?",
+      "excerpt": "The national average is around €15.37 per ECTS credit at public universities, but city and lifestyle choices matter just as much as tuition fees."
+    },
+    "dele-ili-siele": {
+      "title": "DELE or SIELE — which exam should you choose?",
+      "excerpt": "DELE is a permanent diploma with no expiry. SIELE is a digital multi-level system valid for five years. The choice depends on what you need the certificate for."
+    },
+    "nivo-spanskog": {
+      "title": "How to assess your Spanish level?",
+      "excerpt": "A level is a starting point for a plan, not a label. A proper assessment covers reading, listening, grammar, writing, and speaking — not just films you understand."
+    },
+    "koji-grad": {
+      "title": "Madrid, Barcelona, Valencia or Málaga — which city is right for you?",
+      "excerpt": "There is no single best city for every student. It depends on your budget, your studies, your lifestyle, and your priorities."
+    },
+    "smestaj": {
+      "title": "How to find accommodation in Spain?",
+      "excerpt": "Location is part of the decision, not just price. A room 100 € cheaper may not be cheaper if it adds two hours of commuting per day."
+    },
+    "prvi-jezicki-kamp": {
+      "title": "What to know before your child's first language camp?",
+      "excerpt": "Do not choose a camp only by the city or the photos. Here is what to check first — and what your child should know before they leave."
+    },
+    "pet-stvari-spanija": {
+      "title": "Five things you only notice after spending real time in Spain",
+      "excerpt": "The first visit stays with the sights and food. A longer stay brings an entirely different view. There is always a version of Spain you have not yet discovered."
+    },
+    "prvi-boravak-madrid": {
+      "title": "My first time in Madrid — what I would do differently today",
+      "excerpt": "The most I learned was when I had to figure things out on my own. That experience later became central to how I work with students."
+    },
+    "zasto-elite-education": {
+      "title": "Why I started Elite Education",
+      "excerpt": "Not to process applications, but to be the place where someone can arrive with 'I want to go to Spain, but I don't know where to start' and leave with a clear next step."
+    }
+  }
+}

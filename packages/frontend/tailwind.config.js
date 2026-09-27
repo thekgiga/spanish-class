@@ -33,7 +33,11 @@ export default {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
+          // ui-system semantic tokens (gold) — overrides shadcn default
+          DEFAULT: 'hsl(var(--ui-accent) / <alpha-value>)',
+          hover: 'hsl(var(--ui-accent-hover) / <alpha-value>)',
+          soft: 'hsl(var(--ui-accent-soft) / <alpha-value>)',
+          // shadcn compat: foreground key kept for Radix component internals
           foreground: "hsl(var(--accent-foreground))",
         },
         popover: {
