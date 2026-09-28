@@ -12,7 +12,7 @@ type Locale = "en" | "sr" | "es";
 
 const languages = {
   en: { name: "English", flag: "🇬🇧" },
-  sr: { name: "Српски", flag: "🇷🇸" },
+  sr: { name: "Srpski", flag: "🇷🇸" },
   es: { name: "Español", flag: "🇪🇸" },
 };
 

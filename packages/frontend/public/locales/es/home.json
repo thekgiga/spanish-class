@@ -14,7 +14,7 @@
   },
   "about": {
     "label": "Sobre nosotros",
-    "title": "Tú tienes un objetivo. Nosotros conocemos el camino.",
+    "title": "Aprende con profesores que viven la cultura.",
     "body1": "Elite Education nació de una necesidad personal de lo que a menudo falta cuando das tus primeros pasos en la educación internacional: información clara, alguien que entienda el proceso y un apoyo que no se detiene en el papeleo.",
     "body2": "Nuestro enfoque es España — su idioma, su educación y la experiencia de vivir allí. Queremos que un proceso que puede parecer complicado resulte más sencillo, más personal y mejor organizado.",
     "mission_label": "Nuestra misión",
@@ -28,13 +28,14 @@
     "bio2": "Esas experiencias me mostraron cuánto puede cambiar una estancia en el extranjero la forma en que ves la educación, la carrera y tus propias posibilidades. Pero también me mostraron lo difícil que resulta cuando la información está dispersa y tienes que entender gran parte del proceso por tu cuenta.",
     "bio3": "Por eso quise crear Elite Education — no como otra agencia que simplemente tramita solicitudes, sino como un lugar donde el estudiante pueda obtener un consejo claro, una imagen realista de sus opciones y apoyo a lo largo de todo el proceso.",
     "bio4": "Hoy, a través de Elite Education, combino mi experiencia en lengua española, educación internacional y trabajo en entornos internacionales, con el objetivo de facilitar el camino que yo misma recorrí.",
-    "image_alt": "Nevena Mušatović, fundadora de Elite Education"
+    "image_alt": "Nevena Mušatović, fundadora de Elite Education",
+    "read_more": "Leer la historia completa de Nevena"
   },
   "services": {
     "label": "Servicios",
-    "title": "Todo lo que necesitas para tu camino a España.",
+    "title": "Todo lo que podrías necesitar.",
     "subtitle": "Tanto si estás explorando posibilidades como si ya sabes lo que quieres, Elite Education ofrece acompañamiento en cada etapa de tu camino educativo.",
-    "s01_number": "01",
+    "s01_number": "I",
     "s01_label": "Idioma español",
     "s01_title": "Español que aprendes con propósito.",
     "s01_body": "Aprender el idioma es el comienzo de toda experiencia internacional. Organizamos clases adaptadas a tu nivel, objetivos y ritmo — tanto si aprendes español por amor al idioma como por viajes, educación o desarrollo profesional.",
@@ -49,7 +50,7 @@
     ],
     "s01_tagline": "Aprender un idioma es el comienzo de toda experiencia internacional.",
     "s01_cta": "Más información",
-    "s02_number": "02",
+    "s02_number": "II",
     "s02_label": "Estudios en España",
     "s02_title": "Desde la primera idea hasta la matrícula.",
     "s02_body": "Elegir universidad y navegar el proceso de solicitud en otro país puede parecer complicado. Nuestro objetivo es convertirlo en un proceso claro y organizado. Ayudamos a los estudiantes a encontrar el programa que se ajusta a sus intereses, objetivos académicos y posibilidades.",
@@ -66,7 +67,7 @@
     ],
     "s02_tagline": "No buscamos solo una universidad. Buscamos la que es correcta para ti.",
     "s02_cta": "Más información",
-    "s03_number": "03",
+    "s03_number": "III",
     "s03_label": "Campamentos de idiomas en España",
     "s03_title": "Una primera experiencia internacional que vale la pena recordar.",
     "s03_body": "Los campamentos de idiomas dan a los jóvenes la oportunidad de aprender español, conocer compañeros de diferentes países y experimentar la vida en un entorno internacional. Ayudamos a padres y estudiantes a encontrar el programa que se adapta a la edad, intereses y deseos del niño.",
@@ -80,7 +81,7 @@
     ],
     "s03_tagline": "Tú eliges la experiencia. Nosotros nos encargamos de los detalles.",
     "s03_cta": "Más información",
-    "s04_number": "04",
+    "s04_number": "IV",
     "s04_label": "Consultas para España",
     "s04_title": "¿Planeas ir a España pero no sabes por dónde empezar?",
     "s04_body": "A veces no necesitas un servicio completo — solo la información correcta y el asesoramiento experto. Las consultas individuales están pensadas para estudiantes y padres que quieren explorar las posibilidades de educación y vida en España.",
@@ -100,7 +101,12 @@
     "s02_teaser": "Orientación universitaria — desde la primera búsqueda hasta la matrícula.",
     "s03_teaser": "Campamentos de idiomas en España para jóvenes y adolescentes.",
     "s04_teaser": "Una conversación que te ayuda a ver el camino con claridad.",
-    "cta_all": "Explorar todos los servicios"
+    "cta_all": "Explorar todos los servicios",
+    "s01_highlights": [
+      "Niveles A1–C1",
+      "Clases individuales y en grupo",
+      "Preparación DELE y SIELE"
+    ]
   },
   "intro": {
     "cta": "Nuestra historia"
@@ -121,18 +127,20 @@
   "how_we_work": {
     "label": "Cómo trabajamos",
     "title": "Tu objetivo. Nuestro plan.",
-    "s01_number": "01",
+    "s01_number": "I",
     "s01_title": "Hablamos",
     "s01_body": "Te conocemos a ti, tus objetivos, intereses y posibilidades.",
-    "s02_number": "02",
+    "s02_number": "II",
     "s02_title": "Exploramos",
     "s02_body": "Juntos examinamos las opciones disponibles y encontramos las que mejor se adaptan a ti.",
-    "s03_number": "03",
+    "s03_number": "III",
     "s03_title": "Organizamos",
     "s03_body": "Ayudamos con la documentación, solicitudes, plazos y todos los pasos importantes.",
-    "s04_number": "04",
+    "s04_number": "IV",
     "s04_title": "Apoyamos",
-    "s04_body": "Permanecemos contigo durante todo el proceso y ayudamos a que cada siguiente paso sea más claro."
+    "s04_body": "Permanecemos contigo durante todo el proceso y ayudamos a que cada siguiente paso sea más claro.",
+    "home_intro": "Un camino tranquilo y guiado — desde la primera conversación hasta cada paso siguiente.",
+    "home_cta": "Descubre cómo trabajamos"
   },
   "why_us": {
     "label": "Por qué Elite Education",
@@ -145,6 +153,18 @@
     "bullet_5": "Acompañamiento durante el proceso de solicitud",
     "bullet_6": "Comunicación clara y transparente",
     "bullet_7": "Apoyo a estudiantes y familias"
+  },
+  "standout": {
+    "label": "Por qué Elite Education",
+    "title": "Cuatro cosas que nos diferencian.",
+    "i01_title": "Adaptado a ti",
+    "i01_body": "No hay dos estudiantes ni dos caminos iguales. Cada recomendación se construye en torno a tus objetivos específicos, tu calendario y la situación familiar.",
+    "i02_title": "Basado en experiencia",
+    "i02_body": "Profunda experiencia en el idioma español, universidades y entornos internacionales — orientación práctica en la que puedes confiar.",
+    "i03_title": "Totalmente transparente",
+    "i03_body": "Posibilidades, costes, condiciones y próximos pasos presentados con claridad desde el principio. Sin sorpresas, sin presión.",
+    "i04_title": "Contigo en cada paso",
+    "i04_body": "Apoyo para estudiantes y padres que comienza cuando contactas por primera vez y continúa mucho después de enviar la solicitud."
   },
   "guide_teaser": {
     "label": "Elite Guide",
@@ -191,6 +211,13 @@
     "q5_answer": "No existe la mejor ciudad para todos los estudiantes. Depende de tu presupuesto, tus estudios, tu estilo de vida y tus prioridades. Cada ciudad tiene un ritmo, una atmósfera y una escena académica diferentes.",
     "q5_link": "/elite-guide/koji-grad",
     "cta_more": "Ver todas las preguntas en Elite Guide"
+  },
+  "stats": {
+    "aria_label": "Cifras clave",
+    "s1_label": "Estudiantes orientados",
+    "s2_label": "Universidades españolas",
+    "s3_label": "Idiomas de atención",
+    "s4_label": "Enfoque personalizado"
   },
   "cta": {
     "title": "¿Listo para el siguiente paso?",

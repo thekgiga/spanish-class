@@ -97,6 +97,7 @@
   --ui-shadow-1: 0 1px 2px rgb(30 30 36 / 0.06), 0 1px 1px rgb(30 30 36 / 0.04);
   --ui-shadow-2: 0 8px 24px rgb(30 30 36 / 0.10), 0 2px 6px rgb(30 30 36 / 0.06);
   --ui-shadow-3: 0 20px 48px rgb(30 30 36 / 0.16), 0 4px 12px rgb(30 30 36 / 0.08);
+  --ui-shadow-brand: 0 8px 28px hsl(354 82% 30% / 0.14), 0 2px 8px hsl(354 82% 30% / 0.08);
 
   /* ── Motion ────────────────────────────────────────────────────────────── */
   --ui-duration-instant: 80ms;

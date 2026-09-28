@@ -10,7 +10,7 @@ export function Footer() {
       <div className="mx-auto max-w-settings px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           {/* Brand */}
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col items-center md:items-start gap-1.5 w-full md:w-auto">
             <Link to="/" className="group inline-block">
               <img
                 src="/imgs/brand/header-logo-white.webp"
@@ -44,14 +44,14 @@ export function Footer() {
 
           {/* Social */}
           <a
-            href="https://www.instagram.com/casovi_spanskog_online/"
+            href="https://www.instagram.com/elite.education.rs/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-ink-secondary hover:text-ink transition-colors duration-micro"
+            className="flex w-full items-center justify-center gap-2 text-ink-secondary hover:text-ink transition-colors duration-micro md:w-auto md:justify-start"
             aria-label={t("footer.instagram_title")}
           >
             <Instagram className="h-5 w-5" aria-hidden="true" />
-            <span className="text-small font-medium">@casovi_spanskog_online</span>
+            <span className="text-small font-medium">@elite.education.rs</span>
           </a>
         </div>
 

@@ -14,7 +14,7 @@
   },
   "about": {
     "label": "O nama",
-    "title": "Vi imate cilj. Mi znamo put.",
+    "title": "Učite sa profesorima koji žive kulturu.",
     "body1": "Elite Education je nastala iz lične potrebe za onim čega često nedostaje kada prvi put kročite u međunarodno obrazovanje: jasnih informacija, nekoga ko razume proces i podrške koja se ne zaustavlja na papirima.",
     "body2": "Naš fokus je Španija — njen jezik, obrazovanje i iskustvo življenja tamo. Želimo da proces koji može delovati komplikovano učinimo jednostavnijim, ličnijim i bolje organizovanim.",
     "mission_label": "Naša misija",
@@ -28,13 +28,14 @@
     "bio2": "Ta iskustva su mi pokazala koliko boravak u inostranstvu može promeniti način na koji gledate na obrazovanje, karijeru i sopstvene mogućnosti. Ali su mi pokazala i koliko je teško kad su informacije rasparčane i kad dobar deo procesa morate da shvatite sami.",
     "bio3": "Zbog toga sam želela da stvorim Elite Education — ne kao još jednu agenciju koja jednostavno prosleđuje prijave, već kao mesto gde student može dobiti jasan savet, realnu sliku mogućnosti i podršku kroz ceo proces.",
     "bio4": "Danas, kroz Elite Education, objedinjujem svoje iskustvo u španskom jeziku, međunarodnom obrazovanju i radu u međunarodnim okruženjima, s ciljem da olakšam put koji sam nekada sama prošla.",
-    "image_alt": "Nevena Mušatović, osnivačica Elite Education"
+    "image_alt": "Nevena Mušatović, osnivačica Elite Education",
+    "read_more": "Pročitajte celu priču o Neveni"
   },
   "services": {
     "label": "Usluge",
-    "title": "Sve što vam treba za vaš put do Španije.",
+    "title": "Sve što vam može trebati.",
     "subtitle": "Bez obzira da li tek istražujete mogućnosti ili već znate šta želite, Elite Education pruža podršku u svakoj fazi vašeg obrazovnog puta.",
-    "s01_number": "01",
+    "s01_number": "I",
     "s01_label": "Španski jezik",
     "s01_title": "Španski koji učite sa svrhom.",
     "s01_body": "Učenje jezika je početak svakog međunarodnog iskustva. Organizujemo časove prilagođene vašem nivou, ciljevima i tempu — bez obzira da li učite španski iz ljubavi prema jeziku, za putovanje, obrazovanje ili profesionalni razvoj.",
@@ -49,7 +50,7 @@
     ],
     "s01_tagline": "Učenje jezika je početak svakog međunarodnog iskustva.",
     "s01_cta": "Saznajte više",
-    "s02_number": "02",
+    "s02_number": "II",
     "s02_label": "Studije u Španiji",
     "s02_title": "Od prve ideje do upisa.",
     "s02_body": "Izbor fakulteta i snalaženje u procesu prijave u drugoj zemlji može se činiti komplikovanim. Naš cilj je da to pretvorimo u jasan, organizovan proces. Pomažemo studentima da pronađu program koji odgovara njihovim interesovanjima, akademskim ciljevima i mogućnostima.",
@@ -66,7 +67,7 @@
     ],
     "s02_tagline": "Ne tražimo samo fakultet. Tražimo ono što je pravo za vas.",
     "s02_cta": "Saznajte više",
-    "s03_number": "03",
+    "s03_number": "III",
     "s03_label": "Jezički kampovi u Španiji",
     "s03_title": "Prvo međunarodno iskustvo vredno pamćenja.",
     "s03_body": "Jezički kampovi daju mladima mogućnost da uče španski, upoznaju vršnjake iz različitih zemalja i iskuse život u međunarodnom okruženju. Pomažemo roditeljima i studentima da pronađu program koji odgovara uzrastu, interesovanjima i željama deteta.",
@@ -80,7 +81,7 @@
     ],
     "s03_tagline": "Vi birate iskustvo. Mi se brinemo o detaljima.",
     "s03_cta": "Saznajte više",
-    "s04_number": "04",
+    "s04_number": "IV",
     "s04_label": "Konsultacije za Španiju",
     "s04_title": "Planirate Španiju, ali ne znate odakle da počnete?",
     "s04_body": "Ponekad vam ne treba puna usluga — samo prava informacija i stručni savet. Individualne konsultacije su za studente i roditelje koji žele da istraže mogućnosti obrazovanja i života u Španiji.",
@@ -100,7 +101,12 @@
     "s02_teaser": "Vođenje kroz upis na fakultet — od prvog istraživanja do finalnog upisa.",
     "s03_teaser": "Jezički kampovi u Španiji za mlade i tinejdžere.",
     "s04_teaser": "Razgovor koji vam pomaže da jasno vidite put napred.",
-    "cta_all": "Istražite sve usluge"
+    "cta_all": "Istražite sve usluge",
+    "s01_highlights": [
+      "Nivoi A1–C1",
+      "Individualni i grupni časovi",
+      "Priprema za DELE i SIELE"
+    ]
   },
   "intro": {
     "cta": "Naša priča"
@@ -121,18 +127,20 @@
   "how_we_work": {
     "label": "Kako radimo",
     "title": "Vaš cilj. Naš plan.",
-    "s01_number": "01",
+    "s01_number": "I",
     "s01_title": "Razgovaramo",
     "s01_body": "Upoznajemo vas, vaše ciljeve, interesovanja i mogućnosti.",
-    "s02_number": "02",
+    "s02_number": "II",
     "s02_title": "Istražujemo",
     "s02_body": "Zajedno gledamo dostupne opcije i pronalazimo one koje vam najviše odgovaraju.",
-    "s03_number": "03",
+    "s03_number": "III",
     "s03_title": "Organizujemo",
     "s03_body": "Pomažemo sa dokumentacijom, prijavama, rokovima i svim važnim koracima.",
-    "s04_number": "04",
+    "s04_number": "IV",
     "s04_title": "Podržavamo",
-    "s04_body": "Ostajemo uz vas kroz ceo proces i pomažemo da svaki sledeći korak bude jasniji."
+    "s04_body": "Ostajemo uz vas kroz ceo proces i pomažemo da svaki sledeći korak bude jasniji.",
+    "home_intro": "Miran, vođen put — od prvog razgovora do svakog narednog koraka.",
+    "home_cta": "Pogledajte kako radimo"
   },
   "why_us": {
     "label": "Zašto Elite Education",
@@ -145,6 +153,18 @@
     "bullet_5": "Podrška kroz proces prijave",
     "bullet_6": "Jasna i transparentna komunikacija",
     "bullet_7": "Podrška za studente i roditelje"
+  },
+  "standout": {
+    "label": "Zašto Elite Education",
+    "title": "Četiri stvari koje nas izdvajaju.",
+    "i01_title": "Prilagođeno vama",
+    "i01_body": "Nema dva studenta ni dva ista puta. Svaka preporuka je izgrađena oko vaših specifičnih ciljeva, vremenskog okvira i porodične situacije.",
+    "i02_title": "Zasnovano na stručnosti",
+    "i02_body": "Duboko iskustvo u španskom jeziku, univerzitetima i međunarodnim okruženjima — praktični saveti na koje možete da se oslonite.",
+    "i03_title": "Potpuno transparentno",
+    "i03_body": "Mogućnosti, troškovi, uslovi i sledeći koraci su jasno predstavljeni od samog početka. Bez iznenađenja, bez pritiska.",
+    "i04_title": "Tu za vas u svakom koraku",
+    "i04_body": "Podrška za studente i roditelje koja počinje od prvog kontakta — i nastavlja se dugo posle slanja prijave."
   },
   "guide_teaser": {
     "label": "Elite Guide",
@@ -191,6 +211,13 @@
     "q5_answer": "Ne postoji jedan najbolji grad za svakog studenta. Zavisi od budžeta, studija, načina života i prioriteta. Svaki grad ima drugačiji ritam, atmosferu i akademsku scenu.",
     "q5_link": "/elite-guide/koji-grad",
     "cta_more": "Pogledajte sva pitanja u Elite Guide-u"
+  },
+  "stats": {
+    "aria_label": "Ključni podaci",
+    "s1_label": "Vođenih učenika",
+    "s2_label": "Španskih univerziteta",
+    "s3_label": "Jezika podrške",
+    "s4_label": "Personalizovan pristup"
   },
   "cta": {
     "title": "Spremni za sledeći korak?",

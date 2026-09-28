@@ -14,7 +14,7 @@
   },
   "about": {
     "label": "About us",
-    "title": "You have a goal. We know the path.",
+    "title": "Learn from professors who live the culture.",
     "body1": "Elite Education was born from a personal need for what is often missing when you first step into international education: clear information, someone who understands the process, and support that does not stop at the paperwork.",
     "body2": "Our focus is Spain — its language, education and the experience of living there. We want to make a process that might seem complicated feel simpler, more personal and better organised.",
     "mission_label": "Our mission",
@@ -28,13 +28,14 @@
     "bio2": "Those experiences showed me how much a stay abroad can change the way you look at education, career and your own possibilities. But they also showed me how difficult things are when information is scattered and you have to figure out a large part of the process on your own.",
     "bio3": "That is why I wanted to create Elite Education — not as another agency that simply forwards applications, but as a place where a student can get clear advice, a realistic picture of their options and support throughout the entire process.",
     "bio4": "Today, through Elite Education, I bring together my experience in Spanish language, international education and working in international environments, with the goal of making easier the journey I once walked myself.",
-    "image_alt": "Nevena Mušatović, founder of Elite Education"
+    "image_alt": "Nevena Mušatović, founder of Elite Education",
+    "read_more": "Read Nevena's full story"
   },
   "services": {
     "label": "Services",
-    "title": "Everything you need for your path to Spain.",
+    "title": "Everything you might need.",
     "subtitle": "Whether you are just exploring possibilities or already know what you want, Elite Education provides support at every stage of your educational journey.",
-    "s01_number": "01",
+    "s01_number": "I",
     "s01_label": "Spanish language",
     "s01_title": "Spanish you learn with purpose.",
     "s01_body": "Language learning is the beginning of every international experience. We organise lessons tailored to your level, goals and pace — whether you are learning Spanish out of love for the language, for travel, education or professional development.",
@@ -49,7 +50,7 @@
     ],
     "s01_tagline": "Learning a language is the beginning of every international experience.",
     "s01_cta": "Find out more",
-    "s02_number": "02",
+    "s02_number": "II",
     "s02_label": "Studies in Spain",
     "s02_title": "From first idea to enrolment.",
     "s02_body": "Choosing a university and navigating the application process in another country can seem complicated. Our goal is to turn it into a clear, organised process. We help students find a programme that matches their interests, academic goals and possibilities.",
@@ -66,7 +67,7 @@
     ],
     "s02_tagline": "We are not just looking for a university. We are looking for what is right for you.",
     "s02_cta": "Find out more",
-    "s03_number": "03",
+    "s03_number": "III",
     "s03_label": "Language camps in Spain",
     "s03_title": "A first international experience worth remembering.",
     "s03_body": "Language camps give young people the chance to learn Spanish, meet peers from different countries and experience life in an international environment. We help parents and students find a programme that suits the child's age, interests and wishes.",
@@ -80,7 +81,7 @@
     ],
     "s03_tagline": "You choose the experience. We take care of the details.",
     "s03_cta": "Find out more",
-    "s04_number": "04",
+    "s04_number": "IV",
     "s04_label": "Consultations for Spain",
     "s04_title": "Planning Spain but don't know where to begin?",
     "s04_body": "Sometimes you don't need a full service — just the right information and expert advice. Individual consultations are for students, and parents who want to explore the possibilities of education and life in Spain.",
@@ -100,7 +101,12 @@
     "s02_teaser": "University guidance — from first search to final enrolment.",
     "s03_teaser": "Language camps in Spain for young people and teenagers.",
     "s04_teaser": "A conversation that helps you see the path ahead clearly.",
-    "cta_all": "Explore all services"
+    "cta_all": "Explore all services",
+    "s01_highlights": [
+      "A1–C1 levels",
+      "Private & group lessons",
+      "DELE & SIELE preparation"
+    ]
   },
   "intro": {
     "cta": "Our story"
@@ -121,18 +127,20 @@
   "how_we_work": {
     "label": "How we work",
     "title": "Your goal. Our plan.",
-    "s01_number": "01",
+    "s01_number": "I",
     "s01_title": "We talk",
     "s01_body": "We get to know you, your goals, interests and possibilities.",
-    "s02_number": "02",
+    "s02_number": "II",
     "s02_title": "We explore",
     "s02_body": "Together we look at the available options and find the ones that suit you best.",
-    "s03_number": "03",
+    "s03_number": "III",
     "s03_title": "We organise",
     "s03_body": "We help with documentation, applications, deadlines and all the important steps.",
-    "s04_number": "04",
+    "s04_number": "IV",
     "s04_title": "We support",
-    "s04_body": "We stay with you throughout the process and help make every next step clearer."
+    "s04_body": "We stay with you throughout the process and help make every next step clearer.",
+    "home_intro": "A calm, guided path — from our first conversation to every step that follows.",
+    "home_cta": "See how it works"
   },
   "why_us": {
     "label": "Why Elite Education",
@@ -145,6 +153,18 @@
     "bullet_5": "Support through the application process",
     "bullet_6": "Clear and transparent communication",
     "bullet_7": "Support for students and parents"
+  },
+  "standout": {
+    "label": "Why Elite Education",
+    "title": "Four things that set us apart.",
+    "i01_title": "Tailored to you",
+    "i01_body": "No two students or journeys are the same. Every recommendation is built around your specific goals, timeline, and family situation.",
+    "i02_title": "Grounded in expertise",
+    "i02_body": "Deep experience in the Spanish language, universities, and international environments — practical guidance you can rely on.",
+    "i03_title": "Fully transparent",
+    "i03_body": "Possibilities, costs, conditions and next steps are presented clearly from the start. No surprises, no pressure.",
+    "i04_title": "With you throughout",
+    "i04_body": "Support for students and parents that begins when you first reach out — and continues long after the application is sent."
   },
   "guide_teaser": {
     "label": "Elite Guide",
@@ -191,6 +211,13 @@
     "q5_answer": "There is no single best city for every student. It depends on your budget, your studies, your lifestyle and your priorities. Each city has a different pace, atmosphere and academic scene.",
     "q5_link": "/elite-guide/koji-grad",
     "cta_more": "See all questions in Elite Guide"
+  },
+  "stats": {
+    "aria_label": "Key figures",
+    "s1_label": "Students guided",
+    "s2_label": "Spanish universities",
+    "s3_label": "Languages of support",
+    "s4_label": "Personalised approach"
   },
   "cta": {
     "title": "Ready for the next step?",

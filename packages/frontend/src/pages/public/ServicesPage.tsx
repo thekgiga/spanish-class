@@ -26,6 +26,7 @@ export function ServicesPage() {
         label={t("services.label")}
         title={t("services.title")}
         subtitle={t("services.subtitle")}
+        spineIndent
       />
 
       <section className="relative z-10 bg-canvas py-20 sm:py-28">

@@ -50,7 +50,7 @@ export function SectionLabel({ children }: { children: ReactNode }) {
 // ── Spine rail — animated gold line running through a section ─────────────
 // Absolutely positioned inside the section so it paints above the bg.
 
-export function SpineRail() {
+export function SpineRail({ railClass = 'bg-accent' }: { railClass?: string }) {
   const prefersReducedMotion = useReducedMotion();
   return (
     <div
@@ -58,7 +58,7 @@ export function SpineRail() {
       className="pointer-events-none absolute inset-y-0 left-4 sm:left-6 lg:left-8 -translate-x-1/2 z-10"
     >
       <motion.div
-        className="w-0.5 h-full bg-accent origin-top"
+        className={`w-0.5 h-full ${railClass} origin-top`}
         initial={prefersReducedMotion ? undefined : { scaleY: 0 }}
         whileInView={{ scaleY: 1 }}
         transition={
@@ -74,11 +74,11 @@ export function SpineRail() {
 
 // ── Spine node — gold dot centered on the spine x-axis ────────────────────
 
-export function SpineNode({ className }: { className?: string }) {
+export function SpineNode({ className, dotClass = 'bg-accent ring-accent/30' }: { className?: string; dotClass?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none absolute left-4 sm:left-6 lg:left-8 -translate-x-1/2 z-20 h-3 w-3 rounded-full bg-accent ring-2 ring-accent/30 ring-offset-1 ${className ?? ""}`}
+      className={`pointer-events-none absolute left-4 sm:left-6 lg:left-8 -translate-x-1/2 z-20 h-3 w-3 rounded-full ring-2 ring-offset-1 ${dotClass} ${className ?? ""}`}
     />
   );
 }
@@ -89,14 +89,20 @@ export function PageHeader({
   label,
   title,
   subtitle,
+  spineIndent = false,
 }: {
   label?: string;
   title: string;
   subtitle?: string;
+  /** Set true when the page uses SpineRail so the heading aligns with body text */
+  spineIndent?: boolean;
 }) {
+  const innerCls = spineIndent
+    ? "mx-auto max-w-screen-xl px-4 pl-8 sm:px-6 sm:pl-10 lg:px-8 lg:pl-16"
+    : "mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8";
   return (
     <div className="bg-canvas border-b border-line py-16 sm:py-24">
-      <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+      <div className={innerCls}>
         {label && <SectionLabel>{label}</SectionLabel>}
         <GoldRule className="mb-6" />
         <h1 className="font-display text-4xl font-semibold text-ink sm:text-5xl">

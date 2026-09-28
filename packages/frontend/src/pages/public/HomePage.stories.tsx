@@ -2,10 +2,18 @@
  * HomePage stories — Elite Education public landing page.
  *
  * The page is static marketing content (no data fetching), so stories only
- * provide the i18n + router context it needs. All 11 sections (Hero, About,
- * Founder, Services, Approach, How We Work, Why Us, Elite Guide Teaser,
- * FAQ, Final CTA) render from i18n keys with no server state.
- * Visual screenshots are captured in docs/redesign/evidence/land-001/.
+ * provide the i18n + router context it needs. Five sections render from i18n
+ * keys with no server state:
+ *   1. Hero            — cinematic video/image background, headline + two CTAs.
+ *   2. ValueIntro      — about pitch + mission quote, links to /about.
+ *   3. Services (bento)— asymmetric showcase: one lead tile (s01, with 2–3
+ *                        highlights) + two small tiles (s02/s03) + a wide
+ *                        banner (s04). Every tile deep-links to
+ *                        /services#s01…#s04; section id="services-preview" is
+ *                        the hero ghost-CTA scroll target.
+ *   4. HowItWorksTeaser— 4-step methodology row, links to /about.
+ *   5. FinalCTA        — burgundy closing band, links to /contact.
+ * Visual screenshots are captured in docs/redesign/evidence/land-005/.
  */
 import type { Meta, StoryObj } from "@storybook/react";
 import React from "react";
@@ -30,9 +38,11 @@ const meta: Meta<typeof HomePage> = {
     docs: {
       description: {
         component:
-          "Elite Education public landing page. Burgundy hero with logo card, Playfair Display " +
-          "headline, and two CTAs. Below-fold sections: About, Founder, Services (4 cards), " +
-          "Approach, How We Work, Why Us (burgundy), Elite Guide Teaser, FAQ accordion, Final CTA. " +
+          "Elite Education public landing page. Cinematic hero (video/image with " +
+          "left gradient), headline, and two CTAs. Below-fold sections: ValueIntro " +
+          "(about + mission), Services bento showcase (lead tile + two small tiles + " +
+          "wide banner, deep-linking to /services#s01…#s04), How-It-Works teaser " +
+          "(4-step row → /about), Final CTA (burgundy → /contact). " +
           "All text from i18n keys (en/sr/es). Semantic tokens throughout; no raw colors.",
       },
     },
@@ -49,8 +59,9 @@ export const Desktop: Story = {
     docs: {
       description: {
         story:
-          "Full landing page at desktop width (1280px+). Sections stack vertically. " +
-          "Services grid uses 2-column layout; Founder uses flex row; FAQ uses 3-column grid.",
+          "Full landing page at desktop width (1280px+). Services bento is a 3-column " +
+          "grid: lead tile s01 spans 2×2, s02/s03 stack in column 3, s04 is a full-width " +
+          "banner row. How-It-Works teaser is a 4-column step row.",
       },
     },
   },
@@ -63,8 +74,9 @@ export const Mobile: Story = {
     docs: {
       description: {
         story:
-          "Landing page at 390px. Hero stacks logo card + title + CTAs vertically. " +
-          "Services grid collapses to single column; Founder portrait above bio text.",
+          "Landing page at 390px. Hero content stacks; CTAs wrap. Services bento " +
+          "collapses to a single column (lead tile first, then s02, s03, s04 banner). " +
+          "How-It-Works steps stack single-column. No horizontal scroll.",
       },
     },
   },
@@ -77,8 +89,9 @@ export const Tablet: Story = {
     docs: {
       description: {
         story:
-          "Landing page at 768px. Most sections switch from single-column to two-column. " +
-          "CTAs appear side-by-side in the hero.",
+          "Landing page at 768px. Services bento uses a 2-column grid (lead tile and " +
+          "s04 banner span both columns; s02/s03 sit side by side). How-It-Works steps " +
+          "form a 2×2 grid. Hero CTAs appear side by side.",
       },
     },
   },

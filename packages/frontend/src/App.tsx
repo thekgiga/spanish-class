@@ -23,9 +23,7 @@ const AboutPage = lazy(() =>
 const ServicesPage = lazy(() =>
   import("@/pages/public/ServicesPage").then((m) => ({ default: m.ServicesPage })),
 );
-const HowItWorksPage = lazy(() =>
-  import("@/pages/public/HowItWorksPage").then((m) => ({ default: m.HowItWorksPage })),
-);
+
 const FAQPage = lazy(() =>
   import("@/pages/public/FAQPage").then((m) => ({ default: m.FAQPage })),
 );
@@ -246,7 +244,7 @@ function AppRoutes() {
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/services" element={<ServicesPage />} />
-            <Route path="/how-it-works" element={<HowItWorksPage />} />
+            <Route path="/how-it-works" element={<Navigate to="/about" replace />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/elite-guide" element={<EliteGuideHubPage />} />

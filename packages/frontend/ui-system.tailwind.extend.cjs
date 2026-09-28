@@ -135,6 +135,7 @@ module.exports = {
     'ui-1': 'var(--ui-shadow-1)',
     'ui-2': 'var(--ui-shadow-2)',
     'ui-3': 'var(--ui-shadow-3)',
+    'ui-brand': 'var(--ui-shadow-brand)',
   },
   height: {
     'progress-bar': '3px',

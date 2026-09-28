@@ -69,14 +69,14 @@ export function ContactPage() {
 
       <div className="min-h-screen bg-white">
         {/* Hero Section */}
-        <section className="relative py-20 sm:py-28 overflow-hidden bg-gradient-to-br from-spanish-teal-50 via-white to-spanish-coral-50">
+        <section className="relative py-14 sm:py-20 overflow-hidden bg-gradient-to-br from-spanish-teal-50 via-white to-spanish-coral-50">
           {/* Decorative colorful blobs */}
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-spanish-teal-400 to-spanish-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-float" />
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-spanish-coral-400 to-spanish-coral-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-float animation-delay-2000" />
 
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
             <motion.div
-              className="text-center max-w-3xl mx-auto mb-16"
+              className="text-center max-w-3xl mx-auto mb-12"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
@@ -268,12 +268,12 @@ export function ContactPage() {
                           {t("contact.info_instagram_label")}
                         </p>
                         <a
-                          href="https://www.instagram.com/casovi_spanskog_online/"
+                          href="https://www.instagram.com/elite.education.rs/"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-spanish-coral-600 hover:text-spanish-coral-700 font-medium transition-colors"
                         >
-                          @casovi_spanskog_online
+                          @elite.education.rs
                         </a>
                       </div>
                     </div>

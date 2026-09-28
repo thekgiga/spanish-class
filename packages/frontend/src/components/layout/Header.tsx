@@ -18,11 +18,10 @@ import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { cn } from "@/lib/utils";
 
 /**
- * Landing page (route "/") renders a full-viewport video hero. The header sits
- * over the hero as a transparent overlay and transitions to a solid surface header
- * once the visitor scrolls past the hero. Every other route keeps the header
- * pinned to the top as solid. We detect "scrolled past the hero" by observing
- * the `#landing-hero-end` sentinel that HomePage renders at the end of its hero.
+ * On the landing page ("/") the header is hidden while the video hero is
+ * in the viewport and slides in from the top once the visitor scrolls past
+ * the `#landing-hero-end` sentinel. Every other route shows the header
+ * immediately as a sticky solid bar.
  */
 function useLandingHeaderMode(): "top" | "landing-overlay" | "landing-solid" {
   const { pathname } = useLocation();
@@ -70,13 +69,13 @@ export function Header() {
 
   const dashboardPath = user?.isAdmin ? "/admin" : "/dashboard";
 
-  const isOverlay = headerMode === "landing-overlay";
+  const isHidden = headerMode === "landing-overlay";
   const isFixed = headerMode === "landing-overlay" || headerMode === "landing-solid";
 
   const navLinks = [
+    { labelKey: "navigation.home", href: "/" },
     { labelKey: "navigation.about", href: "/about" },
     { labelKey: "navigation.services", href: "/services" },
-    { labelKey: "navigation.how_it_works", href: "/how-it-works" },
     { labelKey: "navigation.elite_guide", href: "/elite-guide" },
     { labelKey: "navigation.contact", href: "/contact" },
   ];
@@ -84,24 +83,22 @@ export function Header() {
   return (
     <MotionConfig reducedMotion="user">
       <motion.header
-        initial={headerMode === "landing-solid" ? { y: "-100%" } : false}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+        initial={false}
+        animate={{ y: isHidden ? "-100%" : "0%" }}
+        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
         className={cn(
           "z-50",
           isFixed ? "fixed left-0 right-0 top-0" : "sticky top-0",
-          "transition-all duration-standard",
-          isOverlay
-            ? "border-b border-transparent bg-hero-bg/30 backdrop-blur-sm"
-            : "border-b border-line bg-surface/95 backdrop-blur-xl shadow-ui-1",
+          "border-b border-line bg-surface/95 backdrop-blur-xl shadow-ui-1",
         )}
+        aria-hidden={isHidden}
       >
         <nav className="mx-auto max-w-settings px-4 sm:px-6 lg:px-8" aria-label="Top">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link to="/" className="flex items-center group shrink-0">
+            <Link to="/" className="flex items-center group shrink-0" tabIndex={isHidden ? -1 : undefined}>
               <img
-                src="/imgs/brand/header-logo-white.webp"
+                src="/imgs/brand/logo-transparent.webp"
                 alt="Elite Education"
                 className="h-9 w-auto group-hover:opacity-85 transition-opacity"
               />
@@ -109,19 +106,16 @@ export function Header() {
 
             {/* Desktop navigation */}
             <div className="hidden md:flex md:items-center md:gap-1">
-              {navLinks.map((link) => {
-                const linkClass = cn(
-                  "px-4 py-2 text-small font-semibold rounded-ui-sm transition-colors duration-micro",
-                  isOverlay
-                    ? "text-hero-fg/80 hover:text-hero-fg hover:bg-hero-fg/10"
-                    : "text-ink-secondary hover:text-ink hover:bg-surface-muted",
-                );
-                return (
-                  <Link key={link.href} to={link.href} className={linkClass}>
-                    {t(link.labelKey)}
-                  </Link>
-                );
-              })}
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  tabIndex={isHidden ? -1 : undefined}
+                  className="px-4 py-2 text-small font-semibold rounded-ui-sm transition-colors duration-micro text-ink-secondary hover:text-ink hover:bg-surface-muted"
+                >
+                  {t(link.labelKey)}
+                </Link>
+              ))}
             </div>
 
             {/* Auth / user menu */}
@@ -130,7 +124,10 @@ export function Header() {
               {isAuthenticated && user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2">
+                    <button
+                      tabIndex={isHidden ? -1 : undefined}
+                      className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
+                    >
                       <Avatar className="h-9 w-9 border border-line">
                         <AvatarFallback className="bg-brand text-brand-contrast text-caption font-semibold">
                           {getInitials(user.firstName, user.lastName)}
@@ -177,7 +174,7 @@ export function Header() {
                 </DropdownMenu>
               ) : (
                 <Button variant="primary" size="sm" asChild>
-                  <Link to="/auth">{t("navigation.login")}</Link>
+                  <Link to="/auth" tabIndex={isHidden ? -1 : undefined}>{t("navigation.login")}</Link>
                 </Button>
               )}
             </div>
@@ -187,14 +184,10 @@ export function Header() {
               <LanguageSwitcher />
               <button
                 type="button"
+                tabIndex={isHidden ? -1 : undefined}
                 aria-label={t("aria_labels.open_menu")}
                 aria-expanded={mobileMenuOpen}
-                className={cn(
-                  "inline-flex items-center justify-center rounded-ui-sm p-2 transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus",
-                  isOverlay
-                    ? "text-hero-fg/80 hover:bg-hero-fg/10 hover:text-hero-fg"
-                    : "text-ink-tertiary hover:bg-surface-muted hover:text-ink",
-                )}
+                className="inline-flex items-center justify-center rounded-ui-sm p-2 transition-colors duration-micro focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus text-ink-tertiary hover:bg-surface-muted hover:text-ink"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               >
                 {mobileMenuOpen ? (
