@@ -5,7 +5,6 @@
  * provide the i18n + router context it needs. Five sections render from i18n
  * keys with no server state:
  *   1. Hero            — cinematic video/image background, headline + two CTAs.
- *   2. ValueIntro      — about pitch + mission quote, links to /about.
  *   3. Services (bento)— asymmetric showcase: one lead tile (s01, with 2–3
  *                        highlights) + two small tiles (s02/s03) + a wide
  *                        banner (s04). Every tile deep-links to

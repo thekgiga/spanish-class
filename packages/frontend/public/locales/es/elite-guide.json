@@ -19,6 +19,39 @@
     "articles_loading": "Cargando artículos…",
     "featured_label": "Destacado"
   },
+  "themes": {
+    "study": {
+      "label": "Estudiar en España",
+      "description": "Para futuros estudiantes que afrontan la admisión, UNEDasiss y las pruebas de acceso."
+    },
+    "language": {
+      "label": "Aprender español",
+      "description": "Para quienes construyen su español — niveles y los certificados DELE y SIELE."
+    },
+    "living": {
+      "label": "Vivir e instalarse",
+      "description": "El lado práctico — costes, elegir ciudad y encontrar dónde vivir."
+    },
+    "stories": {
+      "label": "Historias y experiencias",
+      "description": "Experiencias reales de España — y qué saber antes del primer campamento de un niño."
+    }
+  },
+  "paths": {
+    "heading": "¿Por dónde quieres empezar?",
+    "study": {
+      "title": "Quiero estudiar en España",
+      "description": "Universidades, admisión y pruebas de acceso."
+    },
+    "language": {
+      "title": "Quiero aprender español",
+      "description": "Niveles, certificados y por dónde empezar."
+    },
+    "camps": {
+      "title": "Soy madre o padre y busco campamentos",
+      "description": "Qué saber antes del primer campamento de tu hijo."
+    }
+  },
   "article": {
     "breadcrumb_home": "Inicio",
     "breadcrumb_guide": "Elite Guide",

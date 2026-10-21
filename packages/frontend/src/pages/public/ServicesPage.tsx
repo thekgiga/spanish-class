@@ -12,8 +12,8 @@ import {
 } from "@/components/shared/editorial-helpers";
 
 const SERVICE_CARDS = [
-  { key: "s01" as const, img: "/imgs/brand/service-card-01.webp", eager: true },
   { key: "s02" as const, img: "/imgs/brand/service-card-02.webp", eager: true },
+  { key: "s01" as const, img: "/imgs/brand/service-card-01.webp", eager: true },
   { key: "s03" as const, img: "/imgs/brand/service-card-03.webp", eager: false },
   { key: "s04" as const, img: "/imgs/brand/service-card-04.webp", eager: false },
 ];
@@ -51,7 +51,7 @@ export function ServicesPage() {
                         loading={eager ? "eager" : "lazy"}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-hero-bg/60 to-transparent" />
-                      <div className="absolute bottom-4 left-4">
+                      <div className="absolute bottom-4 left-4" aria-hidden="true">
                         <span className="font-display text-4xl font-bold text-hero-fg/60">
                           {t(`services.${key}_number`)}
                         </span>

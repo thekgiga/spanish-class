@@ -35,7 +35,7 @@
     "label": "Usluge",
     "title": "Sve što vam može trebati.",
     "subtitle": "Bez obzira da li tek istražujete mogućnosti ili već znate šta želite, Elite Education pruža podršku u svakoj fazi vašeg obrazovnog puta.",
-    "s01_number": "I",
+    "s01_number": "II",
     "s01_label": "Španski jezik",
     "s01_title": "Španski koji učite sa svrhom.",
     "s01_body": "Učenje jezika je početak svakog međunarodnog iskustva. Organizujemo časove prilagođene vašem nivou, ciljevima i tempu — bez obzira da li učite španski iz ljubavi prema jeziku, za putovanje, obrazovanje ili profesionalni razvoj.",
@@ -50,7 +50,7 @@
     ],
     "s01_tagline": "Učenje jezika je početak svakog međunarodnog iskustva.",
     "s01_cta": "Saznajte više",
-    "s02_number": "II",
+    "s02_number": "I",
     "s02_label": "Studije u Španiji",
     "s02_title": "Od prve ideje do upisa.",
     "s02_body": "Izbor fakulteta i snalaženje u procesu prijave u drugoj zemlji može se činiti komplikovanim. Naš cilj je da to pretvorimo u jasan, organizovan proces. Pomažemo studentima da pronađu program koji odgovara njihovim interesovanjima, akademskim ciljevima i mogućnostima.",
@@ -106,10 +106,12 @@
       "Nivoi A1–C1",
       "Individualni i grupni časovi",
       "Priprema za DELE i SIELE"
+    ],
+    "s02_highlights": [
+      "Izbor fakulteta i studijskog programa",
+      "Priprema dokumentacije",
+      "Prijava na fakultet"
     ]
-  },
-  "intro": {
-    "cta": "Naša priča"
   },
   "approach": {
     "label": "Naš pristup",
@@ -210,6 +212,7 @@
     "q5_question": "Madrid, Barselona, Valensija ili Malaga — koji grad je pravi za mene?",
     "q5_answer": "Ne postoji jedan najbolji grad za svakog studenta. Zavisi od budžeta, studija, načina života i prioriteta. Svaki grad ima drugačiji ritam, atmosferu i akademsku scenu.",
     "q5_link": "/elite-guide/koji-grad",
+    "read_more": "Pročitajte ceo članak",
     "cta_more": "Pogledajte sva pitanja u Elite Guide-u"
   },
   "stats": {

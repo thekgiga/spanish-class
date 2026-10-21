@@ -19,6 +19,39 @@
     "articles_loading": "Loading articles…",
     "featured_label": "Featured"
   },
+  "themes": {
+    "study": {
+      "label": "Study in Spain",
+      "description": "For future students navigating admissions, UNEDasiss and entrance exams."
+    },
+    "language": {
+      "label": "Learn Spanish",
+      "description": "For anyone building their Spanish — levels and the DELE and SIELE certificates."
+    },
+    "living": {
+      "label": "Living & settling in",
+      "description": "The practical side — costs, choosing a city and finding somewhere to live."
+    },
+    "stories": {
+      "label": "Stories & experience",
+      "description": "Real experiences from Spain — and what to know before a child's first camp."
+    }
+  },
+  "paths": {
+    "heading": "Where would you like to start?",
+    "study": {
+      "title": "I want to study in Spain",
+      "description": "Universities, admissions and entrance exams."
+    },
+    "language": {
+      "title": "I want to learn Spanish",
+      "description": "Levels, certificates and where to begin."
+    },
+    "camps": {
+      "title": "I'm a parent exploring camps",
+      "description": "What to know before your child's first camp."
+    }
+  },
   "article": {
     "breadcrumb_home": "Home",
     "breadcrumb_guide": "Elite Guide",

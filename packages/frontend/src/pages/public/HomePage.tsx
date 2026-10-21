@@ -13,6 +13,7 @@ import {
   GraduationCap,
   Tent,
   Lightbulb,
+  Eye,
   type LucideIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -88,6 +89,15 @@ function HeroSection() {
           animate="show"
           className="max-w-2xl lg:border-l-2 lg:border-accent lg:pl-10"
         >
+          {/* Eyebrow */}
+          <motion.p
+            variants={item}
+            className="mb-5 text-xs font-semibold uppercase tracking-widest text-accent/90"
+          >
+            {t("hero.eyebrow")}
+          </motion.p>
+
+          {/* Title */}
           <motion.h1
             variants={item}
             className="font-display text-5xl font-semibold leading-tight text-hero-fg hero-text-shadow sm:text-6xl lg:text-7xl"
@@ -95,10 +105,27 @@ function HeroSection() {
             {t("hero.title")}
           </motion.h1>
 
+          {/* Subtitle */}
+          <motion.p
+            variants={item}
+            className="mt-6 text-base leading-relaxed text-hero-fg/80 sm:text-lg"
+          >
+            {t("hero.subtitle")}
+          </motion.p>
+
+          {/* CTAs */}
           <motion.div
             variants={item}
             className="mt-10 flex flex-wrap items-center gap-4"
           >
+            <Button
+              variant="primary"
+              size="lg"
+              className="bg-hero-ctaBg text-hero-ctaFg hover:bg-hero-ctaHover focus-visible:ring-hero-progress"
+              asChild
+            >
+              <Link to="/contact">{t("hero.cta_consult")}</Link>
+            </Button>
             <Button
               variant="ghost"
               size="lg"
@@ -137,35 +164,18 @@ function HeroSection() {
   );
 }
 
-// ── Value intro — about pitch + mission quote ─────────────────────────────────
+// ── Founder section ───────────────────────────────────────────────────────────
 
-function ValueIntroSection() {
+function FounderSection() {
   const { t } = useTranslation("home");
   return (
-    <section id="intro" className="bg-canvas border-t border-line py-14 sm:py-20">
+    <section id="founder" className="bg-canvas-subtle border-t border-line py-14 sm:py-20">
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
 
-          <FadeUp>
-            <SectionLabel>{t("about.label")}</SectionLabel>
-            <GoldRule className="mb-6" />
-            <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
-              {t("about.title")}
-            </h2>
-            <p className="mt-6 text-base leading-relaxed text-ink-secondary">
-              {t("about.body1")}
-            </p>
-            <Link
-              to="/about"
-              className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:text-brand-hover"
-            >
-              {t("intro.cta")}
-              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-            </Link>
-          </FadeUp>
-
-          <FadeUp delay={0.12}>
-            <div className="relative h-full min-h-80 overflow-hidden rounded-ui-lg">
+          {/* Portrait card — visual first on desktop (right column) */}
+          <FadeUp delay={0.12} className="lg:order-last">
+            <div className="relative min-h-80 overflow-hidden rounded-ui-lg sm:min-h-96">
               <img
                 src="/imgs/brand/hero-media.webp"
                 alt=""
@@ -175,20 +185,45 @@ function ValueIntroSection() {
                 decoding="async"
               />
               <div
-                className="absolute inset-x-0 bottom-0 h-3/4 bg-gradient-to-t from-ink/90 via-ink/50 to-transparent"
+                className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink/90 via-ink/50 to-transparent"
                 aria-hidden="true"
               />
-              <blockquote className="absolute inset-x-0 bottom-0 px-7 pb-8 pt-20 sm:px-8">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-accent">
-                  {t("about.mission_label")}
+              <div className="absolute inset-x-0 bottom-0 px-7 pb-8 sm:px-8">
+                <p className="font-display text-xl font-semibold text-ink-inverse">
+                  {t("founder.name")}
                 </p>
-                <GoldRule className="mb-5" />
-                <p className="font-display text-lg font-medium italic leading-relaxed text-ink-inverse sm:text-xl">
-                  "{t("about.mission_text")}"
+                <p className="mt-0.5 text-xs font-semibold uppercase tracking-widest text-accent">
+                  {t("founder.role")}
                 </p>
-              </blockquote>
+              </div>
             </div>
           </FadeUp>
+
+          {/* Bio text */}
+          <FadeUp>
+            <SectionLabel>{t("founder.label")}</SectionLabel>
+            <GoldRule className="mb-6" />
+            <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+              {t("founder.name")}
+            </h2>
+            <p className="mt-2 text-sm font-semibold uppercase tracking-wide text-accent">
+              {t("founder.role")}
+            </p>
+            <p className="mt-6 text-base leading-relaxed text-ink-secondary">
+              {t("founder.bio3")}
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-ink-secondary">
+              {t("founder.bio4")}
+            </p>
+            <Link
+              to="/about"
+              className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-brand hover:text-brand-hover"
+            >
+              {t("founder.read_more")}
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+          </FadeUp>
+
         </div>
       </div>
     </section>
@@ -244,8 +279,8 @@ function StatsStripSection() {
       className="relative border-y border-line bg-accent-soft"
       aria-label={t("stats.aria_label")}
     >
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-canvas to-transparent" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-canvas-subtle to-transparent" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-canvas-subtle to-transparent" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-canvas to-transparent" />
       <div className="relative mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
         <dl className="flex flex-col items-center lg:flex-row lg:justify-center">
           {STATS.map(({ value, suffix, labelKey }, i) => (
@@ -290,9 +325,6 @@ const SERVICE_ICONS: Record<string, LucideIcon> = {
   s04: Lightbulb,
 };
 
-// Editorial tile header: an accent icon chip paired with the service's large
-// display number. Replaces the former baked-in-text card graphic, which could
-// not localise and named a different service than the tile copy beneath it.
 function TileHead({
   icon: Icon,
   number,
@@ -320,7 +352,6 @@ function TileHead({
   );
 }
 
-// Reveal-on-hover / always-visible-on-focus "Find out more" affordance.
 function FindOutMore({ label }: { label: string }) {
   return (
     <span
@@ -337,12 +368,12 @@ const TILE_CHROME =
 
 function BentoServicesShowcase() {
   const { t } = useTranslation("home");
-  const highlights = t("services.s01_highlights", {
+  const highlights = t("services.s02_highlights", {
     returnObjects: true,
   }) as string[];
 
   return (
-    <section id="services-preview" className="bg-canvas-subtle border-t border-line py-14 sm:py-20">
+    <section id="services-preview" className="bg-canvas border-t border-line py-14 sm:py-20">
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
         <FadeUp className="mb-10 max-w-2xl">
           <SectionLabel>{t("services.label")}</SectionLabel>
@@ -356,23 +387,23 @@ function BentoServicesShowcase() {
         </FadeUp>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-fr">
-          {/* Lead tile — primary one-to-one teaching product */}
+          {/* Lead tile — primary university admissions service */}
           <FadeUp className="sm:col-span-2 lg:col-span-2 lg:row-span-2">
-            <Link to="/services#s01" className={TILE_CHROME}>
+            <Link to="/services#s02" className={TILE_CHROME}>
               <div className="flex flex-1 flex-col p-8 sm:p-10">
                 <TileHead
-                  icon={SERVICE_ICONS.s01}
-                  number={t("services.s01_number")}
+                  icon={SERVICE_ICONS.s02}
+                  number={t("services.s02_number")}
                   size="lg"
                 />
                 <div className="mt-8">
-                  <SectionLabel>{t("services.s01_label")}</SectionLabel>
+                  <SectionLabel>{t("services.s02_label")}</SectionLabel>
                   <h3 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">
-                    {t("services.s01_title")}
+                    {t("services.s02_title")}
                   </h3>
                 </div>
                 <p className="mt-4 max-w-lg text-base leading-relaxed text-ink-secondary">
-                  {t("services.s01_teaser")}
+                  {t("services.s02_teaser")}
                 </p>
                 <div className="mt-auto pt-10">
                   {Array.isArray(highlights) && highlights.length > 0 && (
@@ -391,14 +422,14 @@ function BentoServicesShowcase() {
                       ))}
                     </ul>
                   )}
-                  <FindOutMore label={t("services.s01_cta")} />
+                  <FindOutMore label={t("services.s02_cta")} />
                 </div>
               </div>
             </Link>
           </FadeUp>
 
           {/* Small tiles */}
-          {(["s02", "s03"] as const).map((key, i) => (
+          {(["s01", "s03"] as const).map((key, i) => (
             <FadeUp key={key} delay={[0.1, 0.2][i]}>
               <Link to={`/services#${key}`} className={TILE_CHROME}>
                 <div className="flex flex-1 flex-col p-6">
@@ -453,6 +484,52 @@ function BentoServicesShowcase() {
   );
 }
 
+// ── Standout — four differentiators ──────────────────────────────────────────
+
+const STANDOUT_ICONS: LucideIcon[] = [Compass, GraduationCap, Eye, HeartHandshake];
+
+function StandoutSection() {
+  const { t } = useTranslation("home");
+  const items = (["i01", "i02", "i03", "i04"] as const).map((key, i) => ({
+    key,
+    Icon: STANDOUT_ICONS[i],
+    title: t(`standout.${key}_title`),
+    body: t(`standout.${key}_body`),
+  }));
+
+  return (
+    <section id="why-us" className="bg-canvas-subtle border-t border-line py-14 sm:py-20">
+      <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+        <FadeUp className="mb-10 max-w-2xl">
+          <SectionLabel>{t("standout.label")}</SectionLabel>
+          <GoldRule className="mb-6" />
+          <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+            {t("standout.title")}
+          </h2>
+        </FadeUp>
+
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map(({ key, Icon, title, body }, i) => (
+            <FadeUp key={key} delay={i * 0.08}>
+              <div className="flex h-full flex-col rounded-ui-lg border border-line bg-canvas p-6 shadow-ui-1">
+                <span className="mb-5 inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-ui-md bg-accent-soft">
+                  <Icon className="h-5 w-5 text-accent" aria-hidden />
+                </span>
+                <h3 className="font-display text-base font-semibold text-ink">
+                  {title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
+                  {body}
+                </p>
+              </div>
+            </FadeUp>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── How it works — trajectory wave timeline → /about ─────────────────────────
 
 const HIW_STEPS = [
@@ -485,7 +562,7 @@ function HowItWorksTeaser() {
 
           {/* Mobile: animated left spine rail */}
           <div className="lg:hidden" aria-hidden="true">
-            <SpineRail railClass="bg-feedback-danger" />
+            <SpineRail railClass="bg-accent" />
           </div>
 
           {/* Desktop: decorative wave path — draws L→R on scroll */}
@@ -499,7 +576,7 @@ function HowItWorksTeaser() {
             <motion.path
               d="M 125,75 C 250,75 250,25 375,25 C 500,25 500,75 625,75 C 750,75 750,25 875,25"
               stroke="currentColor"
-              className="text-feedback-danger"
+              className="text-accent"
               strokeWidth="1.5"
               strokeLinecap="round"
               fill="none"
@@ -513,8 +590,6 @@ function HowItWorksTeaser() {
             />
           </motion.svg>
 
-          {/* lg:h-80 fixes the grid row height so the SVG path Y=25/75 maps exactly
-              to top-1/4 / top-3/4 — the circle absolute positions below. */}
           <ol className="relative flex flex-col gap-10 lg:grid lg:grid-cols-4 lg:gap-8 lg:h-80">
             {HIW_STEPS.map(({ key, Icon }, i) => {
               const isTop = i % 2 === 0;
@@ -524,10 +599,9 @@ function HowItWorksTeaser() {
                 <li key={key} className="relative flex flex-col items-start pl-10 sm:pl-14 lg:pl-0 lg:items-center lg:h-full">
 
                   {/* Mobile: node on the spine rail */}
-                  <SpineNode className="lg:hidden top-2.5" dotClass="bg-feedback-danger ring-feedback-danger/30" />
+                  <SpineNode className="lg:hidden top-2.5" dotClass="bg-accent ring-accent/30" />
 
                   {isTop ? (
-                    // Steps 1 & 3 — content at top, circle pinned at 75% of row height
                     <>
                       <FadeUp delay={prefersReducedMotion ? 0 : contentDelay} className="lg:text-center lg:mt-8">
                         <div className="flex items-center gap-3 mb-2 lg:flex-col lg:items-center lg:gap-2">
@@ -556,7 +630,6 @@ function HowItWorksTeaser() {
                       </motion.div>
                     </>
                   ) : (
-                    // Steps 2 & 4 — circle pinned at 25% of row height, content below
                     <>
                       <motion.div
                         className="hidden lg:flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border-2 border-accent bg-canvas ring-4 ring-accent/10 lg:absolute lg:top-1/4 lg:left-1/2 z-10"
@@ -570,7 +643,6 @@ function HowItWorksTeaser() {
                           {t(`how_we_work.${key}_number`)}
                         </span>
                       </motion.div>
-                      {/* spacer reserves the top quarter so FadeUp starts below the circle */}
                       <div className="hidden lg:block lg:h-1/4 lg:shrink-0" aria-hidden="true" />
                       <FadeUp delay={prefersReducedMotion ? 0 : contentDelay} className="lg:text-center lg:mt-8">
                         <div className="flex items-center gap-3 mb-2 lg:flex-col lg:items-center lg:gap-2">
@@ -602,6 +674,65 @@ function HowItWorksTeaser() {
           >
             <Link to="/about">
               {t("how_we_work.home_cta")}
+              <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+            </Link>
+          </Button>
+        </FadeUp>
+      </div>
+    </section>
+  );
+}
+
+// ── FAQ teaser ────────────────────────────────────────────────────────────────
+
+const FAQ_KEYS = ["q1", "q2", "q3", "q4", "q5"] as const;
+
+function FaqTeaserSection() {
+  const { t } = useTranslation("home");
+  return (
+    <section id="faq-teaser" className="bg-canvas-subtle border-t border-line py-14 sm:py-20">
+      <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+        <FadeUp className="mb-10 max-w-2xl">
+          <SectionLabel>{t("faq.label")}</SectionLabel>
+          <GoldRule className="mb-6" />
+          <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
+            {t("faq.title")}
+          </h2>
+          <p className="mt-4 text-base leading-relaxed text-ink-secondary">
+            {t("faq.subtitle")}
+          </p>
+        </FadeUp>
+
+        <dl className="grid gap-5 sm:grid-cols-2 lg:gap-6">
+          {FAQ_KEYS.map((k, i) => (
+            <FadeUp key={k} delay={i * 0.07}>
+              <Link
+                to={t(`faq.${k}_link`)}
+                className="group flex h-full flex-col rounded-ui-lg border border-line bg-canvas p-6 transition-colors hover:border-accent hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
+              >
+                <dt className="font-display text-sm font-semibold text-ink group-hover:text-accent sm:text-base transition-colors">
+                  {t(`faq.${k}_question`)}
+                </dt>
+                <dd className="mt-3 flex-1 text-sm leading-relaxed text-ink-secondary">
+                  {t(`faq.${k}_answer`)}
+                </dd>
+                <span className="mt-4 flex items-center gap-1 text-xs font-semibold text-accent">
+                  {t("faq.read_more")} <ArrowRight className="h-3 w-3" aria-hidden />
+                </span>
+              </Link>
+            </FadeUp>
+          ))}
+        </dl>
+
+        <FadeUp delay={0.25} className="mt-10 flex justify-center">
+          <Button
+            variant="ghost"
+            size="lg"
+            className="border border-line text-brand hover:border-brand hover:bg-accent-soft"
+            asChild
+          >
+            <Link to="/elite-guide">
+              {t("faq.cta_more")}
               <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
             </Link>
           </Button>
@@ -648,10 +779,12 @@ export function HomePage() {
   return (
     <div className="min-h-screen">
       <HeroSection />
-      <ValueIntroSection />
+      <FounderSection />
       <StatsStripSection />
       <BentoServicesShowcase />
+      <StandoutSection />
       <HowItWorksTeaser />
+      <FaqTeaserSection />
       <FinalCTASection />
     </div>
   );

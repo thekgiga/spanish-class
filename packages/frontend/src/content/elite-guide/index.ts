@@ -1,8 +1,21 @@
 export type GuideRubric = 'study' | 'learn' | 'live' | 'experience' | 'camps' | 'insights';
 
+/**
+ * Visitor-facing grouping used by the hub page. Several internal rubrics are
+ * folded into a smaller set of themes that match how a prospective student or
+ * parent actually thinks ("I want to study", "I want to learn the language",
+ * "the practical side of living there", "real stories"). The finer `rubric`
+ * is still shown per-card and drives the article page.
+ */
+export type GuideTheme = 'study' | 'language' | 'living' | 'stories';
+
 export interface GuideArticleMeta {
   slug: string;
   rubric: GuideRubric;
+  /** Visitor-facing hub grouping (see GuideTheme). */
+  theme: GuideTheme;
+  /** When true, promoted as the hub "Start here" cornerstone instead of a grid card. */
+  featured?: boolean;
   order: number;
   /** i18n key in elite-guide namespace for the title, e.g. "articles.upis-fakulteta.title" */
   titleKey: string;
@@ -21,6 +34,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'upis-fakulteta',
     rubric: 'study',
+    theme: 'study',
     order: 1,
     titleKey: 'articles.upis-fakulteta.title',
     excerptKey: 'articles.upis-fakulteta.excerpt',
@@ -32,6 +46,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'unedasiss',
     rubric: 'study',
+    theme: 'study',
     order: 2,
     titleKey: 'articles.unedasiss.title',
     excerptKey: 'articles.unedasiss.excerpt',
@@ -43,6 +58,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'pce-priprema',
     rubric: 'study',
+    theme: 'study',
     order: 3,
     titleKey: 'articles.pce-priprema.title',
     excerptKey: 'articles.pce-priprema.excerpt',
@@ -54,6 +70,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'troskovi-studija',
     rubric: 'live',
+    theme: 'living',
     order: 4,
     titleKey: 'articles.troskovi-studija.title',
     excerptKey: 'articles.troskovi-studija.excerpt',
@@ -65,6 +82,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'dele-ili-siele',
     rubric: 'learn',
+    theme: 'language',
     order: 5,
     titleKey: 'articles.dele-ili-siele.title',
     excerptKey: 'articles.dele-ili-siele.excerpt',
@@ -76,6 +94,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'nivo-spanskog',
     rubric: 'learn',
+    theme: 'language',
     order: 6,
     titleKey: 'articles.nivo-spanskog.title',
     excerptKey: 'articles.nivo-spanskog.excerpt',
@@ -87,6 +106,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'koji-grad',
     rubric: 'live',
+    theme: 'living',
     order: 7,
     titleKey: 'articles.koji-grad.title',
     excerptKey: 'articles.koji-grad.excerpt',
@@ -98,6 +118,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'smestaj',
     rubric: 'live',
+    theme: 'living',
     order: 8,
     titleKey: 'articles.smestaj.title',
     excerptKey: 'articles.smestaj.excerpt',
@@ -109,6 +130,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'prvi-jezicki-kamp',
     rubric: 'camps',
+    theme: 'stories',
     order: 9,
     titleKey: 'articles.prvi-jezicki-kamp.title',
     excerptKey: 'articles.prvi-jezicki-kamp.excerpt',
@@ -120,6 +142,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'pet-stvari-spanija',
     rubric: 'experience',
+    theme: 'stories',
     order: 10,
     titleKey: 'articles.pet-stvari-spanija.title',
     excerptKey: 'articles.pet-stvari-spanija.excerpt',
@@ -131,6 +154,7 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'prvi-boravak-madrid',
     rubric: 'insights',
+    theme: 'stories',
     order: 11,
     titleKey: 'articles.prvi-boravak-madrid.title',
     excerptKey: 'articles.prvi-boravak-madrid.excerpt',
@@ -142,6 +166,8 @@ export const GUIDE_ARTICLES: GuideArticleMeta[] = [
   {
     slug: 'zasto-elite-education',
     rubric: 'insights',
+    theme: 'stories',
+    featured: true,
     order: 12,
     titleKey: 'articles.zasto-elite-education.title',
     excerptKey: 'articles.zasto-elite-education.excerpt',
@@ -160,3 +186,6 @@ export const GUIDE_RUBRIC_ORDER: GuideRubric[] = [
   'camps',
   'insights',
 ];
+
+/** Order in which visitor-facing theme sections appear on the hub page. */
+export const GUIDE_THEME_ORDER: GuideTheme[] = ['study', 'language', 'living', 'stories'];

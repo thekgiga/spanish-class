@@ -19,6 +19,39 @@
     "articles_loading": "Učitavanje članaka…",
     "featured_label": "Izdvojeno"
   },
+  "themes": {
+    "study": {
+      "label": "Studiranje u Španiji",
+      "description": "Za buduće studente koji prolaze kroz upis, UNEDasiss i prijemne ispite."
+    },
+    "language": {
+      "label": "Učenje španskog",
+      "description": "Za sve koji grade svoj španski — nivoi i sertifikati DELE i SIELE."
+    },
+    "living": {
+      "label": "Život i snalaženje",
+      "description": "Praktična strana — troškovi, izbor grada i pronalaženje smeštaja."
+    },
+    "stories": {
+      "label": "Priče i iskustva",
+      "description": "Stvarna iskustva iz Španije — i šta treba znati pre prvog dečjeg kampa."
+    }
+  },
+  "paths": {
+    "heading": "Odakle biste želeli da počnete?",
+    "study": {
+      "title": "Želim da studiram u Španiji",
+      "description": "Fakulteti, upis i prijemni ispiti."
+    },
+    "language": {
+      "title": "Želim da učim španski",
+      "description": "Nivoi, sertifikati i odakle krenuti."
+    },
+    "camps": {
+      "title": "Roditelj sam i istražujem kampove",
+      "description": "Šta treba znati pre prvog dečjeg kampa."
+    }
+  },
   "article": {
     "breadcrumb_home": "Početna",
     "breadcrumb_guide": "Elite Guide",

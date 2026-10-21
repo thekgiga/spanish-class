@@ -35,7 +35,7 @@
     "label": "Servicios",
     "title": "Todo lo que podrías necesitar.",
     "subtitle": "Tanto si estás explorando posibilidades como si ya sabes lo que quieres, Elite Education ofrece acompañamiento en cada etapa de tu camino educativo.",
-    "s01_number": "I",
+    "s01_number": "II",
     "s01_label": "Idioma español",
     "s01_title": "Español que aprendes con propósito.",
     "s01_body": "Aprender el idioma es el comienzo de toda experiencia internacional. Organizamos clases adaptadas a tu nivel, objetivos y ritmo — tanto si aprendes español por amor al idioma como por viajes, educación o desarrollo profesional.",
@@ -50,7 +50,7 @@
     ],
     "s01_tagline": "Aprender un idioma es el comienzo de toda experiencia internacional.",
     "s01_cta": "Más información",
-    "s02_number": "II",
+    "s02_number": "I",
     "s02_label": "Estudios en España",
     "s02_title": "Desde la primera idea hasta la matrícula.",
     "s02_body": "Elegir universidad y navegar el proceso de solicitud en otro país puede parecer complicado. Nuestro objetivo es convertirlo en un proceso claro y organizado. Ayudamos a los estudiantes a encontrar el programa que se ajusta a sus intereses, objetivos académicos y posibilidades.",
@@ -106,10 +106,12 @@
       "Niveles A1–C1",
       "Clases individuales y en grupo",
       "Preparación DELE y SIELE"
+    ],
+    "s02_highlights": [
+      "Elección de universidad y programa de estudios",
+      "Preparación de documentación",
+      "Solicitud de admisión universitaria"
     ]
-  },
-  "intro": {
-    "cta": "Nuestra historia"
   },
   "approach": {
     "label": "Nuestro enfoque",
@@ -210,6 +212,7 @@
     "q5_question": "Madrid, Barcelona, Valencia o Málaga — ¿qué ciudad es la adecuada para mí?",
     "q5_answer": "No existe la mejor ciudad para todos los estudiantes. Depende de tu presupuesto, tus estudios, tu estilo de vida y tus prioridades. Cada ciudad tiene un ritmo, una atmósfera y una escena académica diferentes.",
     "q5_link": "/elite-guide/koji-grad",
+    "read_more": "Leer el artículo completo",
     "cta_more": "Ver todas las preguntas en Elite Guide"
   },
   "stats": {
