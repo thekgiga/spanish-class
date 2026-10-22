@@ -29,6 +29,7 @@ import { AuroraSection } from '@/components/marketing/AuroraSection';
 import { GlassCard } from '@/components/marketing/GlassCard';
 import { BentoCell } from '@/components/marketing/BentoCell';
 import { SolRule, VibrantSectionLabel } from '@/components/marketing/vibrant-helpers';
+import { magneticCta } from '@/lib/motion';
 
 // ── Hero media ──────────────────────────────────────────────────────────────
 const heroImageSrc: string | undefined = "/imgs/brand/hero-media-street.webp";
@@ -795,17 +796,25 @@ function FinalCTASection() {
               {t("cta.body")}
             </p>
             <div className="mt-8">
-              <Button
-                variant="primary"
-                size="lg"
-                className="bg-hero-ctaBg text-hero-ctaFg hover:bg-hero-ctaHover focus-visible:ring-hero-progress"
-                asChild
+              <motion.div
+                className="inline-block"
+                variants={magneticCta}
+                initial="rest"
+                whileHover="hover"
+                whileTap={{ scale: 0.97 }}
               >
-                <Link to="/contact">
-                  {t("cta.button")}
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="bg-hero-ctaBg text-hero-ctaFg hover:bg-hero-ctaHover focus-visible:ring-hero-progress"
+                  asChild
+                >
+                  <Link to="/contact">
+                    {t("cta.button")}
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+              </motion.div>
             </div>
           </div>
         </GlassCard>
