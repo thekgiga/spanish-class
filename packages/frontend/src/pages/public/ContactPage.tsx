@@ -1,289 +1,166 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useSearchParams } from 'react-router-dom';
+import { Mail, MapPin, Instagram } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+import { SEOMeta } from '@/components/shared/SEOMeta';
+import { MeshGradientBackground } from '@/components/marketing/MeshGradientBackground';
+import { AuroraSection } from '@/components/marketing/AuroraSection';
+import { GlassCard } from '@/components/marketing/GlassCard';
 import {
-  Mail,
-  MapPin,
-  Send,
-  CheckCircle,
-  Sparkles,
-  Instagram,
-} from "lucide-react";
-import { useTranslation } from "react-i18next";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { SEOMeta } from "@/components/shared/SEOMeta";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+  MarketingPageHeader,
+  VibrantSectionLabel,
+  VibrantFadeUp,
+  SolRule,
+} from '@/components/marketing/vibrant-helpers';
+import { MultiStepConsultationForm, type ServiceKey } from '@/components/marketing/consultation/MultiStepConsultationForm';
+
+const VALID_SERVICES = new Set<ServiceKey>([
+  'conversation',
+  'grammar',
+  'business',
+  'cultural',
+  'exam',
+]);
+
+function parseInterest(raw: string | null): ServiceKey | undefined {
+  if (raw && VALID_SERVICES.has(raw as ServiceKey)) {
+    return raw as ServiceKey;
+  }
+  return undefined;
+}
 
 export function ContactPage() {
-  const { t } = useTranslation("about");
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    subject: "",
-    message: "",
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate API call - replace with actual email service
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    setIsSubmitting(false);
-    setIsSubmitted(true);
-
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: "", email: "", subject: "", message: "" });
-    }, 3000);
-  };
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
+  const { t } = useTranslation('about');
+  const [searchParams] = useSearchParams();
+  const interest = parseInterest(searchParams.get('interest'));
 
   return (
     <>
       <SEOMeta
-        title={t("contact.seo_title")}
-        description={t("contact.seo_description")}
+        title={t('contact.seo_title')}
+        description={t('contact.seo_description')}
         canonical="/contact"
         keywords={[
-          "contact spanish class",
-          "spanish learning support",
-          "customer service",
-          "get in touch",
+          'contact spanish class',
+          'spanish learning support',
+          'free consultation',
+          'get in touch',
         ]}
         type="website"
       />
 
-      <div className="min-h-screen bg-white">
-        {/* Hero Section */}
-        <section className="relative py-14 sm:py-20 overflow-hidden bg-gradient-to-br from-spanish-teal-50 via-white to-spanish-coral-50">
-          {/* Decorative colorful blobs */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-spanish-teal-400 to-spanish-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-float" />
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-spanish-coral-400 to-spanish-coral-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-float animation-delay-2000" />
+      {/* ── Page header on noche mesh ── */}
+      <MeshGradientBackground variant="noche" as="header" className="py-16 sm:py-24">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <MarketingPageHeader
+            eyebrow={t('contact.badge')}
+            title={t('contact.title')}
+            deck={t('contact.subtitle')}
+            align="center"
+            tone="dark"
+          />
+        </div>
+      </MeshGradientBackground>
 
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-            <motion.div
-              className="text-center max-w-3xl mx-auto mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <Badge className="mb-6 bg-spanish-teal-100 text-spanish-teal-700 border-spanish-teal-200 px-6 py-2 text-sm font-semibold">
-                <Mail className="h-4 w-4 mr-2" />
-                {t("contact.badge")}
-              </Badge>
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
-                {t("contact.title")}
-              </h1>
-              <p className="text-xl text-slate-700 leading-relaxed">
-                {t("contact.subtitle")}
-              </p>
-            </motion.div>
+      {/* ── Multi-step form on aurora background ── */}
+      <AuroraSection
+        blobs={[
+          { color: 'fiesta', size: 'w-[480px] h-[400px]', position: '-top-20 -left-24', opacity: 0.45 },
+          { color: 'sol',    size: 'w-[400px] h-[360px]', position: '-bottom-10 -right-20', opacity: 0.4 },
+        ]}
+        scrim="dark"
+        as="section"
+        className="bg-[hsl(var(--mkt-noche))] py-20"
+      >
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-3 gap-12 items-start">
 
-            <div className="grid lg:grid-cols-3 gap-8">
-              {/* Contact Form */}
-              <motion.div
-                className="lg:col-span-2"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-              >
-                <div className="bg-white rounded-2xl shadow-2xl p-8 border-2 border-spanish-teal-200">
-                  {isSubmitted ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="py-16 text-center"
+            {/* ── Form card ── */}
+            <div className="lg:col-span-2">
+              <VibrantFadeUp>
+                <GlassCard tone="dark" className="p-8">
+                  <MultiStepConsultationForm preselectedService={interest} />
+                </GlassCard>
+              </VibrantFadeUp>
+            </div>
+
+            {/* ── Contact info ── */}
+            <div className="space-y-8">
+              <VibrantFadeUp delay={0.15}>
+                <GlassCard tone="dark" className="p-6 space-y-5">
+                  <VibrantSectionLabel tone="sol">{t('contact.info_title')}</VibrantSectionLabel>
+                  <SolRule />
+
+                  {/* Email */}
+                  <div className="flex items-start gap-4">
+                    <span
+                      className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl"
+                      style={{ background: 'linear-gradient(135deg, hsl(var(--mkt-mediterraneo)), hsl(var(--mkt-sol)))' }}
+                      aria-hidden="true"
                     >
-                      <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-spanish-coral-500 to-spanish-coral-600 mb-6 shadow-2xl">
-                        <CheckCircle className="h-10 w-10 text-white" />
-                      </div>
-                      <h3 className="text-2xl font-bold text-slate-900 mb-2">
-                        {t("contact.form_success_title")}
-                      </h3>
-                      <p className="text-slate-600">
-                        {t("contact.form_success_message")}
+                      <Mail className="w-5 h-5 text-white" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--mkt-sol))]">
+                        {t('contact.info_email_label')}
                       </p>
-                    </motion.div>
-                  ) : (
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                      <div className="grid sm:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="name"
-                            className="text-slate-700 font-medium"
-                          >
-                            {t("contact.form_name_label")}
-                          </Label>
-                          <Input
-                            id="name"
-                            name="name"
-                            placeholder={t("contact.form_name_placeholder")}
-                            value={formData.name}
-                            onChange={handleChange}
-                            required
-                            className="bg-white border-spanish-teal-200 text-slate-900 placeholder:text-slate-400 focus:border-spanish-teal-500 focus:ring-spanish-teal-500/20"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label
-                            htmlFor="email"
-                            className="text-slate-700 font-medium"
-                          >
-                            {t("contact.form_email_label")}
-                          </Label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            placeholder={t("contact.form_email_placeholder")}
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                            className="bg-white border-spanish-teal-200 text-slate-900 placeholder:text-slate-400 focus:border-spanish-teal-500 focus:ring-spanish-teal-500/20"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="subject"
-                          className="text-slate-700 font-medium"
-                        >
-                          {t("contact.form_subject_label")}
-                        </Label>
-                        <Input
-                          id="subject"
-                          name="subject"
-                          placeholder={t("contact.form_subject_placeholder")}
-                          value={formData.subject}
-                          onChange={handleChange}
-                          required
-                          className="bg-white border-spanish-teal-200 text-slate-900 placeholder:text-slate-400 focus:border-spanish-teal-500 focus:ring-spanish-teal-500/20"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label
-                          htmlFor="message"
-                          className="text-slate-700 font-medium"
-                        >
-                          {t("contact.form_message_label")}
-                        </Label>
-                        <textarea
-                          id="message"
-                          name="message"
-                          rows={6}
-                          placeholder={t("contact.form_message_placeholder")}
-                          value={formData.message}
-                          onChange={handleChange}
-                          required
-                          className="flex w-full rounded-lg border-2 border-spanish-teal-200 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-spanish-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        />
-                      </div>
-
-                      <Button variant="primary"
-                        type="submit"
-                        size="lg"
-                        className="w-full"
-                        disabled={isSubmitting}
+                      <a
+                        href="mailto:professor@spanishclass.com"
+                        className="text-sm text-[hsl(var(--mkt-azahar)/0.85)] hover:text-[hsl(var(--mkt-sol))] transition-colors break-all"
                       >
-                        {isSubmitting ? (
-                          t("contact.form_submitting")
-                        ) : (
-                          <>
-                            <Sparkles className="h-5 w-5" />
-                            {t("contact.form_submit")}
-                            <Send className="h-5 w-5" />
-                          </>
-                        )}
-                      </Button>
-                    </form>
-                  )}
-                </div>
-              </motion.div>
-
-              {/* Contact Info */}
-              <motion.div
-                className="space-y-6"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <div className="bg-white rounded-2xl shadow-2xl p-6 border-2 border-spanish-coral-200">
-                  <h3 className="text-lg font-bold text-slate-900 mb-4">
-                    {t("contact.info_title")}
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-gradient-to-br from-spanish-teal-500 to-spanish-teal-600 shadow-lg">
-                        <Mail className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-600">
-                          {t("contact.info_email_label")}
-                        </p>
-                        <a
-                          href="mailto:professor@spanishclass.com"
-                          className="text-spanish-teal-600 hover:text-spanish-teal-700 font-medium transition-colors"
-                        >
-                          professor@spanishclass.com
-                        </a>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-gradient-to-br from-spanish-coral-500 to-spanish-coral-600 shadow-lg">
-                        <MapPin className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-600">
-                          {t("contact.info_location_label")}
-                        </p>
-                        <p className="text-slate-900 font-medium">
-                          {t("contact.info_location_value")}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-gradient-to-r from-pink-500 to-purple-600 shadow-lg">
-                        <Instagram className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-slate-600">
-                          {t("contact.info_instagram_label")}
-                        </p>
-                        <a
-                          href="https://www.instagram.com/elite.education.rs/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-spanish-coral-600 hover:text-spanish-coral-700 font-medium transition-colors"
-                        >
-                          @elite.education.rs
-                        </a>
-                      </div>
+                        professor@spanishclass.com
+                      </a>
                     </div>
                   </div>
-                </div>
-              </motion.div>
+
+                  {/* Location */}
+                  <div className="flex items-start gap-4">
+                    <span
+                      className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl"
+                      style={{ background: 'linear-gradient(135deg, hsl(var(--mkt-fiesta)), hsl(var(--mkt-sol)))' }}
+                      aria-hidden="true"
+                    >
+                      <MapPin className="w-5 h-5 text-white" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--mkt-sol))]">
+                        {t('contact.info_location_label')}
+                      </p>
+                      <p className="text-sm text-[hsl(var(--mkt-azahar)/0.85)]">
+                        {t('contact.info_location_value')}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Instagram */}
+                  <div className="flex items-start gap-4">
+                    <span
+                      className="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl"
+                      style={{ background: 'linear-gradient(135deg, #e1306c, #833ab4)' }}
+                      aria-hidden="true"
+                    >
+                      <Instagram className="w-5 h-5 text-white" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wider text-[hsl(var(--mkt-sol))]">
+                        {t('contact.info_instagram_label')}
+                      </p>
+                      <a
+                        href="https://www.instagram.com/elite.education.rs/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-[hsl(var(--mkt-azahar)/0.85)] hover:text-[hsl(var(--mkt-fiesta))] transition-colors"
+                      >
+                        @elite.education.rs
+                      </a>
+                    </div>
+                  </div>
+                </GlassCard>
+              </VibrantFadeUp>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </AuroraSection>
     </>
   );
 }

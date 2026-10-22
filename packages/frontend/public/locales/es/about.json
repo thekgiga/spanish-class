@@ -50,6 +50,46 @@
     "button_secondary": "Contáctanos",
     "features": "Profesores profesionales • Programación flexible • Aprendizaje personalizado"
   },
+  "consultation": {
+    "step1": { "title": "¿Cuáles son tus objetivos?", "subtitle": "Selecciona todos los que apliquen" },
+    "step2": { "title": "¿Qué servicio te interesa?", "subtitle": "Elige uno" },
+    "step3": { "title": "Cuéntanos sobre ti", "subtitle": "Nos pondremos en contacto pronto" },
+    "goals": {
+      "travel_culture": "Viajes y cultura",
+      "study_spain": "Estudiar en España",
+      "exam_prep": "Preparación de exámenes",
+      "career": "Carrera y negocios",
+      "personal_growth": "Enriquecimiento personal"
+    },
+    "services": {
+      "conversation": "Español conversacional",
+      "grammar": "Dominio de la gramática",
+      "business": "Español de negocios",
+      "cultural": "Inmersión cultural",
+      "exam": "Preparación DELE/SIELE"
+    },
+    "intensity": { "basic": "Ritmo regular", "intensive": "Intensivo" },
+    "fields": {
+      "name": "Nombre completo",
+      "email": "Correo electrónico",
+      "message": "Mensaje (opcional)",
+      "consent": "Acepto ser contactado/a sobre esta consulta"
+    },
+    "validation": {
+      "name_required": "Por favor, introduce tu nombre",
+      "email_required": "Por favor, introduce tu correo electrónico",
+      "email_invalid": "Por favor, introduce un correo electrónico válido",
+      "goals_required": "Por favor, selecciona al menos un objetivo",
+      "service_required": "Por favor, selecciona un servicio",
+      "consent_required": "Por favor, acepta para continuar"
+    },
+    "buttons": { "next": "Siguiente", "back": "Atrás", "submit": "Enviar consulta", "submitting": "Enviando..." },
+    "success": {
+      "title": "¡Gracias!",
+      "message": "Hemos recibido tu consulta y nos pondremos en contacto en menos de 24 horas.",
+      "cta": "Volver al inicio"
+    }
+  },
   "contact": {
     "seo_title": "Contáctanos - Spanish Class",
     "seo_description": "Ponte en contacto con Spanish Class. Envíanos un mensaje y te responderemos lo antes posible. Estamos aquí para responder tus preguntas sobre nuestra plataforma de aprendizaje de español.",
