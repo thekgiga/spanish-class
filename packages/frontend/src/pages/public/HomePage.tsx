@@ -112,7 +112,7 @@ function HeroSection() {
             {/* Title */}
             <motion.h1
               variants={item}
-              className="font-display text-5xl font-semibold leading-tight text-hero-fg hero-text-shadow sm:text-6xl lg:text-7xl"
+              className="font-mktdisplay mkt-display-xl text-hero-fg hero-text-shadow"
             >
               {t("hero.title")}
             </motion.h1>
@@ -788,7 +788,7 @@ function FinalCTASection() {
         <GlassCard tone="dark" className="mx-auto max-w-2xl p-8 sm:p-12">
           <div className="text-center">
             <VibrantSectionLabel className="mb-4">{t("hero.eyebrow")}</VibrantSectionLabel>
-            <h2 className="font-display text-3xl font-semibold text-mkt-azahar sm:text-4xl">
+            <h2 className="font-mktdisplay mkt-display text-mkt-azahar">
               {t("cta.title")}
             </h2>
             <p className="mt-4 text-base leading-relaxed text-mkt-azahar/80">
