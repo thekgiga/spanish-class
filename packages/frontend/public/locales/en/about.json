@@ -50,6 +50,46 @@
     "button_secondary": "Contact Us",
     "features": "Professional teachers • Flexible scheduling • Personalized learning"
   },
+  "consultation": {
+    "step1": { "title": "What are your goals?", "subtitle": "Select all that apply" },
+    "step2": { "title": "Which service interests you?", "subtitle": "Choose one" },
+    "step3": { "title": "Tell us about yourself", "subtitle": "We'll be in touch soon" },
+    "goals": {
+      "travel_culture": "Travel & Culture",
+      "study_spain": "Study in Spain",
+      "exam_prep": "Exam Preparation",
+      "career": "Career & Business",
+      "personal_growth": "Personal Enrichment"
+    },
+    "services": {
+      "conversation": "Conversational Spanish",
+      "grammar": "Grammar Mastery",
+      "business": "Business Spanish",
+      "cultural": "Cultural Immersion",
+      "exam": "DELE/SIELE Exam Prep"
+    },
+    "intensity": { "basic": "Regular pace", "intensive": "Intensive" },
+    "fields": {
+      "name": "Full name",
+      "email": "Email address",
+      "message": "Message (optional)",
+      "consent": "I agree to be contacted about this enquiry"
+    },
+    "validation": {
+      "name_required": "Please enter your name",
+      "email_required": "Please enter your email",
+      "email_invalid": "Please enter a valid email",
+      "goals_required": "Please select at least one goal",
+      "service_required": "Please select a service",
+      "consent_required": "Please accept to continue"
+    },
+    "buttons": { "next": "Next", "back": "Back", "submit": "Send enquiry", "submitting": "Sending..." },
+    "success": {
+      "title": "Thank you!",
+      "message": "We received your enquiry and will be in touch within 24 hours.",
+      "cta": "Back to home"
+    }
+  },
   "contact": {
     "seo_title": "Contact Us - Spanish Class",
     "seo_description": "Get in touch with Spanish Class. Send us a message and we'll respond as soon as possible. We're here to answer your questions about our Spanish learning platform.",

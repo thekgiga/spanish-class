@@ -50,6 +50,46 @@
     "button_secondary": "Kontaktirajte nas",
     "features": "Profesionalni nastavnici • Fleksibilno raspoređivanje • Personalizovano učenje"
   },
+  "consultation": {
+    "step1": { "title": "Koji su vaši ciljevi?", "subtitle": "Izaberite sve što se odnosi na vas" },
+    "step2": { "title": "Koja usluga vas zanima?", "subtitle": "Izaberite jednu" },
+    "step3": { "title": "Recite nam o sebi", "subtitle": "Javićemo vam se uskoro" },
+    "goals": {
+      "travel_culture": "Putovanja i kultura",
+      "study_spain": "Studije u Španiji",
+      "exam_prep": "Priprema za ispite",
+      "career": "Karijera i poslovanje",
+      "personal_growth": "Lični razvoj"
+    },
+    "services": {
+      "conversation": "Konverzacijski španski",
+      "grammar": "Gramatika — od temelja do naprednog",
+      "business": "Poslovni španski",
+      "cultural": "Kulturna imerzija",
+      "exam": "Priprema za DELE/SIELE ispite"
+    },
+    "intensity": { "basic": "Redovan tempo", "intensive": "Intenzivno" },
+    "fields": {
+      "name": "Ime i prezime",
+      "email": "Email adresa",
+      "message": "Poruka (opcionalno)",
+      "consent": "Saglasan/a sam da me kontaktirate u vezi ovog upita"
+    },
+    "validation": {
+      "name_required": "Unesite vaše ime",
+      "email_required": "Unesite vašu email adresu",
+      "email_invalid": "Unesite ispravnu email adresu",
+      "goals_required": "Izaberite bar jedan cilj",
+      "service_required": "Izaberite uslugu",
+      "consent_required": "Potrebna je vaša saglasnost za nastavak"
+    },
+    "buttons": { "next": "Dalje", "back": "Nazad", "submit": "Pošalji upit", "submitting": "Slanje..." },
+    "success": {
+      "title": "Hvala vam!",
+      "message": "Primili smo vaš upit i javiće vam se u roku od 24 sata.",
+      "cta": "Povratak na početnu"
+    }
+  },
   "contact": {
     "seo_title": "Kontaktirajte nas - Časovi Španskog",
     "seo_description": "Stupite u kontakt sa Časovima Španskog. Pošaljite nam poruku i odgovorićemo što je brže moguće. Tu smo da odgovorimo na vaša pitanja o našoj platformi za učenje španskog.",
