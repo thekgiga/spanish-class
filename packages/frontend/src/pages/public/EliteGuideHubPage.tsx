@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, GraduationCap, BookOpen, MapPin, Compass, Tent, Lightbulb } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,13 @@ import {
   type GuideTheme,
   type GuideArticleMeta,
 } from "@/content/elite-guide";
+import { MeshGradientBackground } from "@/components/marketing/MeshGradientBackground";
+import { GlassCard } from "@/components/marketing/GlassCard";
+import {
+  SolRule,
+  MarketingPageHeader,
+  VibrantFadeUp,
+} from "@/components/marketing/vibrant-helpers";
 
 const RUBRIC_ICONS: Record<GuideRubric, React.ElementType> = {
   study: GraduationCap,
@@ -34,21 +40,6 @@ const PATHS: { key: string; anchor: string; Icon: React.ElementType }[] = [
   { key: "camps", anchor: "guide-stories", Icon: Tent },
 ];
 
-function FadeUp({ children, delay = 0, className }: { children: React.ReactNode; delay?: number; className?: string }) {
-  const prefersReducedMotion = useReducedMotion();
-  return (
-    <motion.div
-      initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5, delay: prefersReducedMotion ? 0 : delay }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 function ArticleCard({ slug, rubric, titleKey, excerptKey }: {
   slug: string;
   rubric: GuideRubric;
@@ -60,26 +51,28 @@ function ArticleCard({ slug, rubric, titleKey, excerptKey }: {
   return (
     <Link
       to={`/elite-guide/${slug}`}
-      className="group flex h-full flex-col rounded-ui-lg border border-line bg-canvas overflow-hidden hover:shadow-ui-2 transition-shadow duration-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
+      className="group flex h-full flex-col overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mkt-mediterraneo))] focus-visible:ring-offset-2 rounded-2xl"
     >
-      <div className="flex flex-1 flex-col p-5">
-        <div className="mb-3 flex items-center gap-1.5">
-          <Icon className="h-3.5 w-3.5 text-accent shrink-0" aria-hidden="true" />
-          <span className="text-xs font-semibold uppercase tracking-widest text-accent">
-            {t(`hub.rubric_${rubric}`)}
-          </span>
+      <GlassCard tone="light" interactive className="flex flex-1 flex-col h-full">
+        <div className="flex flex-1 flex-col p-5">
+          <div className="mb-3 flex items-center gap-1.5">
+            <Icon className="h-3.5 w-3.5 text-[hsl(var(--mkt-mediterraneo))] shrink-0" aria-hidden="true" />
+            <span className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--mkt-mediterraneo))]">
+              {t(`hub.rubric_${rubric}`)}
+            </span>
+          </div>
+          <h3 className="font-display text-lg font-semibold leading-snug text-ink group-hover:text-[hsl(var(--mkt-mediterraneo))] transition-colors">
+            {t(titleKey)}
+          </h3>
+          <p className="mt-2 flex-1 text-small leading-relaxed text-ink-secondary line-clamp-3">
+            {t(excerptKey)}
+          </p>
+          <div className="mt-4 flex items-center gap-1 text-small font-semibold text-[hsl(var(--mkt-mediterraneo))]">
+            {t("article.read_more")}
+            <ArrowRight className="h-3.5 w-3.5 translate-x-0 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+          </div>
         </div>
-        <h3 className="font-display text-lg font-semibold leading-snug text-ink group-hover:text-brand transition-colors">
-          {t(titleKey)}
-        </h3>
-        <p className="mt-2 flex-1 text-small leading-relaxed text-ink-secondary line-clamp-3">
-          {t(excerptKey)}
-        </p>
-        <div className="mt-4 flex items-center gap-1 text-small font-semibold text-accent">
-          {t("article.read_more")}
-          <ArrowRight className="h-3.5 w-3.5 translate-x-0 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-        </div>
-      </div>
+      </GlassCard>
     </Link>
   );
 }
@@ -88,11 +81,11 @@ function ArticleCard({ slug, rubric, titleKey, excerptKey }: {
 function StartHereCard({ slug }: { slug: string }) {
   const { t } = useTranslation("elite-guide");
   return (
-    <section className="bg-canvas pt-14 sm:pt-20">
+    <section className="bg-mkt-azahar pt-14 sm:pt-20">
       <div className="mx-auto max-w-screen-lg px-4 sm:px-6 lg:px-8">
-        <FadeUp>
+        <VibrantFadeUp>
           <div className="rounded-ui-lg border border-line bg-surface p-6 sm:p-10">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-accent">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-[hsl(var(--mkt-mediterraneo))]">
               {t("start_here.label")}
             </p>
             <h2 className="max-w-2xl font-display text-2xl font-semibold leading-snug text-ink sm:text-3xl">
@@ -108,7 +101,7 @@ function StartHereCard({ slug }: { slug: string }) {
               </Link>
             </Button>
           </div>
-        </FadeUp>
+        </VibrantFadeUp>
       </div>
     </section>
   );
@@ -118,9 +111,9 @@ function StartHereCard({ slug }: { slug: string }) {
 function PathsRow() {
   const { t } = useTranslation("elite-guide");
   return (
-    <section className="bg-canvas pt-12 sm:pt-16">
+    <section className="bg-mkt-azahar pt-12 sm:pt-16">
       <div className="mx-auto max-w-screen-lg px-4 sm:px-6 lg:px-8">
-        <FadeUp>
+        <VibrantFadeUp>
           <h2 className="font-display text-xl font-semibold text-ink sm:text-2xl">
             {t("paths.heading")}
           </h2>
@@ -129,13 +122,13 @@ function PathsRow() {
               <a
                 key={key}
                 href={`#${anchor}`}
-                className="group flex items-start gap-3 rounded-ui-lg border border-line bg-surface p-5 hover:border-brand transition-colors duration-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
+                className="group flex items-start gap-3 rounded-ui-lg border border-line bg-surface p-5 hover:border-[hsl(var(--mkt-mediterraneo))] transition-colors duration-standard focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mkt-mediterraneo))] focus-visible:ring-offset-2"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-ui-md bg-accent-soft text-accent">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-ui-md bg-accent-soft text-[hsl(var(--mkt-mediterraneo))]">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span className="flex flex-col">
-                  <span className="text-small font-semibold text-ink group-hover:text-brand transition-colors">
+                  <span className="text-small font-semibold text-ink group-hover:text-[hsl(var(--mkt-mediterraneo))] transition-colors">
                     {t(`paths.${key}.title`)}
                   </span>
                   <span className="mt-1 text-caption leading-relaxed text-ink-tertiary">
@@ -145,7 +138,7 @@ function PathsRow() {
               </a>
             ))}
           </div>
-        </FadeUp>
+        </VibrantFadeUp>
       </div>
     </section>
   );
@@ -157,9 +150,9 @@ function ThemeSection({ theme, articles }: { theme: GuideTheme; articles: GuideA
   const Icon = THEME_ICONS[theme];
   return (
     <section id={`guide-${theme}`} tabIndex={-1} className="scroll-mt-24 focus:outline-none">
-      <FadeUp>
+      <VibrantFadeUp>
         <div className="flex items-start gap-3 border-b border-line pb-4">
-          <Icon className="mt-0.5 h-5 w-5 shrink-0 text-accent" aria-hidden="true" />
+          <Icon className="mt-0.5 h-5 w-5 shrink-0 text-[hsl(var(--mkt-mediterraneo))]" aria-hidden="true" />
           <div>
             <h2 className="font-display text-xl font-semibold text-ink sm:text-2xl">
               {t(`themes.${theme}.label`)}
@@ -169,17 +162,17 @@ function ThemeSection({ theme, articles }: { theme: GuideTheme; articles: GuideA
             </p>
           </div>
         </div>
-      </FadeUp>
+      </VibrantFadeUp>
       <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {articles.map((article, i) => (
-          <FadeUp key={article.slug} delay={i * 0.04}>
+          <VibrantFadeUp key={article.slug} delay={i * 0.04}>
             <ArticleCard
               slug={article.slug}
               rubric={article.rubric}
               titleKey={article.titleKey}
               excerptKey={article.excerptKey}
             />
-          </FadeUp>
+          </VibrantFadeUp>
         ))}
       </div>
     </section>
@@ -198,22 +191,27 @@ export function EliteGuideHubPage() {
 
   return (
     <main>
-      {/* Hero */}
-      <section className="bg-brand py-20 sm:py-28">
-        <div className="mx-auto max-w-screen-lg px-4 sm:px-6 lg:px-8">
-          <FadeUp>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-accent">
-              {t("hub.hero_label")}
-            </p>
-            <h1 className="font-display text-3xl font-semibold leading-tight text-brand-contrast sm:text-5xl">
-              {t("hub.hero_title")}
-            </h1>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-brand-contrast/80">
-              {t("hub.hero_subtitle")}
-            </p>
-          </FadeUp>
+      {/* Hero on noche mesh */}
+      <MeshGradientBackground variant="noche" as="section" className="py-20 sm:py-28 px-4">
+        <div className="mx-auto max-w-screen-lg sm:px-6 lg:px-8">
+          <VibrantFadeUp>
+            <MarketingPageHeader
+              eyebrow={t("hub.hero_label")}
+              title={t("hub.hero_title")}
+              deck={t("hub.hero_subtitle")}
+              align="center"
+              tone="dark"
+            />
+          </VibrantFadeUp>
         </div>
-      </section>
+      </MeshGradientBackground>
+
+      {/* SolRule divider between header and content */}
+      <div className="bg-mkt-azahar">
+        <div className="mx-auto max-w-screen-lg px-4 sm:px-6 lg:px-8">
+          <SolRule className="pt-8" />
+        </div>
+      </div>
 
       {/* Start here — single guided entry point */}
       {featured && <StartHereCard slug={featured.slug} />}
@@ -222,7 +220,7 @@ export function EliteGuideHubPage() {
       <PathsRow />
 
       {/* Themed sections — grouped by what the visitor actually wants */}
-      <section className="bg-canvas pt-12 pb-16 sm:pt-16 sm:pb-24">
+      <section className="bg-mkt-azahar pt-12 pb-16 sm:pt-16 sm:pb-24">
         <div className="mx-auto max-w-screen-lg space-y-16 px-4 sm:space-y-20 sm:px-6 lg:px-8">
           {sections.length === 0 ? (
             <p className="text-small text-ink-secondary">{t("hub.articles_empty")}</p>
@@ -234,17 +232,24 @@ export function EliteGuideHubPage() {
         </div>
       </section>
 
+      {/* SolRule before CTA */}
+      <div className="bg-mkt-azahar">
+        <div className="mx-auto max-w-screen-lg px-4 sm:px-6 lg:px-8">
+          <SolRule />
+        </div>
+      </div>
+
       {/* Consultation CTA */}
-      <section className="bg-brand py-16">
+      <section className="bg-mkt-noche py-16">
         <div className="mx-auto max-w-screen-md px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-display text-2xl font-semibold text-brand-contrast sm:text-3xl">
+          <h2 className="font-display text-2xl font-semibold text-[hsl(var(--mkt-azahar))] sm:text-3xl">
             {t("article.cta_label")}
           </h2>
-          <p className="mt-3 text-base text-brand-contrast/80">{t("article.cta_body")}</p>
+          <p className="mt-3 text-base text-[hsl(var(--mkt-azahar)/0.8)]">{t("article.cta_body")}</p>
           <Button
             variant="primary"
             size="lg"
-            className="mt-6 bg-surface text-brand hover:bg-canvas focus-visible:ring-accent"
+            className="mt-6 bg-surface text-[hsl(var(--mkt-noche))] hover:bg-mkt-azahar focus-visible:ring-[hsl(var(--mkt-mediterraneo))]"
             asChild
           >
             <Link to="/contact">
