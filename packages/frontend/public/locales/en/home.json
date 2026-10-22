@@ -225,7 +225,8 @@
   "cta": {
     "title": "Ready for the next step?",
     "body": "Whether you want to learn Spanish, find a university, apply for studies, or give your child their first international experience — we can start with a conversation. Tell us what you want. We will help you find the path.",
-    "button": "Book a consultation"
+    "button": "Book a consultation",
+    "label": "Next Steps"
   },
   "footer": {
     "tagline": "Education. Language. Spain.",

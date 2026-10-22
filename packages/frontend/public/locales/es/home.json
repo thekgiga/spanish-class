@@ -225,7 +225,8 @@
   "cta": {
     "title": "¿Listo para el siguiente paso?",
     "body": "Tanto si quieres aprender español, encontrar universidad, solicitar estudios o dar a tu hijo su primera experiencia internacional — podemos empezar con una conversación. Cuéntanos lo que quieres. Nosotros te ayudaremos a encontrar el camino.",
-    "button": "Reserva una consulta"
+    "button": "Reserva una consulta",
+    "label": "Próximos pasos"
   },
   "footer": {
     "tagline": "Educación. Idioma. España.",
