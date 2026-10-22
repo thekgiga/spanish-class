@@ -57,7 +57,7 @@ export function MobileNav({ isOpen, onClose, navItems }: MobileNavProps) {
   if (!isOpen) return null;
 
   return (
-    <>
+    <div className="mkt-theme contents">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-navy-900/50 backdrop-blur-sm z-40"
@@ -128,6 +128,6 @@ export function MobileNav({ isOpen, onClose, navItems }: MobileNavProps) {
           })}
         </div>
       </nav>
-    </>
+    </div>
   );
 }
