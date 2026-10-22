@@ -20,11 +20,15 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   FadeUp,
-  GoldRule,
   SectionLabel,
   SpineRail,
   SpineNode,
 } from "@/components/shared/editorial-helpers";
+import { MeshGradientBackground } from '@/components/marketing/MeshGradientBackground';
+import { AuroraSection } from '@/components/marketing/AuroraSection';
+import { GlassCard } from '@/components/marketing/GlassCard';
+import { BentoCell } from '@/components/marketing/BentoCell';
+import { SolRule, VibrantSectionLabel } from '@/components/marketing/vibrant-helpers';
 
 // ── Hero media ──────────────────────────────────────────────────────────────
 const heroImageSrc: string | undefined = "/imgs/brand/hero-media-street.webp";
@@ -53,156 +57,147 @@ function HeroSection() {
   const showVideo = heroVideoSrc && !prefersReducedMotion;
 
   return (
-    <section
-      className="relative flex min-h-screen items-center overflow-hidden bg-hero-bg py-16 sm:py-24"
-      aria-label={t("hero.title")}
+    <MeshGradientBackground
+      variant="noche"
+      animate
+      className="relative flex min-h-screen items-center overflow-hidden py-16 sm:py-24"
     >
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {showVideo ? (
-          <video
-            className="h-full w-full object-cover"
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster={heroPosterSrc}
-            preload="metadata"
-          >
-            <source src={heroVideoSrc} type="video/mp4" />
-          </video>
-        ) : (
-          <img
-            src={heroImageSrc ?? "/imgs/brand/hero-background-burgundy.webp"}
-            alt=""
-            className="h-full w-full object-cover"
-            loading="eager"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-r from-hero-bg/80 via-hero-bg/30 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-hero-bg/50 to-transparent" />
-      </div>
+      <section
+        className="relative flex min-h-screen items-center overflow-hidden bg-transparent py-16 sm:py-24 w-full"
+        aria-label={t("hero.title")}
+      >
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+          {showVideo ? (
+            <video
+              className="h-full w-full object-cover"
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster={heroPosterSrc}
+              preload="metadata"
+            >
+              <source src={heroVideoSrc} type="video/mp4" />
+            </video>
+          ) : (
+            <img
+              src={heroImageSrc ?? "/imgs/brand/hero-background-burgundy.webp"}
+              alt=""
+              className="h-full w-full object-cover"
+              loading="eager"
+            />
+          )}
+          {/* Duotone scrim — noche tint + mediterráneo overlay */}
+          <div className="absolute inset-0 bg-mkt-noche/55 mix-blend-multiply" aria-hidden="true" />
+          <div className="absolute inset-0 bg-mkt-mediterraneo/30 mix-blend-multiply" aria-hidden="true" />
+          <div className="absolute inset-0 bg-gradient-to-r from-mkt-noche/80 via-mkt-noche/30 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-mkt-noche/50 to-transparent" />
+        </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          variants={container}
-          initial="hidden"
-          animate="show"
-          className="max-w-2xl lg:border-l-2 lg:border-accent lg:pl-10"
-        >
-          {/* Eyebrow */}
-          <motion.p
-            variants={item}
-            className="mb-5 text-xs font-semibold uppercase tracking-widest text-accent/90"
-          >
-            {t("hero.eyebrow")}
-          </motion.p>
-
-          {/* Title */}
-          <motion.h1
-            variants={item}
-            className="font-display text-5xl font-semibold leading-tight text-hero-fg hero-text-shadow sm:text-6xl lg:text-7xl"
-          >
-            {t("hero.title")}
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            variants={item}
-            className="mt-6 text-base leading-relaxed text-hero-fg/80 sm:text-lg"
-          >
-            {t("hero.subtitle")}
-          </motion.p>
-
-          {/* CTAs */}
+        <div className="relative z-10 mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8">
           <motion.div
-            variants={item}
-            className="mt-10 flex flex-wrap items-center gap-4"
+            variants={container}
+            initial="hidden"
+            animate="show"
+            className="max-w-2xl lg:border-l-2 lg:border-accent lg:pl-10"
           >
-            <Button
-              variant="primary"
-              size="lg"
-              className="bg-hero-ctaBg text-hero-ctaFg hover:bg-hero-ctaHover focus-visible:ring-hero-progress"
-              asChild
+            {/* Eyebrow */}
+            <motion.p
+              variants={item}
+              className="mb-5 text-xs font-semibold uppercase tracking-widest text-accent/90"
             >
-              <Link to="/contact">{t("hero.cta_consult")}</Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="lg"
-              className="border border-hero-fg/60 text-hero-fg hover:border-accent hover:text-accent transition-colors"
-              asChild
-            >
-              <a href="#services-preview">{t("hero.cta_services")}</a>
-            </Button>
-          </motion.div>
-        </motion.div>
-      </div>
+              {t("hero.eyebrow")}
+            </motion.p>
 
-      <div className="absolute bottom-8 left-0 right-0 hidden md:block">
-        <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 text-hero-fg/60">
-            <span className="text-xs font-semibold uppercase tracking-widest">
-              {t("hero.scroll_hint")}
-            </span>
-            <motion.span
-              aria-hidden="true"
-              animate={prefersReducedMotion ? undefined : { y: [0, 5, 0] }}
-              transition={
-                prefersReducedMotion
-                  ? undefined
-                  : { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
-              }
+            {/* Title */}
+            <motion.h1
+              variants={item}
+              className="font-display text-5xl font-semibold leading-tight text-hero-fg hero-text-shadow sm:text-6xl lg:text-7xl"
             >
-              <ChevronDown className="h-4 w-4" />
-            </motion.span>
+              {t("hero.title")}
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              variants={item}
+              className="mt-6 text-base leading-relaxed text-hero-fg/80 sm:text-lg"
+            >
+              {t("hero.subtitle")}
+            </motion.p>
+
+            {/* CTAs */}
+            <motion.div
+              variants={item}
+              className="mt-10 flex flex-wrap items-center gap-4"
+            >
+              <Button
+                variant="primary"
+                size="lg"
+                className="bg-hero-ctaBg text-hero-ctaFg hover:bg-hero-ctaHover focus-visible:ring-hero-progress"
+                asChild
+              >
+                <Link to="/contact">{t("hero.cta_consult")}</Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="lg"
+                className="border border-hero-fg/60 text-hero-fg hover:border-accent hover:text-accent transition-colors"
+                asChild
+              >
+                <a href="#services-preview">{t("hero.cta_services")}</a>
+              </Button>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        <div className="absolute bottom-8 left-0 right-0 hidden md:block">
+          <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-2 text-hero-fg/60">
+              <span className="text-xs font-semibold uppercase tracking-widest">
+                {t("hero.scroll_hint")}
+              </span>
+              <motion.span
+                aria-hidden="true"
+                animate={prefersReducedMotion ? undefined : { y: [0, 5, 0] }}
+                transition={
+                  prefersReducedMotion
+                    ? undefined
+                    : { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
+                }
+              >
+                <ChevronDown className="h-4 w-4" />
+              </motion.span>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div id="landing-hero-end" className="absolute bottom-0 left-0 right-0 h-px" aria-hidden="true" />
-    </section>
+        <div id="landing-hero-end" className="absolute bottom-0 left-0 right-0 h-px" aria-hidden="true" />
+      </section>
+    </MeshGradientBackground>
   );
 }
 
-// ── Founder section ───────────────────────────────────────────────────────────
+// ── Founder section ── 60/40 asymmetric grid ─────────────────────────────────
 
 function FounderSection() {
   const { t } = useTranslation("home");
   return (
-    <section id="founder" className="bg-canvas-subtle border-t border-line py-14 sm:py-20">
-      <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 lg:items-center">
+    <AuroraSection
+      blobs={[
+        { color: 'violeta', size: 'w-[400px] h-[320px]', position: '-top-20 -left-16' },
+        { color: 'sol',     size: 'w-[360px] h-[280px]', position: '-bottom-16 -right-12' },
+      ]}
+      scrim="none"
+      as="section"
+      className="border-t border-line"
+    >
+      <div id="founder" className="grid md:grid-cols-5 gap-0">
 
-          {/* Portrait card — visual first on desktop (right column) */}
-          <FadeUp delay={0.12} className="lg:order-last">
-            <div className="relative min-h-80 overflow-hidden rounded-ui-lg sm:min-h-96">
-              <img
-                src="/imgs/brand/hero-media.webp"
-                alt=""
-                aria-hidden="true"
-                className="absolute inset-0 h-full w-full object-cover"
-                loading="lazy"
-                decoding="async"
-              />
-              <div
-                className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-ink/90 via-ink/50 to-transparent"
-                aria-hidden="true"
-              />
-              <div className="absolute inset-x-0 bottom-0 px-7 pb-8 sm:px-8">
-                <p className="font-display text-xl font-semibold text-ink-inverse">
-                  {t("founder.name")}
-                </p>
-                <p className="mt-0.5 text-xs font-semibold uppercase tracking-widest text-accent">
-                  {t("founder.role")}
-                </p>
-              </div>
-            </div>
-          </FadeUp>
-
-          {/* Bio text */}
+        {/* Left (3 cols): text on azahar */}
+        <div className="md:col-span-3 bg-mkt-azahar px-6 py-14 sm:py-20 lg:px-12">
           <FadeUp>
             <SectionLabel>{t("founder.label")}</SectionLabel>
-            <GoldRule className="mb-6" />
+            <SolRule className="mb-6" />
             <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
               {t("founder.name")}
             </h2>
@@ -223,10 +218,39 @@ function FounderSection() {
               <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             </Link>
           </FadeUp>
-
         </div>
+
+        {/* Right (2 cols, -mx-8 overlap): image on mediterráneo mesh */}
+        <FadeUp delay={0.12} className="md:col-span-2 md:-mx-8">
+          <MeshGradientBackground
+            variant="mediterraneo"
+            className="relative h-full min-h-80 overflow-hidden sm:min-h-96"
+          >
+            <img
+              src="/imgs/brand/hero-media.webp"
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
+            />
+            <div
+              className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-mkt-noche/90 via-mkt-noche/50 to-transparent"
+              aria-hidden="true"
+            />
+            <div className="absolute inset-x-0 bottom-0 px-7 pb-8 sm:px-8">
+              <p className="font-display text-xl font-semibold text-mkt-azahar">
+                {t("founder.name")}
+              </p>
+              <p className="mt-0.5 text-xs font-semibold uppercase tracking-widest text-mkt-sol">
+                {t("founder.role")}
+              </p>
+            </div>
+          </MeshGradientBackground>
+        </FadeUp>
+
       </div>
-    </section>
+    </AuroraSection>
   );
 }
 
@@ -316,55 +340,7 @@ function StatsStripSection() {
   );
 }
 
-// ── Services showcase — bento asymmetric grid ────────────────────────────────
-
-const SERVICE_ICONS: Record<string, LucideIcon> = {
-  s01: Languages,
-  s02: GraduationCap,
-  s03: Tent,
-  s04: Lightbulb,
-};
-
-function TileHead({
-  icon: Icon,
-  number,
-  size = "sm",
-}: {
-  icon: LucideIcon;
-  number: string;
-  size?: "sm" | "lg";
-}) {
-  const chip =
-    size === "lg" ? "h-14 w-14 rounded-ui-md" : "h-11 w-11 rounded-ui-sm";
-  const glyph = size === "lg" ? "h-7 w-7" : "h-5 w-5";
-  const num = size === "lg" ? "text-6xl" : "text-4xl";
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span
-        className={`inline-flex flex-shrink-0 items-center justify-center bg-accent-soft ${chip}`}
-      >
-        <Icon className={`${glyph} text-accent`} aria-hidden />
-      </span>
-      <span className={`font-display font-bold leading-none text-ink/15 ${num}`} aria-hidden="true">
-        {number}
-      </span>
-    </div>
-  );
-}
-
-function FindOutMore({ label }: { label: string }) {
-  return (
-    <span
-      className="mt-auto inline-flex items-center gap-1 pt-6 text-xs font-semibold text-brand opacity-0 transition-opacity duration-standard group-hover:opacity-100 group-focus-visible:opacity-100"
-      aria-hidden="true"
-    >
-      {label} <ArrowRight className="h-3 w-3" />
-    </span>
-  );
-}
-
-const TILE_CHROME =
-  "group relative flex h-full flex-col rounded-ui-lg border border-line bg-canvas shadow-ui-1 transition-all duration-standard ease-ui-standard hover:-translate-y-0.5 hover:border-brand/20 hover:shadow-ui-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2";
+// ── Services showcase — vibrant bento grid ───────────────────────────────────
 
 function BentoServicesShowcase() {
   const { t } = useTranslation("home");
@@ -373,11 +349,19 @@ function BentoServicesShowcase() {
   }) as string[];
 
   return (
-    <section id="services-preview" className="bg-canvas border-t border-line py-14 sm:py-20">
-      <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+    <AuroraSection
+      blobs={[
+        { color: 'fiesta',       size: 'w-[400px] h-[320px]', position: '-top-20 -left-16' },
+        { color: 'mediterraneo', size: 'w-[360px] h-[280px]', position: '-bottom-16 -right-12' },
+      ]}
+      scrim="none"
+      as="section"
+      className="border-t border-line bg-canvas py-16 sm:py-24"
+    >
+      <div id="services-preview" className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
         <FadeUp className="mb-10 max-w-2xl">
           <SectionLabel>{t("services.label")}</SectionLabel>
-          <GoldRule className="mb-6" />
+          <SolRule className="mb-6" />
           <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
             {t("services.title")}
           </h2>
@@ -386,35 +370,39 @@ function BentoServicesShowcase() {
           </p>
         </FadeUp>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:auto-rows-fr">
-          {/* Lead tile — primary university admissions service */}
-          <FadeUp className="sm:col-span-2 lg:col-span-2 lg:row-span-2">
-            <Link to="/services#s02" className={TILE_CHROME}>
-              <div className="flex flex-1 flex-col p-8 sm:p-10">
-                <TileHead
-                  icon={SERVICE_ICONS.s02}
-                  number={t("services.s02_number")}
-                  size="lg"
-                />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+          {/* Lead tile s02 — colSpan=2, glass-dark */}
+          <FadeUp className="md:col-span-2">
+            <BentoCell colSpan={2} tone="glass-dark" className="h-full">
+              <Link to="/services#s02" className="group flex flex-col h-full min-h-[280px]">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="inline-flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-ui-md bg-white/10">
+                    <GraduationCap className="h-7 w-7 text-mkt-sol" aria-hidden />
+                  </span>
+                  <span className="font-display text-6xl font-bold leading-none text-mkt-azahar/15" aria-hidden="true">
+                    {t("services.s02_number")}
+                  </span>
+                </div>
                 <div className="mt-8">
                   <SectionLabel>{t("services.s02_label")}</SectionLabel>
-                  <h3 className="mt-1 font-display text-2xl font-semibold text-ink sm:text-3xl">
+                  <h3 className="mt-1 font-display text-2xl font-semibold sm:text-3xl">
                     {t("services.s02_title")}
                   </h3>
                 </div>
-                <p className="mt-4 max-w-lg text-base leading-relaxed text-ink-secondary">
+                <p className="mt-4 max-w-lg text-base leading-relaxed text-mkt-azahar/80">
                   {t("services.s02_teaser")}
                 </p>
                 <div className="mt-auto pt-10">
                   {Array.isArray(highlights) && highlights.length > 0 && (
-                    <ul className="flex flex-col gap-3 border-t border-line pt-6">
+                    <ul className="flex flex-col gap-3 border-t border-white/15 pt-6">
                       {highlights.map((item) => (
                         <li
                           key={item}
-                          className="flex items-center gap-3 text-sm font-medium text-ink"
+                          className="flex items-center gap-3 text-sm font-medium"
                         >
                           <CheckCircle2
-                            className="h-4 w-4 flex-shrink-0 text-brand"
+                            className="h-4 w-4 flex-shrink-0 text-mkt-sol"
                             aria-hidden
                           />
                           {item}
@@ -422,65 +410,113 @@ function BentoServicesShowcase() {
                       ))}
                     </ul>
                   )}
-                  <FindOutMore label={t("services.s02_cta")} />
-                </div>
-              </div>
-            </Link>
-          </FadeUp>
-
-          {/* Small tiles */}
-          {(["s01", "s03"] as const).map((key, i) => (
-            <FadeUp key={key} delay={[0.1, 0.2][i]}>
-              <Link to={`/services#${key}`} className={TILE_CHROME}>
-                <div className="flex flex-1 flex-col p-6">
-                  <TileHead
-                    icon={SERVICE_ICONS[key]}
-                    number={t(`services.${key}_number`)}
-                  />
-                  <div className="mt-6">
-                    <SectionLabel>{t(`services.${key}_label`)}</SectionLabel>
-                    <h3 className="mt-1 font-display text-lg font-semibold text-ink">
-                      {t(`services.${key}_title`)}
-                    </h3>
-                  </div>
-                  <p className="mt-2 text-sm leading-relaxed text-ink-secondary">
-                    {t(`services.${key}_teaser`)}
-                  </p>
-                  <FindOutMore label={t(`services.${key}_cta`)} />
+                  <span
+                    className="mt-auto inline-flex items-center gap-1 pt-6 text-xs font-semibold text-mkt-sol opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+                    aria-hidden="true"
+                  >
+                    {t("services.s02_cta")} <ArrowRight className="h-3 w-3" />
+                  </span>
                 </div>
               </Link>
-            </FadeUp>
-          ))}
-
-          {/* Wide banner tile */}
-          <FadeUp delay={0.3} className="sm:col-span-2 lg:col-span-3">
-            <Link
-              to="/services#s04"
-              className={`${TILE_CHROME} sm:flex-row sm:items-stretch`}
-            >
-              <div className="flex items-center justify-between gap-4 border-b border-line p-6 sm:w-1/4 sm:flex-col sm:items-start sm:justify-center sm:border-b-0 sm:border-r sm:p-8">
-                <span className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-ui-md bg-accent-soft">
-                  <Lightbulb className="h-6 w-6 text-accent" aria-hidden />
-                </span>
-                <span className="font-display text-5xl font-bold leading-none text-ink/15 sm:mt-5" aria-hidden="true">
-                  {t("services.s04_number")}
-                </span>
-              </div>
-              <div className="flex flex-1 flex-col p-6 sm:p-8">
-                <SectionLabel>{t("services.s04_label")}</SectionLabel>
-                <h3 className="mt-1 font-display text-xl font-semibold text-ink">
-                  {t("services.s04_title")}
-                </h3>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-ink-secondary">
-                  {t("services.s04_teaser")}
-                </p>
-                <FindOutMore label={t("services.s04_cta")} />
-              </div>
-            </Link>
+            </BentoCell>
           </FadeUp>
+
+          {/* s01 — noche */}
+          <FadeUp delay={0.1}>
+            <BentoCell tone="noche" className="h-full">
+              <Link to="/services#s01" className="group flex flex-col h-full min-h-[200px]">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-ui-sm bg-white/10">
+                    <Languages className="h-5 w-5 text-mkt-sol" aria-hidden />
+                  </span>
+                  <span className="font-display text-4xl font-bold leading-none text-mkt-azahar/15" aria-hidden="true">
+                    {t("services.s01_number")}
+                  </span>
+                </div>
+                <div className="mt-6">
+                  <SectionLabel>{t("services.s01_label")}</SectionLabel>
+                  <h3 className="mt-1 font-display text-lg font-semibold">
+                    {t("services.s01_title")}
+                  </h3>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-mkt-azahar/75">
+                  {t("services.s01_teaser")}
+                </p>
+                <span
+                  className="mt-auto inline-flex items-center gap-1 pt-6 text-xs font-semibold text-mkt-sol opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+                  aria-hidden="true"
+                >
+                  {t("services.s01_cta")} <ArrowRight className="h-3 w-3" />
+                </span>
+              </Link>
+            </BentoCell>
+          </FadeUp>
+
+          {/* s03 — mediterráneo */}
+          <FadeUp delay={0.15}>
+            <BentoCell tone="mediterraneo" className="h-full">
+              <Link to="/services#s03" className="group flex flex-col h-full min-h-[200px]">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="inline-flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-ui-sm bg-white/10">
+                    <Tent className="h-5 w-5 text-mkt-azahar" aria-hidden />
+                  </span>
+                  <span className="font-display text-4xl font-bold leading-none text-mkt-azahar/15" aria-hidden="true">
+                    {t("services.s03_number")}
+                  </span>
+                </div>
+                <div className="mt-6">
+                  <SectionLabel>{t("services.s03_label")}</SectionLabel>
+                  <h3 className="mt-1 font-display text-lg font-semibold">
+                    {t("services.s03_title")}
+                  </h3>
+                </div>
+                <p className="mt-2 text-sm leading-relaxed text-mkt-azahar/75">
+                  {t("services.s03_teaser")}
+                </p>
+                <span
+                  className="mt-auto inline-flex items-center gap-1 pt-6 text-xs font-semibold text-mkt-azahar opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+                  aria-hidden="true"
+                >
+                  {t("services.s03_cta")} <ArrowRight className="h-3 w-3" />
+                </span>
+              </Link>
+            </BentoCell>
+          </FadeUp>
+
+          {/* s04 — noche, colSpan=2 */}
+          <FadeUp delay={0.2} className="md:col-span-2">
+            <BentoCell colSpan={2} tone="noche" className="h-full">
+              <Link to="/services#s04" className="group flex flex-col h-full min-h-[160px] sm:flex-row sm:items-stretch">
+                <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4 sm:w-1/4 sm:flex-col sm:items-start sm:justify-center sm:border-b-0 sm:border-r sm:pb-0 sm:pr-6">
+                  <span className="inline-flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-ui-md bg-white/10">
+                    <Lightbulb className="h-6 w-6 text-mkt-sol" aria-hidden />
+                  </span>
+                  <span className="font-display text-5xl font-bold leading-none text-mkt-azahar/15 sm:mt-5" aria-hidden="true">
+                    {t("services.s04_number")}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col pt-4 sm:pt-0 sm:pl-6">
+                  <SectionLabel>{t("services.s04_label")}</SectionLabel>
+                  <h3 className="mt-1 font-display text-xl font-semibold">
+                    {t("services.s04_title")}
+                  </h3>
+                  <p className="mt-2 max-w-xl text-sm leading-relaxed text-mkt-azahar/75">
+                    {t("services.s04_teaser")}
+                  </p>
+                  <span
+                    className="mt-auto inline-flex items-center gap-1 pt-6 text-xs font-semibold text-mkt-sol opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+                    aria-hidden="true"
+                  >
+                    {t("services.s04_cta")} <ArrowRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </Link>
+            </BentoCell>
+          </FadeUp>
+
         </div>
       </div>
-    </section>
+    </AuroraSection>
   );
 }
 
@@ -502,7 +538,7 @@ function StandoutSection() {
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
         <FadeUp className="mb-10 max-w-2xl">
           <SectionLabel>{t("standout.label")}</SectionLabel>
-          <GoldRule className="mb-6" />
+          <SolRule className="mb-6" />
           <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
             {t("standout.title")}
           </h2>
@@ -549,7 +585,7 @@ function HowItWorksTeaser() {
 
         <FadeUp className="mb-12 max-w-2xl">
           <SectionLabel>{t("how_we_work.label")}</SectionLabel>
-          <GoldRule className="mb-6" />
+          <SolRule className="mb-6" />
           <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
             {t("how_we_work.title")}
           </h2>
@@ -694,7 +730,7 @@ function FaqTeaserSection() {
       <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
         <FadeUp className="mb-10 max-w-2xl">
           <SectionLabel>{t("faq.label")}</SectionLabel>
-          <GoldRule className="mb-6" />
+          <SolRule className="mb-6" />
           <h2 className="font-display text-3xl font-semibold text-ink sm:text-4xl">
             {t("faq.title")}
           </h2>
@@ -747,29 +783,34 @@ function FaqTeaserSection() {
 function FinalCTASection() {
   const { t } = useTranslation("home");
   return (
-    <section className="relative z-10 bg-hero-bg py-14 sm:py-20">
-      <FadeUp className="mx-auto max-w-2xl px-4 text-center sm:px-6">
-        <h2 className="font-display text-3xl font-semibold text-hero-fg sm:text-4xl">
-          {t("cta.title")}
-        </h2>
-        <p className="mt-4 text-base leading-relaxed text-hero-fg/80">
-          {t("cta.body")}
-        </p>
-        <div className="mt-8">
-          <Button
-            variant="primary"
-            size="lg"
-            className="bg-hero-ctaBg text-hero-ctaFg hover:bg-hero-ctaHover focus-visible:ring-hero-progress"
-            asChild
-          >
-            <Link to="/contact">
-              {t("cta.button")}
-              <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-            </Link>
-          </Button>
-        </div>
+    <MeshGradientBackground as="section" variant="noche" className="py-14 sm:py-20">
+      <FadeUp className="px-4 sm:px-6">
+        <GlassCard tone="dark" className="mx-auto max-w-2xl p-8 sm:p-12">
+          <div className="text-center">
+            <VibrantSectionLabel className="mb-4">{t("hero.eyebrow")}</VibrantSectionLabel>
+            <h2 className="font-display text-3xl font-semibold text-mkt-azahar sm:text-4xl">
+              {t("cta.title")}
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-mkt-azahar/80">
+              {t("cta.body")}
+            </p>
+            <div className="mt-8">
+              <Button
+                variant="primary"
+                size="lg"
+                className="bg-hero-ctaBg text-hero-ctaFg hover:bg-hero-ctaHover focus-visible:ring-hero-progress"
+                asChild
+              >
+                <Link to="/contact">
+                  {t("cta.button")}
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </GlassCard>
       </FadeUp>
-    </section>
+    </MeshGradientBackground>
   );
 }
 
