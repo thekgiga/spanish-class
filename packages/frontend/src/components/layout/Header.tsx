@@ -60,31 +60,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuthStore();
   const navigate = useNavigate();
-  const { pathname } = useLocation();
   const headerMode = useLandingHeaderMode();
-
-  // FloatingNav: becomes true once user scrolls past the hero sentinel or 80px
-  const [isFloating, setIsFloating] = useState(false);
-
-  useEffect(() => {
-    const updateFloating = () => {
-      const sentinel = document.getElementById("landing-hero-end");
-      if (sentinel) {
-        setIsFloating(sentinel.getBoundingClientRect().top <= 0);
-      } else {
-        setIsFloating(window.scrollY > 80);
-      }
-    };
-    updateFloating();
-    window.addEventListener("scroll", updateFloating, { passive: true });
-    return () => window.removeEventListener("scroll", updateFloating);
-  }, []);
-
-  // Public marketing routes — FloatingNav only activates here
-  const publicPaths = ["/", "/about", "/services", "/contact", "/faq", "/elite-guide"];
-  const isPublicRoute = publicPaths.some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
-  );
 
   const handleLogout = async () => {
     await logout();
@@ -104,21 +80,9 @@ export function Header() {
     { labelKey: "navigation.contact", href: "/contact" },
   ];
 
-  // Condensed links shown inside the floating glass pill (3–4 main items)
-  const floatingLinks = [
-    { labelKey: "navigation.about", href: "/about" },
-    { labelKey: "navigation.services", href: "/services" },
-    { labelKey: "navigation.elite_guide", href: "/elite-guide" },
-    { labelKey: "navigation.contact", href: "/contact" },
-  ];
-
-  // Whether the floating glass pill should be rendered (desktop only)
-  const showFloatingPill = isFloating && isPublicRoute;
-
   return (
-    <>
-      <MotionConfig reducedMotion="user">
-        <motion.header
+    <MotionConfig reducedMotion="user">
+      <motion.header
           initial={false}
           animate={{ y: isHidden ? "-100%" : "0%" }}
           transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
@@ -126,11 +90,6 @@ export function Header() {
             "z-50",
             isFixed ? "fixed left-0 right-0 top-0" : "sticky top-0",
             "border-b border-line bg-surface/95 backdrop-blur-xl shadow-ui-1",
-            // On desktop, when the glass pill is active, keep the element in the layout
-            // (preserves height → no CLS) but make it invisible and non-interactive.
-            // `visibility:hidden` also removes it from the accessibility tree so
-            // screen readers reach the pill's nav links instead.
-            showFloatingPill && "md:invisible md:pointer-events-none md:select-none",
           )}
           aria-hidden={isHidden || undefined}
         >
@@ -289,55 +248,6 @@ export function Header() {
             )}
           </nav>
         </motion.header>
-      </MotionConfig>
-
-      {/* Floating glass pill — desktop only, shown when scrolled past hero on public routes */}
-      {showFloatingPill && (
-        <nav
-          aria-label="Floating navigation"
-          className="hidden md:flex fixed top-3 left-1/2 -translate-x-1/2 z-50 items-center gap-4 rounded-full px-6 py-2 backdrop-blur-md bg-[hsl(var(--mkt-glass-bg)/0.12)] border border-[hsl(var(--mkt-glass-border)/0.2)]"
-        >
-          {/* Compact logo */}
-          <Link
-            to="/"
-            className="flex items-center shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mkt-mediterraneo))] rounded-full"
-          >
-            <img
-              src="/imgs/brand/logo-transparent.webp"
-              alt="Elite Education"
-              className="h-6 w-auto opacity-90 hover:opacity-100 transition-opacity"
-            />
-          </Link>
-
-          {/* Condensed nav links */}
-          {floatingLinks.map((link) => (
-            <Link
-              key={link.href}
-              to={link.href}
-              className="text-[hsl(var(--mkt-azahar)/0.9)] hover:text-mkt-sol text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mkt-mediterraneo))] rounded"
-            >
-              {t(link.labelKey)}
-            </Link>
-          ))}
-
-          {/* CTA button */}
-          {isAuthenticated ? (
-            <Link
-              to={dashboardPath}
-              className="bg-mkt-fiesta text-white rounded-full px-4 py-1.5 text-sm font-medium hover:bg-mkt-fiesta/90 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mkt-mediterraneo))]"
-            >
-              {t("navigation.dashboard")}
-            </Link>
-          ) : (
-            <Link
-              to="/auth"
-              className="bg-mkt-fiesta text-white rounded-full px-4 py-1.5 text-sm font-medium hover:bg-mkt-fiesta/90 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mkt-mediterraneo))]"
-            >
-              {t("navigation.login")}
-            </Link>
-          )}
-        </nav>
-      )}
-    </>
+    </MotionConfig>
   );
 }
