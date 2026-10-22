@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { MeshGradientBackground } from "@/components/marketing/MeshGradientBackground";
 import {
-  FadeUp,
-  GoldRule,
-  SectionLabel,
-  PageHeader,
-} from "@/components/shared/editorial-helpers";
+  SolRule,
+  VibrantSectionLabel,
+  MarketingPageHeader,
+  VibrantFadeUp,
+} from "@/components/marketing/vibrant-helpers";
 
 function FAQItem({
   question,
@@ -31,11 +32,11 @@ function FAQItem({
         type="button"
         aria-expanded={isOpen}
         onClick={onToggle}
-        className="flex w-full items-start justify-between gap-4 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
+        className="flex w-full items-start justify-between gap-4 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mkt-mediterraneo))] focus-visible:ring-offset-2"
       >
         <span className="text-sm font-semibold text-ink sm:text-base">{question}</span>
         {isOpen ? (
-          <ChevronUp className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand" aria-hidden />
+          <ChevronUp className="mt-0.5 h-4 w-4 flex-shrink-0 text-[hsl(var(--mkt-mediterraneo))]" aria-hidden />
         ) : (
           <ChevronDown className="mt-0.5 h-4 w-4 flex-shrink-0 text-ink-secondary" aria-hidden />
         )}
@@ -45,7 +46,7 @@ function FAQItem({
           <p className="text-sm leading-relaxed text-ink-secondary">{answer}</p>
           <Link
             to={link}
-            className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand-hover"
+            className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-[hsl(var(--mkt-mediterraneo))] hover:text-[hsl(var(--mkt-fiesta))]"
           >
             {linkLabel}
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -64,25 +65,36 @@ export function FAQPage() {
 
   return (
     <div>
-      <PageHeader
-        label={t("faq.label")}
-        title={t("faq.title")}
-        subtitle={t("faq.subtitle")}
-      />
+      {/* Page header on noche mesh */}
+      <MeshGradientBackground variant="noche" as="section" className="py-16 sm:py-24 px-4">
+        <div className="mx-auto max-w-screen-xl sm:px-6 lg:px-8">
+          <VibrantFadeUp>
+            <MarketingPageHeader
+              eyebrow={t("faq.label")}
+              title={t("faq.title")}
+              deck={t("faq.subtitle")}
+              align="center"
+              tone="dark"
+            />
+          </VibrantFadeUp>
+        </div>
+      </MeshGradientBackground>
 
-      <section className="bg-canvas py-20 sm:py-28">
+      {/* FAQ content on azahar canvas */}
+      <section className="bg-mkt-azahar py-20 sm:py-28">
         <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+          <SolRule className="mb-12" />
           <div className="grid gap-16 lg:grid-cols-3">
-            <FadeUp className="lg:col-span-1">
-              <SectionLabel>{t("faq.label")}</SectionLabel>
-              <GoldRule className="mb-6" />
+            <VibrantFadeUp className="lg:col-span-1">
+              <VibrantSectionLabel tone="mediterraneo" className="mb-4">{t("faq.label")}</VibrantSectionLabel>
+              <SolRule className="mb-6" />
               <p className="text-base leading-relaxed text-ink-secondary">
                 {t("faq.subtitle")}
               </p>
               <Button
                 variant="ghost"
                 size="sm"
-                className="mt-6 border border-line text-brand hover:border-brand hover:bg-accent-soft"
+                className="mt-6 border border-line text-[hsl(var(--mkt-mediterraneo))] hover:border-[hsl(var(--mkt-mediterraneo))] hover:bg-accent-soft focus-visible:ring-[hsl(var(--mkt-mediterraneo))]"
                 asChild
               >
                 <Link to="/elite-guide">
@@ -90,9 +102,9 @@ export function FAQPage() {
                   <ArrowRight className="ml-1.5 h-3.5 w-3.5" aria-hidden />
                 </Link>
               </Button>
-            </FadeUp>
+            </VibrantFadeUp>
 
-            <FadeUp delay={0.1} className="lg:col-span-2">
+            <VibrantFadeUp delay={0.1} className="lg:col-span-2">
               <div
                 className="rounded-ui-lg border border-line bg-surface px-6"
                 role="list"
@@ -111,7 +123,7 @@ export function FAQPage() {
                   </div>
                 ))}
               </div>
-            </FadeUp>
+            </VibrantFadeUp>
           </div>
         </div>
       </section>

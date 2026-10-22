@@ -5,6 +5,13 @@ import { ArrowLeft, ArrowRight, GraduationCap, BookOpen, MapPin, Compass, Tent, 
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { GUIDE_ARTICLES, type GuideRubric } from "@/content/elite-guide";
+import { MeshGradientBackground } from "@/components/marketing/MeshGradientBackground";
+import { GlassCard } from "@/components/marketing/GlassCard";
+import {
+  SolRule,
+  VibrantSectionLabel,
+  MarketingPageHeader,
+} from "@/components/marketing/vibrant-helpers";
 
 const RUBRIC_ICONS: Record<GuideRubric, React.ElementType> = {
   study: GraduationCap,
@@ -158,7 +165,7 @@ export function EliteGuideArticlePage() {
         </div>
       </nav>
 
-      {/* Hero */}
+      {/* Hero image (untouched) */}
       {article.heroImage && (
         <div className="relative h-56 sm:h-72 overflow-hidden bg-surface">
           <img
@@ -171,32 +178,37 @@ export function EliteGuideArticlePage() {
         </div>
       )}
 
-      {/* Article header */}
-      <section className="bg-canvas pt-10 pb-0">
-        <FadeUp className="mx-auto max-w-screen-md px-4 sm:px-6 lg:px-8">
+      {/* Article header on noche mesh */}
+      <MeshGradientBackground variant="noche" as="section" className="pt-10 pb-12 px-4">
+        <FadeUp className="mx-auto max-w-screen-md sm:px-6 lg:px-8">
           <div className="flex items-center gap-2 mb-4">
-            <Icon className="h-4 w-4 text-accent shrink-0" aria-hidden="true" />
-            <span className="text-xs font-semibold uppercase tracking-widest text-accent">
-              {t(`hub.rubric_${article.rubric}`)}
-            </span>
+            <Icon className="h-4 w-4 text-[hsl(var(--mkt-sol))] shrink-0" aria-hidden="true" />
+            <VibrantSectionLabel tone="sol">{t(`hub.rubric_${article.rubric}`)}</VibrantSectionLabel>
           </div>
-          <h1 className="font-display text-2xl font-semibold leading-snug text-ink sm:text-3xl lg:text-4xl">
-            {t(article.titleKey)}
-          </h1>
-          <p className="mt-3 text-base leading-relaxed text-ink-secondary max-w-prose">
-            {t(article.excerptKey)}
-          </p>
+          <MarketingPageHeader
+            title={t(article.titleKey)}
+            deck={t(article.excerptKey)}
+            align="left"
+            tone="dark"
+          />
           {content && (
-            <div className="mt-3 flex items-center gap-1.5 text-caption text-ink-tertiary">
+            <div className="mt-4 flex items-center gap-1.5 text-caption text-[hsl(var(--mkt-azahar)/0.7)]">
               <Clock className="h-3.5 w-3.5" aria-hidden="true" />
               <span>{t("article.reading_time", { minutes: estimateReadingTime(content) })}</span>
             </div>
           )}
         </FadeUp>
-      </section>
+      </MeshGradientBackground>
 
-      {/* Article body */}
-      <section className="bg-canvas py-10">
+      {/* SolRule divider after header, before article content */}
+      <div className="bg-mkt-azahar">
+        <div className="mx-auto max-w-screen-md px-4 sm:px-6 lg:px-8">
+          <SolRule className="pt-8" />
+        </div>
+      </div>
+
+      {/* Article body — white/azahar canvas, prose untouched */}
+      <section className="bg-mkt-azahar py-10">
         <div className="mx-auto max-w-screen-md px-4 sm:px-6 lg:px-8">
           {/* Language fallback notice */}
           {isEnglishOrSpanish && (
@@ -221,8 +233,9 @@ export function EliteGuideArticlePage() {
 
       {/* Related articles */}
       {relatedArticles.length > 0 && (
-        <section className="bg-surface border-t border-line py-12">
+        <section className="bg-mkt-azahar border-t border-line py-12">
           <div className="mx-auto max-w-screen-md px-4 sm:px-6 lg:px-8">
+            <SolRule className="mb-8" />
             <h2 className="font-display text-lg font-semibold text-ink mb-6">
               {t("article.related_label")}
             </h2>
@@ -233,15 +246,17 @@ export function EliteGuideArticlePage() {
                   <Link
                     key={rel.slug}
                     to={`/elite-guide/${rel.slug}`}
-                    className="group flex items-start gap-3 rounded-ui-md border border-line bg-canvas p-4 hover:shadow-ui-1 transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
+                    className="group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--mkt-mediterraneo))] focus-visible:ring-offset-2 rounded-2xl"
                   >
-                    <RelIcon className="h-4 w-4 text-accent mt-0.5 shrink-0" aria-hidden="true" />
-                    <div className="min-w-0">
-                      <p className="text-small font-semibold text-ink group-hover:text-brand transition-colors leading-snug">
-                        {t(rel.titleKey)}
-                      </p>
-                      <p className="mt-1 text-caption text-ink-tertiary line-clamp-2">{t(rel.excerptKey)}</p>
-                    </div>
+                    <GlassCard tone="light" interactive className="flex items-start gap-3 p-4">
+                      <RelIcon className="h-4 w-4 text-[hsl(var(--mkt-mediterraneo))] mt-0.5 shrink-0" aria-hidden="true" />
+                      <div className="min-w-0">
+                        <p className="text-small font-semibold text-ink group-hover:text-[hsl(var(--mkt-mediterraneo))] transition-colors leading-snug">
+                          {t(rel.titleKey)}
+                        </p>
+                        <p className="mt-1 text-caption text-ink-tertiary line-clamp-2">{t(rel.excerptKey)}</p>
+                      </div>
+                    </GlassCard>
                   </Link>
                 );
               })}
@@ -251,17 +266,17 @@ export function EliteGuideArticlePage() {
       )}
 
       {/* CTA */}
-      <section className="bg-brand py-16">
+      <section className="bg-mkt-noche py-16">
         <div className="mx-auto max-w-screen-md px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-display text-2xl font-semibold text-brand-contrast sm:text-3xl">
+          <h2 className="font-display text-2xl font-semibold text-[hsl(var(--mkt-azahar))] sm:text-3xl">
             {t("article.cta_label")}
           </h2>
-          <p className="mt-3 text-base text-brand-contrast/80">{t("article.cta_body")}</p>
+          <p className="mt-3 text-base text-[hsl(var(--mkt-azahar)/0.8)]">{t("article.cta_body")}</p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
             <Button
               variant="primary"
               size="lg"
-              className="bg-surface text-brand hover:bg-canvas focus-visible:ring-accent"
+              className="bg-surface text-[hsl(var(--mkt-noche))] hover:bg-mkt-azahar focus-visible:ring-[hsl(var(--mkt-mediterraneo))]"
               asChild
             >
               <Link to="/contact">
@@ -269,7 +284,12 @@ export function EliteGuideArticlePage() {
                 <ArrowRight className="ml-2 h-4 w-4" aria-hidden="true" />
               </Link>
             </Button>
-            <Button variant="ghost" size="lg" className="border border-brand-contrast/50 text-brand-contrast hover:border-brand-contrast hover:bg-brand-contrast/10" asChild>
+            <Button
+              variant="ghost"
+              size="lg"
+              className="border border-[hsl(var(--mkt-azahar)/0.5)] text-[hsl(var(--mkt-azahar))] hover:border-[hsl(var(--mkt-azahar))] hover:bg-[hsl(var(--mkt-azahar)/0.1)] focus-visible:ring-[hsl(var(--mkt-mediterraneo))]"
+              asChild
+            >
               <Link to="/elite-guide">
                 <ArrowLeft className="mr-2 h-4 w-4" aria-hidden="true" />
                 {t("article.back_to_guide")}
