@@ -1,0 +1,238 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   marketing.tokens.css — Vibrant España 2026 Marketing Tier
+   Scoped entirely to .mkt-theme (applied to root div of PublicLayout.tsx).
+   The authenticated app never renders inside .mkt-theme → leak is impossible.
+   Raw HSL/hex values are legal ONLY in this file; everywhere else use tokens.
+   Import order in globals.css: after ui-system.tokens.css, before @tailwind.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* ── Tier A: Base palette (HSL triplets, no hsl() wrapper → Tailwind-compatible) */
+.mkt-theme {
+  /* Primary palette */
+  --mkt-fiesta:       355 76% 56%;   /* #E63946 — Spanish red */
+  --mkt-sol:          42 100% 51%;   /* #FFB703 — Mediterranean sun */
+  --mkt-mediterraneo: 193 70% 43%;   /* #219EBC — Aegean blue */
+  --mkt-azahar:       42 68% 97%;    /* #FDF8F0 — orange blossom cream */
+  --mkt-noche:        221 51% 16%;   /* #14213D — deep night blue */
+
+  /* Bridge tones */
+  --mkt-naranja:  25 95% 55%;        /* fiesta→sol bridge */
+  --mkt-violeta:  265 45% 40%;       /* noche→fiesta aurora depth */
+
+  /* ── Derived: scrims ── */
+  --mkt-scrim-dark:  221 51% 16%;    /* use with /0.6–0.8 alpha */
+  --mkt-scrim-light: 42 68% 97%;     /* use with /0.85 alpha */
+
+  /* ── Derived: glass ── */
+  --mkt-glass-bg:     0 0% 100%;     /* use with /0.08 alpha */
+  --mkt-glass-border: 0 0% 100%;     /* use with /0.15 alpha */
+
+  /* ── Derived: glow (same hue, referenced in box-shadow) ── */
+  --mkt-glow-fiesta:       355 76% 56%;
+  --mkt-glow-sol:           42 100% 51%;
+  --mkt-glow-mediterraneo: 193 70% 43%;
+
+  /* ── Typography ── */
+  --mkt-ink-on-vibrant: 0 0% 100%;
+  --mkt-ink-on-light:   221 51% 16%;
+  --mkt-font-display:   'Bricolage Grotesque Variable', system-ui, sans-serif;
+
+  /* ── Elevation ── */
+  --mkt-shadow-soft: 0 8px 48px -8px hsl(221 51% 16% / 0.28),
+                     0 2px 12px -2px hsl(221 51% 16% / 0.15);
+
+  /* ── Motion ── */
+  --mkt-duration-drift:  8s;
+  --mkt-duration-reveal: 600ms;
+
+  /* ── Scroll journey (overwritten at runtime by useScrollPalette) ── */
+  --mkt-journey-bg:   hsl(42 68% 97%);    /* azahar → initial value */
+  --mkt-journey-tint: hsl(221 51% 16%);   /* noche → initial value */
+}
+
+/* ── Tier B: Semantic re-skin (override --ui-* inside .mkt-theme only)
+   CVA primitives, Button, Badge, Accordion, GoldRule, focus rings re-skin
+   automatically via these overrides — zero component edits required.
+   Status / alert / booking tokens are NEVER overridden here.             ── */
+.mkt-theme {
+  /* Brand → fiesta family */
+  --ui-brand:          355 76% 50%;
+  --ui-brand-hover:    355 76% 43%;
+  --ui-brand-active:   355 76% 35%;
+  --ui-brand-contrast: 0 0% 100%;
+
+  /* Accent → sol family */
+  --ui-accent:       42 100% 47%;
+  --ui-accent-hover: 42 100% 40%;
+  --ui-accent-soft:  42 60% 92%;
+
+  /* Focus → mediterráneo (2px ring per WCAG, 44px touch targets) */
+  --ui-focus: 193 70% 43%;
+
+  /* Hero → noche / azahar / sol */
+  --ui-hero-bg:          221 51% 14%;
+  --ui-hero-fg:          42 68% 97%;
+  --ui-hero-step-label:  42 100% 65%;
+  --ui-hero-progress:    42 100% 65%;
+  --ui-hero-cta-bg:      42 68% 97%;
+  --ui-hero-cta-fg:      221 51% 16%;
+  --ui-hero-cta-hover:   42 60% 91%;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Utility classes — raw HSL legal here (this IS the token file)
+   All composed under .mkt-theme via @layer utilities.
+   ───────────────────────────────────────────────────────────────────────────── */
+@layer utilities {
+
+  /* ── Mesh gradient backgrounds (pure CSS radial-gradient stacks) ── */
+  .mkt-mesh-noche {
+    background:
+      radial-gradient(ellipse 80% 60% at 15% 25%, hsl(265 45% 40% / 0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 55% at 85% 75%, hsl(355 76% 56% / 0.4) 0%, transparent 55%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, hsl(221 51% 13%) 0%, hsl(221 51% 9%) 100%);
+  }
+
+  .mkt-mesh-fiesta {
+    background:
+      radial-gradient(ellipse 70% 55% at 70% 20%, hsl(42 100% 51% / 0.5) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 20% 80%, hsl(265 45% 40% / 0.4) 0%, transparent 50%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, hsl(355 76% 48%) 0%, hsl(25 95% 42%) 100%);
+  }
+
+  .mkt-mesh-sol {
+    background:
+      radial-gradient(ellipse 80% 60% at 30% 30%, hsl(42 100% 72% / 0.65) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 75% 70%, hsl(355 76% 56% / 0.35) 0%, transparent 50%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, hsl(42 100% 56%) 0%, hsl(25 95% 50%) 100%);
+  }
+
+  .mkt-mesh-mediterraneo {
+    background:
+      radial-gradient(ellipse 70% 55% at 60% 25%, hsl(193 70% 65% / 0.5) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 25% 70%, hsl(221 51% 28% / 0.45) 0%, transparent 50%),
+      radial-gradient(ellipse 100% 100% at 50% 50%, hsl(193 70% 37%) 0%, hsl(221 51% 22%) 100%);
+  }
+
+  /* ── Aurora blob base (blob sizes/positions set per AuroraSection instance) ── */
+  .mkt-aurora-blob {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(80px);
+    pointer-events: none;
+  }
+
+  .mkt-aurora-blob-fiesta {
+    background: hsl(355 76% 56% / 0.55);
+  }
+
+  .mkt-aurora-blob-sol {
+    background: hsl(42 100% 51% / 0.5);
+  }
+
+  .mkt-aurora-blob-mediterraneo {
+    background: hsl(193 70% 43% / 0.5);
+  }
+
+  .mkt-aurora-blob-violeta {
+    background: hsl(265 45% 40% / 0.55);
+  }
+
+  /* ── Glow utilities ── */
+  .mkt-glow-sm-fiesta {
+    box-shadow: 0 0 16px 2px hsl(355 76% 56% / 0.4),
+                0 0 6px 1px  hsl(355 76% 56% / 0.2);
+  }
+  .mkt-glow-md-fiesta {
+    box-shadow: 0 0 32px 6px hsl(355 76% 56% / 0.45),
+                0 0 12px 2px hsl(355 76% 56% / 0.25);
+  }
+  .mkt-glow-sm-sol {
+    box-shadow: 0 0 16px 2px hsl(42 100% 51% / 0.45),
+                0 0 6px 1px  hsl(42 100% 51% / 0.25);
+  }
+  .mkt-glow-md-sol {
+    box-shadow: 0 0 32px 6px hsl(42 100% 51% / 0.5),
+                0 0 12px 2px hsl(42 100% 51% / 0.3);
+  }
+  .mkt-glow-sm-mediterraneo {
+    box-shadow: 0 0 16px 2px hsl(193 70% 43% / 0.4),
+                0 0 6px 1px  hsl(193 70% 43% / 0.2);
+  }
+  .mkt-glow-md-mediterraneo {
+    box-shadow: 0 0 32px 6px hsl(193 70% 43% / 0.45),
+                0 0 12px 2px hsl(193 70% 43% / 0.25);
+  }
+
+  /* ── 1px gradient border (double background: padding-box / border-box) ── */
+  .mkt-border-gradient {
+    background:
+      linear-gradient(hsl(221 51% 14%), hsl(221 51% 14%)) padding-box,
+      linear-gradient(
+        135deg,
+        hsl(355 76% 56% / 0.65),
+        hsl(42 100% 51% / 0.45),
+        hsl(193 70% 43% / 0.55)
+      ) border-box;
+    border: 1px solid transparent;
+  }
+
+  .mkt-border-gradient-light {
+    background:
+      linear-gradient(hsl(42 68% 97%), hsl(42 68% 97%)) padding-box,
+      linear-gradient(
+        135deg,
+        hsl(355 76% 56% / 0.5),
+        hsl(42 100% 51% / 0.35),
+        hsl(193 70% 43% / 0.4)
+      ) border-box;
+    border: 1px solid transparent;
+  }
+
+  /* ── Scroll journey canvas (background driven by useScrollPalette) ── */
+  .mkt-journey-canvas {
+    background-color: var(--mkt-journey-bg);
+    transition: background-color 0.6s ease;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Reduced-motion: hard-disable all motion in .mkt-theme; keep backdrop-filter
+   (visual, not motion). Framer Motion also respects useReducedMotion() in JS.
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .mkt-theme *,
+  .mkt-theme *::before,
+  .mkt-theme *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable gradient drift on mesh backgrounds */
+  .mkt-theme .mkt-mesh-noche,
+  .mkt-theme .mkt-mesh-fiesta,
+  .mkt-theme .mkt-mesh-sol,
+  .mkt-theme .mkt-mesh-mediterraneo {
+    animation: none !important;
+  }
+
+  /* Disable blur on aurora blobs for perf (reduced-motion users often on low-power) */
+  .mkt-theme .mkt-aurora-blob {
+    filter: none !important;
+    opacity: 0.4;
+  }
+}
+
+/* ── Gradient drift animation (mesh animate prop; off <768px via component) ── */
+@keyframes mkt-gradient-drift {
+  0%, 100% { background-position: 0% 50%; }
+  33%       { background-position: 50% 0%; }
+  66%       { background-position: 100% 50%; }
+}
+
+.mkt-mesh-animate {
+  background-size: 200% 200%;
+  animation: mkt-gradient-drift var(--mkt-duration-drift, 8s) ease infinite;
+}

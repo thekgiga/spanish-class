@@ -4,6 +4,9 @@
 /* Editorial Teaching Studio semantic tokens — must precede @tailwind directives */
 @import './ui-system.tokens.css';
 
+/* Vibrant España 2026 marketing tier — scoped to .mkt-theme (PublicLayout.tsx) */
+@import './marketing.tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

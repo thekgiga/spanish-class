@@ -11,6 +11,19 @@ export default {
       // entries until all production references are migrated (Phase 7).
       colors: {
         ...uiSystemExtend.colors,
+        // ── Vibrant España 2026 marketing palette ─────────────────────────────
+        // References CSS vars from marketing.tokens.css; available only inside
+        // .mkt-theme (applied by PublicLayout.tsx). Safe to reference in any
+        // component — if .mkt-theme is absent the var falls back to transparent.
+        mkt: {
+          fiesta:       'hsl(var(--mkt-fiesta) / <alpha-value>)',
+          sol:          'hsl(var(--mkt-sol) / <alpha-value>)',
+          mediterraneo: 'hsl(var(--mkt-mediterraneo) / <alpha-value>)',
+          azahar:       'hsl(var(--mkt-azahar) / <alpha-value>)',
+          noche:        'hsl(var(--mkt-noche) / <alpha-value>)',
+          naranja:      'hsl(var(--mkt-naranja) / <alpha-value>)',
+          violeta:      'hsl(var(--mkt-violeta) / <alpha-value>)',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -400,6 +413,7 @@ export default {
       },
       fontFamily: {
         ...uiSystemExtend.fontFamily,
+        mktdisplay: ['Bricolage Grotesque Variable', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",

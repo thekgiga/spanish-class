@@ -287,4 +287,66 @@ function MyComponent() {
 - 2026-02-25: Created comprehensive scripts documentation in `scripts/README.md`
 
 <!-- MANUAL ADDITIONS START -->
+
+## Vibrant España 2026 — Marketing Redesign Rules
+
+Non-negotiables every agent MUST follow. Added 2026-10-22 after Phase 0 guardrail cleanup.
+
+### 1. Scope isolation
+All new visual work lives under the `.mkt-theme` class (applied to the root div of `PublicLayout.tsx`).
+- **NEVER** edit `--ui-*` values in `ui-system.tokens.css` or `ui-system.tailwind.extend.cjs`
+- The authenticated app (Editorial Teaching Studio) must remain pixel-identical
+- The `.mkt-theme` scope makes leakage structurally impossible
+
+### 2. Tokens
+- Use `--mkt-*` CSS tokens and `mkt-*` Tailwind classes from `src/styles/marketing.tokens.css`
+- Raw hex/HSL values are legal **only** inside that token file
+- Status / booking / alert tokens are **never** overridden
+
+### 3. Palette
+| Name | Hex | Use |
+|---|---|---|
+| fiesta | #E63946 | Primary brand, CTA backgrounds |
+| sol | #FFB703 | Accent, progress, highlights |
+| mediterráneo | #219EBC | Focus ring, info accents |
+| azahar | #FDF8F0 | Light canvas, text-on-dark |
+| noche | #14213D | Dark backgrounds, text-on-light |
+| naranja | (bridge) | fiesta→sol gradients |
+| violeta | (bridge) | noche→fiesta aurora depth |
+
+### 4. Readability
+- Body text **never** directly on mesh/aurora — always on scrim or `GlassCard`
+- Display text on gradient: ≥32px bold + text-shadow, contrast vs worst gradient stop
+- Sol **never** as text on light grounds
+- Fiesta as text only ≥24px bold on azahar
+- Focus ring = mediterráneo, 2px offset
+- 44px touch targets
+
+### 5. Motion
+- Every animation has a `useReducedMotion()` static fallback
+- No infinite looping attention effects (vestibular safety)
+- Page transitions: AnimatePresence 250ms fade/8px rise on public routes only
+
+### 6. Perf budget
+- ≤2 `blur()` layers per viewport
+- ≤2 `backdrop-filter` surfaces per viewport
+- Gradient drift animation off `<768px`
+- `@supports not (backdrop-filter)` → solid scrim fallback
+
+### 7. Portals
+- Marketing overlays are inline-only (Radix portals escape `.mkt-theme`)
+- MobileNav portal container must have `.mkt-theme` added explicitly
+
+### 8. i18n
+- Every new string in en + sr + es simultaneously (restated for distributed agents)
+
+### 9. Regression
+- 17 baseline E2E tests must stay green throughout
+- Verification: `npm run lint`, `tsc`, optional `scripts/uiux/*.mjs`
+- Playwright screenshots at 390/768/1280/1440px
+
+### 10. Tracking
+- Append `VIB-0xx` rows to `docs/redesign/implementation-matrix.csv` per completed work item
+- Master plan: `docs/redesign/vibrant-espana-2026-plan.md`
+
 <!-- MANUAL ADDITIONS END -->

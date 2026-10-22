@@ -42,21 +42,21 @@ Preserve the existing architecture unless the current redesign phase explicitly 
 
 For every user-facing change:
 
-1. Activate `spanish-class-ui-ux-guardian` and `spanish-class-ui-system`.
-2. Identify affected role, journey, BPMN section, and requirement IDs.
-3. Inspect existing components before proposing new ones.
-4. Write a short implementation plan before editing.
-5. Reuse semantic tokens, primitives, composites, and domain components.
-6. Implement loading, empty, error, disabled, success, and permission states.
-7. Verify keyboard, screen-reader semantics, reduced motion, and focus restoration.
-8. Verify 390px, 768px, 1280px, and 1440px layouts.
-9. Add or update tests and visual evidence.
-10. Update `docs/redesign/implementation-matrix.csv`.
-11. Run the independent `ui-ux-reviewer` and `visual-design-reviewer` agents.
-12. Run `node scripts/uiux/check-ui-system.mjs`.
-13. Run `node scripts/uiux/frontend-verify.mjs`.
+1. Identify affected role, journey, BPMN section, and requirement IDs.
+2. Inspect existing components before proposing new ones.
+3. Write a short implementation plan before editing.
+4. Reuse semantic tokens, primitives, composites, and domain components.
+5. Implement loading, empty, error, disabled, success, and permission states.
+6. Verify keyboard, screen-reader semantics, reduced motion, and focus restoration.
+7. Verify 390px, 768px, 1280px, and 1440px layouts.
+8. Add or update tests and visual evidence.
+9. Update `docs/redesign/implementation-matrix.csv`.
+10. Run `node scripts/uiux/check-ui-system.mjs`.
+11. Run `node scripts/uiux/frontend-verify.mjs`.
 
 Never report completion while a blocking check or reviewer issue remains.
+
+**Marketing redesign agents:** also follow all rules in root `CLAUDE.md` § "Vibrant España 2026 — Marketing Redesign Rules".
 
 ## Architecture rules
 
