@@ -225,7 +225,8 @@
   "cta": {
     "title": "Spremni za sledeći korak?",
     "body": "Bez obzira da li želite da učite španski, pronađete fakultet, aplicirate za studije ili detetu pružite prvo međunarodno iskustvo — možemo početi razgovorom. Recite nam šta želite. Mi ćemo vam pomoći da pronađete put.",
-    "button": "Zakažite konsultaciju"
+    "button": "Zakažite konsultaciju",
+    "label": "Sledeći koraci"
   },
   "footer": {
     "tagline": "Obrazovanje. Jezik. Španija.",
