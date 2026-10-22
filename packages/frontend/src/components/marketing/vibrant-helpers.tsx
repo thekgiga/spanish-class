@@ -39,7 +39,7 @@ export function VibrantSectionLabel({ children, tone = 'sol', className }: Vibra
   return (
     <p
       className={cn(
-        'font-sans text-xs font-bold uppercase tracking-[0.18em]',
+        'font-sans mkt-eyebrow',
         toneClass,
         className,
       )}
@@ -57,6 +57,7 @@ interface MarketingPageHeaderProps {
   align?: 'left' | 'center';
   tone?: 'light' | 'dark';
   className?: string;
+  headingClassName?: string;
 }
 export function MarketingPageHeader({
   eyebrow,
@@ -65,6 +66,7 @@ export function MarketingPageHeader({
   align = 'center',
   tone = 'dark',
   className,
+  headingClassName,
 }: MarketingPageHeaderProps) {
   const isLight = tone === 'light';
   return (
@@ -80,7 +82,8 @@ export function MarketingPageHeader({
       )}
       <h1
         className={cn(
-          'mkt-display-xl font-mktdisplay',
+          headingClassName ?? 'mkt-display-xl',
+          'font-mktdisplay',
           isLight ? 'text-[hsl(var(--mkt-noche))]' : 'text-[hsl(var(--mkt-azahar))]',
         )}
       >

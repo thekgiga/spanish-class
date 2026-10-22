@@ -190,6 +190,7 @@ export function EliteGuideArticlePage() {
             deck={t(article.excerptKey)}
             align="left"
             tone="dark"
+            headingClassName="mkt-display"
           />
           {content && (
             <div className="mt-4 flex items-center gap-1.5 text-caption text-[hsl(var(--mkt-azahar)/0.7)]">
